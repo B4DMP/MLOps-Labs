@@ -7,7 +7,7 @@ from mlops_serious_game.domain.persona_resolver import personalize
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
-from mlops_serious_game.domain.requirement import tag_label, truncate_detail
+from mlops_serious_game.domain.requirement import STANCE_TAGS, tag_label, truncate_detail
 from mlops_serious_game.infrastructure.database.run_scope import current_run_index
 from mlops_serious_game.infrastructure.database import get_session, GameChallenge, IntelItem, get_user_id
 from mlops_serious_game.application.online_intel_service.service import (
@@ -104,6 +104,13 @@ async def handle_tag_item(websocket: WebSocket, username: str, payload: dict) ->
         curr_challenge = phases[0].challenges[0]
 
     if intel_id and categorized_type:
+        if categorized_type not in {t.value for t in STANCE_TAGS}:
+            await manager.send_event(
+                websocket=websocket,
+                event="system:error",
+                payload={"message": f"'{categorized_type}' is not a tag a player can assign."},
+            )
+            return
         intel_item = await handle_intel_tagging(curr_challenge, websocket, intel_id, categorized_type)
         item_dict = intel_item.model_dump() if hasattr(intel_item, "model_dump") else dict(intel_item)
         if getattr(intel_item, "categorized_description", None):

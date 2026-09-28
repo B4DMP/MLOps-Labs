@@ -119,13 +119,6 @@ export function NodeDefs({ prefix }: { prefix: string }) {
         <feDropShadow in="aberrated" dx="0" dy="0" stdDeviation="4" floodColor={NODE_COLORS.broken} floodOpacity="0.55" result="lit" />
         <feDropShadow in="lit" dx="0" dy="1.5" stdDeviation="1.8" floodColor="#0f172a" floodOpacity="0.14" />
       </filter>
-
-      {/* Undiscovered nodes: a diagonal hatch instead of flat grey - fog you can see beats
-          absence. 8px tile so it stays crisp at MAX_ZOOM (a 2px hatch turns to mush). */}
-      <pattern id={`${prefix}-face-unknown`} width={8} height={8} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-        <rect width={8} height={8} fill="#fbfcfe" />
-        <line x1={0} y1={0} x2={0} y2={8} stroke="#dbe3ec" strokeWidth={2} />
-      </pattern>
     </defs>
   );
 }
@@ -407,7 +400,6 @@ export const NODE_STATE_ANIM = `
   90%, 96% { opacity: 0.8; }
   97% { opacity: 0; }
 }
-@keyframes node-scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(200%); } }
 .node-broken { animation: node-glitch-tick 2.4s ease-in-out infinite; }
 .node-aberration { opacity: 0; animation: node-aberration-tick 2.4s ease-in-out infinite; }
 
@@ -423,9 +415,8 @@ export const NODE_STATE_ANIM = `
   100% { transform: scale(1); }
 }
 .edge-handle-reveal { animation: edge-handle-reveal 1.1s ease-in-out 1 both; }
-.node-scanline { animation: node-scanline 2.6s linear infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .node-broken, .node-scanline, .node-aberration, .edge-handle-reveal { animation: none; }
+  .node-broken, .node-aberration, .edge-handle-reveal { animation: none; }
 }
 `;
 
@@ -456,36 +447,6 @@ export function CappedChainGlyph({ color = NODE_COLORS.capped }: { color?: strin
         <Icon icon="ph:link-simple-bold" width={8} height={8} color={color} />
       </g>
     </g>
-  );
-}
-
-/** Stale: a faint scanline sliding down the face, clipped to the node's own rounded shape
- *  (reusing the clip already made for the status rail). */
-export function StaleScanline({ clipPathId }: { clipPathId: string }) {
-  return (
-    <rect
-      className="node-scanline"
-      x={0}
-      y={-BOX_H}
-      width={BOX_W}
-      height={BOX_H / 3}
-      fill="url(#scanline-gradient)"
-      opacity={0.5}
-      clipPath={`url(#${clipPathId})`}
-      pointerEvents="none"
-    />
-  );
-}
-
-/** The gradient `StaleScanline` paints with: one definition, reused by every stale node on
- *  either canvas. */
-export function ScanlineDefs() {
-  return (
-    <linearGradient id="scanline-gradient" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stopColor="#ffffff" stopOpacity={0} />
-      <stop offset="50%" stopColor="#ffffff" stopOpacity={0.9} />
-      <stop offset="100%" stopColor="#ffffff" stopOpacity={0} />
-    </linearGradient>
   );
 }
 

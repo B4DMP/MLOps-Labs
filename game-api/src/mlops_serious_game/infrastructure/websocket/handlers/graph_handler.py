@@ -1,4 +1,4 @@
-"""Handles graph:state_request — pushes the knowledge-filtered graph view to the client."""
+"""Handles graph:state_request — pushes the graph view to the client."""
 
 from typing import Optional
 from fastapi import WebSocket
@@ -13,7 +13,7 @@ from ..manager import manager
 
 
 async def push_graph_state(websocket: WebSocket, username: str, phase_id: Optional[int] = None) -> None:
-    """Loads ground truth + knowledge, evaluates, and pushes graph:state to the client."""
+    """Loads ground truth, evaluates, and pushes graph:state to the client."""
     graph = GraphFactory.get_graph()
     replay = graph_store.load_state(username)
     evaluation = evaluate_graph(graph, replay.state, PatternFactory.patterns, PatternFactory.order)
@@ -21,7 +21,6 @@ async def push_graph_state(websocket: WebSocket, username: str, phase_id: Option
     view = build_graph_state(
         graph=graph,
         state=replay.state,
-        knowledge=replay.knowledge,
         effective=evaluation.effective,
         stage_view=evaluation.stage_graph,
         patterns=PatternFactory.patterns,
@@ -33,6 +32,6 @@ async def push_graph_state(websocket: WebSocket, username: str, phase_id: Option
 
 
 async def handle_graph_state(websocket: WebSocket, username: str, payload: dict) -> None:
-    """Loads ground truth + knowledge, evaluates, and pushes graph:state to the requesting client."""
+    """Loads ground truth, evaluates, and pushes graph:state to the requesting client."""
     phase_id: Optional[int] = payload.get("phase_id")
     await push_graph_state(websocket, username, phase_id)

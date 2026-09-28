@@ -18,7 +18,7 @@ from mlops_serious_game.application.graph_service.pipeline import (
     simulate,
     simulation_events,
 )
-from mlops_serious_game.domain.graph import GraphOp, GraphState, Knowledge, SeenEntry, TechnicalGraph
+from mlops_serious_game.domain.graph import GraphOp, GraphState, TechnicalGraph
 from mlops_serious_game.domain.grudge import FiredGrudge, Grudge
 
 
@@ -313,7 +313,7 @@ def test_owner_resolution_prefers_the_components_own_owner():
     assert graph.owner_of("a.owned") == "component_owner"
 
 
-def test_the_card_observes_what_it_touched(real):
+def test_a_card_logs_no_observe_ops(real):
     result = simulate(
         real,
         _start(real),
@@ -322,8 +322,8 @@ def test_the_card_observes_what_it_touched(real):
         reads=[_read("data_dave")],
         challenge=_challenge(),
     )
-    observed = [op.target for op in result.ops if op.kind == "observe"]
-    assert observed == ["data.validation"]
+    assert result.ops
+    assert all(op.kind != "observe" for op in result.ops)
 
 
 # ---------- run_simulation idempotency (D-question 1) ----------
@@ -338,7 +338,7 @@ class _FakeStore:
         self.append_calls = 0
 
     def load_state(self, username):
-        return SimpleNamespace(state=self._state, knowledge=None)
+        return SimpleNamespace(state=self._state)
 
     def has_batch(self, username, source_id):
         return any(r["source_id"] == source_id for r in self.rows)
@@ -404,31 +404,23 @@ def _report(**kw) -> DeltaReport:
     return DeltaReport(**base)
 
 
-def test_simulation_events_names_a_known_target_and_hides_an_unknown_one(real):
-    state = _start(real)
-    known = Knowledge(seen={"data.validation": SeenEntry(
-        seq=99, nominal_automation=3, nominal_governance=0, effective_automation=3, effective_governance=0
-    )})
+def test_simulation_events_always_name_the_target(real):
     report = _report(world_events=[
         WorldEventDelta(target="data.validation", axis="automation", before=1, after=3, reason="a world event"),
         WorldEventDelta(target="model.registry", axis="automation", before=3, after=1, reason="a world event"),
     ])
-    events = simulation_events(report, real, state, known)
+    events = simulation_events(report, real)
     by_target = {e.subject_id: e for e in events}
     assert by_target["data.validation"].cause == "graph.moved"
     assert by_target["data.validation"].params["name"] == real.component("data.validation").name
     assert by_target["data.validation"].direction == "up"
-
-    unknown = [e for e in events if e.subject_id is None]
-    assert len(unknown) == 1
-    assert unknown[0].cause == "graph.moved_unknown"
-    assert unknown[0].direction == "down"
-    assert unknown[0].params["stage"]  # some stage name, never the target id
+    assert by_target["model.registry"].direction == "down"
+    assert all(e.cause == "graph.moved" for e in events)
 
 
 def test_simulation_events_skips_unchanged_targets(real):
     report = _report(world_events=[WorldEventDelta(target="data.validation", axis="automation", before=2, after=2, reason="")])
-    assert simulation_events(report, real, _start(real), None) == []
+    assert simulation_events(report, real) == []
 
 
 def test_simulation_events_covers_propagation_metrics_and_grudges(real):
@@ -441,7 +433,7 @@ def test_simulation_events_covers_propagation_metrics_and_grudges(real):
             fired=[FiredGrudge(stakeholder_id="reliability_ruth", effect="degrade", weight=1, age=1)],
         ),
     )
-    events = simulation_events(report, real, state, None, names={"data_dave": "Data Dave", "reliability_ruth": "Reliability Ruth"})
+    events = simulation_events(report, real, names={"data_dave": "Data Dave", "reliability_ruth": "Reliability Ruth"})
 
     metric_events = {e.subject_id: e for e in events if e.kind == "metric"}
     assert metric_events["data"].direction == "up" and metric_events["data"].magnitude == "clear"

@@ -1,4 +1,4 @@
-"""Applying ops to the graph, and replaying the op log into ground truth plus player knowledge.
+"""Applying ops to the graph, and replaying the op log into ground truth.
 
 Everything here is pure. Owner degradation and the one-step-per-slot cap are resolved once, when
 an action card is applied, and the resolved op (with its `intended` level) is what gets logged.
@@ -9,7 +9,6 @@ from typing import Any, Iterable, Optional, Sequence
 
 from pydantic import BaseModel, Field
 
-from mlops_serious_game.application.graph_service.effective import EffectiveView, compute_effective
 from mlops_serious_game.domain.graph import (
     AutomationState,
     Axis,
@@ -17,10 +16,8 @@ from mlops_serious_game.domain.graph import (
     GraphOp,
     GraphState,
     Instance,
-    Knowledge,
     LoggedOp,
     NON_AUTOMATIC_TRIGGERS,
-    SeenEntry,
     TechnicalGraph,
     trigger_for_automation,
 )
@@ -155,18 +152,12 @@ def resolve_neglect(graph: TechnicalGraph, op: GraphOp, neglect: Optional[tuple[
     return op.model_copy(update={"value": int(applied), "intended": intended, "degraded_by": saboteur})
 
 
-def _mark(state: GraphState, target: str, seq: Optional[int]) -> None:
-    if seq is not None:
-        state.changed_at[target] = seq
-
-
 def _sync_trigger(graph: TechnicalGraph, state: GraphState, edge_id: str, seq: Optional[int]) -> None:
     edge = graph.edge(edge_id)
     current = state.edge_triggers.get(edge_id)
     expected = trigger_for_automation(edge, state.edge_automation[edge_id], current)
     if expected is not None and expected != current:
         state.edge_triggers[edge_id] = expected
-        _mark(state, edge_id, seq)
 
 
 def _resolve_target(graph: TechnicalGraph, op: GraphOp) -> Optional[GraphOp]:
@@ -181,8 +172,6 @@ def _apply_one(
     graph: TechnicalGraph, state: GraphState, op: GraphOp, seq: Optional[int], result: ApplyResult
 ) -> None:
     kind = op.kind
-    if kind == "observe":
-        return
     if kind not in ("instance_upsert", "set_instance_prop"):
         op = _resolve_target(graph, op)
         if op is None:
@@ -222,7 +211,6 @@ def _apply_one(
         new = max(current, requested) if kind == "raise_to" else requested
         if new != current:
             state_dict[op.target] = new
-            _mark(state, op.target, seq)
         if axis == "automation" and graph.is_edge(op.target):
             _sync_trigger(graph, state, op.target, seq)
 
@@ -278,7 +266,6 @@ def _apply_one(
             state.edge_automation[op.target] = min(automated)
         if state.edge_triggers.get(op.target) != op.value or automation < AutomationState.AUTOMATED:
             state.edge_triggers[op.target] = op.value
-            _mark(state, op.target, seq)
         return
 
     if kind == "set_attr":
@@ -295,7 +282,6 @@ def _apply_one(
         attrs = state.attrs.setdefault(op.target, {})
         if attrs.get(op.attr) != op.value:
             attrs[op.attr] = op.value
-            _mark(state, op.target, seq)
         return
 
     if kind == "instance_upsert":
@@ -311,7 +297,6 @@ def _apply_one(
         previous = state.instances.get(inst.id)
         merged_props = {**(previous.props if previous else {}), **inst.props}
         state.instances[inst.id] = graph.with_default_props(inst.model_copy(update={"props": merged_props}))
-        _mark(state, inst.id, seq)
         return
 
     if kind == "set_instance_prop":
@@ -325,7 +310,6 @@ def _apply_one(
             return
         if inst.props.get(op.attr) != op.value:
             inst.props[op.attr] = op.value
-            _mark(state, inst.id, seq)
         return
 
 
@@ -355,61 +339,25 @@ def apply_ops(
 
 class Replay(BaseModel):
     state: GraphState
-    knowledge: Knowledge
     rejected: list[RejectedOp] = Field(default_factory=list)
 
 
-def _observe(state: GraphState, effective: EffectiveView, graph: TechnicalGraph, target: str, seq: int) -> SeenEntry:
-    if graph.is_component(target):
-        return SeenEntry(
-            seq=seq,
-            nominal_automation=state.component_automation[target],
-            nominal_governance=state.component_governance[target],
-            effective_automation=effective.automation[target],
-            effective_governance=effective.governance[target],
-            attrs=dict(state.attrs.get(target, {})),
-        )
-    return SeenEntry(
-        seq=seq,
-        nominal_automation=state.edge_automation[target],
-        nominal_governance=state.edge_governance[target],
-        effective_automation=effective.automation[target],
-        effective_governance=effective.governance[target],
-        trigger=state.edge_triggers.get(target),
-    )
-
-
 def replay(graph: TechnicalGraph, log: Iterable[LoggedOp]) -> Replay:
-    """Folds the log into ground truth and player knowledge. Log must be in seq order."""
+    """Folds the log into ground truth. Log must be in seq order."""
     state = GraphState.from_config(graph)
-    knowledge = Knowledge()
     rejected: list[RejectedOp] = []
-    effective: Optional[EffectiveView] = None
 
     for entry in log:
         op = entry.op
-        if op.kind == "observe":
-            op = _resolve_target(graph, op)
-            if op is None:
-                continue
-            if not graph.is_target(op.target):
-                rejected.append(RejectedOp(op=op, reason="unknown target"))
-                continue
-            if effective is None:
-                effective = compute_effective(graph, state)
-            knowledge.seen[op.target] = _observe(state, effective, graph, op.target, entry.seq)
-            continue
         result = ApplyResult(state=state)
         _apply_one(graph, state, op, entry.seq, result)
         rejected.extend(result.rejected)
-        effective = None
 
-    return Replay(state=state, knowledge=knowledge, rejected=rejected)
+    return Replay(state=state, rejected=rejected)
 
 
 def seed_ops(graph: TechnicalGraph) -> list[GraphOp]:
-    """The starting graph, pinned into the log so later config edits do not rewrite history,
-    followed by the handful of facts the briefing reveals."""
+    """The starting graph, pinned into the log so later config edits do not rewrite history."""
     ops: list[GraphOp] = []
     for c in graph.components:
         ops.append(GraphOp(kind="set_to", target=c.id, axis="automation", value=c.initial_automation, source_kind="challenge_seed"))
@@ -429,6 +377,4 @@ def seed_ops(graph: TechnicalGraph) -> list[GraphOp]:
                 source_kind="challenge_seed",
             )
         )
-    for target in graph.briefing_observed:
-        ops.append(GraphOp(kind="observe", target=target, source_kind="challenge_seed"))
     return ops

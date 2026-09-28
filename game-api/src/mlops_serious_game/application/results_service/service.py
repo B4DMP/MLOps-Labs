@@ -73,7 +73,6 @@ def _graph_view(username: str, run_index: Optional[int], phase_id: Optional[int]
     return build_graph_state(
         graph=graph,
         state=replay.state,
-        knowledge=replay.knowledge,
         effective=evaluation.effective,
         stage_view=evaluation.stage_graph,
         patterns=PatternFactory.patterns,
@@ -180,14 +179,10 @@ def _knowledge_correct(additional_data: Any, questions) -> Optional[int]:
 
 
 def _gate7_target_rows(graph_view: dict[str, Any]) -> list[dict[str, Any]]:
-    """One row per component/edge the player has actually observed, for the change-scope and
-    drift-magnitude readings (compute.py). A target still in the fog (`knowledge == "unknown"`)
-    was never theirs to build, so it is left out rather than counted as unrealized."""
+    """One row per component/edge, for the change-scope and drift-magnitude readings (compute.py)."""
     rows: list[dict[str, Any]] = []
     for stage in graph_view.get("technical", {}).values():
         for target in [*stage.get("components", []), *stage.get("edges", [])]:
-            if target.get("knowledge") == "unknown":
-                continue
             automation = target.get("nominal_automation", target.get("automation"))
             if automation is None:
                 continue

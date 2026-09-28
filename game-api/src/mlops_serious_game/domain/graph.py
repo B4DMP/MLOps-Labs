@@ -107,11 +107,8 @@ def narrative_tier(automation: int, governance: int) -> int:
 NON_AUTOMATIC_TRIGGERS = frozenset({"none", "manual_request"})
 
 EdgeKind = Literal["pipeline", "feedback"]
-OpKind = Literal[
-    "raise_to", "set_to", "set_trigger", "set_attr", "instance_upsert", "set_instance_prop", "observe"
-]
+OpKind = Literal["raise_to", "set_to", "set_trigger", "set_attr", "instance_upsert", "set_instance_prop"]
 SourceKind = Literal["intel", "action_card", "world_event", "challenge_seed", "admin"]
-KnowledgeState = Literal["unknown", "current", "stale"]
 
 
 class EnumProperty(BaseModel):
@@ -248,7 +245,6 @@ class TechnicalGraph(BaseModel):
     instance_kinds: dict[str, InstanceKind]
     instance_states: list[str]
     thresholds: GraphThresholds = Field(default_factory=GraphThresholds)
-    briefing_observed: list[str] = Field(default_factory=list)
     aliases: dict[str, str] = Field(
         default_factory=dict, description="Renamed ids, old -> new. Written by tools/graph_refactor.py"
     )
@@ -454,9 +450,6 @@ class GraphState(BaseModel):
     attrs: dict[str, dict[str, str]] = Field(default_factory=dict)
     instances: dict[str, Instance] = Field(default_factory=dict)
     debt: list[DebtEntry] = Field(default_factory=list)
-    changed_at: dict[str, int] = Field(
-        default_factory=dict, description="Seq of the last op that changed each target, drives knowledge staleness"
-    )
 
     @classmethod
     def from_config(cls, graph: TechnicalGraph) -> "GraphState":
@@ -494,28 +487,6 @@ class GraphState(BaseModel):
     def narrative(self, target_id: str) -> int:
         """Discrete 0-4 storytelling tier (`narrative_tier`) for authored flavor text only."""
         return narrative_tier(self.automation(target_id), self.governance(target_id))
-
-
-class SeenEntry(BaseModel):
-    """What the player saw of one target, and when."""
-
-    seq: int
-    nominal_automation: int
-    nominal_governance: int
-    effective_automation: int
-    effective_governance: int
-    trigger: Optional[str] = None
-    attrs: dict[str, str] = Field(default_factory=dict)
-
-
-class Knowledge(BaseModel):
-    seen: dict[str, SeenEntry] = Field(default_factory=dict)
-
-    def state_of(self, target_id: str, truth: GraphState) -> KnowledgeState:
-        entry = self.seen.get(target_id)
-        if entry is None:
-            return "unknown"
-        return "current" if entry.seq >= truth.changed_at.get(target_id, -1) else "stale"
 
 
 TechnicalGraph.model_rebuild()

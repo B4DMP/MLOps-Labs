@@ -34,11 +34,6 @@ const OPTION_FALLBACK_META: Record<GatherOptionKind, { label: string; icon: stri
     icon: "ph:chat-circle-dots-bold",
     hint: "Ask an open-ended question to discover new intel.",
   },
-  investigate_component: {
-    label: "Investigate Component",
-    icon: "ph:magnifying-glass-bold",
-    hint: "Inspect technical component state and dependencies.",
-  },
 };
 
 export interface GatherConversationPanelProps {

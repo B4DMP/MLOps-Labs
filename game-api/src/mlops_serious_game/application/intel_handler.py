@@ -132,29 +132,18 @@ async def _generate_single_artifact(curr_challenge: Challenge, req: StakeholderR
     }
 
 
-# The deck stays short: a few stances, and at most one Fact among them.
+# The deck stays short: a few stances. Facts never reach it - the player cannot tag one.
 MAX_STANCE_ARTIFACTS = 3
-MAX_FACT_ARTIFACTS = 1
 
 
 def deal_unconfirmed_artifacts(curr_challenge: Challenge, artifacts: list) -> list:
-    """The artifacts the player tags themselves: up to three stances and one Fact.
-
-    Facts about the conflict's own target go first, since those are what the pitch turns on;
-    config order breaks ties. A Fact nobody voices is left out, because a card with no name on it
-    would give its tag away.
-    """
-    conflict_target = getattr(getattr(curr_challenge, "conflict", None), "target", None)
-    stances, facts = [], []
+    """The artifacts the player tags themselves: up to three stances, never a Fact."""
+    stances = []
     for art in artifacts:
         req = RequirementFactory.get_requirement(art.requirement_id)
-        if req is not None and req.type == IntelTag.FACT:
-            if art.narrator_id:
-                facts.append((item_target(req) != conflict_target, art))
-        else:
+        if req is None or req.type != IntelTag.FACT:
             stances.append(art)
-    facts.sort(key=lambda pair: pair[0])
-    return stances[:MAX_STANCE_ARTIFACTS] + [art for _, art in facts[:MAX_FACT_ARTIFACTS]]
+    return stances[:MAX_STANCE_ARTIFACTS]
 
 
 def _deck_debug(requirement_id: str) -> Dict[str, Any]:
@@ -181,8 +170,6 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: 
 
     results = []
     for art in unconfirmed_artifacts:
-        # A Fact goes out under its narrator's name, with nothing in the payload that marks it as
-        # a Fact: telling it apart from a stance is the player's call.
         results.append({
             "id": art.id,
             "requirement_id": art.requirement_id,
@@ -458,9 +445,9 @@ def assemble_chains(
     return chains
 
 
-# The dossier's environment section rides in the same list as the stakeholder pages, because the
-# payload is a list of pages and every screen that shows the dossier just forwards it.
-ENVIRONMENT_ENTRY_ID = "__environment__"
+# The Challenge-Intel page rides in the same list as the stakeholder pages, because the payload
+# is a list of pages and every screen that shows the dossier just forwards it.
+CHALLENGE_INTEL_ENTRY_ID = "__challenge_intel__"
 
 
 def chain_index(items: List[StakeholderIntelItem]) -> Dict[str, Dict[str, Any]]:
@@ -936,6 +923,8 @@ async def handle_intel_tagging(
     categorized_type: str,
 ) -> StakeholderIntelItem:
     """Processes tagging or re-tagging of an intel artifact by the player, creating or updating an intel item."""
+    if categorized_type == IntelTag.FACT.value:
+        raise ValueError("Facts cannot be tagged by the player.")
     collected_items = await retrieve_intel_items(curr_challenge, ws)
     existing_item = next((item for item in collected_items if item.id == requirement_id), None)
 
@@ -1147,18 +1136,17 @@ def speaker_of(item) -> Optional[str]:
 
 
 def _stakeholder_pool(challenge_id: int, stakeholder_id: str) -> List[StakeholderRequirement]:
-    """Everything that can legitimately end up on this stakeholder's dossier page for this
-    challenge: their own stances, plus any unconfirmed Fact they narrate. A Fact a player has not
-    yet tagged (or has mistagged as a stance) sits on its narrator's page until it is - see
-    `speaker_of` - so the pool has to count it there too, or `intel_total` would swing depending
-    on however the player currently has that one item tagged, undercounting it whenever it is not
-    (yet, or ever) correctly tagged as a Fact."""
-    own = RequirementFactory.get_requirements_for_stakeholder_in_challenge(challenge_id, stakeholder_id)
-    narrated = [
-        r for r in RequirementFactory.get_requirements_for_challenge(challenge_id)
-        if r.type == IntelTag.FACT and speaker_of(r) == stakeholder_id
-    ]
-    return own + narrated
+    """Everything that can end up on this stakeholder's dossier page for this challenge: their own
+    stances. Facts live on the Challenge-Intel page, never here."""
+    return RequirementFactory.get_requirements_for_stakeholder_in_challenge(challenge_id, stakeholder_id)
+
+
+def _is_known_fact(req: StakeholderRequirement) -> bool:
+    """A pre-authored Fact known from the start of the challenge (Challenge-Intel)."""
+    if req.type != IntelTag.FACT:
+        return False
+    artifact = OfflineIntelArtifactFactory.get_artifact_for_requirement(req.id)
+    return bool(artifact and artifact.is_known)
 
 
 def _stakeholder_or_none(stakeholder_id: Optional[str]):
@@ -1212,9 +1200,8 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
     """Retrieves full dossier summary data for all stakeholders in the current challenge.
 
     The dossier is persistent (plan 05): notes found in earlier phases stay, notes on the same
-    target chain into one growing card, and anything the player filed as a Fact goes to its own
-    environment page grouped by stage. Placement follows the player's own tag, never the true
-    one, so the page a note sits on can never give the answer away.
+    target chain into one growing card, and Facts go to their own Challenge-Intel page grouped by
+    stage. The player cannot tag a Fact, so the true tag decides the page.
     """
     username = _username_from_ws(ws)
     collected_items = await retrieve_intel_items(curr_challenge, ws)
@@ -1328,17 +1315,14 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
         }
 
     stakeholder_intel_map: Dict[str, List[Dict[str, Any]]] = {}
-    environment_entries: List[Dict[str, Any]] = []
+    challenge_intel_entries: List[Dict[str, Any]] = []
     for item in all_items:
-        filed_as_fact = item.categorized_type == IntelTag.FACT
-        # A Fact filed as a stance goes on its narrator's page. On the System page it would give
-        # the true tag away.
-        page = None if filed_as_fact else speaker_of(item)
+        is_challenge_intel = item.type == IntelTag.FACT
+        page = None if is_challenge_intel else speaker_of(item)
         if page:
             stakeholder_intel_map.setdefault(page, []).append(_entry(item))
         else:
-            environment_entries.append(_entry(item))
-
+            challenge_intel_entries.append(_entry(item))
 
 
     phase = PhaseFactory.get_phases()[curr_challenge.phase_id]
@@ -1380,23 +1364,23 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             "focus_stage_ids": focus_stage_ids,
         })
 
-    if environment_entries:
+    if challenge_intel_entries:
         fact_pool = [
             r for r in RequirementFactory.get_requirements_for_challenge(curr_challenge.id)
-            if r.type == IntelTag.FACT
+            if _is_known_fact(r)
         ]
         debug_fields = {"debug": {"missing_intel": _debug_missing(fact_pool, held_ids)}} if debug_on else {}
         dossier_list.append({
             **debug_fields,
-            "stakeholder_id": ENVIRONMENT_ENTRY_ID,
-            "is_environment": True,
-            "name": "The System",
-            "role_description": "What you have found out about the pipeline itself",
+            "stakeholder_id": CHALLENGE_INTEL_ENTRY_ID,
+            "is_challenge_intel": True,
+            "name": "Challenge-Intel",
+            "role_description": "Facts about the system that were already on record when the challenge began",
             "responsibilities": "",
             "priorities": "",
             "constraints": "",
             "metric_id": "",
-            "intel_items": environment_entries,
+            "intel_items": challenge_intel_entries,
             "intel_total": len(fact_pool),
             "focus_stage_ids": focus_stage_ids,
         })
@@ -1482,52 +1466,3 @@ def determine_dialogue_options(
 
     random.shuffle(options)
     return options
-
-def fact_targets_to_observe(items: List[StakeholderIntelItem]) -> List[str]:
-    """Graph targets revealed by Facts the player filed as Facts. A Fact filed under a person
-    reveals nothing: the player treated it as someone's opinion, not as the state of the system."""
-    targets: List[str] = []
-    for item in items:
-        if item.type == IntelTag.FACT and item.categorized_type == IntelTag.FACT and item.asserts:
-            if item.asserts.target not in targets:
-                targets.append(item.asserts.target)
-    return targets
-
-
-def observe_tagged_facts(curr_challenge: Challenge, username: str) -> list["GameEvent"]:
-    """Lifts the fog on what correctly tagged Facts describe. Runs once when the player leaves
-    offline intel gathering, so the graph does not reveal which tags were right while tagging.
-
-    Returns the event log's record of it (plan 11, step 10) - empty when there was nothing to
-    reveal, or when this challenge's facts were already observed on an earlier call."""
-    from mlops_serious_game.application.graph_service import store as graph_store
-    from mlops_serious_game.domain.event import GameEvent
-    from mlops_serious_game.domain.graph import GraphOp
-
-    source_id = f"facts:{curr_challenge.template_id}"
-    if graph_store.has_batch(username, source_id):
-        return []
-    with get_session() as session:
-        records = intel_rows(session, get_user_id(session, username))
-        items = []
-        for r in records:
-            if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("challenge_id") == curr_challenge.id:
-                try:
-                    items.append(StakeholderIntelItem(**r.intel_item_data))
-                except Exception:
-                    continue
-    targets = fact_targets_to_observe(items)
-    if not targets:
-        return []
-    graph_store.append_ops(
-        username,
-        [GraphOp(kind="observe", target=t, source_kind="intel", source_id=source_id) for t in targets],
-        phase_index=curr_challenge.phase_id,
-        challenge_template=curr_challenge.template_id,
-        source_kind="intel",
-        source_id=source_id,
-    )
-    return [GameEvent(
-        step="offline", kind="graph", direction="none", cause="graph.facts_observed",
-        params={"n": str(len(targets))},
-    )]

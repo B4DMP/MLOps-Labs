@@ -362,17 +362,14 @@ export const NODE_COLORS = {
   healthy: "#16a34a",
   capped: "#ea580c",
   broken: "#dc3545",
-  unknown: "#94a3b8",
-  stale: "#d97706",
   selected: "var(--primary-bg, #266682)",
 } as const;
 
 /** Which face a node draws with, by state. Ids come from `NodeDefs`. */
 export function nodeFace(
   prefix: string,
-  opts: { selected?: boolean; unknown?: boolean; broken?: boolean },
+  opts: { selected?: boolean; broken?: boolean },
 ): string {
-  if (opts.unknown) return `url(#${prefix}-face-unknown)`;
   if (opts.selected) return `url(#${prefix}-face-selected)`;
   if (opts.broken) return `url(#${prefix}-face-broken)`;
   return `url(#${prefix}-face)`;

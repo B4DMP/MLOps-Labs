@@ -58,7 +58,7 @@ export default function PitchActionCardModal({
   getStakeholderColor,
   boundaryWarnings = [],
 }: PitchActionCardModalProps) {
-  const getItemType = (item: IntelItem): IntelTag => {
+  const getItemType = (item: IntelItem): IntelTag | "fact" => {
     const raw = (item.type || item.categorized_type || item.intel_type || "driver").toLowerCase();
     if (raw.includes("boundary")) return "boundary";
     if (raw.includes("trade")) return "trade_off";
@@ -71,7 +71,7 @@ export default function PitchActionCardModal({
   const [selectedIntelIds, setSelectedIntelIds] = useState<string[]>(initialSelectedIntelIds);
   const [tradeOffBranches, setTradeOffBranches] = useState<Record<string, "X" | "Y">>(initialTradeOffBranches);
   const [selectedStakeholderFilter, setSelectedStakeholderFilter] = useState<string>("ALL");
-  const [selectedTagFilter, setSelectedTagFilter] = useState<Exclude<IntelTag, "fact"> | "all">("all");
+  const [selectedTagFilter, setSelectedTagFilter] = useState<IntelTag | "all">("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isClosing, setIsClosing] = useState(false);
 
@@ -164,7 +164,7 @@ export default function PitchActionCardModal({
     return true;
   });
 
-  const getTagClass = (type: IntelTag) => {
+  const getTagClass = (type: IntelTag | "fact") => {
     switch (type) {
       case "driver": return styles.tagDriver;
       case "boundary": return styles.tagBoundary;

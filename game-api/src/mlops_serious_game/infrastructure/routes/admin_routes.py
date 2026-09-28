@@ -247,7 +247,6 @@ async def get_graph_debug(
         payload = build_graph_debug(
             graph=graph,
             state=replay.state,
-            knowledge=replay.knowledge,
             effective=evaluation.effective,
             stage_view=evaluation.stage_graph,
             patterns=PatternFactory.patterns,

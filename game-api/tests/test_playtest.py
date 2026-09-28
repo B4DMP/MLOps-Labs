@@ -34,16 +34,6 @@ from test_run_scope import _seed_user, _start_run, migrated_db  # noqa: F401  (f
 # ── The card search (pure) ───────────────────────────────────────────────────
 
 
-class _AllKnown:
-    def state_of(self, target, truth):
-        return "current"
-
-
-class _NothingKnown:
-    def state_of(self, target, truth):
-        return "unknown"
-
-
 def _world(challenge_id: int = 110):
     """The real graph at its seed state, and a real challenge's room and intel."""
     graph = GraphFactory.get_graph()
@@ -66,15 +56,15 @@ def _world(challenge_id: int = 110):
 QUICK = 60
 
 
-def _search(world, knowledge=None, seed="s", budget=QUICK, **kwargs):
-    return auto_card.search_card(knowledge=knowledge or _AllKnown(), seed=seed, budget=budget, **world, **kwargs)
+def _search(world, seed="s", budget=QUICK, **kwargs):
+    return auto_card.search_card(seed=seed, budget=budget, **world, **kwargs)
 
 
 def test_candidates_are_only_legal_known_targets_raised_to_a_higher_level():
     """Nothing proposed may be something `handle_pitch_set_card` would reject."""
     world = _world()
     candidates = auto_card.candidate_changes(
-        world["graph"], world["state"], _AllKnown(), world["allowed"], world["all_intel"]
+        world["graph"], world["state"], world["allowed"], world["all_intel"]
     )
 
     assert candidates
@@ -86,11 +76,9 @@ def test_candidates_are_only_legal_known_targets_raised_to_a_higher_level():
         assert change.value in world["graph"].allowed_for(change.target, change.axis)
 
 
-def test_a_target_the_player_has_not_looked_at_is_never_proposed():
+def test_nothing_outside_the_allowed_targets_is_ever_proposed():
     world = _world()
-    assert auto_card.candidate_changes(
-        world["graph"], world["state"], _NothingKnown(), world["allowed"], world["all_intel"]
-    ) == []
+    assert auto_card.candidate_changes(world["graph"], world["state"], [], world["all_intel"]) == []
 
 
 def test_the_intel_driven_candidates_include_what_the_intel_actually_asks_for():
@@ -102,7 +90,7 @@ def test_the_intel_driven_candidates_include_what_the_intel_actually_asks_for():
     candidates = {
         (c.target, c.axis, c.value)
         for c in auto_card.candidate_changes(
-            world["graph"], world["state"], _AllKnown(), world["allowed"], world["all_intel"]
+            world["graph"], world["state"], world["allowed"], world["all_intel"]
         )
     }
     asked = {
@@ -119,7 +107,9 @@ def test_the_intel_driven_candidates_include_what_the_intel_actually_asks_for():
 
 
 def test_nothing_to_slot_returns_none_rather_than_an_empty_card():
-    assert _search(_world(), knowledge=_NothingKnown()) is None
+    world = _world()
+    world["allowed"] = []
+    assert _search(world) is None
 
 
 def test_the_search_finds_a_card_the_room_will_not_veto_on_real_challenges():

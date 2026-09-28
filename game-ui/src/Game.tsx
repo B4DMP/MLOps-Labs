@@ -136,7 +136,7 @@ function App({ username: _username, onLogout }: AppProps) {
   // never read back on load, since the server's own stored progression is the sole authority on
   // where a player actually is (D-server-truth, D-no-client-cache). Named phases, not raw
   // phase/challenge/loop indices - the address bar should read like "the pitch phase", not
-  // "/game/p2/c110/1?stakeholder=__environment__".
+  // "/game/p2/c110/1?stakeholder=__challenge_intel__".
   useEffect(() => {
     let phase: GamePhaseLabel | null = null;
     if (progressionIndex === 4) {
@@ -563,7 +563,7 @@ function App({ username: _username, onLogout }: AppProps) {
               });
               const brandNewForSt = allRevealed.filter(
                 (r) =>
-                  (r.stakeholder_id === st.stakeholder_id || (!r.stakeholder_id && st.is_environment)) &&
+                  (r.stakeholder_id === st.stakeholder_id || (!r.stakeholder_id && st.is_challenge_intel)) &&
                   !existingIds.has(r.id)
               ).map((r) => ({
                 id: r.id,
@@ -1026,7 +1026,7 @@ function App({ username: _username, onLogout }: AppProps) {
                                 });
                                 const brandNewForSt = (items as any[]).filter(
                                   (u) =>
-                                    (u.stakeholder_id === st.stakeholder_id || (!u.stakeholder_id && st.is_environment)) &&
+                                    (u.stakeholder_id === st.stakeholder_id || (!u.stakeholder_id && st.is_challenge_intel)) &&
                                     !existingIds.has(u.id)
                                 );
                                 return {

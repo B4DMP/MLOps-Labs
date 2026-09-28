@@ -7,7 +7,7 @@ import pytest
 
 from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, _create_player_token
 from mlops_serious_game.application.intel_handler import (
-    ENVIRONMENT_ENTRY_ID,
+    CHALLENGE_INTEL_ENTRY_ID,
     chain_index,
     locked_links_ahead,
     retrieve_dossier_data,
@@ -100,7 +100,7 @@ async def test_dossier_chains_stances_and_pages_facts_separately():
     )
     first = _item("tess_1", phase=0)
     second = _item("tess_2", phase=0, refines_id="tess_1")
-    # A Fact the player filed as a Fact belongs to the environment, not to anybody's page.
+    # A Fact belongs to Challenge-Intel, not to anybody's page.
     fact = _item("sys_1", stakeholder_id=None, type="fact", asserts={"target": "model.evaluation"})
 
     challenge = MagicMock()
@@ -133,9 +133,12 @@ async def test_dossier_chains_stances_and_pages_facts_separately():
     assert {i["chain_id"] for i in tess["intel_items"]} == {"tess_1"}
     assert tess["focus_stage_ids"] == ["model"]
 
-    environment = next(e for e in dossier if e["stakeholder_id"] == ENVIRONMENT_ENTRY_ID)
-    assert environment["is_environment"] is True
-    assert [i["id"] for i in environment["intel_items"]] == ["sys_1"]
+    challenge_intel = next(e for e in dossier if e["stakeholder_id"] == CHALLENGE_INTEL_ENTRY_ID)
+    assert CHALLENGE_INTEL_ENTRY_ID == "__challenge_intel__"
+    assert challenge_intel["is_challenge_intel"] is True
+    assert "is_environment" not in challenge_intel
+    assert challenge_intel["name"] == "Challenge-Intel"
+    assert [i["id"] for i in challenge_intel["intel_items"]] == ["sys_1"]
 
 
 @pytest.mark.anyio

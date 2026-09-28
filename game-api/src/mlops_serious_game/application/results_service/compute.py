@@ -322,7 +322,7 @@ def _weighted_gate7_ratio(target_rows: list[dict[str, Any]], predicate) -> float
 def change_scope(target_rows: list[dict[str, Any]]) -> Pillar:
     """`Δr`: the (debt-weighted) proportion of known components/edges still `planned` rather than
     `realized`. `target_rows` is `[{"nominal_automation": int, "has_debt": bool}, ...]` for every
-    target the player has actually observed - a target still in the fog was never theirs to build."""
+    component/edge."""
     if not target_rows:
         return Pillar(id="change_scope", score=0.0, detail={"reason": "no targets observed"})
     score = _weighted_gate7_ratio(

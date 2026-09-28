@@ -9,7 +9,7 @@ import { PhasesContext, isFirstPlayablePhase, type PhaseData } from "./PhaseProv
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import GlossaryText from "./glossary/GlossaryText";
-import { INTEL_TAGS, intelTagMeta } from "../types/IntelTag";
+import { CHALLENGE_INTEL_META, INTEL_TAGS, intelTagMeta } from "../types/IntelTag";
 import { faceForEmotionState, iconForEmotionState } from "../utils/emotionFace";
 import { healthBucket, healthBucketColor, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
 import CheatSheetModal from "./CheatSheetModal";
@@ -110,8 +110,8 @@ export interface StakeholderDossierEntry {
   intel_items: IntelEntry[];
   /** How many notes this stakeholder has in the challenge, found or not. */
   intel_total?: number;
-  /** The environment page: Facts about the system, not about anybody. */
-  is_environment?: boolean;
+  /** The Challenge-Intel page: Facts about the system, not about anybody. */
+  is_challenge_intel?: boolean;
   /** Stages this challenge is about, which the stage filter starts on. */
   focus_stage_ids?: string[];
   debug?: StakeholderDebugInfo;
@@ -141,7 +141,7 @@ export interface StakeholderDossierProps {
    *  toggle) - not when `activeStakeholderId` drives the page from outside. Lets an embedding
    *  scene (e.g. the pitch deck table) keep its own "selected stakeholder" in sync with
    *  whichever page the dossier is showing, in both directions. Called with `null` when the
-   *  player switches to the System page, since no stakeholder is showing there. */
+   *  player switches to the Challenge-Intel page, since no stakeholder is showing there. */
   onActiveStakeholderChange?: (stakeholderId: string | null) => void;
   highlightedIntelId?: string | null;
   currentPhase?: number;
@@ -230,7 +230,7 @@ const TAG_STYLE_CLASS: Record<string, string> = {
 };
 
 const CATEGORY_META: Record<string, { label: string; icon: string; styleClass: string }> = Object.fromEntries(
-  INTEL_TAGS.map((t) => [t.type, { label: t.label, icon: t.emoji, styleClass: TAG_STYLE_CLASS[t.styleKey] }])
+  [...INTEL_TAGS, CHALLENGE_INTEL_META].map((t) => [t.type, { label: t.label, icon: t.emoji, styleClass: TAG_STYLE_CLASS[t.styleKey] }])
 );
 
 /** Document wording for the "your read of their ..." caption. */
@@ -1142,16 +1142,16 @@ export default function StakeholderDossier({
   };
 
   const totalPages = effectiveDossierData.length;
-  const environmentIndex = effectiveDossierData.findIndex((st) => st.is_environment);
+  const challengeIntelIndex = effectiveDossierData.findIndex((st) => st.is_challenge_intel);
 
   const requestPageChange = (targetIndex: number) => {
     if (targetIndex < 0 || targetIndex >= totalPages) return;
-    if (targetIndex !== environmentIndex) lastPersonPage.current = targetIndex;
+    if (targetIndex !== challengeIntelIndex) lastPersonPage.current = targetIndex;
     setActiveRetagNoteId(null);
     setCurrentPageIndex(targetIndex);
     if (onActiveStakeholderChange) {
       onActiveStakeholderChange(
-        targetIndex === environmentIndex ? null : effectiveDossierData[targetIndex]?.stakeholder_id ?? null
+        targetIndex === challengeIntelIndex ? null : effectiveDossierData[targetIndex]?.stakeholder_id ?? null
       );
     }
   };
@@ -1609,7 +1609,7 @@ export default function StakeholderDossier({
       const aResolved = isResolvedStatus(a.newest.status) ? 1 : 0;
       const bResolved = isResolvedStatus(b.newest.status) ? 1 : 0;
       if (aResolved !== bResolved) return aResolved - bResolved;
-      return st.is_environment ? (a.newest.stage_id || "~").localeCompare(b.newest.stage_id || "~") : 0;
+      return st.is_challenge_intel ? (a.newest.stage_id || "~").localeCompare(b.newest.stage_id || "~") : 0;
     });
     const hiddenByFilter = allChains.length - pageChains.length;
     const hasIntelEntries = st && st.intel_items && st.intel_items.length > 0;
@@ -1635,14 +1635,13 @@ export default function StakeholderDossier({
         {/* Only the wall of notes scrolls. The dock below it is a sibling of this
             box, not an item inside it, so it always ends up on the page's edge. */}
         <div className={styles.pageScroll}>
-        {st.is_environment ? (
+        {st.is_challenge_intel ? (
           <div className={styles.environmentHeader}>
             <Icon icon={intelTagMeta("fact").icon} className={styles.environmentIcon} />
             <div>
-              <div className={styles.environmentTitle}>The System</div>
+              <div className={styles.environmentTitle}>Challenge-Intel</div>
               <div className={styles.environmentSubtitle}>
-                What you have worked out about the pipeline itself. Nobody's wish, just the state
-                of things.
+                Facts about the system that were already on record when the challenge began.
               </div>
             </div>
           </div>
@@ -1877,7 +1876,7 @@ export default function StakeholderDossier({
         {/* Intelligence Section Header */}
         <div className={styles.sectionTitle}>
           <span className={styles.doodleIcon}></span>{" "}
-          {st.is_environment ? "Facts by stage" : "Challenge-Specific Stance"}
+          {st.is_challenge_intel ? "Facts by stage" : "Challenge-Specific Stance"}
           <span className={styles.sectionTitleActions}>
           <button
             className={`${styles.collapseToggle} ${collapseAddressed ? styles.collapseToggleOn : ""}`}
@@ -1991,7 +1990,7 @@ export default function StakeholderDossier({
                 {resolvedGroupTitle}
                 {/* On the environment page the cards arrive in stage order, so a divider is
                     enough to group them without a second grid. */}
-                {st.is_environment &&
+                {st.is_challenge_intel &&
                   (idx === 0 || pageChains[idx - 1].newest.stage_id !== item.stage_id) && (
                     <div
                       className={styles.stageGroupTitle}
@@ -2288,7 +2287,7 @@ export default function StakeholderDossier({
 
   // System button badge: how much of what you've worked out about the pipeline itself is
   // actually found, the same found/total the page's own pip row shows.
-  const systemPips = environmentIndex >= 0 ? getIntelPips(effectiveDossierData[environmentIndex]) : [];
+  const systemPips = challengeIntelIndex >= 0 ? getIntelPips(effectiveDossierData[challengeIntelIndex]) : [];
   const systemFoundCount = systemPips.filter((status) => status !== "hidden").length;
 
   // Performance button badge: the same overall health bucket PerformanceDashboard shows, as a dot
@@ -2299,7 +2298,7 @@ export default function StakeholderDossier({
   // something for it to point at - a dossier with none of these handlers wired up has no
   // button group to find.
   const hasHeaderTools = Boolean(
-    onOpenPhaseBriefing || onPerformanceToggle || environmentIndex >= 0 || onLogToggle || onSettingsToggle
+    onOpenPhaseBriefing || onPerformanceToggle || challengeIntelIndex >= 0 || onLogToggle || onSettingsToggle
   );
 
   if (!isOpen && !isEmbedded) return null;
@@ -2369,14 +2368,14 @@ export default function StakeholderDossier({
                 }
               />
             )}
-            {environmentIndex >= 0 && (
+            {challengeIntelIndex >= 0 && (
               <HeaderIconButton
                 icon="ph:buildings-bold"
-                label="System"
+                label="Challenge-Intel"
                 detail={systemPips.length > 0 ? describeIntelPips(systemPips) : undefined}
-                ariaLabel={`System: what you have worked out about the pipeline itself, facts not anybody's wishes — ${describeIntelPips(systemPips)}`}
-                active={currentPageIndex === environmentIndex}
-                onClick={() => requestPageChange(currentPageIndex === environmentIndex ? lastPersonPage.current : environmentIndex)}
+                ariaLabel={`Challenge-Intel: facts about the system already on record at the start of the challenge — ${describeIntelPips(systemPips)}`}
+                active={currentPageIndex === challengeIntelIndex}
+                onClick={() => requestPageChange(currentPageIndex === challengeIntelIndex ? lastPersonPage.current : challengeIntelIndex)}
                 badge={
                   systemPips.length > 0 ? (
                     <span className={styles.headerBadgeCount}>
@@ -2463,7 +2462,7 @@ export default function StakeholderDossier({
         <div className={styles.tabsContainer}>
           {effectiveDossierData.map((st, idx) => {
             // The environment is not a person, so it is not in the tab strip (D45).
-            if (st.is_environment) return null;
+            if (st.is_challenge_intel) return null;
             const stColor = getStakeholderColor(st);
             const stObj = stakeholders[st.stakeholder_id];
             const emotion = stObj?.emotional_state || "neutral";

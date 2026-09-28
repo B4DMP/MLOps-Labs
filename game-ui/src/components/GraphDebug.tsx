@@ -11,14 +11,14 @@ interface StageDebug {
 interface ComponentDebug {
   id: string; stage_id: string; name: string; owner: string;
   nominal_automation: number; nominal_governance: number;
-  effective_automation: number; effective_governance: number; knowledge: string;
-  capped_by?: string; seen_automation?: number; seen_governance?: number; seen_at?: number; attrs?: Record<string, string>;
+  effective_automation: number; effective_governance: number;
+  capped_by?: string; attrs?: Record<string, string>;
 }
 interface EdgeDebug {
   id: string; from: string; to: string; kind: string;
   automation: number; governance: number;
-  effective_automation: number; effective_governance: number; trigger: string; knowledge: string;
-  capped_by?: string; seen_automation?: number; seen_governance?: number; seen_at?: number;
+  effective_automation: number; effective_governance: number; trigger: string;
+  capped_by?: string;
 }
 interface InstanceDebug {
   id: string; kind: string; component_id: string; name: string; state: string;
@@ -73,11 +73,6 @@ function levelBadge(n: number, axis: "automation" | "governance" = "automation")
 function axisCell(nominal: number, effective: number, axis: "automation" | "governance") {
   if (nominal === effective) return levelBadge(nominal, axis);
   return <span style={{ whiteSpace: "nowrap" }}>{levelBadge(nominal, axis)} → {levelBadge(effective, axis)}</span>;
-}
-
-function knowledgeBadge(k: string) {
-  const c = k === "current" ? "#198754" : k === "stale" ? "#ffc107" : "#495057";
-  return <span style={{ background: c, color: "#fff", borderRadius: 4, padding: "1px 6px", fontSize: 11 }}>{k}</span>;
 }
 
 function healthBar(v: number) {
@@ -184,7 +179,7 @@ function ComponentsSection({ data }: { data: ComponentDebug[] }) {
     <Section title="2. Components" count={rows.length}>
       <FilterInput value={q} onChange={setQ} />
       <Tbl
-        cols={["id", "stage", "name", "owner", "automation (nom → eff)", "governance (nom → eff)", "knowledge", "capped by"]}
+        cols={["id", "stage", "name", "owner", "automation (nom → eff)", "governance (nom → eff)", "capped by"]}
         rows={rows.map((r) => [
           <code>{r.id}</code>,
           r.stage_id,
@@ -192,7 +187,6 @@ function ComponentsSection({ data }: { data: ComponentDebug[] }) {
           r.owner ?? "—",
           axisCell(r.nominal_automation, r.effective_automation, "automation"),
           axisCell(r.nominal_governance, r.effective_governance, "governance"),
-          knowledgeBadge(r.knowledge),
           r.capped_by ? <code style={{ fontSize: 11 }}>{r.capped_by}</code> : null,
         ])}
       />
@@ -207,7 +201,7 @@ function EdgesSection({ data }: { data: EdgeDebug[] }) {
     <Section title="3. Edges" count={rows.length}>
       <FilterInput value={q} onChange={setQ} />
       <Tbl
-        cols={["id", "from", "to", "kind", "automation (nom → eff)", "governance (nom → eff)", "trigger", "knowledge", "capped by"]}
+        cols={["id", "from", "to", "kind", "automation (nom → eff)", "governance (nom → eff)", "trigger", "capped by"]}
         rows={rows.map((r) => [
           <code>{r.id}</code>,
           <code>{r.from}</code>,
@@ -216,7 +210,6 @@ function EdgesSection({ data }: { data: EdgeDebug[] }) {
           axisCell(r.automation, r.effective_automation, "automation"),
           axisCell(r.governance, r.effective_governance, "governance"),
           r.trigger,
-          knowledgeBadge(r.knowledge),
           r.capped_by ? <code style={{ fontSize: 11 }}>{r.capped_by}</code> : null,
         ])}
       />

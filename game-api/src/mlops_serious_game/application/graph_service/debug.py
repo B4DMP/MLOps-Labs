@@ -9,7 +9,6 @@ from mlops_serious_game.application.graph_service.effective import EffectiveView
 from mlops_serious_game.application.graph_service.stage_graph import StageGraphView
 from mlops_serious_game.domain.graph import (
     GraphState,
-    Knowledge,
     LoggedOp,
     TechnicalGraph,
 )
@@ -20,7 +19,6 @@ from mlops_serious_game.domain.pattern import Pattern, predicate_targets
 def build_graph_debug(
     graph: TechnicalGraph,
     state: GraphState,
-    knowledge: Knowledge,
     effective: EffectiveView,
     stage_view: StageGraphView,
     patterns: list[Pattern],
@@ -52,10 +50,9 @@ def build_graph_debug(
             "pattern_effect": sv.pattern_effect,
         })
 
-    # 2. Components — nominal and effective side by side, player knowledge vs ground truth.
+    # 2. Components — nominal and effective side by side.
     components = []
     for c in graph.components:
-        ks = knowledge.state_of(c.id, state)
         nominal_automation = state.component_automation[c.id]
         nominal_governance = state.component_governance[c.id]
         eff_automation = effective.automation.get(c.id, nominal_automation)
@@ -69,23 +66,16 @@ def build_graph_debug(
             "nominal_governance": nominal_governance,
             "effective_automation": eff_automation,
             "effective_governance": eff_governance,
-            "knowledge": ks,
         }
         if c.id in effective.capped_by:
             row["capped_by"] = effective.capped_by[c.id]
         if state.attrs.get(c.id):
             row["attrs"] = dict(state.attrs[c.id])
-        seen = knowledge.seen.get(c.id)
-        if seen and ks == "stale":
-            row["seen_automation"] = seen.nominal_automation
-            row["seen_governance"] = seen.nominal_governance
-            row["seen_at"] = seen.seq
         components.append(row)
 
     # 3. Edges.
     edges = []
     for e in graph.edges:
-        ks = knowledge.state_of(e.id, state)
         nominal_automation = state.edge_automation[e.id]
         nominal_governance = state.edge_governance[e.id]
         eff_automation = effective.automation.get(e.id, nominal_automation)
@@ -101,15 +91,9 @@ def build_graph_debug(
             "effective_automation": eff_automation,
             "effective_governance": eff_governance,
             "trigger": trigger,
-            "knowledge": ks,
         }
         if e.id in effective.capped_by:
             row["capped_by"] = effective.capped_by[e.id]
-        seen = knowledge.seen.get(e.id)
-        if seen and ks == "stale":
-            row["seen_automation"] = seen.nominal_automation
-            row["seen_governance"] = seen.nominal_governance
-            row["seen_at"] = seen.seq
         edges.append(row)
 
     # 4. Instances.

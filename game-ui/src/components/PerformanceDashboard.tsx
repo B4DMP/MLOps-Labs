@@ -19,9 +19,7 @@ import {
   NodeTitleAberration,
   LevelCaption,
   NODE_STATE_ANIM,
-  ScanlineDefs,
   SelectionReticle,
-  StaleScanline,
   TriggerChip,
 } from "./graph/nodeChrome";
 import {
@@ -63,7 +61,6 @@ interface StageData {
   locked: boolean;
   phase_id?: number;
   health?: number;
-  health_band?: [number, number];
   status?: "healthy" | "degraded" | "broken";
   maturity?: number;
   broken?: number;
@@ -84,7 +81,6 @@ interface ComponentData {
   name: string;
   stage_id: string;
   owner_id?: string;
-  knowledge: "unknown" | "current" | "stale";
   nominal_automation?: number;
   nominal_governance?: number;
   effective_automation?: number;
@@ -93,7 +89,6 @@ interface ComponentData {
   allowed_governance?: number[];
   capped_by?: string;
   story?: string;
-  seen_at?: number;
   icon?: string;
   layout?: { x: number; y: number };
   debt?: Array<{ intended: number; applied: number; axis?: "automation" | "governance"; owner_id?: string }>;
@@ -105,12 +100,10 @@ interface EdgeData {
   from_id: string;
   to_id: string;
   kind: string;
-  knowledge: "unknown" | "current" | "stale";
   automation?: number;
   governance?: number;
   trigger?: string;
   story?: string;
-  seen_at?: number;
   capped_by?: string;
 }
 
@@ -213,10 +206,6 @@ function statusColor(status?: string): string {
 
 function healthText(stage: StageData): string {
   if (stage.locked) return "not there yet";
-  if (stage.health_band) {
-    const [lo, hi] = stage.health_band;
-    return HEALTH_BUCKET_WORD[healthBucket((lo + hi) / 2)];
-  }
   return HEALTH_BUCKET_WORD[healthBucket(stage.health)];
 }
 
@@ -410,12 +399,10 @@ function StageConnector({ flow, toId }: { flow?: FlowData; toId: string }) {
 
 /** The colour of a component's status rail: what the player should worry about first. */
 function railColor(c: ComponentData): string {
-  if (c.knowledge === "unknown") return NODE_COLORS.unknown;
   // Broken is what this component is; capped covers what its upstream does to it, starving
   // included. Reading `effective` here would paint every victim of one break as broken.
   if ((c.nominal_automation ?? 1) === 0) return NODE_COLORS.broken;
   if (c.capped_by) return NODE_COLORS.capped;
-  if (c.knowledge === "stale") return NODE_COLORS.stale;
   return NODE_COLORS.healthy;
 }
 
@@ -456,7 +443,6 @@ function StageSvg({
       <style>{NODE_STATE_ANIM}</style>
       <style>{EDGE_FLOW_ANIM}</style>
       <NodeDefs prefix="dash" />
-      <ScanlineDefs />
 
       {/* Connecting Edges */}
       {technical.edges.map((e) => {
@@ -465,13 +451,12 @@ function StageSvg({
         if (!from || !to) return null;
         const [ax, ay, bx, by] = edgeEnds(from.x, from.y, to.x, to.y);
         const x1b = ax, y1b = ay, x2b = bx, y2b = by;
-        const known = e.knowledge !== "unknown";
         // Flow is an automation question only; governance never changes what gets through.
         const lvl = e.automation;
-        const color = known ? (lvl === 0 ? "#dc3545" : lvl && lvl >= 3 ? "#16a34a" : "#ea580c") : "#94a3b8";
-        const isAutomated = known && lvl !== undefined && lvl !== null && lvl >= 3;
+        const color = lvl === 0 ? "#dc3545" : lvl && lvl >= 3 ? "#16a34a" : "#ea580c";
+        const isAutomated = lvl !== undefined && lvl !== null && lvl >= 3;
         return (
-          <g key={e.id} opacity={e.knowledge === "stale" ? 0.6 : 1}>
+          <g key={e.id}>
             <defs>
               <marker id={`arr-${e.id}`} markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
                 <path d="M0,0 L0,6 L6,3 z" fill={color} />
@@ -480,18 +465,16 @@ function StageSvg({
             <line
               x1={x1b} y1={y1b} x2={x2b} y2={y2b}
               stroke={color}
-              strokeWidth={edgeStrokeWidth(known ? lvl : undefined)}
+              strokeWidth={edgeStrokeWidth(lvl)}
               className={
-                !known ? undefined
-                  : lvl === 0 ? "pipe-dead"
+                lvl === 0 ? "pipe-dead"
                   : lvl != null && lvl >= 3 ? "pipe-flow"
                   : "pipe-flow-slow"
               }
-              strokeDasharray={e.knowledge === "unknown" ? "4 3" : undefined}
               markerEnd={`url(#arr-${e.id})`}
             />
             {isAutomated && <FlowParticle x1={x1b} y1={y1b} x2={x2b} y2={y2b} color={color} />}
-            {known && e.trigger && e.trigger !== "none" && (
+            {e.trigger && e.trigger !== "none" && (
               <TriggerChip
                 x={(x1b + x2b) / 2}
                 y={(y1b + y2b) / 2 - 4}
@@ -510,12 +493,11 @@ function StageSvg({
         if (!pos) return null;
         const { x, y } = pos;
         const isSelected = selectedComponentId === c.id;
-        const isUnknown = c.knowledge === "unknown";
         const rail = railColor(c);
-        const isBroken = !isUnknown && (c.nominal_automation ?? 1) === 0;
+        const isBroken = (c.nominal_automation ?? 1) === 0;
         // Runs at nothing, but is not itself broken: something upstream is down. Saying
         // BROKEN here would blame the victim of a break for the break.
-        const isStarved = !isUnknown && !isBroken && (c.effective_automation ?? 1) === 0;
+        const isStarved = !isBroken && (c.effective_automation ?? 1) === 0;
         const rawName = c.name || c.id.split(".").pop()?.replace(/_/g, " ") || c.id;
         const lines = wrapLabel(rawName, 17);
 
@@ -525,7 +507,6 @@ function StageSvg({
             className="stage-node"
             transform={`translate(${x - BOX_W / 2}, ${y - BOX_H / 2})`}
             onClick={() => onSelectComponent(isSelected ? null : c.id)}
-            opacity={c.knowledge === "stale" ? 0.9 : 1}
           >
             <g className={isBroken ? "node-broken" : undefined}>
             {/* Card face, with the status rail hugging its left edge */}
@@ -533,10 +514,9 @@ function StageSvg({
               width={BOX_W}
               height={BOX_H}
               rx={NODE_RX}
-              fill={nodeFace("dash", { selected: isSelected, unknown: isUnknown, broken: isBroken })}
-              stroke={isSelected ? NODE_COLORS.selected : isUnknown ? "#cbd5e1" : "#dde5ee"}
+              fill={nodeFace("dash", { selected: isSelected, broken: isBroken })}
+              stroke={isSelected ? NODE_COLORS.selected : "#dde5ee"}
               strokeWidth={1}
-              strokeDasharray={isUnknown ? "5 3" : undefined}
               filter={`url(#dash-${isBroken ? "broken-face" : isSelected ? "shadow-lifted" : "shadow"})`}
             />
             <clipPath id={`dash-clip-${c.id.replace(/\./g, "_")}`}>
@@ -546,14 +526,12 @@ function StageSvg({
               width={RAIL_W}
               height={BOX_H}
               fill={rail}
-              opacity={isUnknown ? 0.5 : 1}
               clipPath={`url(#dash-clip-${c.id.replace(/\./g, "_")})`}
             />
-            {c.knowledge === "stale" && <StaleScanline clipPathId={`dash-clip-${c.id.replace(/\./g, "_")}`} />}
-            {!isUnknown && !isBroken && c.capped_by && <CappedChainGlyph color={rail} />}
+            {!isBroken && c.capped_by && <CappedChainGlyph color={rail} />}
 
             {/* Icon, sharing the title's row */}
-            {c.icon && <NodeIcon icon={c.icon} color={isUnknown ? "#7c8ba1" : rail} />}
+            {c.icon && <NodeIcon icon={c.icon} color={rail} />}
 
             {/* Component Title, with its colour-split ghosts underneath when broken */}
             {isBroken && (
@@ -568,7 +546,7 @@ function StageSvg({
                 key={i}
                 x={NODE_PAD_X + (c.icon ? NODE_ICON_OFFSET : 0)}
                 y={NODE_TITLE_Y + i * NODE_TITLE_LH}
-                fill={isUnknown ? "#7c8ba1" : isSelected ? "var(--primary-bg, #266682)" : "#15243b"}
+                fill={isSelected ? "var(--primary-bg, #266682)" : "#15243b"}
                 fontSize={11}
                 fontWeight={isSelected ? 700 : 600}
                 letterSpacing="0.1"
@@ -577,12 +555,6 @@ function StageSvg({
               </text>
             ))}
 
-            {isUnknown ? (
-              <text x={NODE_PAD_X} y={NODE_CAPTION_Y} fill="#94a3b8" fontSize={8.5} fontStyle="italic">
-                not looked at yet
-              </text>
-            ) : (
-              <>
                 {c.nominal_automation !== undefined && (
                   <LevelMeter
                     automation={c.nominal_automation}
@@ -601,8 +573,6 @@ function StageSvg({
                   text={isStarved ? "starved" : undefined}
                   color={isStarved ? rail : undefined}
                 />
-              </>
-            )}
 
             {/* Inspect affordance, quiet until the node is hovered or selected */}
             <circle
@@ -624,13 +594,6 @@ function StageSvg({
             >
               ⌕
             </text>
-
-            {/* Stale Marker */}
-            {c.knowledge === "stale" && c.seen_at !== undefined && (
-              <text x={BOX_W - 10} y={BOX_H - 8} fill={NODE_COLORS.stale} fontSize={8} textAnchor="end" fontWeight="700">
-                #{c.seen_at}
-              </text>
-            )}
 
             </g>
 
@@ -802,7 +765,7 @@ export default function PerformanceDashboard({
         (byTarget[target] ||= []).push({
           item,
           stakeholderName: entry.name,
-          stakeholderId: entry.is_environment ? undefined : entry.stakeholder_id,
+          stakeholderId: entry.is_challenge_intel ? undefined : entry.stakeholder_id,
         });
       });
     });
@@ -1254,10 +1217,10 @@ export default function PerformanceDashboard({
                       </div>
 
                       {/* Non-pipeline edges summary */}
-                      {activeTechnical.edges.filter((e) => e.kind !== "pipeline" && e.knowledge !== "unknown").length > 0 && (
+                      {activeTechnical.edges.filter((e) => e.kind !== "pipeline").length > 0 && (
                         <div className="p-2 rounded bg-light border" style={{ fontSize: "0.76rem" }}>
                           <span className="fw-bold text-secondary text-uppercase" style={{ fontSize: "0.68rem" }}>Cross-Stage Connections: </span>
-                          {activeTechnical.edges.filter((e) => e.kind !== "pipeline" && e.knowledge !== "unknown").map((e, idx) => (
+                          {activeTechnical.edges.filter((e) => e.kind !== "pipeline").map((e, idx) => (
                             <span key={e.id} className="text-muted ms-2">
                               {idx > 0 && "• "}
                               {e.from_id.split(".").pop()} → {e.to_id.split(".").pop()}
@@ -1366,19 +1329,9 @@ export default function PerformanceDashboard({
                                     </span>
                                   )
                                 )}
-                                {selComponentData.knowledge === "stale" && (
-                                  <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" style={{ fontSize: "0.68rem" }}>
-                                    stale snapshot
-                                  </span>
-                                )}
-                                {selComponentData.knowledge === "unknown" && (
-                                  <span className="badge bg-light text-muted border" style={{ fontSize: "0.68rem" }}>
-                                    not yet analyzed
-                                  </span>
-                                )}
                               </div>
 
-                              {selComponentData.knowledge !== "unknown" && selComponentData.nominal_automation !== undefined ? (
+                              {selComponentData.nominal_automation !== undefined ? (
                                 <>
                                   <div className="p-2 rounded bg-light border">
                                     <div className="d-flex align-items-center justify-content-between mb-1">
@@ -1513,7 +1466,7 @@ export default function PerformanceDashboard({
                                         </span>
                                       </div>
                                       <div className="d-flex align-items-center gap-2 flex-shrink-0">
-                                        {c.knowledge !== "unknown" && c.nominal_automation !== undefined && <AxisPips c={c} />}
+                                        {c.nominal_automation !== undefined && <AxisPips c={c} />}
                                         <Icon icon="ph:arrow-right-bold" style={{ color: "var(--primary-bg)", fontSize: "0.85rem" }} />
                                       </div>
                                     </div>

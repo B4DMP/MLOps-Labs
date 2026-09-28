@@ -23,12 +23,10 @@ from mlops_serious_game.application.graph_service.view import evaluate_graph
 from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.application.intel_handler import (
     intel_rows,
-    observe_tagged_facts,
     load_known_intel_items_for_challenge,
     determine_dialogue_options,
 )
 from mlops_serious_game.application.services import user_settings_service
-from mlops_serious_game.infrastructure.websocket.handlers.log_handler import send_events
 from mlops_serious_game.application.pitch_debate_service import (
     DialogueOption,
     get_checkpoint_dialogue_options,
@@ -959,15 +957,6 @@ async def handle_state_update_request(
                 )
                 if attention_tokens is None and challenge:
                     attention_tokens = challenge.attention_tokens
-                if challenge_loop_index == 1 and challenge:
-                    try:
-                        events = observe_tagged_facts(challenge, username)
-                        await send_events(
-                            websocket, username,
-                            [e.stamped(phase_id=phase_id, challenge_id=challenge_id) for e in events],
-                        )
-                    except Exception as e:
-                        print(f"[Graph fact observe error] {e}")
                 if challenge_loop_index == 2:
                     messages = []
             case _:

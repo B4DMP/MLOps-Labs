@@ -53,7 +53,6 @@ class CardSearchResult:
 def candidate_changes(
     graph: Any,
     state: Any,
-    knowledge: Any,
     allowed: Iterable[str],
     all_intel: Iterable[Any] = (),
 ) -> list[pitch.AtomicChange]:
@@ -74,8 +73,6 @@ def candidate_changes(
 
     def consider(target: Optional[str], level: Optional[int], axis: Optional[str]) -> None:
         if not target or level is None or axis is None or target not in allowed_set or not graph.is_target(target):
-            return
-        if knowledge is not None and knowledge.state_of(target, state) == "unknown":
             return
         if level <= state.value(target, axis) or level not in graph.allowed_for(target, axis):
             return
@@ -185,7 +182,6 @@ def search_card(
     *,
     graph: Any,
     state: Any,
-    knowledge: Any,
     all_intel: list,
     room: list[tuple],
     emotions: dict,
@@ -201,7 +197,7 @@ def search_card(
     only when there was nothing legal to slot at all.
     """
     rng = random.Random(seed)
-    candidates = candidate_changes(graph, state, knowledge, allowed, all_intel)
+    candidates = candidate_changes(graph, state, allowed, all_intel)
     if not candidates:
         return None
 
@@ -215,7 +211,6 @@ def search_card(
             changes=card,
             room=room,
             emotion_values=emotions,
-            knowledge=knowledge,
         )
         evaluated += 1
         lowest = min((r.buy_in for r in view.reads), default=0.0)

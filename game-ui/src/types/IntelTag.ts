@@ -1,15 +1,15 @@
 /**
  * Intel tags (plan 02). Driver, Boundary and Trade-off describe a stakeholder: an action on the
- * MLOps graph and how much they care about it. Fact describes the system itself.
+ * MLOps graph and how much they care about it. Facts are pre-authored Challenge-Intel, not player-taggable.
  * Every screen reads labels, icons and colours from here so the tags look the same everywhere.
  */
-export type IntelTag = "driver" | "boundary" | "trade_off" | "fact";
+export type IntelTag = "driver" | "boundary" | "trade_off";
 
 /** Existing per-component CSS classes each tag reuses, so colours stay consistent. */
 export type IntelTagStyleKey = "requirement" | "preference" | "friction" | "default";
 
 export interface IntelTagMeta {
-  type: IntelTag;
+  type: IntelTag | "fact";
   label: string;
   shortLabel: string;
   /** Emoji for compact labels. */
@@ -57,20 +57,20 @@ export const INTEL_TAGS: IntelTagMeta[] = [
     description: "Something they would give up or accept losing to get what they want.",
     styleKey: "friction",
   },
-  {
-    // Kept as "fact" on the wire (categorized_type, IntelTag.FACT) - only the display name changed,
-    // so nothing downstream that compares against the string "fact" needed to move.
-    type: "fact",
-    label: "System",
-    shortLabel: "SYS",
-    emoji: "⚙️",
-    icon: "ph:gear-six-bold",
-    color: "#7c3aed",
-    about: "system",
-    description: "How the system is right now. Nobody's wish, just the state of things.",
-    styleKey: "default",
-  },
 ];
+
+/** Display meta for "fact" items: shown on Challenge-Intel, never offered as a tag choice. */
+export const CHALLENGE_INTEL_META: IntelTagMeta = {
+  type: "fact",
+  label: "Challenge-Intel",
+  shortLabel: "CHI",
+  emoji: "⚙️",
+  icon: "ph:gear-six-bold",
+  color: "#7c3aed",
+  about: "system",
+  description: "How the system stands at the start of the challenge.",
+  styleKey: "default",
+};
 
 const FALLBACK: IntelTagMeta = {
   type: "driver",
@@ -85,6 +85,7 @@ const FALLBACK: IntelTagMeta = {
 };
 
 export function intelTagMeta(type?: string | null): IntelTagMeta {
+  if (type === "fact") return CHALLENGE_INTEL_META;
   return INTEL_TAGS.find((t) => t.type === type) ?? FALLBACK;
 }
 

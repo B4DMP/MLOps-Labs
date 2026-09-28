@@ -85,15 +85,6 @@ def test_gather_options_for_ask_generic_question():
     assert opts[0].available is True
 
 
-def test_gather_options_for_investigate_component():
-    conv = _conv(card_id="eng_5", stakeholder_id="requirements_reuben", component_id="req.kpi_definition", turns_left=1)
-    pool = [_req("f1", IntelTag.FACT, "req.kpi_definition")]
-    opts = gather.gather_options_for(conv, [], pool, [], seed="test-seed", phase_id=1)
-    assert len(opts) == 1
-    assert opts[0].option == "investigate_component"
-    assert opts[0].component_id == "req.kpi_definition"
-
-
 def test_gather_options_prioritizes_undiscovered_over_discovered():
     conv = _conv(card_id="eng_1", turns_left=3)
     # Target stakeholder has 1 undiscovered item and 1 discovered item in Phase 2
@@ -234,17 +225,6 @@ def test_resolve_generic_query_reveals_item():
     assert out.conversation.discovered_item_ids == ["r1"]
 
 
-def test_resolve_investigate_component_reveals_fact():
-    conv = _conv(card_id="eng_5", stakeholder_id="data.validation", turns_left=1)
-    pool = [_req("f1", IntelTag.FACT, "data.validation")]
-    out = gather.resolve_investigate_component(
-        conv, pool, set(), "data.validation", seed="s", component_name="Data Validation"
-    )
-    assert out.result == "revealed"
-    assert out.item_id == "f1"
-    assert out.conversation.turns_left == 0
-
-
 def test_close_conversation_logs_lost_turns():
     conv = _conv(card_id="eng_1", turns_left=2)
     out = gather.close_conversation(conv, "Dave")
@@ -349,46 +329,14 @@ async def test_generate_stakeholder_response_fallback_on_error():
         assert "do not have any specific concerns" in resp_unrevealed
 
 
-def test_generate_component_fact_prompt_formats():
-    rendered = prompts.GENERATE_COMPONENT_FACT_PROMPT.format(
-        challenge="Predictive Maintenance",
-        component_name="Model Registry",
-        component_id="mlops.model_registry",
-    )
-    assert "Model Registry" in rendered
-    assert "mlops.model_registry" in rendered
-    assert "telemetry" in rendered.lower() or "factual" in rendered.lower()
-
-
-@pytest.mark.anyio
-async def test_generate_component_fact_fallback_on_error():
-    with patch("mlops_serious_game.application.pitch_debate_service.chains.get_component_fact_chain") as mock_chain:
-        mock_chain.side_effect = RuntimeError("LLM unavailable")
-        fact = await chains.generate_component_fact(
-            challenge="Predictive Maintenance",
-            component_id="data.validation",
-            component_name="Data Validation",
-        )
-        assert "validation" in fact.lower()
-        assert len(fact) > 10
-
-        # Also test non-predefined component ID falls back to generic template containing component_name
-        fact_generic = await chains.generate_component_fact(
-            challenge="Predictive Maintenance",
-            component_id="custom.unknown_comp",
-            component_name="Custom Unknown",
-        )
-        assert "Custom Unknown" in fact_generic
-
-
 def test_safe_stakeholder_lookups():
     from mlops_serious_game.infrastructure.websocket.handlers.gather_handler import (
         _stakeholder_name,
         _stakeholder_obj,
     )
 
-    # System and environment IDs should not throw StakeholderNameNotFound
-    for sys_id in ["system", "System", "__environment__"]:
+    # System and Challenge-Intel IDs should not throw StakeholderNameNotFound
+    for sys_id in ["system", "System", "__challenge_intel__"]:
         assert _stakeholder_obj(sys_id) is None
         assert _stakeholder_name(sys_id) == "System Telemetry"
 
@@ -458,152 +406,9 @@ def test_select_single_stakeholder_components_undiscovered_returns_intel():
         assert len(out.item_ids) >= 1
 
 
-# ---------- component_investigation_service tests ----------
+def test_eng_5_investigate_component_card_is_gone():
+    from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
 
-def test_resolve_component_owner():
-    from mlops_serious_game.application.component_investigation_service import resolve_component_owner
-    from mlops_serious_game.domain.graph_factory import GraphFactory
-
-    graph = None
-    try:
-        graph = GraphFactory.get_graph()
-    except Exception:
-        pass
-
-    assert resolve_component_owner("data.ingestion", graph) == "data_dave"
-    assert resolve_component_owner("model.training_pipeline", graph) == "model_monica"
-    assert resolve_component_owner("req.kpi_definition", graph) == "requirements_reuben"
-    assert resolve_component_owner("deploy.cicd", graph) == "automation_alex"
-    assert resolve_component_owner("ops.observability", graph) == "reliability_ruth"
-
-
-@pytest.mark.anyio
-async def test_investigation_dialogue_chains_fallback():
-    from mlops_serious_game.application.component_investigation_service.chains import (
-        generate_investigation_player_utterance,
-        generate_investigation_stakeholder_response,
-    )
-
-    with patch("mlops_serious_game.application.component_investigation_service.chains.get_investigation_player_utterance_chain") as mock_player:
-        mock_player.side_effect = RuntimeError("LLM unavailable")
-        utterance = await generate_investigation_player_utterance(
-            challenge="Predictive Maintenance",
-            target_stakeholder_name="Data Dave",
-            component_id="data.ingestion",
-            component_name="Data Ingestion Pipeline",
-        )
-        assert "Data Dave" in utterance or "Data Ingestion Pipeline" in utterance
-
-    with patch("mlops_serious_game.application.component_investigation_service.chains.get_investigation_stakeholder_response_chain") as mock_st:
-        mock_st.side_effect = RuntimeError("LLM unavailable")
-        response = await generate_investigation_stakeholder_response(
-            stakeholder_name="Data Dave",
-            component_name="Data Ingestion Pipeline",
-            revealed_intel_description="Ingestion runs batch jobs without retries.",
-        )
-        assert "Ingestion runs batch jobs without retries." in response
-
-
-@pytest.mark.anyio
-async def test_conduct_component_investigation_turn_lifts_fog_of_war():
-    from mlops_serious_game.application.component_investigation_service.service import (
-        conduct_component_investigation_turn,
-    )
-    from mlops_serious_game.application.graph_service.apply import replay, seed_ops
-    from mlops_serious_game.domain.graph import LoggedOp
-    from mlops_serious_game.domain.graph_factory import GraphFactory
-    from unittest.mock import AsyncMock, MagicMock
-
-    mock_ws = MagicMock()
-    mock_ws.query_params = {"username": "test_investigate_user"}
-    username = "test_investigate_user"
-
-    challenge = SimpleNamespace(
-        id=1,
-        name="Test Challenge",
-        description="A test challenge",
-        phase_id=1,
-        template_id="t_test",
-    )
-    conv = gather.GatherConversation(
-        card_id="eng_5",
-        stakeholder_id="data_dave",
-        component_id="data.validation",
-        turns_left=1,
-    )
-
-    with patch("mlops_serious_game.application.component_investigation_service.service.manager") as mock_manager, \
-         patch("mlops_serious_game.application.component_investigation_service.service.graph_store.seed_if_empty") as mock_seed, \
-         patch("mlops_serious_game.application.component_investigation_service.service.graph_store.append_ops") as mock_append_ops, \
-         patch("mlops_serious_game.application.component_investigation_service.service.push_graph_state", new_callable=AsyncMock) as mock_push_graph, \
-         patch("mlops_serious_game.application.component_investigation_service.service.generate_investigation_player_utterance", new_callable=AsyncMock) as mock_player_msg, \
-         patch("mlops_serious_game.application.component_investigation_service.service.generate_investigation_stakeholder_response", new_callable=AsyncMock) as mock_st_msg, \
-         patch("mlops_serious_game.application.component_investigation_service.service.store_intel_item", new_callable=AsyncMock):
-
-        mock_player_msg.return_value = "What is the status of Data Validation?"
-        mock_st_msg.return_value = "Here is the Data Validation fact."
-        mock_manager.send_event = AsyncMock()
-
-        res = await conduct_component_investigation_turn(
-            websocket=mock_ws,
-            username=username,
-            challenge=challenge,
-            conversation=conv,
-            component_id="data.validation",
-            history_str="",
-            emotion_values_map={},
-        )
-
-        assert res.intel_item is not None
-        # Check that seed_if_empty was called
-        mock_seed.assert_called_once_with(username, phase_index=1, challenge_template="t_test")
-
-        # Check that append_ops was called with observe op on data.validation
-        assert mock_append_ops.called
-        call_kwargs = mock_append_ops.call_args.kwargs
-        call_args = mock_append_ops.call_args.args
-        ops = call_kwargs.get("ops") or (call_args[1] if len(call_args) > 1 else None)
-        assert ops is not None
-        observe_targets = [op.target for op in ops if op.kind == "observe"]
-        assert "data.validation" in observe_targets
-
-        # Check that push_graph_state was called
-        mock_push_graph.assert_called_once_with(websocket=mock_ws, username=username, phase_id=1)
-
-        # Verify through replay that the observe op transitions knowledge from unknown to current
-        graph = GraphFactory.get_graph()
-        initial_log = [LoggedOp(seq=i, op=op) for i, op in enumerate(seed_ops(graph))]
-        init_replay = replay(graph, initial_log)
-        # Verify initially data.validation is unknown (shrouded in fog of war)
-        assert init_replay.knowledge.state_of("data.validation", init_replay.state) == "unknown"
-
-        # Apply observe op
-        appended_log = initial_log + [LoggedOp(seq=len(initial_log) + 1, op=ops[0])]
-        after_replay = replay(graph, appended_log)
-        # Verify knowledge is now current (fog of war lifted)
-        assert after_replay.knowledge.state_of("data.validation", after_replay.state) == "current"
-
-
-def test_is_component_allowed_for_phase():
-    from mlops_serious_game.infrastructure.websocket.handlers.gather_handler import _is_component_allowed_for_phase
-
-    # Phase 1: Requirements allowed, others not
-    assert _is_component_allowed_for_phase("req.kpi_definition", 1) is True
-    assert _is_component_allowed_for_phase("data.ingestion", 1) is False
-    assert _is_component_allowed_for_phase("model.registry", 1) is False
-
-    # Phase 2: Data allowed, requirements not
-    assert _is_component_allowed_for_phase("data.validation", 2) is True
-    assert _is_component_allowed_for_phase("req.kpi_definition", 2) is False
-
-    # Phase 3: Model allowed
-    assert _is_component_allowed_for_phase("model.registry", 3) is True
-    assert _is_component_allowed_for_phase("deploy.cicd", 3) is False
-
-    # Phase 4: Deploy allowed
-    assert _is_component_allowed_for_phase("deploy.serving", 4) is True
-    assert _is_component_allowed_for_phase("ops.alerting", 4) is False
-
-    # Phase 5: Ops allowed
-    assert _is_component_allowed_for_phase("ops.alerting", 5) is True
-    assert _is_component_allowed_for_phase("data.validation", 5) is False
+    assert "eng_5" not in [c.id for c in EngagementCardFactory.get_available_cards()]
+    assert "investigate_component" not in gather.GatherOptionKind.__args__
+    assert all(c.target_type != "component" for c in EngagementCardFactory.get_available_cards())

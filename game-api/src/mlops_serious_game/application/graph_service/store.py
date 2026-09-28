@@ -89,7 +89,7 @@ def load_log(username: str, run_index: Optional[int] = None) -> list[LoggedOp]:
 
 
 def load_state(username: str, run_index: Optional[int] = None) -> Replay:
-    """Ground truth plus player knowledge, for the current run or a named finished one.
+    """Ground truth, for the current run or a named finished one.
 
     `run_index` is what lets the results screen read a run the player has already left, and what
     lets it fold a spiral run's *parent* to get the baseline that run inherited.

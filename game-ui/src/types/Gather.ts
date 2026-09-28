@@ -3,8 +3,7 @@
 export type GatherOptionKind =
   | "component_query"
   | "priority_query"
-  | "generic_query"
-  | "investigate_component";
+  | "generic_query";
 
 export interface GatherOptionSpec {
   option: GatherOptionKind;

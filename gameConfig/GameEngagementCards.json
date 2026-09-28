@@ -64,21 +64,6 @@
       "max_plays_per_phase": -1,
       "turns": 1,
       "allowed_requirement_types": []
-    },
-    {
-      "id": "eng_5",
-      "title": "Investigate Component",
-      "icon": "ph:cpu-bold",
-      "token_cost": 2,
-      "description": "Inspect an MLOps component to discover factual information about its state and dependencies.",
-      "stakeholder_selection_amount": 0,
-      "target_type": "component",
-      "response_snippet": "Discovered facts about the inspected component.",
-      "max_plays_per_phase": -1,
-      "turns": 1,
-      "allowed_requirement_types": [
-        "fact"
-      ]
     }
   ]
 }

@@ -83,13 +83,9 @@ async def test_dossier_counts_the_whole_intel_pool_found_or_not():
 
 
 @pytest.mark.anyio
-async def test_a_mistagged_narrated_fact_does_not_change_the_stakeholders_total():
-    """A Fact has no stakeholder of its own - only a narrator - so it never shows up in
-    `get_requirements_for_stakeholder_in_challenge`. Filed as a stance (mistagged, or simply not
-    yet corrected) it lands on its narrator's page anyway (`speaker_of`), so the pool that page's
-    `intel_total` is drawn from has to count it too - otherwise the total grows the moment the
-    player (mis)tags it and shrinks back once they fix the tag, instead of staying the fixed,
-    authored number it is meant to be."""
+async def test_narrated_facts_never_count_towards_a_stakeholders_total():
+    """Facts live on the Challenge-Intel page, so a narrated Fact is neither shown on nor counted
+    for its narrator's page, whatever tag it carries."""
     StakeholderFactory.register_stakeholder(
         Stakeholder(
             id="tess_tester",
@@ -126,34 +122,20 @@ async def test_a_mistagged_narrated_fact_does_not_change_the_stakeholders_total(
     ensure_test_user(username)
     ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(username)}
 
-    # Mistagged: the player filed the Fact as a driver, the way an unconfirmed narrated Fact
-    # (nothing marks it as a Fact until the player says so) is easy to misread as a stance.
-    mistagged_fact = StakeholderIntelItem.from_requirement(fact, categorized_type="driver")
+    # Whatever tag it carries, a Fact (true type) is never a stakeholder-page item.
+    fact_item = StakeholderIntelItem.from_requirement(fact, categorized_type="driver")
     found = StakeholderIntelItem.from_requirement(driver)
 
-    with patch.object(RequirementFactory, "requirements", [driver, fact]), \
-         patch.object(OfflineIntelArtifactFactory, "artifacts_by_requirement", {"tess_fact": artifact}), \
-         patch("mlops_serious_game.application.intel_handler.retrieve_intel_items", new_callable=AsyncMock) as mock_retrieve_intel, \
-         patch("mlops_serious_game.application.intel_handler.get_session", MagicMock()), \
-         patch(
+    with patch.object(RequirementFactory, "requirements", [driver, fact]),          patch.object(OfflineIntelArtifactFactory, "artifacts_by_requirement", {"tess_fact": artifact}),          patch("mlops_serious_game.application.intel_handler.retrieve_intel_items", new_callable=AsyncMock) as mock_retrieve_intel,          patch("mlops_serious_game.application.intel_handler.get_session", MagicMock()),          patch(
              "mlops_serious_game.infrastructure.websocket.handlers.game_handler.get_or_create_game_session",
              return_value=MagicMock(stakeholder_archetypes={}),
-         ), \
-         patch("mlops_serious_game.domain.stakeholder_factory.StakeholderFactory.get_active_stakeholders", return_value=["tess_tester"]):
-        mock_retrieve_intel.return_value = [found, mistagged_fact]
-        mistagged_dossier = await retrieve_dossier_data(challenge, ws)
+         ),          patch("mlops_serious_game.domain.stakeholder_factory.StakeholderFactory.get_active_stakeholders", return_value=["tess_tester"]):
+        mock_retrieve_intel.return_value = [found, fact_item]
+        dossier = await retrieve_dossier_data(challenge, ws)
 
-        correctly_tagged_fact = StakeholderIntelItem.from_requirement(fact, categorized_type="fact")
-        mock_retrieve_intel.return_value = [found, correctly_tagged_fact]
-        corrected_dossier = await retrieve_dossier_data(challenge, ws)
-
-    mistagged_entry = next(e for e in mistagged_dossier if e["stakeholder_id"] == "tess_tester")
-    corrected_entry = next(e for e in corrected_dossier if e["stakeholder_id"] == "tess_tester")
-
-    # Both the real Driver and the mistagged Fact sit on Tess's page while it is mistagged.
-    assert len(mistagged_entry["intel_items"]) == 2
-    # Corrected, the Fact moves to the System page, leaving only the real Driver.
-    assert len(corrected_entry["intel_items"]) == 1
-    # The total (2: the Driver plus the one Fact Tess narrates) never changes either way.
-    assert mistagged_entry["intel_total"] == 2
-    assert corrected_entry["intel_total"] == 2
+    entry = next(e for e in dossier if e["stakeholder_id"] == "tess_tester")
+    assert [i["id"] for i in entry["intel_items"]] == ["tess_driver"]
+    assert entry["intel_total"] == 1
+    # The Fact is not known from the start, so it is not counted for Challenge-Intel either.
+    challenge_intel = next(e for e in dossier if e["stakeholder_id"] == "__challenge_intel__")
+    assert challenge_intel["intel_total"] == 0

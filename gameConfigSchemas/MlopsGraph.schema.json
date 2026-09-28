@@ -103,13 +103,6 @@
         }
       }
     },
-    "briefing_observed": {
-      "type": "array",
-      "title": "Targets the player knows from the start",
-      "items": {
-        "type": "string"
-      }
-    },
     "stages": {
       "type": "array",
       "items": {

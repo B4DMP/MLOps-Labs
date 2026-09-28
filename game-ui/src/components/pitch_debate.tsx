@@ -881,7 +881,7 @@ export default function PitchDebate({
   const roomIds = useMemo(() => {
     const fromPhase = phases[currentPhase]?.stakeholder_power_interest?.map((s) => s.stakeholder_id) || [];
     if (fromPhase.length > 0) return fromPhase;
-    return (dossierData || []).filter((st) => !st.is_environment).map((st) => st.stakeholder_id);
+    return (dossierData || []).filter((st) => !st.is_challenge_intel).map((st) => st.stakeholder_id);
   }, [phases, currentPhase, dossierData]);
 
   const activeStakeholders = useMemo(() => {
@@ -977,8 +977,8 @@ export default function PitchDebate({
           intel_type: i.intel_type,
           source: i.source,
           description: i.description,
-          stakeholder_id: st.is_environment ? undefined : st.stakeholder_id,
-          stakeholder_name: st.is_environment ? undefined : st.name,
+          stakeholder_id: st.is_challenge_intel ? undefined : st.stakeholder_id,
+          stakeholder_name: st.is_challenge_intel ? undefined : st.name,
           branch_x: i.categorized_type === "trade_off" ? i.branch_x : undefined,
           branch_y: i.categorized_type === "trade_off" ? i.branch_y : undefined,
         });
@@ -1080,8 +1080,8 @@ export default function PitchDebate({
             intel_type: i.intel_type,
             categorized_type: i.categorized_type,
             description: i.description,
-            stakeholder_id: st.is_environment ? undefined : st.stakeholder_id,
-            stakeholder_name: st.is_environment ? undefined : st.name,
+            stakeholder_id: st.is_challenge_intel ? undefined : st.stakeholder_id,
+            stakeholder_name: st.is_challenge_intel ? undefined : st.name,
           }))
       ),
     [dossierData]

@@ -18,7 +18,7 @@ from conftest import (
 )
 from mlops_serious_game.application.graph_service.apply import apply_ops
 from mlops_serious_game.application.pitch_debate_service import session
-from mlops_serious_game.domain.graph import GraphOp, GraphState, Knowledge, SeenEntry
+from mlops_serious_game.domain.graph import GraphOp, GraphState
 
 
 # ---------- builder previews & boundary checks ----------
@@ -37,19 +37,13 @@ def test_prediction_reports_the_cap_instead_of_the_asked_level(real):
     assert session.capped_item_ids(real, state, [item]) == {"i1"}
 
 
-def test_an_unobserved_target_predicts_nothing(real):
+def test_every_target_is_predicted_without_any_discovery(real):
     state = GraphState.from_config(real)
     item = _item("i1", "data_dave", "driver", suggested=_target("model.registry", 3))
 
-    blind = session.predictions_for(real, state, [item], knowledge=Knowledge())[0]
-    seen = session.predictions_for(real, state, [item], knowledge=Knowledge(
-        seen={"model.registry": SeenEntry(
-            seq=99, nominal_automation=1, nominal_governance=0, effective_automation=1, effective_governance=0
-        )}
-    ))[0]
+    pred = session.predictions_for(real, state, [item])[0]
 
-    assert (blind.known, blind.predicted, blind.capped_by) == (False, None, None)
-    assert seen.known and seen.predicted is not None
+    assert pred.known and pred.predicted is not None
 
 
 def test_find_pipeline_predecessors_is_repeatable_in_process(real):
@@ -121,15 +115,15 @@ def test_boundary_is_checked_slotted_or_not(real):
     assert [w.violated for w in fixed] == [False]
 
 
-def test_boundary_on_an_unknown_target_is_reported_as_uncheckable(real):
+def test_boundary_on_any_target_is_checkable(real):
     state = GraphState.from_config(real)
     boundary = _item(
         "b1", "reliability_ruth", "boundary",
         suggested=_target("data.validation", 3),
-        holds={"component": "data.validation", "op": "gte", "level": 3},
+        holds={"component": "data.validation", "axis": "automation", "op": "gte", "level": 3},
     )
-    w = session.boundary_checks(real, state, [boundary], [], ["reliability_ruth"], knowledge=Knowledge())[0]
-    assert (w.checkable, w.violated) == (False, False)
+    w = session.boundary_checks(real, state, [boundary], [], ["reliability_ruth"])[0]
+    assert w.checkable is True
 
 
 def test_trade_off_branch_ops_derivation():

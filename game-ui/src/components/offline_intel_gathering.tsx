@@ -9,7 +9,7 @@ import EventLogModal from "./EventLogModal";
 import PhaseOverview from "./PhaseOverview";
 import type { GameEventPayload } from "../types/GameEvent";
 import styles from "./offline_intel_gathering.module.css";
-import { INTEL_TAGS, intelTagMeta } from "../types/IntelTag";
+import { CHALLENGE_INTEL_META, INTEL_TAGS, intelTagMeta } from "../types/IntelTag";
 import { useSpeech } from "./useSpeech";
 import { slotForStakeholderVoice } from "../utils/speech";
 import { StakeholderContext } from "./StakeholderProvider";
@@ -91,8 +91,8 @@ export interface IntelArtifact {
   debug?: IntelDebugInfo;
 }
 
-// Stakeholder tags first, then the one tag that is about the system rather than a person.
-const REQUIREMENT_TAGS = INTEL_TAGS.map((t) => ({
+// The pickable stance tags; Challenge-Intel is appended only on locked, pre-known Facts.
+const REQUIREMENT_TAGS = [...INTEL_TAGS, CHALLENGE_INTEL_META].map((t) => ({
   type: t.type,
   label: t.label,
   icon: t.emoji,
@@ -101,17 +101,13 @@ const REQUIREMENT_TAGS = INTEL_TAGS.map((t) => ({
   about: t.about,
 }));
 
-// Matches ENVIRONMENT_ENTRY_ID on the backend (intel_handler.py): the dossier page id for
-// "The System", as opposed to any actual stakeholder_id.
-const SYSTEM_TAB_ID = "__environment__";
+// Matches CHALLENGE_INTEL_ENTRY_ID on the backend (intel_handler.py).
+const CHALLENGE_INTEL_TAB_ID = "__challenge_intel__";
 
-/** Which dossier page an artifact should open: the System page once it's known to be a Fact
- * (either pre-known, or just tagged that way by the player), otherwise its speaker's page.
- * An unconfirmed artifact's true type isn't known client-side before the player tags it -
- * revealing that early would give the answer away. */
+/** Which dossier page an artifact opens: Challenge-Intel for pre-known Facts, else its speaker's page. */
 function dossierTargetFor(art: IntelArtifact, categorizedType?: string): string {
   const catType = categorizedType ?? art.categorized_type;
-  if (catType === "fact") return SYSTEM_TAB_ID;
+  if (catType === "fact") return CHALLENGE_INTEL_TAB_ID;
   return art.stakeholder_id || art.stakeholder_name;
 }
 
@@ -1019,7 +1015,7 @@ export default function OfflineIntelGathering({
                               <>
                                 <strong>This is what the challenge is about.</strong> {currentArtifact.stakeholder_name}{" "}
                                 posted it in a channel the whole team reads, so everyone already knows how things stand.
-                                It's filed under <strong>The System</strong> in the Dossier as <strong>on record</strong>,
+                                It's filed under <strong>Challenge-Intel</strong> in the Dossier as <strong>on record</strong>,
                                 and there's nothing here for you to work out. Read it, then keep going.
                               </>
                             ) : (
@@ -1236,7 +1232,7 @@ export default function OfflineIntelGathering({
                       </p>
 
                       <div className={`row g-2 ${styles.tagGrid}`}>
-                        {REQUIREMENT_TAGS.map((tag) => {
+                        {REQUIREMENT_TAGS.filter((tag) => tag.type !== "fact" || isOnKnownFact).map((tag) => {
                           const isSelected = currentTaggedType === tag.type;
                           const isSystemTag = (tag as { about?: string }).about === "system";
                           const colClass = isSystemTag ? "col-12" : "col-12 col-md-4";

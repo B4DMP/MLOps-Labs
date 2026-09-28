@@ -146,10 +146,6 @@ def validate_graph(graph: TechnicalGraph) -> list[str]:
         errors += graph.instance_errors(inst)
         errors += [f"instance '{inst.id}' links to unknown instance '{x}'" for x in inst.links if x not in ids]
 
-    for target in graph.briefing_observed:
-        if not graph.is_target(target):
-            errors.append(f"briefing_observed references unknown target '{target}'")
-
     for old, new in graph.aliases.items():
         if graph.is_target(old):
             errors.append(f"alias '{old}' shadows a live id")

@@ -11,9 +11,8 @@
 8.  patterns        recompute and diff against before
 9.  grudges         fire the friction scheduled earlier
 10. metrics         weighted sum of effective level deltas
-11. observe         the player knows what their own card did
-12. persist         ops and snapshot
-13. next challenge  left to the caller (plan 07 step 9)
+11. persist         ops and snapshot
+12. next challenge  left to the caller (plan 07 step 9)
 ```
 
 `simulate` is pure: same inputs, same report, no database and no LLM (standing rule). Only
@@ -28,7 +27,7 @@ from mlops_serious_game.application.graph_service.apply import ApplyResult, appl
 from mlops_serious_game.application.graph_service.scheduler import stable_rank
 from mlops_serious_game.application.graph_service.view import GraphEvaluation, evaluate_graph
 from mlops_serious_game.domain.event import GameEvent
-from mlops_serious_game.domain.graph import Axis, DebtEntry, GraphOp, GraphState, Knowledge, TechnicalGraph
+from mlops_serious_game.domain.graph import Axis, DebtEntry, GraphOp, GraphState, TechnicalGraph
 from mlops_serious_game.domain.grudge import (
     GRUDGE_EFFECTS,
     GRUDGE_LIFETIME,
@@ -591,25 +590,12 @@ def _metric_magnitude(delta: int) -> str:
     return "slight"
 
 
-def _target_label(graph: TechnicalGraph, state: GraphState, knowledge: Optional[Knowledge], target_id: str) -> Optional[str]:
-    """The target's name if the player has observed it, `None` if the fog still holds (D11/D51):
-    a graph event names a target only when the player would actually recognise it."""
-    if knowledge is not None and knowledge.state_of(target_id, state) == "unknown":
-        return None
+def _target_label(graph: TechnicalGraph, target_id: str) -> str:
     if graph.is_component(target_id):
         return graph.component(target_id).name
     if graph.is_edge(target_id):
         return getattr(graph.edge(target_id), "name", None) or target_id
     return target_id
-
-
-def _stage_label(graph: TechnicalGraph, target_id: str) -> str:
-    try:
-        stage_id = graph.stage_of(target_id)
-    except Exception:
-        return "the pipeline"
-    stage = next((s for s in graph.stages if s.id == stage_id), None)
-    return stage.name if stage else "the pipeline"
 
 
 def _metric_label(metric_id: str) -> str:
@@ -626,11 +612,9 @@ def _metric_label(metric_id: str) -> str:
 def simulation_events(
     report: DeltaReport,
     graph: TechnicalGraph,
-    state: GraphState,
-    knowledge: Optional[Knowledge] = None,
     names: Optional[dict[str, str]] = None,
 ) -> list[GameEvent]:
-    """What gets logged for the simulation step: graph changes the world made (fog aware),
+    """What gets logged for the simulation step: graph changes the world made,
     metric moves, and grudges written or fired."""
     names = names or {}
     events: list[GameEvent] = []
@@ -639,33 +623,19 @@ def simulation_events(
         direction = "up" if wd.after > wd.before else "down" if wd.after < wd.before else "none"
         if direction == "none":
             continue
-        label = _target_label(graph, state, knowledge, wd.target)
-        if label:
-            events.append(GameEvent(
-                step="simulation", kind="graph", subject_id=wd.target, direction=direction, magnitude="clear",
-                cause="graph.moved", params={"name": label},
-            ))
-        else:
-            events.append(GameEvent(
-                step="simulation", kind="graph", direction=direction, magnitude="slight",
-                cause="graph.moved_unknown", params={"stage": _stage_label(graph, wd.target)},
-            ))
+        events.append(GameEvent(
+            step="simulation", kind="graph", subject_id=wd.target, direction=direction, magnitude="clear",
+            cause="graph.moved", params={"name": _target_label(graph, wd.target)},
+        ))
 
     for prop in report.propagated:
         direction = "up" if prop.effective.after > prop.effective.before else "down" if prop.effective.after < prop.effective.before else "none"
         if direction == "none":
             continue
-        label = _target_label(graph, state, knowledge, prop.target)
-        if label:
-            events.append(GameEvent(
-                step="simulation", kind="graph", subject_id=prop.target, direction=direction, magnitude="slight",
-                cause="graph.moved", params={"name": label},
-            ))
-        else:
-            events.append(GameEvent(
-                step="simulation", kind="graph", direction=direction, magnitude="slight",
-                cause="graph.moved_unknown", params={"stage": _stage_label(graph, prop.target)},
-            ))
+        events.append(GameEvent(
+            step="simulation", kind="graph", subject_id=prop.target, direction=direction, magnitude="slight",
+            cause="graph.moved", params={"name": _target_label(graph, prop.target)},
+        ))
 
     for metric_id, delta in report.metric_deltas.items():
         if delta == 0:
@@ -816,11 +786,6 @@ def simulate(
     created = grudges_created(outcome, reads, getattr(challenge, "template_id", None), overridden_stakeholder_id)
     stakeholders = _stakeholder_execution(reads, outcome, overridden_stakeholder_id, names)
 
-    observe = [                                                                # 11
-        GraphOp(kind="observe", target=target, source_kind="action_card")
-        for target in dict.fromkeys(t for t, _ in card_touches)
-    ]
-
     report = DeltaReport(
         outcome=outcome,
         targets=_target_deltas(
@@ -848,7 +813,7 @@ def simulate(
     return SimulationResult(
         report=report,
         state=state,
-        ops=applied.resolved_ops + world + grudge_ops + observe,
+        ops=applied.resolved_ops + world + grudge_ops,
         grudges=kept + created,
         pending_objections=pending,
     )
@@ -914,7 +879,7 @@ def run_simulation(
         names=names,
     )
     result = result.model_copy(update={
-        "events": simulation_events(result.report, graph, result.state, replay.knowledge, names)
+        "events": simulation_events(result.report, graph, names)
     })
     if result.ops and not store.has_batch(username, source_id):
         store.append_ops(

@@ -1,4 +1,4 @@
-"""Facts in the offline intel deck: voiced by a stakeholder, capped, and filed by the player's tag."""
+"""The offline intel deck: capped stances only for tagging, Facts only as known Challenge-Intel."""
 
 import sys
 import uuid
@@ -9,8 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from mlops_serious_game.application.intel_handler import (
-    ENVIRONMENT_ENTRY_ID,
-    MAX_FACT_ARTIFACTS,
+    CHALLENGE_INTEL_ENTRY_ID,
     MAX_STANCE_ARTIFACTS,
     deal_unconfirmed_artifacts,
     generate_offline_intel_artifacts,
@@ -65,25 +64,18 @@ def _deal(reqs, artifacts):
         return [a.requirement_id for a in deal_unconfirmed_artifacts(_challenge(), artifacts)]
 
 
-def test_deck_deals_facts_next_to_the_stances_instead_of_cutting_them():
+def test_deck_deals_only_stances_and_never_a_fact_to_tag():
     stances = [_stance(f"s{i}") for i in range(4)]
-    facts = [_fact(f"f{i}") for i in range(3)]
+    facts = [_fact(f"f{i}", CONFLICT_TARGET) for i in range(3)]
     dealt = _deal(stances + facts, [_artifact(r) for r in stances] + [_artifact(r, "tess_tester") for r in facts])
 
-    assert dealt == ["s0", "s1", "s2", "f0"]
-    assert MAX_STANCE_ARTIFACTS == 3 and MAX_FACT_ARTIFACTS == 1
+    assert dealt == ["s0", "s1", "s2"]
+    assert MAX_STANCE_ARTIFACTS == 3
 
 
-def test_facts_about_the_conflict_target_are_dealt_first():
-    facts = [_fact("elsewhere"), _fact("on_conflict", CONFLICT_TARGET), _fact("also_elsewhere")]
-    dealt = _deal(facts, [_artifact(r, "tess_tester") for r in facts])
-
-    assert dealt == ["on_conflict"]
-
-
-def test_a_fact_nobody_voices_is_not_dealt():
-    fact = _fact("silent")
-    assert _deal([fact], [_artifact(fact)]) == []
+def test_a_deck_of_only_facts_deals_nothing():
+    facts = [_fact("elsewhere"), _fact("on_conflict", CONFLICT_TARGET)]
+    assert _deal(facts, [_artifact(r, "tess_tester") for r in facts]) == []
 
 
 def test_a_voiced_fact_is_named_after_its_narrator():
@@ -104,12 +96,12 @@ def _tess() -> Stakeholder:
 
 
 @pytest.mark.anyio
-async def test_a_fact_filed_as_a_stance_sits_on_its_narrators_page_not_the_system_page():
+async def test_a_known_fact_shows_up_under_challenge_intel_and_stances_stay_on_their_page():
     StakeholderFactory.register_stakeholder(_tess())
-    mistaken, spotted = _fact("mistaken"), _fact("spotted")
-    filed_as_driver = StakeholderIntelItem.from_requirement(mistaken, categorized_type=IntelTag.DRIVER)
-    filed_as_fact = StakeholderIntelItem.from_requirement(spotted, categorized_type=IntelTag.FACT)
-    for item in (filed_as_driver, filed_as_fact):
+    stance, known = _stance("held_stance"), _fact("known_fact")
+    stance_item = StakeholderIntelItem.from_requirement(stance, categorized_type=IntelTag.DRIVER)
+    fact_item = StakeholderIntelItem.from_requirement(known, categorized_type=IntelTag.FACT)
+    for item in (stance_item, fact_item):
         item.discovered_phase_id = 0
 
     from conftest import ensure_test_user
@@ -118,25 +110,27 @@ async def test_a_fact_filed_as_a_stance_sits_on_its_narrators_page_not_the_syste
     username = f"test_offline_intel_deck_{uuid.uuid4()}"
     ensure_test_user(username)
     ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(username)}
-    artifacts = {r.id: _artifact(r, "tess_tester") for r in (mistaken, spotted)}
+    artifacts = {
+        stance.id: _artifact(stance),
+        known.id: _artifact(known, "tess_tester").model_copy(update={"is_known": True}),
+    }
+    other_fact = _fact("unreachable_fact")
+    artifacts[other_fact.id] = _artifact(other_fact, "tess_tester")
 
-    with patch.object(RequirementFactory, "requirements", [mistaken, spotted]), \
-         patch.dict(OfflineIntelArtifactFactory.artifacts_by_requirement, artifacts), \
-         patch("mlops_serious_game.application.intel_handler.retrieve_intel_items", new_callable=AsyncMock) as mock_retrieve, \
-         patch("mlops_serious_game.application.intel_handler._archived_items", return_value=[]), \
-         patch("mlops_serious_game.application.intel_handler.get_session", MagicMock()), \
-         patch(
+    with patch.object(RequirementFactory, "requirements", [stance, known, other_fact]),          patch.dict(OfflineIntelArtifactFactory.artifacts_by_requirement, artifacts),          patch("mlops_serious_game.application.intel_handler.retrieve_intel_items", new_callable=AsyncMock) as mock_retrieve,          patch("mlops_serious_game.application.intel_handler._archived_items", return_value=[]),          patch("mlops_serious_game.application.intel_handler.get_session", MagicMock()),          patch(
              "mlops_serious_game.infrastructure.websocket.handlers.game_handler.get_or_create_game_session",
              return_value=MagicMock(stakeholder_archetypes={}),
-         ), \
-         patch("mlops_serious_game.domain.stakeholder_factory.StakeholderFactory.get_active_stakeholders", return_value=["tess_tester"]):
-        mock_retrieve.return_value = [filed_as_driver, filed_as_fact]
+         ),          patch("mlops_serious_game.domain.stakeholder_factory.StakeholderFactory.get_active_stakeholders", return_value=["tess_tester"]):
+        mock_retrieve.return_value = [stance_item, fact_item]
         dossier = await retrieve_dossier_data(_challenge(), ws)
 
     tess = next(e for e in dossier if e["stakeholder_id"] == "tess_tester")
-    environment = next(e for e in dossier if e["stakeholder_id"] == ENVIRONMENT_ENTRY_ID)
-    assert [i["id"] for i in tess["intel_items"]] == ["mistaken"]
-    assert [i["id"] for i in environment["intel_items"]] == ["spotted"]
+    challenge_intel = next(e for e in dossier if e["stakeholder_id"] == CHALLENGE_INTEL_ENTRY_ID)
+    assert [i["id"] for i in tess["intel_items"]] == ["held_stance"]
+    assert [i["id"] for i in challenge_intel["intel_items"]] == ["known_fact"]
+    # Facts never count towards a stakeholder page; only known Facts count on Challenge-Intel.
+    assert tess["intel_total"] == 1
+    assert challenge_intel["intel_total"] == 1
 
 
 @pytest.mark.anyio
@@ -144,7 +138,10 @@ async def test_a_fact_filed_as_a_stance_sits_on_its_narrators_page_not_the_syste
 async def test_the_deck_carries_the_answer_key_only_in_debug(debug_enabled):
     StakeholderFactory.register_stakeholder(_tess())
     stance, fact = _stance("deck_stance"), _fact("deck_fact")
-    artifacts = {stance.id: _artifact(stance), fact.id: _artifact(fact, "tess_tester")}
+    artifacts = {
+        stance.id: _artifact(stance),
+        fact.id: _artifact(fact, "tess_tester").model_copy(update={"is_known": True}),
+    }
     by_id = {r.id: r for r in (stance, fact)}
 
     with patch.object(settings, "ENABLE_DOSSIER_DEBUG", debug_enabled), \
@@ -415,52 +412,3 @@ def test_a_narrator_never_names_themselves_except_in_meeting_notes(artifact_type
     ctx = SimpleNamespace(stakeholders={})
     errors = ArtifactsStage().check(_fact_output(BODY + " {data_dave} counted them."), item, ctx)
     assert any("refer to them as I" in e for e in errors) is flagged
-
-
-# ---------- Facts observed on leaving (plan 11, step 10) ----------
-
-def test_observe_tagged_facts_logs_one_event_naming_how_many(monkeypatch):
-    """`observe_tagged_facts` writes the graph ops as before, and now also hands back the event
-    log's record of it - one event for the batch, not one per fact (plan 11, D51)."""
-    from mlops_serious_game.application import intel_handler as app_intel
-    from mlops_serious_game.application.graph_service import store as graph_store
-
-    fact_item = StakeholderIntelItem(
-        id="f1", challenge_id=7, type=IntelTag.FACT, categorized_type=IntelTag.FACT,
-        asserts={"target": "data.ingestion", "axis": "automation", "level": 2}, description="How data.ingestion is",
-    )
-    row = SimpleNamespace(intel_item_data=fact_item.model_dump(mode="json"))
-    fake_session = MagicMock()
-    fake_session.scalars.return_value.all.return_value = [row]
-    fake_session_cm = MagicMock()
-    fake_session_cm.__enter__.return_value = fake_session
-    fake_session_cm.__exit__.return_value = False
-    monkeypatch.setattr(app_intel, "get_session", lambda: fake_session_cm)
-    monkeypatch.setattr(graph_store, "has_batch", lambda username, source_id: False)
-    append_calls = []
-    monkeypatch.setattr(graph_store, "append_ops", lambda *a, **kw: append_calls.append((a, kw)))
-
-    challenge = _challenge()
-    events = app_intel.observe_tagged_facts(challenge, "alice")
-
-    assert len(append_calls) == 1  # the graph op still gets written
-    assert len(events) == 1
-    assert events[0].cause == "graph.facts_observed"
-    assert events[0].params == {"n": "1"}
-    assert events[0].step == "offline"
-
-
-def test_observe_tagged_facts_logs_nothing_when_there_is_nothing_to_reveal(monkeypatch):
-    from mlops_serious_game.application import intel_handler as app_intel
-    from mlops_serious_game.application.graph_service import store as graph_store
-
-    fake_session = MagicMock()
-    fake_session.scalars.return_value.all.return_value = []
-    fake_session_cm = MagicMock()
-    fake_session_cm.__enter__.return_value = fake_session
-    fake_session_cm.__exit__.return_value = False
-    monkeypatch.setattr(app_intel, "get_session", lambda: fake_session_cm)
-    monkeypatch.setattr(graph_store, "has_batch", lambda username, source_id: False)
-    monkeypatch.setattr(graph_store, "append_ops", lambda *a, **kw: (_ for _ in ()).throw(AssertionError("must not be called")))
-
-    assert app_intel.observe_tagged_facts(_challenge(), "alice") == []

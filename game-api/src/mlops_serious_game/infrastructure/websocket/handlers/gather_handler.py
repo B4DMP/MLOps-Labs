@@ -1,7 +1,7 @@
 """Websocket handlers for Gather (Section 3, plan 01-intel-and-pitch-redesign).
 
 `gather:open` starts one conversation per target (or whole room for Team Sync-Up).
-`gather:ask` resolves one turn with dynamic component queries, priority queries, generic queries, or component investigation.
+`gather:ask` resolves one turn with dynamic component queries, priority queries, or generic queries.
 `gather:close` ends a conversation early; unused turns are lost.
 Every rule lives in `pitch_debate_service.gather` (pure); this module gathers context,
 calls in, writes revealed items as Verified, emits stakeholder chat messages, and updates the dossier.
@@ -15,10 +15,6 @@ from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.orm.attributes import flag_modified
 
-from mlops_serious_game.application.component_investigation_service import (
-    conduct_component_investigation_turn,
-    resolve_component_owner,
-)
 from mlops_serious_game.application.intel_handler import (
     load_known_intel_items,
     retrieve_dossier_data,
@@ -27,7 +23,6 @@ from mlops_serious_game.application.intel_handler import (
 from mlops_serious_game.application.pitch_debate_service import gather
 from mlops_serious_game.application.pitch_debate_service import gather_store
 from mlops_serious_game.application.pitch_debate_service.chains import (
-    generate_component_fact,
     generate_player_utterance,
     generate_stakeholder_response,
 )
@@ -61,7 +56,7 @@ def _challenge_and_room(phase_id: int, challenge_id: int):
 
 
 def _stakeholder_obj(st_id: str):
-    if not st_id or st_id in ("system", "System", "__environment__", "all"):
+    if not st_id or st_id in ("system", "System", "__challenge_intel__", "all"):
         return None
     try:
         return StakeholderFactory.get_stakeholder(st_id)
@@ -70,7 +65,7 @@ def _stakeholder_obj(st_id: str):
 
 
 def _stakeholder_name(st_id: str) -> str:
-    if not st_id or st_id in ("system", "System", "__environment__"):
+    if not st_id or st_id in ("system", "System", "__challenge_intel__"):
         return "System Telemetry"
     if st_id == "all":
         return "Whole Team"
@@ -128,8 +123,6 @@ def _options_payload(
     }
     if card.id == "eng_3" or card.stakeholder_selection_amount == -1:
         pool = [item for p in room_pools.values() for item in p]
-    elif card.id == "eng_5" or card.target_type == "component":
-        pool = RequirementFactory.get_requirements_for_challenge(challenge.id)
     else:
         pool = room_pools.get(
             conversation.stakeholder_id,
@@ -187,20 +180,6 @@ def _target_room_ids(card, requested: list[str], room_ids: list[str]) -> list[st
     return [st_id for st_id in requested if st_id in room_ids]
 
 
-def _is_component_allowed_for_phase(comp_id: str, phase_id: int) -> bool:
-    phase_prefixes = {
-        0: {"req"},
-        1: {"req"},
-        2: {"data"},
-        3: {"model"},
-        4: {"deploy"},
-        5: {"ops"},
-    }
-    allowed = phase_prefixes.get(phase_id, {"req"})
-    prefix = comp_id.split(".")[0] if "." in comp_id else comp_id
-    return prefix in allowed
-
-
 async def handle_gather_open(websocket: WebSocket, username: str, payload: dict) -> None:
     """Plays a card: starts one conversation per target (or whole room for Team Sync-Up)."""
     phase_id, challenge_id = payload.get("phase_id", 0), payload.get("challenge_id", 0)
@@ -208,46 +187,8 @@ async def handle_gather_open(websocket: WebSocket, username: str, payload: dict)
     card = EngagementCardFactory.get_card(card_id)
     challenge, room_ids = _challenge_and_room(phase_id, challenge_id)
 
-    target_comp_id = None
     if card.id == "eng_3" or card.stakeholder_selection_amount == -1:
         targets = ["all"]
-    elif card.target_type == "component" or card.id == "eng_5":
-        comp_id = (
-            payload.get("component_id")
-            or (payload.get("component_ids") or [None])[0]
-            or (payload.get("stakeholder_ids") or [None])[0]
-        )
-        if comp_id and not _is_component_allowed_for_phase(comp_id, phase_id):
-            await manager.send_event(
-                websocket=websocket,
-                event="system:error",
-                payload={"message": "Component is not relevant to the current phase."},
-            )
-            return
-
-        graph = None
-        try:
-            graph = GraphFactory.get_graph()
-        except Exception:
-            pass
-        if comp_id:
-            try:
-                from mlops_serious_game.application.graph_service import store as graph_store
-                replay = graph_store.load_state(username)
-                if replay.knowledge.state_of(comp_id, replay.state) != "unknown":
-                    await manager.send_event(
-                        websocket=websocket,
-                        event="system:error",
-                        payload={"message": f"Component '{comp_id}' is already discovered and cannot be investigated again."},
-                    )
-                    return
-            except Exception:
-                pass
-            owner_id = resolve_component_owner(comp_id, graph)
-            targets = [owner_id]
-            target_comp_id = comp_id
-        else:
-            targets = []
     else:
         targets = _target_room_ids(card, payload.get("stakeholder_ids", []), room_ids)
 
@@ -336,7 +277,6 @@ async def handle_gather_open(websocket: WebSocket, username: str, payload: dict)
             conversation_id=conversation_id,
             card_id=card_id,
             stakeholder_id=target,
-            component_id=target_comp_id,
             turns_left=card.turns,
         )
         gather_store.save_conversation(username, phase_id, challenge_id, conversation)
@@ -448,34 +388,32 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
     is_first_turn = conversation.turns_used == 0
     is_last_turn = conversation.turns_left == 1
 
-    # Generate player utterance via LLM for standard queries (investigate_component handled by service)
-    player_spoken_message = ""
-    if option != "investigate_component" and card_id != "eng_5":
-        player_spoken_message = await generate_player_utterance(
-            challenge=challenge_context,
-            target_stakeholder_name=target_st_name,
-            target_stakeholder_role=target_st_role,
-            dialogue_option_label=matching.get("label", ""),
-            dialogue_option_prompt=chosen_prompt,
-            component_name=comp_display,
-            history=history_str,
-            latest_statement=latest_statement,
-            default_prompt=chosen_prompt,
-            card_title=card.title,
-            card_description=card.description,
-            is_first_turn=is_first_turn,
-            is_last_turn=is_last_turn,
+    # Generate player utterance via LLM
+    player_spoken_message = await generate_player_utterance(
+        challenge=challenge_context,
+        target_stakeholder_name=target_st_name,
+        target_stakeholder_role=target_st_role,
+        dialogue_option_label=matching.get("label", ""),
+        dialogue_option_prompt=chosen_prompt,
+        component_name=comp_display,
+        history=history_str,
+        latest_statement=latest_statement,
+        default_prompt=chosen_prompt,
+        card_title=card.title,
+        card_description=card.description,
+        is_first_turn=is_first_turn,
+        is_last_turn=is_last_turn,
+    )
+    if player_spoken_message:
+        await manager.send_event(
+            websocket=websocket,
+            event="intel:message_received",
+            payload={
+                "type": "player_message",
+                "message": player_spoken_message,
+                "conversation_id": conversation.conversation_id,
+            },
         )
-        if player_spoken_message:
-            await manager.send_event(
-                websocket=websocket,
-                event="intel:message_received",
-                payload={
-                    "type": "player_message",
-                    "message": player_spoken_message,
-                    "conversation_id": conversation.conversation_id,
-                },
-            )
 
     st_name = target_st_name
     revealed_db_entries = []
@@ -527,22 +465,6 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
             stakeholder_name=st_name,
             graph=graph,
         )
-    elif option == "investigate_component" or card_id == "eng_5":
-        comp_id = chosen_component or conversation.component_id or conversation.stakeholder_id
-        investigation_result = await conduct_component_investigation_turn(
-            websocket=websocket,
-            username=username,
-            challenge=challenge,
-            conversation=conversation,
-            component_id=comp_id,
-            history_str=history_str,
-            emotion_values_map=emotion_values_map,
-            graph=graph,
-            known_ids=known_ids,
-            chosen_prompt=chosen_prompt,
-        )
-        outcome = investigation_result.outcome
-        revealed_db_entries.extend(investigation_result.revealed_db_entries)
     else:
         await _send_conversation(
             websocket, username, phase_id, challenge_id, conversation, card, held,
@@ -553,13 +475,8 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
     # Persist updated conversation
     gather_store.save_conversation(username, phase_id, challenge_id, outcome.conversation)
 
-    # The investigate_component service already emitted all messages and stored intel items;
-    # skip the emit block to avoid duplicates and preserve the entries it returned.
-    if option != "investigate_component" and card_id != "eng_5":
-        # If revealed items, persist as Verified and emit stakeholder/telemetry responses
-        revealed_db_entries = []
-
-        held_by_id = {i.id: i for i in held}
+    # If revealed items, persist as Verified and emit stakeholder responses
+    held_by_id = {i.id: i for i in held}
 
     if card_id == "eng_3":
         # Team Sync-Up: All stakeholders in the room respond to the inquiry about chosen_component
@@ -959,10 +876,6 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                     "facial_expression": facial_expression,
                     "emotion_values": ev_dict,
                 })
-
-    elif option == "investigate_component" or card_id == "eng_5":
-        # Handled entirely by conduct_component_investigation_turn(); no further emit needed.
-        pass
 
     else:
         # priority_query, generic_query, etc.

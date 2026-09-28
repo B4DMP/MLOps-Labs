@@ -176,7 +176,6 @@ def retire(config: Path, target: str, dry_run: bool = False) -> tuple[list[str],
 
     graph["components"] = [c for c in graph["components"] if c["id"] not in removed]
     graph["edges"] = [e for e in graph["edges"] if e["id"] not in removed]
-    graph["briefing_observed"] = [t for t in graph.get("briefing_observed", []) if t not in removed]
     graph["retired"] = sorted(set(graph.get("retired", [])) | set(removed))
     graph["aliases"] = {k: v for k, v in graph.get("aliases", {}).items() if v not in removed}
 

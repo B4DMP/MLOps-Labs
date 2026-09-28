@@ -114,10 +114,6 @@ async def _seed_player_on_stuck_challenge(username: str = "alice") -> int:
     from mlops_serious_game.application.playtest_service.service import auto_gather
     from mlops_serious_game.infrastructure.database.connection import get_session
     from mlops_serious_game.infrastructure.database.models import GameChallenge, GameSession
-    from mlops_serious_game.infrastructure.websocket.handlers.pitch_handler import (
-        PitchContext,
-        get_allowed_targets,
-    )
 
     user_id = _seed_user(username)
     _start_run(user_id, 1, None, username)
@@ -136,20 +132,11 @@ async def _seed_player_on_stuck_challenge(username: str = "alice") -> int:
     auto_gather(username, challenge)
 
     from mlops_serious_game.application.graph_service import store as graph_store
-    from mlops_serious_game.domain.graph import GraphOp
 
     # Seeds the graph if this player has never had one, and fires the challenge's own entry ops -
     # the same thing every real handler does before touching the graph.
     graph_store.enter_challenge(username, challenge)
 
-    ctx = PitchContext(username, challenge.phase_id, challenge.id)
-    targets = get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel))
-    graph_store.append_ops(
-        username,
-        [GraphOp(kind="observe", target=t, source_kind="intel", source_id="test:observe") for t in targets],
-        phase_index=challenge.phase_id, challenge_template=challenge.template_id,
-        source_kind="intel", source_id="test:observe",
-    )
     return user_id
 
 

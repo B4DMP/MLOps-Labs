@@ -229,12 +229,9 @@ async def test_simulation_records_its_own_metric_deltas_on_the_challenge_row(mig
 
     service.auto_gather("alice", challenge)
     ctx = PitchContext("alice", challenge.phase_id, challenge.id)
-    from mlops_serious_game.infrastructure.websocket.handlers.playtest_handler import _observe_everything
-    _observe_everything("alice", challenge, ctx)
-    ctx = PitchContext("alice", challenge.phase_id, challenge.id)  # fresh, sees the newly observed fog
 
     result = auto_card.search_card(
-        graph=ctx.graph, state=ctx.state, knowledge=ctx.knowledge, all_intel=list(ctx.all_intel),
+        graph=ctx.graph, state=ctx.state, all_intel=list(ctx.all_intel),
         room=ctx.room, emotions=ctx.emotions,
         allowed=get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel)),
         seed="metric-persistence-test",
@@ -279,7 +276,6 @@ async def test_reopening_the_simulation_screen_does_not_redo_its_one_time_effect
     from mlops_serious_game.infrastructure.websocket.handlers.pitch_handler import (
         PitchContext, get_allowed_targets, handle_pitch_commit,
     )
-    from mlops_serious_game.infrastructure.websocket.handlers.playtest_handler import _observe_everything
     from mlops_serious_game.infrastructure.websocket.handlers.simulation_handler import handle_simulation_run
 
     user_id = await _begun_game()
@@ -289,11 +285,9 @@ async def test_reopening_the_simulation_screen_does_not_redo_its_one_time_effect
 
     service.auto_gather("alice", challenge)
     ctx = PitchContext("alice", challenge.phase_id, challenge.id)
-    _observe_everything("alice", challenge, ctx)
-    ctx = PitchContext("alice", challenge.phase_id, challenge.id)
 
     result = auto_card.search_card(
-        graph=ctx.graph, state=ctx.state, knowledge=ctx.knowledge, all_intel=list(ctx.all_intel),
+        graph=ctx.graph, state=ctx.state, all_intel=list(ctx.all_intel),
         room=ctx.room, emotions=ctx.emotions,
         allowed=get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel)),
         seed="simulation-idempotent-test",

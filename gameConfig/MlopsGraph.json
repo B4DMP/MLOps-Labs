@@ -150,11 +150,6 @@
     "debt_penalty_per_entry": 6,
     "debt_buyin_threshold": 0.4
   },
-  "briefing_observed": [
-    "req.kpi_definition",
-    "data.ingestion",
-    "e.ingest_validate"
-  ],
   "stages": [
     {
       "id": "req",

@@ -21,7 +21,7 @@ from mlops_serious_game.application.pitch_debate_service import store as pitch_s
 from mlops_serious_game.application.pitch_debate_service.scoring import VETO_THRESHOLD
 from mlops_serious_game.domain.emotion import VETO_MALUS
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
-from mlops_serious_game.domain.graph import GraphOp, Knowledge, TechnicalGraph
+from mlops_serious_game.domain.graph import GraphOp, TechnicalGraph
 from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.domain.persona_resolver import personalize
 from mlops_serious_game.domain.phase_factory import PhaseFactory
@@ -52,7 +52,6 @@ class PitchContext:
         self.graph = GraphFactory.get_graph()
         replay = graph_store.load_state(username)
         self.state = replay.state
-        self.knowledge = replay.knowledge
         self.all_intel = RequirementFactory.get_requirements_for_challenge(self.challenge_id)
         self.room = [
             (ps.stakeholder_id, ps.power, ps.interest)
@@ -82,7 +81,6 @@ class PitchContext:
             changes=state.atomic_changes,
             room=self.room,
             emotion_values=current_emotions,
-            knowledge=self.knowledge,
         )
 
 
@@ -148,15 +146,8 @@ def get_allowed_targets(
     phase_id: int,
     challenge_id: int,
     all_intel: list,
-    knowledge: Optional["Knowledge"] = None,
 ) -> list[str]:
-    """Lifecycle nodes are viewable/editable only in their phase and challenge.
-
-    A component the player has actually investigated (present in `knowledge.seen`, e.g. via the
-    "investigate component" engagement card) is always allowed too, even when it has no pre-authored
-    requirement in `all_intel` - otherwise it would be wrongly excluded whenever some other component
-    in the same stage does have an authored requirement.
-    """
+    """Lifecycle nodes are viewable/editable only in their phase and challenge."""
     allowed: list[str] = []
 
     # Phase 0 is the introduction phase; it is skipped for stage calculations (maps to Phase 1: 'req')
@@ -173,8 +164,6 @@ def get_allowed_targets(
             target, _, _ = item_target_and_level(r)
             if target and graph.is_component(target):
                 challenge_targets.add(target)
-        if knowledge is not None:
-            challenge_targets.update(knowledge.seen.keys())
 
         stage_comps = [c.id for c in graph.components if c.stage_id == phase_stage_id]
         relevant = [cid for cid in stage_comps if cid in challenge_targets]
@@ -259,7 +248,7 @@ def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView,
 
     held = ctx.held_items()
     chains = chain_index(held)
-    allowed_targets = get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel), ctx.knowledge)
+    allowed_targets = get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel))
     upstream_map = {c.id: pitch.find_pipeline_predecessors(ctx.graph, c.id) for c in ctx.graph.components}
 
     payload = {
@@ -315,7 +304,7 @@ async def handle_pitch_set_card(websocket: WebSocket, username: str, payload: di
     state = _load_or_start(ctx)
 
     raw_changes = payload.get("atomic_changes", [])
-    allowed = set(get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel), ctx.knowledge))
+    allowed = set(get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel)))
 
     valid_changes: list[pitch.AtomicChange] = []
     for c in raw_changes[:pitch.MAX_ATOMIC_CHANGES]:
@@ -327,15 +316,6 @@ async def handle_pitch_set_card(websocket: WebSocket, username: str, payload: di
                 state,
                 ctx.view(state),
                 error=f"Target '{target}' is not viewable or editable in this phase/challenge.",
-            )
-            return
-        if ctx.knowledge.state_of(target, ctx.state) == "unknown":
-            await _send(
-                websocket,
-                ctx,
-                state,
-                ctx.view(state),
-                error=f"Target '{target}' is undiscovered and cannot be upgraded until intel is collected on it.",
             )
             return
         kind = c.get("kind", "raise_to") if isinstance(c, dict) else getattr(c, "kind", "raise_to")
@@ -358,7 +338,7 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
 
     if "atomic_changes" in payload:
         raw_changes = payload.get("atomic_changes", [])
-        allowed = set(get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel), ctx.knowledge))
+        allowed = set(get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel)))
         state.atomic_changes = [
             pitch.AtomicChange(
                 target=c.get("target") if isinstance(c, dict) else getattr(c, "target", None),
@@ -373,7 +353,6 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
                 (c.get("target") if isinstance(c, dict) else getattr(c, "target", None)) in allowed
                 or ctx.graph.is_target(c.get("target") if isinstance(c, dict) else getattr(c, "target", None))
             )
-            and ctx.knowledge.state_of(c.get("target") if isinstance(c, dict) else getattr(c, "target", None), ctx.state) != "unknown"
         ]
 
     if not state.atomic_changes:
@@ -412,7 +391,6 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
         current_emotions=ctx.emotions,
         held_items=ctx.held_items(),
         names=ctx.names,
-        knowledge=ctx.knowledge,
         presentation_count=pitch_index,
     )
 
@@ -435,7 +413,7 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
     reads_by_st = {r.stakeholder_id: r for r in view.reads}
     card_atoms = {f"{op.kind}({op.target}, {op.value})" for op in card_ops_list}
     warnings = pitch.boundary_checks(
-        ctx.graph, ctx.state, ctx.all_intel, state.atomic_changes, ctx.room_ids, knowledge=ctx.knowledge
+        ctx.graph, ctx.state, ctx.all_intel, state.atomic_changes, ctx.room_ids
     )
     violated_map: dict[str, list] = {}
     for w in warnings:
@@ -628,7 +606,7 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
 
     if "atomic_changes" in payload:
         raw_changes = payload.get("atomic_changes", [])
-        allowed = set(get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel), ctx.knowledge))
+        allowed = set(get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel)))
         state.atomic_changes = [
             pitch.AtomicChange(
                 target=c.get("target") if isinstance(c, dict) else getattr(c, "target", None),
@@ -643,7 +621,6 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
                 (c.get("target") if isinstance(c, dict) else getattr(c, "target", None)) in allowed
                 or ctx.graph.is_target(c.get("target") if isinstance(c, dict) else getattr(c, "target", None))
             )
-            and ctx.knowledge.state_of(c.get("target") if isinstance(c, dict) else getattr(c, "target", None), ctx.state) != "unknown"
         ]
 
     if not state.atomic_changes:
@@ -705,7 +682,7 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
 
         st_intel = [i for i in ctx.all_intel if getattr(i, "stakeholder_id", None) == veto_st_id]
         warnings = pitch.boundary_checks(
-            ctx.graph, ctx.state, ctx.all_intel, state.atomic_changes, [veto_st_id], knowledge=ctx.knowledge
+            ctx.graph, ctx.state, ctx.all_intel, state.atomic_changes, [veto_st_id]
         )
         violated_st_warnings = [w for w in warnings if w.violated and w.stakeholder_id == veto_st_id]
 

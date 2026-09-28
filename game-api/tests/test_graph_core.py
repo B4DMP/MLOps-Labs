@@ -1,6 +1,6 @@
 """Graph core (plan 01, then docs/plans/graph-governance-automation-rework/00-plan.md) on
 synthetic fixtures plus the real config: op application, effective levels and capping,
-degradation and debt, fog of war, predicates, stage health, and story.
+degradation and debt, predicates, stage health, and story.
 
 Two independent axes, no combined level: every raise_to/set_to op and every component/edge
 predicate clause names its axis explicitly."""
@@ -50,7 +50,6 @@ def _graph(**overrides) -> TechnicalGraph:
             "dataset": {"properties": {}},
         },
         "instance_states": ["active", "deprecated"],
-        "briefing_observed": ["a.src"],
         "stages": [
             {"id": "a", "name": "Stage A", "owner_role": "alice"},
             {"id": "b", "name": "Stage B", "owner_role": "bob"},
@@ -415,40 +414,37 @@ def test_replay_equals_live_fold():
     assert replayed.attrs == live.attrs
 
 
-# ---------- knowledge ----------
+# ---------- graph state payload ----------
 
-def test_seed_reveals_only_briefing_targets():
+def test_seed_replays_to_the_configured_start_state():
     g = _graph()
     r = replay(g, [LoggedOp(seq=i, op=o) for i, o in enumerate(seed_ops(g))])
-    assert r.knowledge.state_of("a.src", r.state) == "current"
-    assert r.knowledge.state_of("a.mid", r.state) == "unknown"
     assert r.state.component_automation == GraphState.from_config(g).component_automation
     assert r.state.component_governance == GraphState.from_config(g).component_governance
+    assert not hasattr(r, "knowledge")
 
 
-def test_world_event_makes_knowledge_stale_until_observed_again():
+def test_observe_is_no_longer_an_op_kind():
+    with pytest.raises(ValueError):
+        GraphOp(kind="observe", target="a.src")
+
+
+def test_graph_state_ships_full_data_for_every_target_from_the_start():
+    from mlops_serious_game.application.graph_service.view import evaluate_graph
+    from mlops_serious_game.application.graph_service.graph_state_view import build_graph_state
+
     g = _graph()
-    log = [LoggedOp(seq=i, op=o) for i, o in enumerate(seed_ops(g))]
-    n = len(log)
-    log.append(LoggedOp(seq=n, op=GraphOp(kind="set_to", target="a.src", axis="automation", value=0, source_kind="world_event")))
-    r = replay(g, log)
-    assert r.knowledge.state_of("a.src", r.state) == "stale"
-    assert r.knowledge.seen["a.src"].nominal_automation == 3  # the player still sees what they saw
+    state = GraphState.from_config(g)
+    ev = evaluate_graph(g, state, [], [])
+    view = build_graph_state(g, state, ev.effective, ev.stage_graph, [], [], current_phase_id=None)
 
-    log.append(LoggedOp(seq=n + 1, op=GraphOp(kind="observe", target="a.src")))
-    r = replay(g, log)
-    assert r.knowledge.state_of("a.src", r.state) == "current"
-    assert r.knowledge.seen["a.src"].nominal_automation == 0
-
-
-def test_observation_records_effective_level():
-    g = _graph()
-    log = [
-        LoggedOp(seq=0, op=GraphOp(kind="set_to", target="a.mid", axis="automation", value=2)),
-        LoggedOp(seq=1, op=GraphOp(kind="observe", target="b.sink")),
-    ]
-    seen = replay(g, log).knowledge.seen["b.sink"]
-    assert (seen.nominal_automation, seen.effective_automation) == (3, 2)
+    targets = [t for stage in view["technical"].values() for t in stage["components"] + stage["edges"]]
+    assert len(targets) == len(g.components) + len(g.edges)
+    for t in targets:
+        assert "knowledge" not in t and "seen_at" not in t
+        assert "effective_automation" in t and "effective_governance" in t
+    for stage in view["stages"]:
+        assert "health_band" not in stage
 
 
 # ---------- predicates ----------

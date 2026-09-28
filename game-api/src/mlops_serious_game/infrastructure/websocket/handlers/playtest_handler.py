@@ -25,12 +25,10 @@ from typing import Optional
 from fastapi import WebSocket
 from sqlalchemy import select
 
-from mlops_serious_game.application.graph_service import store as graph_store
 from mlops_serious_game.application.pitch_debate_service import store as pitch_store
 from mlops_serious_game.application.playtest_service import auto_card, service
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.Challenge import Challenge
-from mlops_serious_game.domain.graph import GraphOp
 from mlops_serious_game.domain.metric_factory import MetricFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.infrastructure.database.connection import get_session
@@ -101,34 +99,9 @@ def _current(username: str) -> Optional[tuple[Challenge, Optional[GameChallenge]
     return (challenge, None) if challenge else None
 
 
-def _observe_everything(username: str, challenge: Challenge, ctx: PitchContext) -> None:
-    """Lifts the fog on every target the player may touch in this phase.
-
-    The game does this for correctly tagged Facts. A playtest run has not tagged anything, and a
-    card can only be built on targets the player has looked at, so it is done for all of them.
-    Idempotent per challenge.
-    """
-    source_id = f"playtest:{challenge.template_id}"
-    if graph_store.has_batch(username, source_id):
-        return
-    targets = get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel))
-    if not targets:
-        return
-    graph_store.append_ops(
-        username,
-        [GraphOp(kind="observe", target=t, source_kind="intel", source_id=source_id) for t in targets],
-        phase_index=challenge.phase_id,
-        challenge_template=challenge.template_id,
-        source_kind="intel",
-        source_id=source_id,
-    )
-
-
 def _prepare(username: str, challenge: Challenge) -> PitchContext:
-    """Fills the dossier and the fog, then builds the context the search reads."""
+    """Fills the dossier, then builds the context the search reads."""
     service.auto_gather(username, challenge)
-    _observe_everything(username, challenge, PitchContext(username, challenge.phase_id, challenge.id))
-    # A fresh context: the search must see the knowledge that was just granted.
     return PitchContext(username, challenge.phase_id, challenge.id)
 
 
@@ -138,7 +111,6 @@ def _search(username: str, ctx: PitchContext) -> Optional[auto_card.CardSearchRe
     return auto_card.search_card(
         graph=ctx.graph,
         state=ctx.state,
-        knowledge=ctx.knowledge,
         all_intel=list(ctx.all_intel),
         room=ctx.room,
         emotions=ctx.emotions,

@@ -198,11 +198,6 @@ async def test_a_challenge_with_a_real_winning_card_never_touches_escalation_at_
     from mlops_serious_game.infrastructure.database.models import GameChallenge, GameSession
     from mlops_serious_game.application.graph_service import store as graph_store
     from mlops_serious_game.application.playtest_service.service import auto_gather
-    from mlops_serious_game.infrastructure.websocket.handlers.pitch_handler import (
-        PitchContext,
-        get_allowed_targets,
-    )
-    from mlops_serious_game.domain.graph import GraphOp
     from test_run_scope import _seed_user, _start_run
 
     username = "bob"
@@ -222,14 +217,6 @@ async def test_a_challenge_with_a_real_winning_card_never_touches_escalation_at_
         session.add(GameSession(player=username, user_id=user_id, run_index=1))
     auto_gather(username, challenge)
     graph_store.enter_challenge(username, challenge)
-    ctx = PitchContext(username, challenge.phase_id, challenge.id)
-    targets = get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel))
-    graph_store.append_ops(
-        username,
-        [GraphOp(kind="observe", target=t, source_kind="intel", source_id="test:observe") for t in targets],
-        phase_index=challenge.phase_id, challenge_template=challenge.template_id,
-        source_kind="intel", source_id="test:observe",
-    )
 
     events, errors = await _skip(username)
 

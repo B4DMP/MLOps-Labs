@@ -31,7 +31,7 @@ from mlops_serious_game.domain.emotion import (
 )
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.event import GameEvent
-from mlops_serious_game.domain.graph import Axis, GraphOp, GraphState, Knowledge, TechnicalGraph
+from mlops_serious_game.domain.graph import Axis, GraphOp, GraphState, TechnicalGraph
 from mlops_serious_game.domain.graph_predicates import PredicateError, evaluate
 from mlops_serious_game.domain.requirement import IntelTag, item_target_and_level
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
@@ -426,7 +426,6 @@ def predictions_for(
     graph: TechnicalGraph,
     state: GraphState,
     changes: list[Any],
-    knowledge: Optional[Knowledge] = None,
 ) -> list[ItemPrediction]:
     ops = atomic_changes_to_ops(graph, state, changes)
     after = apply_ops(graph, state, ops).state if ops else state
@@ -438,13 +437,6 @@ def predictions_for(
         if not target or axis is None:
             continue
         item_id = getattr(c, "id", None) or (c.get("id") if isinstance(c, dict) else None) or target
-        target_known = knowledge is None or knowledge.state_of(target, state) != "unknown"
-        preds = find_pipeline_predecessors(graph, target)
-        uncertain_nodes = [
-            p for p in preds
-            if knowledge is not None and knowledge.state_of(p, state) == "unknown"
-        ]
-        is_upstream_uncertain = len(uncertain_nodes) > 0
         eff = _effective_of(effective, target, axis)
 
         out.append(ItemPrediction(
@@ -452,11 +444,8 @@ def predictions_for(
             target=target,
             axis=axis,
             asked=target_lvl,
-            predicted=None if not target_known else eff,
-            capped_by=None if not target_known else effective.capped_by.get(target),
-            known=target_known,
-            upstream_uncertain=is_upstream_uncertain,
-            upstream_uncertain_nodes=uncertain_nodes,
+            predicted=eff,
+            capped_by=effective.capped_by.get(target),
         ))
     return out
 
@@ -476,7 +465,6 @@ def boundary_checks(
     all_intel: list,
     changes: list[AtomicChange],
     room_st_ids: list[str],
-    knowledge: Optional[Knowledge] = None,
 ) -> list[BoundaryWarning]:
     """Checks Boundary constraints of room stakeholders against post-card state."""
     after = predicted_state(graph, state, changes)
@@ -494,11 +482,6 @@ def boundary_checks(
         if holds is None:
             continue
         target = _boundary_target(item)
-        if knowledge is not None and target and knowledge.state_of(target, after) == "unknown":
-            warnings.append(BoundaryWarning(
-                item_id=item.id, stakeholder_id=item.stakeholder_id, target=target, checkable=False
-            ))
-            continue
         try:
             violated = not evaluate(holds, ctx).value
         except PredicateError:
@@ -665,13 +648,12 @@ def stakeholder_reads(
     changes: list[AtomicChange],
     room: list[tuple],
     emotion_values: dict[str, dict[str, float]],
-    knowledge: Optional[Knowledge] = None,
 ) -> list[StakeholderRead]:
     """Evaluates continuous demand alignment, emotions, and buy-in for every stakeholder in the room."""
     ops = atomic_changes_to_ops(graph, state, changes)
     room_ids = [st_entry[0] for st_entry in room]
 
-    warnings = boundary_checks(graph, state, all_intel, changes, room_ids, knowledge=knowledge)
+    warnings = boundary_checks(graph, state, all_intel, changes, room_ids)
     violated_by_st: dict[str, bool] = {}
     violated_by_item: dict[str, bool] = {}
     for w in warnings:
@@ -723,7 +705,6 @@ def card_view(
     changes: list[AtomicChange],
     room: list[tuple],
     emotion_values: Optional[dict[str, dict[str, float]]] = None,
-    knowledge: Optional[Knowledge] = None,
 ) -> CardView:
     """One call for the builder and commit screen: predictions, warnings, reads, outcome."""
     room_ids = [st_entry[0] for st_entry in room]
@@ -735,11 +716,10 @@ def card_view(
         changes=changes,
         room=room,
         emotion_values=emotion_values or {},
-        knowledge=knowledge,
     )
     return CardView(
-        predictions=predictions_for(graph, state, changes, knowledge),
-        boundary_warnings=boundary_checks(graph, state, all_intel, changes, room_ids, knowledge),
+        predictions=predictions_for(graph, state, changes),
+        boundary_warnings=boundary_checks(graph, state, all_intel, changes, room_ids),
         reads=reads,
         outcome=calc_outcome([(r.stakeholder_id, r.power, r.buy_in, r.boundary_violated) for r in reads]),
     )
@@ -758,7 +738,6 @@ def evaluate_pitch(
     current_emotions: Optional[dict[str, dict[str, float]]] = None,
     held_items: Optional[list] = None,
     names: Optional[dict[str, str]] = None,
-    knowledge: Optional[Knowledge] = None,
     presentation_count: int = 1,
     **kwargs,
 ) -> tuple[PitchState, CardView, list[str]]:
@@ -795,7 +774,7 @@ def evaluate_pitch(
     target_levels = {(op.target, op.axis): int(op.value) for op in ops if op.kind in ("raise_to", "set_to")}
 
     # Detect boundary violations
-    warnings = boundary_checks(graph, state, all_intel, changes, room_ids, knowledge=knowledge)
+    warnings = boundary_checks(graph, state, all_intel, changes, room_ids)
     violated_map: dict[str, list[BoundaryWarning]] = {}
     for w in warnings:
         if w.violated and w.stakeholder_id:
@@ -972,7 +951,6 @@ def evaluate_pitch(
         changes=changes,
         room=room,
         emotion_values=updated_emotions,
-        knowledge=knowledge,
     )
 
     valid_atomic_changes: list[AtomicChange] = []

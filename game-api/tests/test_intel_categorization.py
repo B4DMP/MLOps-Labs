@@ -144,3 +144,28 @@ async def test_retag_challenge_specific_stance_updates_description():
     assert intel_entry3["description"] == target_req.description
 
 
+
+
+@pytest.mark.anyio
+async def test_handle_intel_tagging_rejects_the_fact_tag():
+    from unittest.mock import AsyncMock
+    from mlops_serious_game.application.intel_handler import handle_intel_tagging
+
+    with pytest.raises(ValueError, match="Facts cannot be tagged"):
+        await handle_intel_tagging(AsyncMock(), AsyncMock(), "any_req", IntelTag.FACT.value)
+
+
+@pytest.mark.anyio
+async def test_handle_tag_item_refuses_a_fact_tag_before_tagging():
+    from unittest.mock import AsyncMock, patch
+    from mlops_serious_game.infrastructure.websocket.handlers import intel_handler as ws_intel
+
+    with patch.object(ws_intel, "handle_intel_tagging", new_callable=AsyncMock) as tagging, \
+         patch.object(ws_intel, "manager") as manager:
+        manager.send_event = AsyncMock()
+        await ws_intel.handle_tag_item(
+            AsyncMock(), "alice", {"phase_id": 1, "challenge_id": 0, "intel_id": "r1", "categorized_type": "fact"}
+        )
+
+    tagging.assert_not_called()
+    assert manager.send_event.await_args.kwargs["event"] == "system:error"

@@ -6,7 +6,6 @@ from loguru import logger
 
 from mlops_serious_game.application.message_parser import sanitize_dashes
 from mlops_serious_game.application.pitch_debate_service.prompts import (
-    GENERATE_COMPONENT_FACT_PROMPT,
     PLAYER_KICKOFF_PROMPT,
     PLAYER_UTTERANCE_PROMPT,
     STAKEHOLDER_ENGAGEMENT_RESPONSE_PROMPT,
@@ -233,63 +232,5 @@ async def generate_stakeholder_response(
     except Exception as exc:
         logger.warning(f"generate_stakeholder_response failed, falling back to default: {exc}")
         return sanitize_dashes(fallback)
-
-
-def get_component_fact_chain():
-    """Builds and returns the LCEL chain for generating a factual system telemetry observation for an MLOps component."""
-    model = get_chat_model(temperature=0.4)
-    return with_setting(GENERATE_COMPONENT_FACT_PROMPT) | model | StrOutputParser()
-
-
-COMPONENT_FACT_FALLBACKS: dict[str, str] = {
-    "req.kpi_definition": "Technical project logs show business KPIs lack formal mathematical formulas and automated telemetry mapping.",
-    "req.acceptance_criteria": "Release criteria inspection indicates quality gates are evaluated manually without automated thresholds.",
-    "req.data_contracts": "Interface telemetry confirms data producer schemas lack automated contract validation and breaking change alerts.",
-    "req.risk_assessment": "Operational audit logs indicate model risk assessments are recorded offline without continuous compliance verification.",
-    "data.ingestion": "Data ingestion pipeline telemetry indicates raw ingestion runs on unscheduled batch jobs without failure retry policies.",
-    "data.validation": "Diagnostic logs confirm incoming data streams lack automated schema validation and drift checks before preprocessing.",
-    "data.feature_store": "Feature store audit reveals offline training features and online serving definitions are calculated independently without parity verification.",
-    "data.versioning": "Storage snapshots show training datasets are not pinned to immutable version tags across pipeline iterations.",
-    "data.labeling": "Labeling pipeline telemetry indicates ground truth annotations lack inter-annotator consensus verification.",
-    "model.training": "Training execution logs show hyperparameter runs are executed on local scratch nodes without centralized experiment tracking.",
-    "model.evaluation": "Evaluation harness logs show model candidates are scored only on aggregate accuracy without subgroup fairness or slice metrics.",
-    "model.registry": "Model registry inspection confirms candidate artifacts lack automated regression gating and approval signatures.",
-    "model.governance": "Audit logs indicate compliance checks and lineage tracking are compiled manually after deployment decisions.",
-    "deploy.ci_cd": "Deployment pipeline traces confirm continuous delivery lacks automated canary release gates and rollback triggers.",
-    "deploy.serving": "Inference service monitoring indicates serving instances lack dynamic autoscaling under peak traffic loads.",
-    "ops.monitoring": "Production observability metrics confirm inference latency and data drift alerts are unconfigured.",
-    "ops.alerting": "Incident response logs show alert routing depends on manual escalation without automated paging rules.",
-}
-
-
-async def generate_component_fact(
-    challenge: str,
-    component_id: str,
-    component_name: str,
-    component_group: str = "",
-    component_description: str = "",
-) -> str:
-    """Generates an objective Fact intel observation about an MLOps component on the fly with safe fallbacks."""
-    fallback = COMPONENT_FACT_FALLBACKS.get(
-        component_id,
-        f"Diagnostic probe of {component_name} reveals operational bottlenecks and missing automated validation gates in the current pipeline.",
-    )
-    try:
-        chain = get_component_fact_chain()
-        result = await chain.ainvoke(
-            {
-                "challenge": challenge,
-                "component_id": component_id,
-                "component_name": component_name,
-                "component_group": component_group,
-                "component_description": component_description,
-            }
-        )
-        text = str(result).strip().strip('"').strip("'")
-        text = sanitize_dashes(text)
-        return text if text else fallback
-    except Exception as exc:
-        logger.warning(f"generate_component_fact failed, falling back to default: {exc}")
-        return fallback
 
 

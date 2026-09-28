@@ -19,9 +19,7 @@ import {
   NodeTitleAberration,
   LevelCaption,
   NODE_STATE_ANIM,
-  ScanlineDefs,
   SelectionReticle,
-  StaleScanline,
   EdgeHandle,
 } from "./graph/nodeChrome";
 import {
@@ -113,7 +111,6 @@ export interface ComponentData {
   name: string;
   stage_id?: string;
   owner_id?: string;
-  knowledge: "unknown" | "current" | "stale";
   nominal_automation?: number;
   nominal_governance?: number;
   effective_automation?: number;
@@ -133,7 +130,6 @@ export interface EdgeData {
   from_id: string;
   to_id: string;
   kind: string;
-  knowledge: "unknown" | "current" | "stale";
   automation?: number;
   governance?: number;
   trigger?: string;
@@ -259,7 +255,6 @@ const LEGEND_GROUPS: Array<{
       { label: "Running as built", swatch: { background: NODE_COLORS.healthy } },
       { label: "Held back by a bottleneck", swatch: { background: NODE_COLORS.capped } },
       { label: "Broken", swatch: { background: NODE_COLORS.broken } },
-      { label: "Not discovered yet", swatch: { background: NODE_COLORS.unknown, opacity: 0.5 } },
     ],
   },
   {
@@ -820,17 +815,8 @@ export default function ComposeActionProposalModal({
     (targetId: string, targetType: "component" | "edge", targetStageId?: string): { editable: boolean; reason?: string } => {
       const comp = allComponentsMap.get(targetId);
       const edge = allEdgesMap.get(targetId);
-      const knowledge = targetType === "component" ? comp?.knowledge : edge?.knowledge;
 
-      // 1. Undiscovered / Unknown State Guard
-      if (knowledge === "unknown") {
-        return {
-          editable: false,
-          reason: "Undiscovered. You must collect intel on this node before it becomes accessible for action proposals.",
-        };
-      }
-
-      // 2. Stage / Phase check
+      // 1. Stage / Phase check
       const sId = targetStageId || comp?.stage_id || (edge ? allComponentsMap.get(edge.to_id)?.stage_id : undefined);
       if (sId && sId !== phaseStageId) {
         const stageObj = graphState?.stages?.find((s) => s.id === sId);
@@ -880,14 +866,9 @@ export default function ComposeActionProposalModal({
       if (pred && pred.upstream_uncertain) {
         return { uncertain: true, unknownNodes: pred.upstream_uncertain_nodes || [] };
       }
-      const predecessors = upstreamMap[compId] || [];
-      const unknownNodes = predecessors.filter((pid) => {
-        const c = allComponentsMap.get(pid);
-        return !c || c.knowledge === "unknown";
-      });
-      return { uncertain: unknownNodes.length > 0, unknownNodes };
+      return { uncertain: false, unknownNodes: [] };
     },
-    [predictionMap, upstreamMap, allComponentsMap]
+    [predictionMap]
   );
 
   /**
@@ -904,8 +885,8 @@ export default function ComposeActionProposalModal({
         if (!target) return;
         (byTarget[target] ||= []).push({
           item,
-          stakeholderName: entry.is_environment ? "the environment" : entry.name,
-          stakeholderId: entry.is_environment ? undefined : entry.stakeholder_id,
+          stakeholderName: entry.is_challenge_intel ? "the challenge intel" : entry.name,
+          stakeholderId: entry.is_challenge_intel ? undefined : entry.stakeholder_id,
         });
       });
     });
@@ -1182,7 +1163,6 @@ export default function ComposeActionProposalModal({
                   <style>{NODE_STATE_ANIM}</style>
                   <style>{EDGE_FLOW_ANIM}</style>
                   <NodeDefs prefix="compose" />
-                  <ScanlineDefs />
                   <defs>
                     <marker id="arr-default" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
                       <path d="M0,0 L0,6 L6,3 z" fill="#94a3b8" />
@@ -1217,11 +1197,10 @@ export default function ComposeActionProposalModal({
                     const isHovered = hoveredEdgeId === e.id;
                     const isSlotted = atomicChanges.some((c) => c.target === e.id);
                     const edgeEdit = isTargetEditable(e.id, "edge", activeStageId);
-                    const isOtherPhase = !edgeEdit.editable && e.knowledge !== "unknown";
+                    const isOtherPhase = !edgeEdit.editable;
                     const isPredecessorLine =
                       activeHighlightedPredecessors.has(e.from_id) &&
                       (selectedCompId === e.to_id || hoveredCompId === e.to_id);
-                    const isFromUnknown = from.knowledge === "unknown";
 
                     let color = "#94a3b8";
                     let markerId = "arr-default";
@@ -1234,12 +1213,12 @@ export default function ComposeActionProposalModal({
                       color = "var(--primary-bg)";
                       markerId = "arr-primary";
                     } else if (isPredecessorLine) {
-                      color = isFromUnknown ? "#f59e0b" : "var(--primary-bg)";
-                      markerId = isFromUnknown ? "arr-warning" : "arr-primary";
+                      color = "var(--primary-bg)";
+                      markerId = "arr-primary";
                     } else if (isOtherPhase) {
                       color = "#cbd5e1";
                       markerId = "arr-default";
-                    } else if (e.knowledge !== "unknown") {
+                    } else {
                       // Colour follows automation only: governance never changes what flows.
                       if (e.automation === 0) {
                         color = "#dc3545";
@@ -1258,20 +1237,18 @@ export default function ComposeActionProposalModal({
 
                     const mx = (ax + bx) / 2;
                     const my = (ay + by) / 2;
-                    const baseWidth = edgeStrokeWidth(e.knowledge !== "unknown" ? e.automation : undefined);
+                    const baseWidth = edgeStrokeWidth(e.automation);
                     const isAutomated =
-                      e.knowledge !== "unknown" && e.automation !== undefined && e.automation !== null && e.automation >= 3;
+                      e.automation !== undefined && e.automation !== null && e.automation >= 3;
                     const edgeSummary = `Automation: ${formatAxisLevel("automation", e.automation)}${
                       e.trigger && e.trigger !== "none" ? `, started by ${formatTrigger(e.trigger)}` : ""
                     }\nGovernance: ${formatAxisLevel("governance", e.governance ?? 0)}`;
                     const hasTrigger = Boolean(e.trigger && e.trigger !== "none");
                     // Every edge the player may act on gets a handle, triggered or not; the
                     // slotted and view-only badges already own the midpoint when they show.
-                    const showHandle = !isSlotted && !isOtherPhase && e.knowledge !== "unknown";
+                    const showHandle = !isSlotted && !isOtherPhase;
                     const edgeTagDetail =
-                      e.knowledge === "unknown"
-                        ? "Undiscovered - its maturity and trigger are unconfirmed"
-                        : `${edgeSummary}\n${isOtherPhase ? "View only in this challenge" : "Click to edit this connection"}`;
+                      `${edgeSummary}\n${isOtherPhase ? "View only in this challenge" : "Click to edit this connection"}`;
 
                     return (
                       <g key={e.id}>
@@ -1290,7 +1267,7 @@ export default function ComposeActionProposalModal({
                               : isPredecessorLine ? 2.5
                               : Math.max(baseWidth, 1.5)
                           }
-                          strokeDasharray={isOtherPhase || isFromUnknown || e.knowledge === "unknown" ? "4 3" : undefined}
+                          strokeDasharray={isOtherPhase ? "4 3" : undefined}
                           markerEnd={`url(#${markerId})`}
                           style={{ cursor: showHandle ? "pointer" : undefined }}
                           opacity={isHovered ? 1 : 0.92}
@@ -1370,18 +1347,15 @@ export default function ComposeActionProposalModal({
                     const isSelected = selectedCompId === c.id;
                     const isSlotted = atomicChanges.some((change) => change.target === c.id);
                     const isPredecessor = activeHighlightedPredecessors.has(c.id);
-                    const isUnknown = c.knowledge === "unknown";
                     const compEdit = isTargetEditable(c.id, "component", c.stage_id || activeStageId);
-                    const isOtherPhase = !compEdit.editable && !isUnknown;
+                    const isOtherPhase = !compEdit.editable;
                     const upstreamCheck = isUpstreamUncertain(c.id);
 
-                    const isBroken = !isUnknown && (c.nominal_automation ?? 1) === 0;
+                    const isBroken = (c.nominal_automation ?? 1) === 0;
                     // Runs at nothing, but is not itself broken: something upstream is down.
-                    const isStarved = !isUnknown && !isBroken && (c.effective_automation ?? 1) === 0;
+                    const isStarved = !isBroken && (c.effective_automation ?? 1) === 0;
                     const rail = isSlotted
                       ? NODE_COLORS.selected
-                      : isUnknown
-                      ? NODE_COLORS.unknown
                       : isBroken
                       ? NODE_COLORS.broken
                       : upstreamCheck.uncertain
@@ -1391,15 +1365,12 @@ export default function ComposeActionProposalModal({
                       : NODE_COLORS.healthy;
                     const face = nodeFace("compose", {
                       selected: isSelected || isSlotted || isPredecessor,
-                      unknown: isUnknown,
                       broken: isBroken,
                     });
                     const stroke = isSlotted || isSelected
                       ? NODE_COLORS.selected
                       : isPredecessor
-                      ? (isUnknown ? "#f59e0b" : NODE_COLORS.selected)
-                      : isUnknown
-                      ? "#cbd5e1"
+                      ? NODE_COLORS.selected
                       : "#dde5ee";
 
                     const lines = wrapLabel(c.name || c.id, 17);
@@ -1414,16 +1385,14 @@ export default function ComposeActionProposalModal({
                     // value, which might just be one link in that chain.
                     const automationQueued = previewAutomation !== nominalOn(c, "automation");
                     const governanceQueued = previewGovernance !== nominalOn(c, "governance");
-                    const nodeTagStatus = isUnknown
-                      ? "Not discovered yet"
-                      : isOtherPhase
+                    const nodeTagStatus = isOtherPhase
                       ? "View only - belongs to another phase"
                       : isBroken
                       ? "Current status: Broken"
                       : upstreamCheck.uncertain
                       ? `Current status: Uncertain - held up by ${upstreamCheck.unknownNodes
                           .map((id) => allComponentsMap.get(id)?.name ?? id)
-                          .join(", ")}, still undiscovered`
+                          .join(", ")}`
                       : isStarved
                       ? "Current status: Starved - something upstream is broken, so nothing reaches it"
                       : c.capped_by
@@ -1475,7 +1444,6 @@ export default function ComposeActionProposalModal({
                           fill={face}
                           stroke={stroke}
                           strokeWidth={1}
-                          strokeDasharray={isUnknown ? "5 3" : undefined}
                           filter={`url(#compose-${
                             isBroken ? "broken-face" : isSelected || isSlotted ? "shadow-lifted" : "shadow"
                           })`}
@@ -1487,11 +1455,9 @@ export default function ComposeActionProposalModal({
                           width={RAIL_W}
                           height={BOX_H}
                           fill={rail}
-                          opacity={isUnknown ? 0.5 : 1}
                           clipPath={`url(#compose-clip-${safeId})`}
                         />
-                        {c.knowledge === "stale" && <StaleScanline clipPathId={`compose-clip-${safeId}`} />}
-                        {!isUnknown && !isBroken && c.capped_by && (
+                        {!isBroken && c.capped_by && (
                           <CappedChainGlyph color={rail} />
                         )}
 
@@ -1516,7 +1482,7 @@ export default function ComposeActionProposalModal({
                         )}
 
                         {/* Icon, sharing the title's row */}
-                        {c.icon && <NodeIcon icon={c.icon} color={isUnknown ? "#7c8ba1" : rail} />}
+                        {c.icon && <NodeIcon icon={c.icon} color={rail} />}
 
                         {/* Node Title, with its colour-split ghosts underneath when broken */}
                         {isBroken && (
@@ -1531,7 +1497,7 @@ export default function ComposeActionProposalModal({
                             key={i}
                             x={NODE_PAD_X + (c.icon && i === 0 ? NODE_ICON_OFFSET : 0)}
                             y={NODE_TITLE_Y + i * NODE_TITLE_LH}
-                            fill={isUnknown ? "#7c8ba1" : isSelected || isSlotted ? "var(--primary-bg)" : "#15243b"}
+                            fill={isSelected || isSlotted ? "var(--primary-bg)" : "#15243b"}
                             fontSize="11"
                             fontWeight={isSelected || isSlotted ? "700" : "600"}
                           >
@@ -1540,12 +1506,6 @@ export default function ComposeActionProposalModal({
                         ))}
 
                         {/* One caption, plus the maturity meter when there is one to show */}
-                        {isUnknown ? (
-                          <text x={NODE_PAD_X} y={NODE_CAPTION_Y} fill="#94a3b8" fontSize="8.5" fontStyle="italic">
-                            not discovered yet
-                          </text>
-                        ) : (
-                          <>
                             <LevelCaption
                               level={c.effective_automation ?? c.nominal_automation ?? 1}
                               governance={c.nominal_governance}
@@ -1575,8 +1535,6 @@ export default function ComposeActionProposalModal({
                               previewGovernance={previewGovernance}
                               y={NODE_METER_Y}
                             />
-                          </>
-                        )}
 
                         </g>
 
@@ -1699,18 +1657,7 @@ export default function ComposeActionProposalModal({
 
                 <div className={styles.inspectorBody}>
 
-                  {/* Undiscovered Guard */}
-                  {selectedEdgeData.knowledge === "unknown" ? (
-                    <div className={styles.fogBanner}>
-                      <Icon icon="ph:eye-slash-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
-                      <div>
-                        <strong>Undiscovered:</strong>{" "}
-                        {highlight(
-                          "You have not collected intel on this workflow edge yet. Its current maturity and trigger are unconfirmed, so no improvements can be proposed."
-                        )}
-                      </div>
-                    </div>
-                  ) : !selectedEdgeEditable.editable ? (
+                  {!selectedEdgeEditable.editable ? (
                     /* Other Phase Locked Guard */
                     <div className={styles.lockedPhaseBanner}>
                       <Icon icon="ph:eye-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
@@ -1848,51 +1795,7 @@ export default function ComposeActionProposalModal({
 
                 <div className={styles.inspectorBody}>
 
-                  {/* Undiscovered Guard */}
-                  {selectedCompData.knowledge === "unknown" ? (
-                    <div className={styles.fogBanner}>
-                      <Icon icon="ph:eye-slash-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
-                      <div>
-                        <strong>Undiscovered:</strong>{" "}
-                        {highlight(
-                          "you have not established how this component actually works, so there is nothing here to raise yet."
-                        )}
-                        {(notesByTarget[selectedCompData.id]?.length ?? 0) > 0 && (
-                          <div className={styles.fogPointers}>
-                            <span className={styles.fogPointersLabel}>Your notes point here:</span>
-                            {notesByTarget[selectedCompData.id].map((note, i) =>
-                              onSelectIntel ? (
-                                <button
-                                  key={i}
-                                  type="button"
-                                  className={styles.fogPointerLink}
-                                  onClick={() => onSelectIntel(note.item.id, note.stakeholderId)}
-                                  {...tagProps(noteSourceMeta(note.item).label, "Click to jump to it in your dossier")}
-                                >
-                                  <Icon icon="ph:quotes-bold" />
-                                  <span>
-                                    {note.item.fact || note.item.description} <em>- {note.stakeholderName}</em>
-                                  </span>
-                                  <Icon icon="ph:arrow-bend-up-left-bold" className={styles.fogPointerGo} />
-                                </button>
-                              ) : (
-                                <span key={i} className={styles.fogPointer}>
-                                  <Icon icon="ph:quotes-bold" />
-                                  <span>
-                                    {note.item.fact || note.item.description} <em>- {note.stakeholderName}</em>
-                                  </span>
-                                </span>
-                              )
-                            )}
-                            <span className={styles.fogHint}>
-                              An opinion about this component is not an observation of it. Only
-                              investigating it directly, with an engagement card, confirms how it runs.
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ) : !selectedCompEditable.editable ? (
+                  {!selectedCompEditable.editable ? (
                     /* Other Phase Locked Guard */
                     <div className={styles.lockedPhaseBanner}>
                       <Icon icon="ph:eye-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />

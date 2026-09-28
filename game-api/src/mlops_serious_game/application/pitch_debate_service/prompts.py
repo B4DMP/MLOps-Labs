@@ -130,37 +130,3 @@ PLAYER_KICKOFF_PROMPT = ChatPromptTemplate.from_messages(
     template_format="jinja2",
 )
 
-
-GENERATE_COMPONENT_FACT_SYSTEM_PROMPT = """You are an expert MLOps technical telemetry and diagnostics engine for an MLOps serious game.
-
-[[SETTING]]
-The player (MLOps Project Manager) has just run a technical diagnostic probe on the MLOps component "{{component_name}}" (ID: {{component_id}}).
-
-Challenge Context: {{challenge}}
-Component Stage / Subsystem: {{component_group}}
-Component Description: {{component_description}}
-
-Generate exactly 1 factual, technical system telemetry observation (Fact intel item) about this component's current operational state in the architecture.
-
-CRITICAL INSTRUCTIONS:
-1. Frame it as an objective technical observation of system telemetry, configuration, or operational status (Fact).
-   Examples:
-   - "Telemetry logs indicate that the automated data validation step has schema assertions disabled, causing raw sensor outliers to propagate silently."
-   - "Diagnostic traces reveal the model registry is operating with manual version promotion flags and lacks automated regression gate checks."
-   - "System metrics show inference service latency spikes under load due to missing batching queues in the serving container."
-2. Do NOT frame it as a stakeholder demand or personal opinion. This is a technical system observation, not a personal stance.
-3. NO OUT-OF-UNIVERSE GAME TERMINOLOGY & NO MATURITY INDICES: Never mention game elements ("cards", "levels", "scores") or numeric maturity indices ("level 1", "level 2"). Use descriptive maturity terms ("absent", "manual", "automated", "governed") or operational findings.
-4. BREVITY: Strictly 1 sentence (maximum 2 sentences).
-5. NO DASHES: Do NOT use any dashes (strictly NO em-dashes '—', no en-dashes '–', no '--'). Use commas or periods for pauses instead.
-6. NO STAGE DIRECTIONS OR QUOTES: Output ONLY the exact factual observation."""
-
-GENERATE_COMPONENT_FACT_HUMAN_PROMPT = """Generate the diagnostic technical observation for {{component_name}} now:"""
-
-GENERATE_COMPONENT_FACT_PROMPT = ChatPromptTemplate.from_messages(
-    [
-        ("system", GENERATE_COMPONENT_FACT_SYSTEM_PROMPT),
-        ("human", GENERATE_COMPONENT_FACT_HUMAN_PROMPT),
-    ],
-    template_format="jinja2",
-)
-

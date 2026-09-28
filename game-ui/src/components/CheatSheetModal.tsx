@@ -63,7 +63,6 @@ const ENGAGEMENT_CARD_LEGEND: { icon: string; label: string; detail: string }[] 
   { icon: "ph:magnifying-glass-bold", label: "Probe Requirements", detail: "Ask one stakeholder about a component." },
   { icon: "ph:users-bold", label: "Team Sync-Up", detail: "Ask everyone at once. Once per phase." },
   { icon: "ph:chat-teardrop-text-bold", label: "Ask Generic Question", detail: "Cheap read on sentiment and preferences." },
-  { icon: "ph:cpu-bold", label: "Investigate Component", detail: "Inspect a component for hard facts." },
 ];
 
 const SECTIONS: CheatSheetSection[] = [
@@ -75,7 +74,7 @@ const SECTIONS: CheatSheetSection[] = [
     bullets: [
       "Hover any badge, stamp, or button for a one-line explainer.",
       "The face badge shows how they currently feel about you and your plan.",
-      "System tab holds facts about the pipeline itself, not anyone's wishes.",
+      "Challenge-Intel holds facts about the pipeline itself, not anyone's wishes.",
     ],
   },
   {

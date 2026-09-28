@@ -310,15 +310,3 @@ def test_chain_gate_enforces_d42_parent_stakeholder_phase_and_tag_narrowing(real
         assert "invalid tag transition from 'boundary' to 'driver'" in msg
     finally:
         PhaseFactory.phases, RequirementFactory.requirements = saved_phases, saved_reqs
-
-
-def test_only_facts_filed_as_facts_lift_the_fog():
-    from mlops_serious_game.application.intel_handler import fact_targets_to_observe
-    from mlops_serious_game.domain.requirement import StakeholderIntelItem
-
-    def fact(fid, tagged):
-        return StakeholderIntelItem(id=fid, challenge_id=0, type="fact", description=".",
-                                    asserts={"target": "e.fs_train", "axis": "automation", "level": 2}, categorized_type=tagged)
-
-    assert fact_targets_to_observe([fact("a", "fact")]) == ["e.fs_train"]
-    assert fact_targets_to_observe([fact("b", "driver")]) == []

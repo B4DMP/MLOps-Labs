@@ -22,7 +22,6 @@ GatherOptionKind = Literal[
     "component_query",
     "priority_query",
     "generic_query",
-    "investigate_component",
 ]
 
 
@@ -38,7 +37,7 @@ class GatherOptionSpec(BaseModel):
 
 
 class GatherConversation(BaseModel):
-    """One open engagement-card conversation with one stakeholder, whole room, or component.
+    """One open engagement-card conversation with one stakeholder or whole room.
 
     Persisted per (player, phase, challenge, card play, stakeholder) by the handler/store; this
     model only carries what a turn needs to be resolved and what the next menu needs to be built.
@@ -47,7 +46,6 @@ class GatherConversation(BaseModel):
     conversation_id: str = ""
     card_id: str
     stakeholder_id: str
-    component_id: Optional[str] = None
     turns_left: int
     turns_used: int = 0
     discovered_item_ids: list[str] = Field(default_factory=list)
@@ -678,29 +676,6 @@ def gather_options_for(
             )
         ]
 
-    elif conversation.card_id == "eng_5":
-        # Investigate Component: 1 MLOps graph component with owning stakeholder
-        comp_id = conversation.component_id or conversation.stakeholder_id
-        comp_name = component_display_name(comp_id, graph)
-        st_name = conversation.stakeholder_id.replace("_", " ").title()
-        try:
-            from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
-            st = StakeholderFactory.get_stakeholder(conversation.stakeholder_id)
-            if st:
-                st_name = st.name
-        except Exception:
-            pass
-        opts = [
-            GatherOptionSpec(
-                option="investigate_component",
-                available=conversation.is_open,
-                prompt=f"Inquire with {st_name} regarding {comp_name} specifications and operational status.",
-                label=f"Investigate {comp_name}",
-                component_id=comp_id,
-                reason=None if conversation.is_open else "No turns left in this conversation",
-            )
-        ]
-
     else:
         # Generic fallback
         cids = select_single_stakeholder_components(
@@ -960,60 +935,6 @@ def resolve_generic_query(
     return TurnOutcome(
         conversation=updated,
         option="generic_query",
-        result="revealed",
-        item_id=item.id,
-        item_ids=[item.id],
-        events=[event],
-    )
-
-
-def resolve_investigate_component(
-    conversation: GatherConversation,
-    pool: list,
-    known_ids: set[str],
-    component_id: str,
-    seed: str,
-    component_name: str,
-    graph: Optional[Any] = None,
-) -> TurnOutcome:
-    """Discovers/reveals 1 undiscovered Fact item about that component."""
-    if not conversation.is_open:
-        return _reject(conversation, "investigate_component", "no turns left in this conversation")
-
-    facts = [
-        r for r in pool
-        if r.id not in known_ids
-        and _tag_value(getattr(r, "type", "")).lower() == "fact"
-        and component_for_item(r, graph) == component_id
-    ]
-    if not facts:
-        return TurnOutcome(conversation=_spend_turn(conversation, asked_option=component_id), option="investigate_component", result="nothing_left")
-
-    ordered = _stable_order(f"{seed}|investigate|{component_id}", facts)
-    item = ordered[0]
-    updated = _spend_turn(conversation, asked_option=component_id).model_copy(
-        update={"discovered_item_ids": conversation.discovered_item_ids + [item.id]}
-    )
-    event = GameEvent(
-        step="gather",
-        kind="intel",
-        subject_id=conversation.stakeholder_id,
-        direction="up",
-        magnitude="clear",
-        cause="intel.revealed",
-        # A Fact has no stakeholder to have "let it slip" (D51: "the stakeholder, or None for a
-        # Fact") - `st` reads as "the system itself" here, same fallback `intel.artifact_filed`
-        # uses, rather than the previous bug of reusing the component name for both slots.
-        params={
-            "st": "the system itself",
-            "component": component_name,
-            "detail": truncate_detail(getattr(item, "description", None) or getattr(item, "gist", None)),
-        },
-        refs={"item_id": item.id},
-    )
-    return TurnOutcome(
-        conversation=updated,
-        option="investigate_component",
         result="revealed",
         item_id=item.id,
         item_ids=[item.id],
