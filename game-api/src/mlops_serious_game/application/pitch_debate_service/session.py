@@ -44,7 +44,7 @@ RISK_AMBER = 0.4
 class AtomicChange(BaseModel):
     """An atomic mutation in the MLOps graph.
 
-    Can raise maturity levels or set edge triggers/attributes. `axis` is required for
+    Can raise maturity levels or set edge triggers. `axis` is required for
     kind="raise_to" - which of the two independent maturity axes it moves
     (docs/plans/graph-governance-automation-rework/00-plan.md); there is no combined level to
     infer it from.
@@ -54,7 +54,6 @@ class AtomicChange(BaseModel):
     axis: Optional[Axis] = None
     value: Optional[Any] = None
     trigger: Optional[str] = None
-    attr: Optional[str] = None
 
 
 class ItemPrediction(BaseModel):
@@ -257,7 +256,6 @@ def atomic_changes_to_ops(
         axis = getattr(c, "axis", None) if hasattr(c, "axis") else (c.get("axis") if isinstance(c, dict) else None)
         val = getattr(c, "value", None) if hasattr(c, "value") else (c.get("value") if isinstance(c, dict) else None)
         trigger = getattr(c, "trigger", None) if hasattr(c, "trigger") else (c.get("trigger") if isinstance(c, dict) else None)
-        attr = getattr(c, "attr", None) if hasattr(c, "attr") else (c.get("attr") if isinstance(c, dict) else None)
 
         if not target:
             target, val, axis = _extract_target_and_level(c, graph, state)
@@ -306,17 +304,6 @@ def atomic_changes_to_ops(
                         kind="set_trigger",
                         target=target,
                         value=trigger_val,
-                        source_kind="action_card",
-                    )
-                )
-        elif kind == "set_attr":
-            if attr and val is not None:
-                ops.append(
-                    GraphOp(
-                        kind="set_attr",
-                        target=target,
-                        attr=attr,
-                        value=val,
                         source_kind="action_card",
                     )
                 )
@@ -993,7 +980,7 @@ def evaluate_pitch(
         if isinstance(c, AtomicChange):
             valid_atomic_changes.append(c)
         elif isinstance(c, GraphOp):
-            valid_atomic_changes.append(AtomicChange(target=c.target, kind=c.kind, axis=c.axis, value=c.value, attr=c.attr))
+            valid_atomic_changes.append(AtomicChange(target=c.target, kind=c.kind, axis=c.axis, value=c.value))
         elif isinstance(c, dict) and "target" in c:
             valid_atomic_changes.append(AtomicChange(
                 target=c["target"],
@@ -1001,7 +988,6 @@ def evaluate_pitch(
                 axis=c.get("axis"),
                 value=c.get("value"),
                 trigger=c.get("trigger"),
-                attr=c.get("attr"),
             ))
         else:
             tgt, lvl, ax = _extract_target_and_level(c, graph, state)

@@ -158,15 +158,6 @@ class Option(BaseModel):
     description: str
 
 
-class AttributeOption(BaseModel):
-    """One player-facing action for a component attribute: sets it to `to_value`, one slot,
-    exactly like an automation/governance Option (00-plan.md §2.5)."""
-
-    to_value: str
-    name: str
-    description: str
-
-
 class Component(BaseModel):
     id: str
     stage_id: str
@@ -180,7 +171,6 @@ class Component(BaseModel):
     attributes: dict[str, AttributeDef] = Field(default_factory=dict)
     automation_options: list[Option] = Field(default_factory=list)
     governance_options: list[Option] = Field(default_factory=list)
-    attribute_options: dict[str, list[AttributeOption]] = Field(default_factory=dict)
     layout: Optional[dict] = Field(default=None, description="SVG layout hint {x, y} for the stage modal")
     icon: Optional[str] = Field(default=None, description="Iconify icon name for this component")
 
@@ -322,9 +312,6 @@ class TechnicalGraph(BaseModel):
     def options_for(self, target_id: str, axis: Axis) -> list[Option]:
         target = self._target(target_id)
         return target.automation_options if axis == "automation" else target.governance_options
-
-    def attribute_options_for(self, component_id: str, attr: str) -> list[AttributeOption]:
-        return self._components[component_id].attribute_options.get(attr, [])
 
     def owner_of(self, target_id: str) -> Optional[str]:
         """Component owner, falling back to its stage owner. Edges belong to the owner of the

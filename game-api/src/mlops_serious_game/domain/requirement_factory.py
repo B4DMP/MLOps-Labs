@@ -176,8 +176,8 @@ def payload_errors(requirements, graph, metric_ids: set[str], stakeholder_ids: s
             except Exception as e:
                 errors.append(f"{where} ops: {e}")
                 continue
-            if op.kind not in ("raise_to", "set_trigger", "set_attr"):
-                errors.append(f"{where} ops: stances may only raise, set triggers or set attributes, not '{op.kind}'")
+            if op.kind not in ("raise_to", "set_trigger"):
+                errors.append(f"{where} ops: stances may only raise or set triggers, not '{op.kind}'")
             elif not graph.is_target(graph.resolve(op.target)):
                 errors.append(f"{where} ops: unknown target '{op.target}'")
     return errors

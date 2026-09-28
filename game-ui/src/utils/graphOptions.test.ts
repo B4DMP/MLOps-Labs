@@ -10,7 +10,6 @@ import {
   optionStatus,
   projectedOn,
   removeChangeAt,
-  toggleAttributeOption,
   type OptionTarget,
 } from "./graphOptions";
 
@@ -36,12 +35,6 @@ const ingestion: OptionTarget = {
     { to_level: 2, name: "Lineage", description: "Lineage documentation" },
     { to_level: 3, name: "Board sign-off", description: "Data-governance-board sign-off" },
   ],
-  attribute_options: {
-    hosting: [
-      { to_value: "cloud", name: "Managed cloud", description: "Managed cloud service" },
-      { to_value: "on_prem", name: "On-prem", description: "On-prem cluster" },
-    ],
-  },
 };
 
 const handoff: OptionTarget = {
@@ -163,17 +156,6 @@ describe("adding and removing steps", () => {
   });
 });
 
-describe("attribute options", () => {
-  const [cloud, onPrem] = ingestion.attribute_options!.hosting;
-
-  it("swaps a pick for the same attribute in place instead of taking another slot", () => {
-    const one = toggleAttributeOption([], "data.ingestion", "hosting", cloud, 3);
-    const swapped = toggleAttributeOption(one, "data.ingestion", "hosting", onPrem, 3);
-    expect(swapped).toEqual([{ target: "data.ingestion", kind: "set_attr", attr: "hosting", value: "on_prem" }]);
-    expect(toggleAttributeOption(swapped, "data.ingestion", "hosting", onPrem, 3)).toEqual([]);
-  });
-});
-
 describe("describing and cleaning changes", () => {
   it("names a change by its option, with the axis step as detail", () => {
     const d = describeAtomicChange({ target: "e.ingest_validate", kind: "raise_to", axis: "automation", value: 3, trigger: "on_data_arrival" }, handoff);
@@ -186,13 +168,13 @@ describe("describing and cleaning changes", () => {
     expect(d.title).toBe("Governance → fully governed");
   });
 
-  it("drops raises that name no axis, which the backend would ignore", () => {
+  it("drops raises that name no axis and retired set_attr changes", () => {
     const legacy: AtomicChange[] = [
       { target: "a", kind: "raise_to", value: 4 },
       { target: "b", kind: "raise_to", axis: "governance", value: 1 },
       { target: "c", kind: "set_attr", attr: "hosting", value: "cloud" },
     ];
-    expect(dropUnscopedChanges(legacy).map((c) => c.target)).toEqual(["b", "c"]);
+    expect(dropUnscopedChanges(legacy).map((c) => c.target)).toEqual(["b"]);
   });
 
   it("finds components and edges across stages", () => {

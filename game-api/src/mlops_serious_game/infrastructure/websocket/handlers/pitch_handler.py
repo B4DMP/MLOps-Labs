@@ -138,8 +138,6 @@ def _card_commitments(graph: TechnicalGraph, card_ops_list: list) -> list[str]:
                 commitments.append(f"- Update {target_name}: {op.value}")
         elif op.kind == "set_trigger":
             commitments.append(f"- Set trigger for {target_name}: {op.value}")
-        elif op.kind == "set_attr":
-            commitments.append(f"- Set {op.attr} of {target_name}: {op.value}")
         else:
             commitments.append(f"- {op.kind} {target_name}: {op.value}")
     return commitments

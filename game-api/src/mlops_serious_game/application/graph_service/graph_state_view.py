@@ -102,13 +102,6 @@ def _options_payload(options) -> list[dict]:
     return [{"to_level": o.to_level, "trigger": o.trigger, "name": o.name, "description": o.description} for o in options]
 
 
-def _attribute_options_payload(attribute_options: dict) -> dict[str, list[dict]]:
-    return {
-        attr: [{"to_value": o.to_value, "name": o.name, "description": o.description} for o in opts]
-        for attr, opts in attribute_options.items()
-    }
-
-
 def build_graph_state(
     graph: TechnicalGraph,
     state: GraphState,
@@ -221,7 +214,6 @@ def build_graph_state(
                 "allowed_governance": c.allowed_governance,
                 "automation_options": _options_payload(c.automation_options),
                 "governance_options": _options_payload(c.governance_options),
-                "attribute_options": _attribute_options_payload(c.attribute_options),
                 "story": story_for(graph, state, c.id, (nom_auto, nom_gov)),
                 **extra,
             }

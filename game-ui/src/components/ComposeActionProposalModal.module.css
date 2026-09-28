@@ -749,13 +749,6 @@
   gap: 4px;
 }
 
-.attrName {
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  color: var(--ink-soft);
-  text-transform: capitalize;
-}
-
 .optionRow {
   display: flex;
   align-items: flex-start;

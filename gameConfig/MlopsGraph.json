@@ -229,8 +229,7 @@
           "name": "Owner Sign-off",
           "description": "Have an owner sign off on KPI Definition"
         }
-      ],
-      "attribute_options": {}
+      ]
     },
     {
       "id": "req.acceptance_criteria",
@@ -268,8 +267,7 @@
           "name": "Owner Sign-off",
           "description": "Have an owner sign off on Acceptance Criteria"
         }
-      ],
-      "attribute_options": {}
+      ]
     },
     {
       "id": "req.data_contracts",
@@ -313,8 +311,7 @@
           "name": "Owner Sign-off",
           "description": "Have an owner sign off on Data Contracts"
         }
-      ],
-      "attribute_options": {}
+      ]
     },
     {
       "id": "req.risk_assessment",
@@ -352,8 +349,7 @@
           "name": "Owner Sign-off",
           "description": "Have an owner sign off on Risk Assessment"
         }
-      ],
-      "attribute_options": {}
+      ]
     },
     {
       "id": "data.ingestion",
@@ -416,43 +412,7 @@
           "name": "Spot Checks",
           "description": "Spot-check Data Ingestion Pipeline"
         }
-      ],
-      "attribute_options": {
-        "sourcing": [
-          {
-            "to_value": "custom",
-            "name": "Switch to custom",
-            "description": "Switch to custom"
-          },
-          {
-            "to_value": "open_source",
-            "name": "Switch to open source",
-            "description": "Switch to open source"
-          },
-          {
-            "to_value": "bought",
-            "name": "Switch to bought",
-            "description": "Switch to bought"
-          }
-        ],
-        "tool": [
-          {
-            "to_value": "custom_scripts",
-            "name": "Switch to custom scripts",
-            "description": "Switch to custom scripts"
-          },
-          {
-            "to_value": "airbyte",
-            "name": "Switch to airbyte",
-            "description": "Switch to airbyte"
-          },
-          {
-            "to_value": "kafka",
-            "name": "Switch to kafka",
-            "description": "Switch to kafka"
-          }
-        ]
-      }
+      ]
     },
     {
       "id": "data.validation",
@@ -515,43 +475,7 @@
           "name": "Spot Checks",
           "description": "Spot-check Data Validation"
         }
-      ],
-      "attribute_options": {
-        "sourcing": [
-          {
-            "to_value": "custom",
-            "name": "Switch to custom",
-            "description": "Switch to custom"
-          },
-          {
-            "to_value": "open_source",
-            "name": "Switch to open source",
-            "description": "Switch to open source"
-          },
-          {
-            "to_value": "bought",
-            "name": "Switch to bought",
-            "description": "Switch to bought"
-          }
-        ],
-        "tool": [
-          {
-            "to_value": "great_expectations",
-            "name": "Switch to great expectations",
-            "description": "Switch to great expectations"
-          },
-          {
-            "to_value": "deequ",
-            "name": "Switch to deequ",
-            "description": "Switch to deequ"
-          },
-          {
-            "to_value": "inhouse",
-            "name": "Switch to inhouse",
-            "description": "Switch to inhouse"
-          }
-        ]
-      }
+      ]
     },
     {
       "id": "data.feature_store",
@@ -614,43 +538,7 @@
           "name": "Spot Checks",
           "description": "Spot-check Feature Store"
         }
-      ],
-      "attribute_options": {
-        "sourcing": [
-          {
-            "to_value": "custom",
-            "name": "Switch to custom",
-            "description": "Switch to custom"
-          },
-          {
-            "to_value": "open_source",
-            "name": "Switch to open source",
-            "description": "Switch to open source"
-          },
-          {
-            "to_value": "bought",
-            "name": "Switch to bought",
-            "description": "Switch to bought"
-          }
-        ],
-        "tool": [
-          {
-            "to_value": "feast",
-            "name": "Switch to feast",
-            "description": "Switch to feast"
-          },
-          {
-            "to_value": "tecton",
-            "name": "Switch to tecton",
-            "description": "Switch to tecton"
-          },
-          {
-            "to_value": "inhouse",
-            "name": "Switch to inhouse",
-            "description": "Switch to inhouse"
-          }
-        ]
-      }
+      ]
     },
     {
       "id": "data.versioning",
@@ -704,26 +592,7 @@
           "name": "Spot Checks",
           "description": "Spot-check Data Versioning"
         }
-      ],
-      "attribute_options": {
-        "tool": [
-          {
-            "to_value": "dvc",
-            "name": "Switch to dvc",
-            "description": "Switch to dvc"
-          },
-          {
-            "to_value": "lakefs",
-            "name": "Switch to lakefs",
-            "description": "Switch to lakefs"
-          },
-          {
-            "to_value": "delta_lake",
-            "name": "Switch to delta lake",
-            "description": "Switch to delta lake"
-          }
-        ]
-      }
+      ]
     },
     {
       "id": "data.labeling",
@@ -777,26 +646,7 @@
           "name": "Spot Checks",
           "description": "Spot-check Data Labeling Pipeline"
         }
-      ],
-      "attribute_options": {
-        "sourcing": [
-          {
-            "to_value": "custom",
-            "name": "Switch to custom",
-            "description": "Switch to custom"
-          },
-          {
-            "to_value": "open_source",
-            "name": "Switch to open source",
-            "description": "Switch to open source"
-          },
-          {
-            "to_value": "bought",
-            "name": "Switch to bought",
-            "description": "Switch to bought"
-          }
-        ]
-      }
+      ]
     },
     {
       "id": "data.training_drift_check",
@@ -840,8 +690,7 @@
           "name": "Spot Checks",
           "description": "Spot-check Training Data Drift Check"
         }
-      ],
-      "attribute_options": {}
+      ]
     },
     {
       "id": "model.experiment_tracking",
@@ -895,26 +744,7 @@
           "name": "Second Review",
           "description": "Have a second person review Experiment Tracking's results"
         }
-      ],
-      "attribute_options": {
-        "tool": [
-          {
-            "to_value": "spreadsheet",
-            "name": "Switch to spreadsheet",
-            "description": "Switch to spreadsheet"
-          },
-          {
-            "to_value": "mlflow",
-            "name": "Switch to mlflow",
-            "description": "Switch to mlflow"
-          },
-          {
-            "to_value": "wandb",
-            "name": "Switch to wandb",
-            "description": "Switch to wandb"
-          }
-        ]
-      }
+      ]
     },
     {
       "id": "model.registry",
@@ -977,43 +807,7 @@
           "name": "Second Review",
           "description": "Have a second person review Model Registry's results"
         }
-      ],
-      "attribute_options": {
-        "sourcing": [
-          {
-            "to_value": "custom",
-            "name": "Switch to custom",
-            "description": "Switch to custom"
-          },
-          {
-            "to_value": "open_source",
-            "name": "Switch to open source",
-            "description": "Switch to open source"
-          },
-          {
-            "to_value": "bought",
-            "name": "Switch to bought",
-            "description": "Switch to bought"
-          }
-        ],
-        "tool": [
-          {
-            "to_value": "mlflow",
-            "name": "Switch to mlflow",
-            "description": "Switch to mlflow"
-          },
-          {
-            "to_value": "sagemaker",
-            "name": "Switch to sagemaker",
-            "description": "Switch to sagemaker"
-          },
-          {
-            "to_value": "inhouse",
-            "name": "Switch to inhouse",
-            "description": "Switch to inhouse"
-          }
-        ]
-      }
+      ]
     },
     {
       "id": "model.training_pipeline",
@@ -1067,26 +861,7 @@
           "name": "Second Review",
           "description": "Have a second person review Training Pipeline's results"
         }
-      ],
-      "attribute_options": {
-        "tool": [
-          {
-            "to_value": "notebooks",
-            "name": "Switch to notebooks",
-            "description": "Switch to notebooks"
-          },
-          {
-            "to_value": "airflow",
-            "name": "Switch to airflow",
-            "description": "Switch to airflow"
-          },
-          {
-            "to_value": "kubeflow",
-            "name": "Switch to kubeflow",
-            "description": "Switch to kubeflow"
-          }
-        ]
-      }
+      ]
     },
     {
       "id": "model.hpo",
@@ -1140,26 +915,7 @@
           "name": "Second Review",
           "description": "Have a second person review Hyperparameter Tuning's results"
         }
-      ],
-      "attribute_options": {
-        "tool": [
-          {
-            "to_value": "grid_search",
-            "name": "Switch to grid search",
-            "description": "Switch to grid search"
-          },
-          {
-            "to_value": "optuna",
-            "name": "Switch to optuna",
-            "description": "Switch to optuna"
-          },
-          {
-            "to_value": "ray_tune",
-            "name": "Switch to ray tune",
-            "description": "Switch to ray tune"
-          }
-        ]
-      }
+      ]
     },
     {
       "id": "model.evaluation",
@@ -1203,8 +959,7 @@
           "name": "Second Review",
           "description": "Have a second person review Model Evaluation Harness's results"
         }
-      ],
-      "attribute_options": {}
+      ]
     },
     {
       "id": "deploy.cicd",
@@ -1258,26 +1013,7 @@
           "name": "Tech-Lead Approval",
           "description": "Require tech-lead approval for CI/CD Pipeline"
         }
-      ],
-      "attribute_options": {
-        "tool": [
-          {
-            "to_value": "jenkins",
-            "name": "Switch to jenkins",
-            "description": "Switch to jenkins"
-          },
-          {
-            "to_value": "gitlab_ci",
-            "name": "Switch to gitlab ci",
-            "description": "Switch to gitlab ci"
-          },
-          {
-            "to_value": "github_actions",
-            "name": "Switch to github actions",
-            "description": "Switch to github actions"
-          }
-        ]
-      }
+      ]
     },
     {
       "id": "deploy.serving",
@@ -1341,48 +1077,7 @@
           "name": "Tech-Lead Approval",
           "description": "Require tech-lead approval for Model Serving Endpoint"
         }
-      ],
-      "attribute_options": {
-        "hosting": [
-          {
-            "to_value": "none",
-            "name": "Switch to none",
-            "description": "Switch to none"
-          },
-          {
-            "to_value": "private_cloud",
-            "name": "Switch to private cloud",
-            "description": "Switch to private cloud"
-          },
-          {
-            "to_value": "public_cloud",
-            "name": "Switch to public cloud",
-            "description": "Switch to public cloud"
-          }
-        ],
-        "tool": [
-          {
-            "to_value": "fastapi",
-            "name": "Switch to fastapi",
-            "description": "Switch to fastapi"
-          },
-          {
-            "to_value": "seldon",
-            "name": "Switch to seldon",
-            "description": "Switch to seldon"
-          },
-          {
-            "to_value": "kserve",
-            "name": "Switch to kserve",
-            "description": "Switch to kserve"
-          },
-          {
-            "to_value": "sagemaker",
-            "name": "Switch to sagemaker",
-            "description": "Switch to sagemaker"
-          }
-        ]
-      }
+      ]
     },
     {
       "id": "deploy.canary_ab",
@@ -1426,8 +1121,7 @@
           "name": "Tech-Lead Approval",
           "description": "Require tech-lead approval for Canary and A/B Testing"
         }
-      ],
-      "attribute_options": {}
+      ]
     },
     {
       "id": "deploy.shadow",
@@ -1471,8 +1165,7 @@
           "name": "Tech-Lead Approval",
           "description": "Require tech-lead approval for Shadow Deployment"
         }
-      ],
-      "attribute_options": {}
+      ]
     },
     {
       "id": "deploy.containerization",
@@ -1525,21 +1218,7 @@
           "name": "Tech-Lead Approval",
           "description": "Require tech-lead approval for Containerization"
         }
-      ],
-      "attribute_options": {
-        "tool": [
-          {
-            "to_value": "docker",
-            "name": "Switch to docker",
-            "description": "Switch to docker"
-          },
-          {
-            "to_value": "podman",
-            "name": "Switch to podman",
-            "description": "Switch to podman"
-          }
-        ]
-      }
+      ]
     },
     {
       "id": "deploy.orchestration",
@@ -1593,26 +1272,7 @@
           "name": "Tech-Lead Approval",
           "description": "Require tech-lead approval for Orchestration"
         }
-      ],
-      "attribute_options": {
-        "tool": [
-          {
-            "to_value": "docker_compose",
-            "name": "Switch to docker compose",
-            "description": "Switch to docker compose"
-          },
-          {
-            "to_value": "nomad",
-            "name": "Switch to nomad",
-            "description": "Switch to nomad"
-          },
-          {
-            "to_value": "kubernetes",
-            "name": "Switch to kubernetes",
-            "description": "Switch to kubernetes"
-          }
-        ]
-      }
+      ]
     },
     {
       "id": "deploy.api_gateway",
@@ -1666,26 +1326,7 @@
           "name": "Tech-Lead Approval",
           "description": "Require tech-lead approval for API Gateway"
         }
-      ],
-      "attribute_options": {
-        "sourcing": [
-          {
-            "to_value": "custom",
-            "name": "Switch to custom",
-            "description": "Switch to custom"
-          },
-          {
-            "to_value": "open_source",
-            "name": "Switch to open source",
-            "description": "Switch to open source"
-          },
-          {
-            "to_value": "bought",
-            "name": "Switch to bought",
-            "description": "Switch to bought"
-          }
-        ]
-      }
+      ]
     },
     {
       "id": "ops.performance_monitoring",
@@ -1729,8 +1370,7 @@
           "name": "Documented & Agreed",
           "description": "Document Model Performance Monitoring's rules and agree them with on-call"
         }
-      ],
-      "attribute_options": {}
+      ]
     },
     {
       "id": "ops.production_drift_monitoring",
@@ -1784,26 +1424,7 @@
           "name": "Documented & Agreed",
           "description": "Document Production Drift Monitoring's rules and agree them with on-call"
         }
-      ],
-      "attribute_options": {
-        "tool": [
-          {
-            "to_value": "evidently",
-            "name": "Switch to evidently",
-            "description": "Switch to evidently"
-          },
-          {
-            "to_value": "whylabs",
-            "name": "Switch to whylabs",
-            "description": "Switch to whylabs"
-          },
-          {
-            "to_value": "inhouse",
-            "name": "Switch to inhouse",
-            "description": "Switch to inhouse"
-          }
-        ]
-      }
+      ]
     },
     {
       "id": "ops.alerting",
@@ -1857,26 +1478,7 @@
           "name": "Documented & Agreed",
           "description": "Document Alerting System's rules and agree them with on-call"
         }
-      ],
-      "attribute_options": {
-        "tool": [
-          {
-            "to_value": "email",
-            "name": "Switch to email",
-            "description": "Switch to email"
-          },
-          {
-            "to_value": "pagerduty",
-            "name": "Switch to pagerduty",
-            "description": "Switch to pagerduty"
-          },
-          {
-            "to_value": "opsgenie",
-            "name": "Switch to opsgenie",
-            "description": "Switch to opsgenie"
-          }
-        ]
-      }
+      ]
     },
     {
       "id": "ops.observability",
@@ -1930,26 +1532,7 @@
           "name": "Documented & Agreed",
           "description": "Document Logging and Observability's rules and agree them with on-call"
         }
-      ],
-      "attribute_options": {
-        "tool": [
-          {
-            "to_value": "elk",
-            "name": "Switch to elk",
-            "description": "Switch to elk"
-          },
-          {
-            "to_value": "prometheus_grafana",
-            "name": "Switch to prometheus grafana",
-            "description": "Switch to prometheus grafana"
-          },
-          {
-            "to_value": "datadog",
-            "name": "Switch to datadog",
-            "description": "Switch to datadog"
-          }
-        ]
-      }
+      ]
     },
     {
       "id": "ops.retraining_trigger",
@@ -1993,8 +1576,7 @@
           "name": "Documented & Agreed",
           "description": "Document Retraining Trigger's rules and agree them with on-call"
         }
-      ],
-      "attribute_options": {}
+      ]
     },
     {
       "id": "ops.rollback",
@@ -2038,8 +1620,7 @@
           "name": "Documented & Agreed",
           "description": "Document Rollback Mechanism's rules and agree them with on-call"
         }
-      ],
-      "attribute_options": {}
+      ]
     }
   ],
   "edges": [

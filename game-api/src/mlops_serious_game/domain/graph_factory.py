@@ -113,17 +113,6 @@ def validate_graph(graph: TechnicalGraph) -> list[str]:
             errors.append(f"component '{c.id}' has no owner and its stage has none either")
         errors += _option_errors("component", c.id, "automation", c.allowed_automation, c.automation_options)
         errors += _option_errors("component", c.id, "governance", c.allowed_governance, c.governance_options)
-        for attr, attr_def in c.attributes.items():
-            options = c.attribute_options.get(attr, [])
-            covered = {o.to_value for o in options}
-            unknown = covered - set(attr_def.values)
-            if unknown:
-                errors.append(f"component '{c.id}' attribute '{attr}' has options for unknown values {sorted(unknown)}")
-            if not options:
-                continue  # not authored yet - a gap to fill in later, not a config error
-            missing = set(attr_def.values) - {attr_def.initial} - covered
-            if missing:
-                errors.append(f"component '{c.id}' attribute '{attr}' has no option reaching {sorted(missing)}")
 
     for e in graph.edges:
         for end in (e.from_id, e.to_id):

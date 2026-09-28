@@ -17,14 +17,12 @@ import HoverTooltip from "./HoverToolTip";
  *  which step you ask from); never use `.predicted` as a row's own displayed level - that's
  *  `ac.value`. */
 function predictionFor(card: ActionCard, ac: AtomicChange): ItemPrediction | undefined {
-  // Attribute choices get no prediction; do not borrow a raise's on the same target.
-  if (ac.kind === "set_attr" || !ac.axis) return undefined;
+  if (!ac.axis) return undefined;
   return card.predictions?.find((p) => p.target === ac.target && (!p.axis || p.axis === ac.axis));
 }
 
 /** The step a change asks for, in one short phrase: "Governance → fully governed". */
 function stepBadge(ac: AtomicChange): string {
-  if (ac.kind === "set_attr") return `${(ac.attr ?? "attribute").replace(/_/g, " ")} → ${String(ac.value)}`;
   if (!ac.axis) return "No axis - ignored";
   return `${AXIS_TITLES[ac.axis]} → ${formatAxisLevel(ac.axis, ac.value)}`;
 }

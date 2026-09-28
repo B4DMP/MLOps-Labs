@@ -67,8 +67,6 @@ import {
   optionsOn,
   projectedOn,
   removeChangeAt,
-  toggleAttributeOption,
-  type AttributeOption,
   type GraphOption,
   type OptionStatus,
   type OptionTarget,
@@ -77,7 +75,7 @@ import {
 // Level labels and formatters live in utils/stageCanvas and utils/graphOptions; import them
 // from there. Only types are re-exported here, for the screens that already import them.
 export type { AtomicChange, ItemPrediction } from "../types/ActionCard";
-export type { GraphOption, AttributeOption } from "../utils/graphOptions";
+export type { GraphOption } from "../utils/graphOptions";
 
 /**
  * Collapses multiple slots that ended up targeting the same graph element down to one. A saved
@@ -87,17 +85,17 @@ export type { GraphOption, AttributeOption } from "../utils/graphOptions";
  *
  * `raise_to` is monotonic (the composer only ever lets a player raise a target, never lower it),
  * so for numeric values the higher one is the one the player actually meant - array position
- * alone doesn't say which came later. Non-numeric changes (trigger/attr) fall back to keeping
+ * alone doesn't say which came later. Non-numeric changes (trigger) fall back to keeping
  * whichever occurs last, since there's no ordering to compare them by.
  */
 /** A change touching both axes of the same target is two legitimate slots, not a duplicate - so
- *  the dedup key carries the axis (and the attribute, for a set_attr on a multi-attribute target). */
+ *  the dedup key carries the axis. */
 /** Everything that makes two changes the same slot - deliberately including `value`: a target
  *  can carry several genuinely different steps chained on the same axis ("Implement It" then
  *  "Automate It", one slot each), and those must never collapse into each other. Only a change
  *  indistinguishable in every field from another is the stale duplicate this guards against. */
 function dedupeKey(c: AtomicChange): string {
-  return `${c.target}::${c.kind ?? "raise_to"}::${c.axis ?? ""}::${c.attr ?? ""}::${c.value}::${c.trigger ?? ""}`;
+  return `${c.target}::${c.kind ?? "raise_to"}::${c.axis ?? ""}::${c.value}::${c.trigger ?? ""}`;
 }
 
 export function dedupeAtomicChanges(changes: AtomicChange[]): AtomicChange[] {
@@ -124,7 +122,6 @@ export interface ComponentData {
   allowed_governance?: number[];
   automation_options?: GraphOption[];
   governance_options?: GraphOption[];
-  attribute_options?: Record<string, AttributeOption[]>;
   capped_by?: string;
   story?: string;
   icon?: string;
@@ -484,87 +481,6 @@ function OptionLadder({
           })}
         </div>
       )}
-    </div>
-  );
-}
-
-/**
- * A component's technology choices. The current value is not part of the `graph:state`
- * payload, so every authored choice is offered; picking one takes a slot, picking another for
- * the same attribute swaps it in place, and picking it again takes it back out.
- */
-function AttributeOptions({
-  target,
-  changes,
-  slotsFull,
-  onToggle,
-}: {
-  target: ComponentData;
-  changes: AtomicChange[];
-  slotsFull: boolean;
-  onToggle: (attr: string, option: AttributeOption) => void;
-}) {
-  const entries = Object.entries(target.attribute_options ?? {}).filter(([, opts]) => opts.length > 0);
-  if (entries.length === 0) return null;
-  return (
-    <div className={styles.axisSection}>
-      <div className={styles.axisHeader}>
-        <span className={styles.formLabel}>
-          <Icon icon="ph:wrench-bold" />
-          <span>Technology</span>
-        </span>
-      </div>
-      <span className={styles.axisHint}>Which tooling this component is built on. One slot per choice.</span>
-      {entries.map(([attr, opts]) => {
-        const picked = changes.find((c) => c.target === target.id && c.kind === "set_attr" && c.attr === attr);
-        return (
-          <div key={attr} className={styles.optionList} role="list" aria-label={attr.replace(/_/g, " ")}>
-            <span className={styles.attrName}>{attr.replace(/_/g, " ")}</span>
-            {opts.map((option) => {
-              const isPicked = picked?.value === option.to_value;
-              // Swapping one pick for another on the same attribute costs no extra slot.
-              const blocked = !isPicked && !picked && slotsFull;
-              const showDescription = option.description && option.description.trim() !== option.name.trim();
-              return (
-                <div
-                  key={option.to_value}
-                  role="listitem"
-                  className={`${styles.optionRow} ${isPicked ? styles.optionRowSlotted : styles.optionRowNext}`}
-                  style={{ ["--rung" as string]: "#64748b", ["--rung-ink" as string]: "#475569" }}
-                >
-                  <Icon icon="ph:wrench-bold" className={styles.optionIcon} aria-hidden />
-                  <div className={styles.optionText}>
-                    <span className={styles.optionName}>{option.name}</span>
-                    {showDescription && <span className={styles.optionDesc}>{option.description}</span>}
-                    <span className={styles.optionMeta}>
-                      <span className={styles.optionTag}>→ {option.to_value}</span>
-                    </span>
-                  </div>
-                  <div className={styles.optionAction}>
-                    {isPicked ? (
-                      <button type="button" className={styles.optionRemoveBtn} onClick={() => onToggle(attr, option)}>
-                        <Icon icon="ph:x-bold" />
-                        <span>In proposal</span>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className={styles.optionAddBtn}
-                        disabled={blocked}
-                        onClick={() => onToggle(attr, option)}
-                        title={picked ? "Swap the choice already in the proposal for this one" : "Add this choice - one slot"}
-                      >
-                        <Icon icon={picked ? "ph:arrows-left-right-bold" : "ph:plus-bold"} />
-                        <span>{blocked ? "Slots full" : picked ? "Swap" : "Add"}</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        );
-      })}
     </div>
   );
 }
@@ -1049,9 +965,6 @@ export default function ComposeActionProposalModal({
     });
   };
 
-  const handleToggleAttribute = (targetId: string, attr: string, option: AttributeOption) => {
-    setAtomicChanges((prev) => toggleAttributeOption(prev, targetId, attr, option, MAX_ATOMIC_CHANGES));
-  };
 
   // Removing a step also removes the steps after it on the same axis - they relied on it.
   const handleRemoveSlot = (index: number) => {
@@ -2111,12 +2024,6 @@ export default function ComposeActionProposalModal({
                             onRemove={(option) => handleRemoveOption(selectedCompData, axis, option)}
                           />
                         ))}
-                        <AttributeOptions
-                          target={selectedCompData}
-                          changes={atomicChanges}
-                          slotsFull={slotsFull}
-                          onToggle={(attr, option) => handleToggleAttribute(selectedCompData.id, attr, option)}
-                        />
                       </div>
                     </>
                   )}
@@ -2197,7 +2104,7 @@ export default function ComposeActionProposalModal({
                       </div>
                       <div className={styles.slotChangeInfo}>
                         <Icon
-                          icon={change.axis ? AXIS_ICONS[change.axis] : change.kind === "set_attr" ? "ph:wrench-bold" : "ph:flow-arrow-bold"}
+                          icon={change.axis ? AXIS_ICONS[change.axis] : "ph:flow-arrow-bold"}
                           style={{ color: change.axis === "governance" ? GOVERNANCE_META[3].ink : "var(--primary-bg)", flexShrink: 0 }}
                         />
                         <span>

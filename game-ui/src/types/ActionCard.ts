@@ -1,6 +1,6 @@
 /**
- * One slot of an action card: exactly one step on one axis of one target, or one attribute
- * option (docs/plans/graph-governance-automation-rework/00-plan.md §2.3). Mirrors the backend's
+ * One slot of an action card: exactly one step on one axis of one target
+ * (docs/plans/graph-governance-automation-rework/00-plan.md §2.3). Mirrors the backend's
  * `pitch_debate_service.session.AtomicChange`.
  *
  * `axis` is required in practice for `raise_to`: the backend drops a raise_to without one,
@@ -8,11 +8,10 @@
  */
 export interface AtomicChange {
   target: string;
-  kind?: "raise_to" | "set_trigger" | "set_attr" | string;
+  kind?: "raise_to" | "set_trigger" | string;
   axis?: "automation" | "governance";
   value?: any;
   trigger?: string;
-  attr?: string;
 }
 
 /** What one slotted change would do, as far as the player can tell. Mirrors the backend's

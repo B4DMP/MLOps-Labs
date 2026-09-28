@@ -28,9 +28,4 @@ describe("dedupeAtomicChanges", () => {
     expect(dedupeAtomicChanges([automation, governance])).toEqual([automation, governance]);
   });
 
-  it("keeps a pick on each attribute for the same target", () => {
-    const hosting: AtomicChange = { target: "a", kind: "set_attr", attr: "hosting", value: "cloud" };
-    const tool: AtomicChange = { target: "a", kind: "set_attr", attr: "tool", value: "x" };
-    expect(dedupeAtomicChanges([hosting, tool])).toEqual([hosting, tool]);
-  });
 });

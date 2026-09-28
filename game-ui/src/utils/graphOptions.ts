@@ -5,7 +5,6 @@
  * Every component and edge ships its own authored options per axis. An option moves its
  * target exactly one step up one axis and costs one slot; the player picks it by name, never
  * by raw level, and an edge's automation option already carries the trigger it switches to.
- * Components additionally carry attribute options (technology choices), also one slot each.
  *
  * Pure functions only, so the rules the composer enforces can be tested without rendering it.
  */
@@ -16,13 +15,6 @@ import { AXIS_TITLES, formatAxisLevel, formatTrigger, type Axis } from "./stageC
 export interface GraphOption {
   to_level: number;
   trigger?: string | null;
-  name: string;
-  description: string;
-}
-
-/** One authored technology choice for a component attribute. */
-export interface AttributeOption {
-  to_value: string;
   name: string;
   description: string;
 }
@@ -43,7 +35,6 @@ export interface OptionTarget {
   allowed_governance?: number[];
   automation_options?: GraphOption[];
   governance_options?: GraphOption[];
-  attribute_options?: Record<string, AttributeOption[]>;
 }
 
 export const AXES: readonly Axis[] = ["automation", "governance"];
@@ -192,48 +183,20 @@ export function removeChangeAt(changes: AtomicChange[], index: number): AtomicCh
   return changes.filter((c, i) => i !== index && !cascade(c));
 }
 
-/** Picks an attribute option. A second pick for the same attribute replaces the first rather
- *  than taking another slot; picking the slotted one again takes it back out. */
-export function toggleAttributeOption(
-  changes: AtomicChange[],
-  targetId: string,
-  attr: string,
-  option: AttributeOption,
-  maxChanges: number,
-): AtomicChange[] {
-  const existing = changes.findIndex((c) => c.target === targetId && c.kind === "set_attr" && c.attr === attr);
-  const change: AtomicChange = { target: targetId, kind: "set_attr", attr, value: option.to_value };
-  if (existing >= 0) {
-    if (changes[existing].value === option.to_value) return changes.filter((_, i) => i !== existing);
-    return changes.map((c, i) => (i === existing ? change : c));
-  }
-  if (changes.length >= maxChanges) return changes;
-  return [...changes, change];
-}
-
-/** A raise_to without an axis is silently dropped by the backend; a card left over from before
- *  the two-axis model must not show the player a slot that will do nothing. */
+/** A raise_to without an axis, or a retired set_attr, is silently dropped by the backend; a
+ *  saved card holding one must not show the player a slot that will do nothing. */
 export function dropUnscopedChanges(changes: AtomicChange[]): AtomicChange[] {
-  return changes.filter((c) => !isRaise(c) || c.axis === "automation" || c.axis === "governance");
+  return changes.filter((c) => c.kind !== "set_attr" && (!isRaise(c) || c.axis === "automation" || c.axis === "governance"));
 }
 
 /** The authored option a slotted change came from, when the target is at hand. */
 export function optionForChange(
   t: OptionTarget | undefined | null,
   change: AtomicChange,
-): GraphOption | AttributeOption | undefined {
+): GraphOption | undefined {
   if (!t) return undefined;
-  if (change.kind === "set_attr") {
-    if (!change.attr) return undefined;
-    return t.attribute_options?.[change.attr]?.find((o) => o.to_value === change.value);
-  }
   if (!isRaise(change) || !change.axis) return undefined;
   return optionsOn(t, change.axis).find((o) => o.to_level === change.value);
-}
-
-function prettify(raw: string): string {
-  const spaced = raw.replace(/_/g, " ");
-  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
 /**
@@ -246,10 +209,6 @@ export function describeAtomicChange(
   t?: OptionTarget | null,
 ): { title: string; detail: string; axis?: Axis } {
   const option = optionForChange(t, change);
-  if (change.kind === "set_attr") {
-    const detail = `${prettify(change.attr ?? "attribute")} → ${String(change.value ?? "?")}`;
-    return { title: option?.name ?? detail, detail };
-  }
   if (change.kind === "set_trigger") {
     const detail = `Started by ${formatTrigger(change.trigger ?? change.value)}`;
     return { title: detail, detail };
@@ -260,9 +219,7 @@ export function describeAtomicChange(
   const detail =
     `${AXIS_TITLES[change.axis]} → ${formatAxisLevel(change.axis, change.value)}` +
     (change.trigger ? `, started by ${formatTrigger(change.trigger)}` : "");
-  // A raise_to's option is always a GraphOption, never an AttributeOption (that's set_attr-only,
-  // handled above) - the "to_level" check just proves it to the type checker.
-  const title = option && "to_level" in option ? (t ? optionDisplayName(t, change.axis, option) : option.name) : detail;
+  const title = option ? (t ? optionDisplayName(t, change.axis, option) : option.name) : detail;
   return { title, detail, axis: change.axis };
 }
 
