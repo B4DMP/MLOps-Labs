@@ -37,6 +37,20 @@ ARTIFACT_ARCHETYPES = [
 ]
 
 
+# Requirements whose ledger tag disagrees with what's actually shipped (driver in the ledger,
+# trade_off in production, with independently rewritten reading text either side) - a real
+# reclassification decision, not a mechanical fix. Excluded here so a humor pass never lands on
+# content that's likely to be rewritten out from under it. See docs/plans/content-gen-ledger-drift.md.
+PENDING_RECLASSIFICATION = {
+    "gen_cost_crisis_drift_gap_emilia_efficiency_kpi",
+    "gen_heatwave_forecast_gap_monica_driver_eval",
+    "gen_heatwave_forecast_gap_emilia_driver_eff",
+    "gen_loyalty_data_deployment_block_alex_promotion_deadline",
+    "gen_nightly_window_miss_ruth_validation_driver",
+    "gen_silent_ingestion_failure_ruth_driver_ingest",
+}
+
+
 def stable_fraction(key: str, seed: str) -> float:
     """A deterministic pseudo-uniform value in [0, 1) for (seed, key)."""
     digest = hashlib.sha256(f"{seed}:{key}".encode()).hexdigest()
@@ -83,7 +97,8 @@ def plan_selection(artifacts: list[dict], seed: str, ratio: float, per_challenge
         if remaining_cap <= 0:
             continue
         candidates = sorted(
-            (a for a in group if a["humor_status"] == "unselected"),
+            (a for a in group if a["humor_status"] == "unselected"
+             and a["item_id"].removeprefix("artifacts:") not in PENDING_RECLASSIFICATION),
             key=lambda a: a["item_id"],
         )
         chosen.extend(a["item_id"] for a in candidates[:remaining_cap])

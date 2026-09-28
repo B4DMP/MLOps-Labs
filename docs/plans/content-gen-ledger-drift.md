@@ -18,6 +18,9 @@ Fixed so far:
   not just stale data) - added, wired through, and gated in `axis_errors()`.
 - Item-level axis data backfilled for 100 of 106 items from the current `gameConfig/RequirementObjects.json`.
 - 29 `Fact`-tagged items pruned from the ledger after origin removed them from production.
+- `select-humor` now excludes the 6 reclassification-pending ids below (`PENDING_RECLASSIFICATION`
+  in `humor_selection.py`), so a humor pass never lands on content likely to be rewritten out from
+  under it. The underlying reclassification itself is still open.
 
 ## Still open
 
