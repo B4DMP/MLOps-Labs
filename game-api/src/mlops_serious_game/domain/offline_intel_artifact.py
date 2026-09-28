@@ -34,6 +34,12 @@ class OfflineIntelArtifact(BaseModel):
         description="Which comedic device content_gen's humor stage rewrote this artifact with, if any - "
         "debug-only, never shown to players",
     )
+    humor_verdict: Optional[str] = Field(
+        default=None, description="The humor stage's own adversarial reviewer's verdict: strong/weak/reject. Debug-only."
+    )
+    humor_review_reason: Optional[str] = Field(
+        default=None, description="The adversarial reviewer's reasoning for that verdict. Debug-only."
+    )
 
     @property
     def speaker_id(self) -> Optional[str]:

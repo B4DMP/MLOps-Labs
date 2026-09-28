@@ -75,6 +75,8 @@ class OfflineIntelArtifactFactory:
                 wrong_descriptions=item.get("wrong_descriptions", {}),
                 is_known=item["is_known"],
                 humor_archetype=item.get("humor_archetype") or None,
+                humor_verdict=item.get("humor_verdict") or None,
+                humor_review_reason=item.get("humor_review_reason") or None,
             )
             cls.artifacts_by_requirement[req_id] = artifact
 

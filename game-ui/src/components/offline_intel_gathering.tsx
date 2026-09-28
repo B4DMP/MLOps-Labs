@@ -1246,6 +1246,26 @@ export default function OfflineIntelGathering({
                           ) : (
                             <span className={styles.debugWrongText}>none</span>
                           )}
+                          {currentArtifact.debug.artifact?.humor_verdict && (
+                            <>
+                              {" "}·{" "}
+                              <span
+                                className={
+                                  currentArtifact.debug.artifact.humor_verdict === "strong"
+                                    ? styles.debugRightText
+                                    : styles.debugWrongText
+                                }
+                              >
+                                {currentArtifact.debug.artifact.humor_verdict}
+                              </span>
+                            </>
+                          )}
+                          {currentArtifact.debug.artifact?.humor_review_reason && (
+                            <>
+                              <br />
+                              <strong>Humor review:</strong> {currentArtifact.debug.artifact.humor_review_reason}
+                            </>
+                          )}
                         </div>
                       )}
 

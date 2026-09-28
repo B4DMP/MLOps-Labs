@@ -32,6 +32,10 @@ export interface IntelDebugInfo {
     content: string;
     /** Which comedic device content_gen's humor stage rewrote this artifact with, if any. */
     humor_archetype?: string | null;
+    /** The humor stage's own adversarial reviewer's verdict: "strong"/"weak"/"reject". */
+    humor_verdict?: string | null;
+    /** That reviewer's reasoning for the verdict above. */
+    humor_review_reason?: string | null;
   } | null;
 }
 
@@ -218,7 +222,20 @@ const DebugRequirement: React.FC<{ info: IntelDebugInfo; playerTag?: string }> =
           ) : (
             <span className={styles.debugWrongText}>none</span>
           )}
+          {info.artifact.humor_verdict && (
+            <>
+              {" "}·{" "}
+              <span className={info.artifact.humor_verdict === "strong" ? styles.debugRightText : styles.debugWrongText}>
+                {info.artifact.humor_verdict}
+              </span>
+            </>
+          )}
         </div>
+        {info.artifact.humor_review_reason && (
+          <div className={styles.debugRow}>
+            <strong>Humor review:</strong> {info.artifact.humor_review_reason}
+          </div>
+        )}
       </div>
     ) : (
       <div className={styles.debugRow}>
