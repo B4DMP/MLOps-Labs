@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from starlette.websockets import WebSocketDisconnect
 
-from mlops_serious_game.application.services.auth_service import _hash_password
+from mlops_serious_game.application.services.auth_service import hash_password
 from mlops_serious_game.config import settings
 from mlops_serious_game.infrastructure.api import app
 from mlops_serious_game.infrastructure.database import Campaign, User, get_session
@@ -47,7 +47,7 @@ def registered_player():
             campaign_key=campaign_key,
             campaign_id=campaign.id,
             email=f"{username}@example.test",
-            password_hash=_hash_password(password),
+            password_hash=hash_password(password),
             users_on_machine=1,
             is_verified=True,
         ))

@@ -9,7 +9,7 @@ from sqlalchemy import select
 
 from mlops_serious_game.application.services.auth_service import (
     CSRF_COOKIE_NAME,
-    _hash_password,
+    hash_password,
 )
 from mlops_serious_game.infrastructure.api import app
 from mlops_serious_game.infrastructure.database import Campaign, User, get_session
@@ -46,7 +46,7 @@ def logged_in_player(client):
             campaign_key=campaign_key,
             campaign_id=campaign.id,
             email=f"{username}@example.test",
-            password_hash=_hash_password(password),
+            password_hash=hash_password(password),
             users_on_machine=1,
             is_verified=True,
         ))

@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from mlops_serious_game.application.services.auth_service import ADMIN_COOKIE_NAME, verify_admin_token
 from mlops_serious_game.application.services.admin_service import (
     get_admin_dashboard_data,
+    get_teacher_dashboard_data,
     add_campaign,
     update_campaign,
     remove_campaign,
@@ -19,6 +20,13 @@ from mlops_serious_game.application.services.admin_service import (
 from mlops_serious_game.application.services.admin_results import (
     get_player_results,
     get_results_dashboard,
+)
+from mlops_serious_game.application.services.teacher_service import (
+    create_teacher,
+    delete_teacher,
+    list_teachers,
+    update_teacher_campaigns,
+    update_teacher_password,
 )
 from mlops_serious_game.config import settings
 
@@ -46,6 +54,20 @@ class CampaignUpdateRequest(BaseModel):
 
 class ConfigUpdateRequest(BaseModel):
     data: Any
+
+
+class TeacherCreateRequest(BaseModel):
+    user_name: str
+    password: str
+    campaign_keys: list[str] = []
+
+
+class TeacherCampaignsUpdateRequest(BaseModel):
+    campaign_keys: list[str]
+
+
+class TeacherPasswordUpdateRequest(BaseModel):
+    new_password: str
 
 
 def check_admin_token(request: Request):
@@ -134,6 +156,61 @@ async def delete_all_campaigns(_: str = Depends(check_admin_token)):
         return {"type": "admin_data_update", **data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete all campaigns: {str(e)}")
+
+
+@router.get("/teachers")
+async def get_teachers(_: str = Depends(check_admin_token)):
+    return {"teachers": list_teachers()}
+
+
+@router.post("/teachers")
+async def add_teacher(req: TeacherCreateRequest, _: str = Depends(check_admin_token)):
+    try:
+        teacher = create_teacher(req.user_name, req.password, req.campaign_keys)
+        return {"teacher": teacher}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.patch("/teachers/{teacher_id}/campaigns")
+async def patch_teacher_campaigns(
+    teacher_id: int, req: TeacherCampaignsUpdateRequest, _: str = Depends(check_admin_token)
+):
+    try:
+        teacher = update_teacher_campaigns(teacher_id, req.campaign_keys)
+        return {"teacher": teacher}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.patch("/teachers/{teacher_id}/password")
+async def patch_teacher_password(
+    teacher_id: int, req: TeacherPasswordUpdateRequest, _: str = Depends(check_admin_token)
+):
+    try:
+        update_teacher_password(teacher_id, req.new_password)
+        return {"success": True}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/teachers/{teacher_id}")
+async def remove_teacher(teacher_id: int, _: str = Depends(check_admin_token)):
+    delete_teacher(teacher_id)
+    return {"teachers": list_teachers()}
+
+
+@router.get("/teacher-preview")
+async def get_teacher_preview(
+    campaigns: str = Query("", description="Comma-separated campaign keys"),
+    _: str = Depends(check_admin_token),
+):
+    """Same payload shape as a teacher's own /api/teacher/dashboard, but the admin picks the
+    campaign set freely instead of it coming from a fixed assignment - this is what the Admin
+    panel's "open teacher view" preview renders, per campaign selection made on the fly."""
+    campaign_keys = [c.strip() for c in campaigns.split(",") if c.strip()]
+    data = get_teacher_dashboard_data(campaign_keys)
+    return {"type": "teacher_data_update", **data}
 
 
 @router.delete("/players")

@@ -84,15 +84,20 @@ def get_player_data() -> dict[str, Any]:
         with get_session() as session:
             # 1. Populate all registered users first
             users = session.scalars(select(User)).all()
-            campaigns = {c.campaign_key: c.campaign_name for c in session.scalars(select(Campaign)).all()}
+            campaign_by_key = {c.campaign_key: c for c in session.scalars(select(Campaign)).all()}
             for user in users:
+                campaign = campaign_by_key.get(user.campaign_key)
                 player_data[user.user_name] = {
                     "maxProgressIndex": 0,
                     "furthestProgression": (0, 0),
                     "lastPlayed": None,
                     "firstPlayed": None,
-                    "campaign_name": campaigns.get(user.campaign_key, "Not Found"),
+                    "campaign_name": campaign.campaign_name if campaign else "Not Found",
                     "campaign_key": user.campaign_key,
+                    # Defaults to True (score shown) when the campaign itself can't be resolved -
+                    # matches the pre-existing admin table, which never hid these columns.
+                    "use_questionnaire": campaign.use_questionnaire if campaign else True,
+                    "email": user.email,
                     "playtest_tainted": bool(user.playtest_tainted),
                     "runs": 1,
                 }
@@ -576,6 +581,58 @@ def get_questionaire_results(campaign_key: str | None = None) -> dict[str, Any]:
         return {"intro": [], "outro": []}
 
 
+def _build_player_row(name: str, data: dict[str, Any]) -> dict[str, Any]:
+    """Shared by get_admin_dashboard_data and get_teacher_dashboard_data - same row shape for
+    both, the only difference is which players each one includes."""
+    max_idx = data.get("maxProgressIndex", 0)
+    furthest = data.get("furthestProgression", (0, 0))
+    phase_index = furthest[0]
+    # furthest[1] is the challenge's config id (e.g. 113), not a friendly position - translate it
+    # to its 0-based number within the phase, which is what a teacher/admin should see.
+    challenge_number = PhaseFactory.get_challenge_number(furthest[0], furthest[1]) if max_idx == 2 else 0
+    if max_idx == 0:
+        progression_string = "Intro Questionnaire"
+    elif max_idx == 1:
+        progression_string = "Briefing"
+    elif max_idx == 2:
+        progression_string = f"Phase {phase_index}, Challenge {challenge_number}"
+    elif max_idx == 3:
+        progression_string = "Outro Questionnaire"
+    else:
+        progression_string = "Completed"
+
+    play_time_str = "0d 0h 0m"
+    play_time_minutes = 0
+    if data.get("lastPlayed") and data.get("firstPlayed"):
+        td = data["lastPlayed"] - data["firstPlayed"]
+        days = td.days
+        hours = td.seconds // 3600
+        minutes = (td.seconds % 3600) // 60
+        play_time_str = f"{days}d {hours}h {minutes}m"
+        play_time_minutes = td.days * 24 * 60 + td.seconds // 60
+
+    return {
+        "name": name,
+        "email": data.get("email", ""),
+        "gameProgression": progression_string,
+        "progressIndex": max_idx,
+        # Tiebreakers for ranking players within the same progressIndex bucket (e.g. two players
+        # both "in progress") - not shown directly, but what "farthest along" actually means.
+        "phaseIndex": phase_index,
+        "challengeNumber": challenge_number,
+        "introPercentage": calculate_intro_percentage(name),
+        "outroPercentage": calculate_outro_percentage(name),
+        "useQuestionnaire": bool(data.get("use_questionnaire", True)),
+        "playTime": play_time_str,
+        "playTimeMinutes": play_time_minutes,
+        "campaign_name": data.get("campaign_name", "Not Found"),
+        "campaign_key": data.get("campaign_key", ""),
+        "runs": data.get("runs", 1),
+        "playtestTainted": bool(data.get("playtest_tainted", False)),
+        "lastActive": data["lastPlayed"].isoformat() if data.get("lastPlayed") else None,
+    }
+
+
 def get_admin_dashboard_data(campaign: str | None = None) -> dict[str, Any]:
     target_campaign_key: str | None = None
     if campaign and campaign != "all":
@@ -591,40 +648,7 @@ def get_admin_dashboard_data(campaign: str | None = None) -> dict[str, Any]:
                 target_campaign_key = campaign
 
     _playerdata = get_player_data()
-    playerdata = []
-    for _name, _data in _playerdata.items():
-        max_idx = _data.get("maxProgressIndex", 0)
-        if max_idx == 0:
-            progressionString = "Intro Questionnaire"
-        elif max_idx == 1:
-            progressionString = "Briefing"
-        elif max_idx == 2:
-            furthest = _data.get("furthestProgression", (0, 0))
-            progressionString = f"Phase {furthest[0]}, Challenge {furthest[1]}"
-        elif max_idx == 3:
-            progressionString = "Outro Questionnaire"
-        elif max_idx == 4:
-            progressionString = "Completed"
-
-        play_time_str = "0d 0h 0m"
-        if _data.get("lastPlayed") and _data.get("firstPlayed"):
-            td = _data["lastPlayed"] - _data["firstPlayed"]
-            days = td.days
-            hours = td.seconds // 3600
-            minutes = (td.seconds % 3600) // 60
-            play_time_str = f"{days}d {hours}h {minutes}m"
-
-        playerdata.append({
-            "name": _name,
-            "gameProgression": progressionString,
-            "introPercentage": calculate_intro_percentage(_name),
-            "outroPercentage": calculate_outro_percentage(_name),
-            "playTime": play_time_str,
-            "campaign_name": _data.get("campaign_name", "Not Found"),
-            "campaign_key": _data.get("campaign_key", ""),
-            "runs": _data.get("runs", 1),
-            "playtestTainted": bool(_data.get("playtest_tainted", False)),
-        })
+    playerdata = [_build_player_row(_name, _data) for _name, _data in _playerdata.items()]
 
     metric_sums = calculate_metric_sum_per_challenge(campaign_key=target_campaign_key)
     return {
@@ -638,6 +662,35 @@ def get_admin_dashboard_data(campaign: str | None = None) -> dict[str, Any]:
         "outro_questionaire_average": calculate_outro_questionaire_average(campaign_key=target_campaign_key),
         "questionaire_results": get_questionaire_results(campaign_key=target_campaign_key),
         "selected_campaign": target_campaign_key,
+    }
+
+
+def get_teacher_dashboard_data(campaign_keys: list[str]) -> dict[str, Any]:
+    """Same player-row shape as get_admin_dashboard_data, but strictly scoped to the given
+    campaign keys - the only two callers (teacher_routes' own dashboard, and the admin panel's
+    "open teacher view" preview) are both responsible for computing that list correctly; a
+    teacher must never see a player outside it."""
+    key_set = set(campaign_keys)
+    if not key_set:
+        return {
+            "players": [],
+            "campaigns": [],
+            "total_player_amount": 0,
+            "finished_player_amount": 0,
+        }
+
+    _playerdata = get_player_data()
+    playerdata = [
+        _build_player_row(_name, _data)
+        for _name, _data in _playerdata.items()
+        if _data.get("campaign_key") in key_set
+    ]
+
+    return {
+        "players": playerdata,
+        "campaigns": [c for c in get_campaigns_data() if c["key"] in key_set],
+        "total_player_amount": sum(calculate_total_players(campaign_key=k) for k in key_set),
+        "finished_player_amount": sum(calculate_finished_players(campaign_key=k) for k in key_set),
     }
 
 

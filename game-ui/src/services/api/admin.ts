@@ -11,6 +11,7 @@ const PROTOCOL = window.location.protocol === "https:" ? "https:" : "http:";
 const BASE_URL = `${PROTOCOL}//${API_HOST}`;
 
 import type { AdminResultsData, AdminPlayerResults } from "../../components/Results/adminTypes";
+import type { TeacherDashboardData } from "./teacher";
 
 export interface AdminDashboardData {
   type: "admin_data_update";
@@ -354,4 +355,84 @@ export async function sendAdminTestEmail(
   }
 
   return response.json();
+}
+
+// --- Teacher role management (admin-only) ---
+// A teacher account is created here with a name, a password, and a set of campaign keys it may
+// monitor; the teacher's own read-only dashboard lives under /api/teacher (services/api/teacher.ts).
+
+export interface AdminTeacher {
+  id: number;
+  user_name: string;
+  campaign_keys: string[];
+}
+
+export function fetchAdminTeachers(): Promise<{ teachers: AdminTeacher[] }> {
+  return adminGet("/api/admin/teachers", "Failed to fetch teacher accounts.");
+}
+
+async function adminMutate<T>(
+  path: string,
+  method: "POST" | "PATCH" | "DELETE",
+  failure: string,
+  body?: Record<string, unknown>
+): Promise<T> {
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method,
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeaders() },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || failure);
+  }
+  return response.json();
+}
+
+export function createAdminTeacher(
+  userName: string,
+  password: string,
+  campaignKeys: string[]
+): Promise<{ teacher: AdminTeacher }> {
+  return adminMutate("/api/admin/teachers", "POST", "Failed to create teacher account.", {
+    user_name: userName,
+    password,
+    campaign_keys: campaignKeys,
+  });
+}
+
+export function updateAdminTeacherCampaigns(
+  teacherId: number,
+  campaignKeys: string[]
+): Promise<{ teacher: AdminTeacher }> {
+  return adminMutate(
+    `/api/admin/teachers/${teacherId}/campaigns`,
+    "PATCH",
+    "Failed to update the teacher's assigned campaigns.",
+    { campaign_keys: campaignKeys }
+  );
+}
+
+export function updateAdminTeacherPassword(
+  teacherId: number,
+  newPassword: string
+): Promise<{ success: boolean }> {
+  return adminMutate(
+    `/api/admin/teachers/${teacherId}/password`,
+    "PATCH",
+    "Failed to update the teacher's password.",
+    { new_password: newPassword }
+  );
+}
+
+export function deleteAdminTeacher(teacherId: number): Promise<{ teachers: AdminTeacher[] }> {
+  return adminMutate(`/api/admin/teachers/${teacherId}`, "DELETE", "Failed to delete teacher account.");
+}
+
+/** Same payload as a teacher's own dashboard, but for a campaign set the admin picks freely -
+ * backs the Admin panel's "open live view" preview. */
+export function fetchAdminTeacherPreview(campaignKeys: string[]): Promise<TeacherDashboardData> {
+  const params = new URLSearchParams({ campaigns: campaignKeys.join(",") });
+  return adminGet(`/api/admin/teacher-preview?${params}`, "Failed to fetch the live monitoring preview.");
 }

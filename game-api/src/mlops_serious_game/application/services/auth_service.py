@@ -22,6 +22,7 @@ from mlops_serious_game.infrastructure.database import (
     GameResult,
     GameSession,
     IntelItem,
+    Teacher,
     User,
     UserSettings,
     get_session,
@@ -37,6 +38,7 @@ _SLIDING_REFRESH_THRESHOLD = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES / 2)
 
 PLAYER_COOKIE_NAME = "mlops_player"
 ADMIN_COOKIE_NAME = "mlops_admin"
+TEACHER_COOKIE_NAME = "mlops_teacher"
 CSRF_COOKIE_NAME = "mlops_csrf"
 
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -81,6 +83,28 @@ def verify_admin_token(token: str) -> bool:
     return payload is not None and payload.get("sub") == settings.ADMIN_USER
 
 
+def _teacher_row_exists(teacher_id: int) -> bool:
+    """Same reasoning as player_exists: a signature-valid token naming a teacher row that has
+    since been deleted (by an admin, e.g. removing course staff after a semester) must stop
+    working here, not stay "valid" until the JWT itself expires."""
+    with get_session() as session:
+        return session.scalar(select(Teacher.id).where(Teacher.id == teacher_id)) is not None
+
+
+def verify_teacher_token(token: str | None) -> dict | None:
+    """Returns {"id", "user_name"} for a valid, unexpired teacher token naming a teacher that
+    still exists, else None. Used directly by the teacher routes' auth dependency, unlike the
+    admin/player checks which are split into a boolean verify + a separate sliding-refresh."""
+    payload = decode_token(token)
+    if payload is None or payload.get("role") != "teacher":
+        return None
+    teacher_id = payload.get("teacher_id")
+    username = payload.get("sub")
+    if teacher_id is None or username is None or not _teacher_row_exists(teacher_id):
+        return None
+    return {"id": teacher_id, "user_name": username}
+
+
 def player_exists(username: str) -> bool:
     """Whether a `User` row still backs this username."""
     with get_session() as session:
@@ -115,6 +139,10 @@ def _create_admin_token() -> str:
         data={"sub": settings.ADMIN_USER},
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
     )
+
+
+def _create_teacher_token(teacher_id: int, username: str) -> str:
+    return create_access_token(data={"sub": username, "role": "teacher", "teacher_id": teacher_id})
 
 
 def _generate_csrf_token() -> str:
@@ -169,12 +197,33 @@ def set_admin_cookie(response: Response, *, secure: bool, existing_csrf: str | N
     _set_csrf_cookie_if_absent(response, existing=existing_csrf, secure=secure)
 
 
+def set_teacher_cookie(
+    response: Response, teacher_id: int, username: str, *, secure: bool, existing_csrf: str | None = None
+) -> None:
+    response.set_cookie(
+        TEACHER_COOKIE_NAME,
+        _create_teacher_token(teacher_id, username),
+        httponly=True,
+        secure=secure,
+        samesite="lax",
+        # Same reasoning as the admin cookie: the teacher dashboard is REST-polled, never over
+        # the websocket, so it never needs to be visible at /ws.
+        path="/api",
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+    _set_csrf_cookie_if_absent(response, existing=existing_csrf, secure=secure)
+
+
 def clear_player_cookie(response: Response) -> None:
     response.delete_cookie(PLAYER_COOKIE_NAME, path="/")
 
 
 def clear_admin_cookie(response: Response) -> None:
     response.delete_cookie(ADMIN_COOKIE_NAME, path="/api")
+
+
+def clear_teacher_cookie(response: Response) -> None:
+    response.delete_cookie(TEACHER_COOKIE_NAME, path="/api")
 
 
 def _remaining_lifetime(payload: dict) -> timedelta:
@@ -213,11 +262,25 @@ def sliding_refresh_admin(
     return True
 
 
-def _hash_password(password: str) -> str:
+def sliding_refresh_teacher(
+    token: str | None, response: Response, *, secure: bool, existing_csrf: str | None = None
+) -> dict | None:
+    """Same as sliding_refresh_admin, for the teacher cookie. Returns {"id", "user_name"} for a
+    currently-valid teacher token, else None."""
+    teacher = verify_teacher_token(token)
+    if teacher is None:
+        return None
+    payload = decode_token(token)
+    if _remaining_lifetime(payload) < _SLIDING_REFRESH_THRESHOLD:
+        set_teacher_cookie(response, teacher["id"], teacher["user_name"], secure=secure, existing_csrf=existing_csrf)
+    return teacher
+
+
+def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
-def _verify_password(password: str, password_hash: str) -> bool:
+def verify_password(password: str, password_hash: str) -> bool:
     try:
         return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
     except ValueError:
@@ -253,9 +316,24 @@ async def authenticate_user(username: str, password: str) -> dict:
         )
         return {"success": True, "is_admin": True, "token": access_token}
 
+    # Teacher accounts live in their own table (created only by an admin, never by
+    # self-registration - see teacher_service.create_teacher), so this is checked before the
+    # player lookup below rather than folded into it.
+    with get_session() as session:
+        teacher = session.scalar(select(Teacher).where(Teacher.user_name == username))
+        if teacher is not None:
+            if not verify_password(password, teacher.password_hash):
+                return {"success": False, "error": "Invalid username or password."}
+            return {
+                "success": True,
+                "is_teacher": True,
+                "teacher_id": teacher.id,
+                "username": teacher.user_name,
+            }
+
     with get_session() as session:
         user = session.scalar(select(User).where(User.user_name == username))
-        if user is None or not _verify_password(password, user.password_hash):
+        if user is None or not verify_password(password, user.password_hash):
             return {"success": False, "error": "Invalid username or password."}
 
         campaign = session.scalar(select(Campaign).where(Campaign.id == user.campaign_id))
@@ -373,7 +451,7 @@ async def register_user(
                 campaign_key=campaign_key,
                 campaign_id=campaign.id,
                 email=email,
-                password_hash=_hash_password(password),
+                password_hash=hash_password(password),
                 users_on_machine=users_on_machine,
                 is_verified=True,
             )
@@ -385,7 +463,7 @@ async def register_user(
                 campaign_key=campaign_key,
                 campaign_id=campaign.id,
                 email=email,
-                password_hash=_hash_password(password),
+                password_hash=hash_password(password),
                 users_on_machine=users_on_machine,
                 is_verified=False,
                 verification_code=code,
@@ -516,7 +594,7 @@ def reset_password(username: str, code: str, new_password: str, new_password_con
         if user.password_reset_code != code:
             return {"success": False, "error": "Invalid reset code."}
 
-        user.password_hash = _hash_password(new_password)
+        user.password_hash = hash_password(new_password)
         user.password_reset_code = None
         user.password_reset_code_expires_at = None
         user.is_verified = True
@@ -543,10 +621,10 @@ def change_password(username: str, current_password: str, new_password: str, new
 
     with get_session() as session:
         user = session.scalar(select(User).where(User.user_name == username))
-        if user is None or not _verify_password(current_password, user.password_hash):
+        if user is None or not verify_password(current_password, user.password_hash):
             return {"success": False, "error": "Current password is incorrect."}
 
-        user.password_hash = _hash_password(new_password)
+        user.password_hash = hash_password(new_password)
 
     return {"success": True}
 
@@ -648,7 +726,7 @@ def change_username(username: str, new_username: str, current_password: str) -> 
 
     with get_session() as session:
         user = session.scalar(select(User).where(User.user_name == username))
-        if user is None or not _verify_password(current_password, user.password_hash):
+        if user is None or not verify_password(current_password, user.password_hash):
             return {"success": False, "error": "Current password is incorrect."}
 
         if new_username == username:

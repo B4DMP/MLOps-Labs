@@ -21,6 +21,19 @@ class PhaseFactory:
                     return challenge
         raise ValueError(f"Challenge with ID {challenge_id} not found.")
 
+    @classmethod
+    def get_challenge_number(cls, phase_index: int, challenge_id: int) -> int:
+        """The 0-based position of a challenge within its phase's challenge list - the friendly
+        "Challenge N" a teacher/admin should see. `challenge.id` itself is an arbitrary id from
+        the config (e.g. 110, 111, ...), not phase-local or zero-based, so it's the wrong thing
+        to display as a challenge number."""
+        if 0 <= phase_index < len(cls.phases):
+            phase = cls.phases[phase_index]
+            for position, challenge in enumerate(phase.challenges):
+                if challenge.id == challenge_id:
+                    return position
+        return challenge_id
+
     #provisory function, will be replaced by challengeScheduler
     @classmethod
     def translate_challenge_index(cls, phase_index: int, challenge_index: int) -> Challenge | None:
