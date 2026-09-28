@@ -183,8 +183,8 @@ export function removeChangeAt(changes: AtomicChange[], index: number): AtomicCh
   return changes.filter((c, i) => i !== index && !cascade(c));
 }
 
-/** A raise_to without an axis, or a retired set_attr, is silently dropped by the backend; a
- *  saved card holding one must not show the player a slot that will do nothing. */
+/** A raise_to without an axis is silently dropped by the backend; a card left over from before
+ *  the two-axis model must not show the player a slot that will do nothing. */
 export function dropUnscopedChanges(changes: AtomicChange[]): AtomicChange[] {
   return changes.filter((c) => c.kind !== "set_attr" && (!isRaise(c) || c.axis === "automation" || c.axis === "governance"));
 }
