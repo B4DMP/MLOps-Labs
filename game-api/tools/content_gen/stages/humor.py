@@ -25,13 +25,18 @@ from content_gen.stages.common import (
 )
 
 DEVICE_DESCRIPTIONS = {
-    "Retroactively-satisfiable criterion": "a vague trade-off condition that can always be declared met after the fact.",
-    "Silence mistaken for testimony": "an absence gets treated as a deliberate, on-purpose data point.",
-    "Undetectable falsehood in a plausible dataset": "almost everything checks out, and not knowing which one thing doesn't is the joke.",
+    "Retroactively-satisfiable criterion": "a vague trade-off condition that can always be declared met after the fact - land it with one "
+        "concrete instance of a real outcome that technically satisfies the criterion while obviously missing the point "
+        "(the target gets hit by redefining what counts, not by anything actually improving).",
+    "Silence mistaken for testimony": "an absence gets treated as a deliberate, on-purpose data point - land it with one concrete instance "
+        "of a specific number, record or event that the silence let through undetected.",
+    "Undetectable falsehood in a plausible dataset": "almost everything checks out, and not knowing which one thing doesn't is the joke - "
+        "land it with one concrete, specific, plausible-sounding detail (an exact number or record) that nobody would think to double-check.",
     "Recursive bureaucracy": "a process needs its own meta-process (a form to approve the form).",
     "Personification": "an inanimate process or object is described as having its own attitude toward the rule it's bound by.",
     "A health check that asks the wrong question": "a shallow check (did it run) stands in for the real one (is it correct) - land it with one concrete, absurd, still-plausible example of what the shallow check would wave through.",
-    "A gap left idling with a pet's patience": "an automation gap, anthropomorphized as waiting patiently for a human to notice.",
+    "A gap left idling with a pet's patience": "an automation gap, anthropomorphized as waiting patiently for a human to notice - land it "
+        "with one concrete instance of how long it's been waiting or exactly what it's still waiting on.",
 }
 assert set(DEVICE_DESCRIPTIONS) == set(ARTIFACT_ARCHETYPES), "humor.py device list drifted from humor_selection.py"
 
