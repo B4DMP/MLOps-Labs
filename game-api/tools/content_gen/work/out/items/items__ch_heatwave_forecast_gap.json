@@ -634,14 +634,15 @@
         "holds": {
           "component": "model.evaluation",
           "op": "lte",
-          "level": 1
+          "level": 1,
+          "axis": "automation"
         },
         "ops": [
           {
             "kind": "raise_to",
             "target": "model.evaluation",
             "value": 1,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": null,
@@ -651,7 +652,19 @@
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "governance"
+        "suggested_axis": "automation",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "dave_tradeoff_data",
@@ -676,7 +689,19 @@
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "automation"
+        "suggested_axis": "automation",
+        "concedes_axis": "automation",
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "emilia_driver_eff",
@@ -726,14 +751,24 @@
         "suggested_level": 3,
         "holds": null,
         "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
         "concedes_target": "model.evaluation",
         "concedes_max_level": 2,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "governance"
+        "suggested_axis": "automation",
+        "concedes_axis": "automation",
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "reuben_tradeoff_time",
@@ -758,7 +793,19 @@
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "governance"
+        "suggested_axis": "automation",
+        "concedes_axis": "automation",
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_eval_broken",
@@ -782,7 +829,19 @@
         "concedes_max_level": null,
         "asserts_target": "model.evaluation",
         "asserts_level": 0,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_train_manual",
@@ -806,7 +865,19 @@
         "concedes_max_level": null,
         "asserts_target": "model.training_pipeline",
         "asserts_level": 2,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_registry_absent",
@@ -830,7 +901,19 @@
         "concedes_max_level": null,
         "asserts_target": "model.registry",
         "asserts_level": 1,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_hpo_manual",
@@ -854,7 +937,19 @@
         "concedes_max_level": null,
         "asserts_target": "model.hpo",
         "asserts_level": 1,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       }
     ]
   }

@@ -535,7 +535,19 @@
         "concedes_max_level": null,
         "asserts_target": "model.registry",
         "asserts_level": 0,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "manual_review_red_line",
@@ -554,14 +566,15 @@
         "holds": {
           "component": "model.registry",
           "op": "lte",
-          "level": 2
+          "level": 2,
+          "axis": "automation"
         },
         "ops": [
           {
             "kind": "raise_to",
             "target": "model.registry",
             "value": 2,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": null,
@@ -570,7 +583,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "monica_automation_push",
@@ -585,14 +611,14 @@
         },
         "metric_id": "model",
         "suggested_target": "model.registry",
-        "suggested_level": 4,
+        "suggested_level": 3,
         "holds": null,
         "ops": [
           {
             "kind": "raise_to",
             "target": "model.registry",
-            "value": 4,
-            "attr": null
+            "value": 3,
+            "axis": "governance"
           }
         ],
         "concedes_metric": null,
@@ -602,7 +628,19 @@
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "automation"
+        "suggested_axis": "governance",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "emilia_cost_concern",
@@ -622,17 +660,21 @@
         "ops": [],
         "concedes_metric": "efficiency",
         "concedes_loss": 3,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
         "branch_x_description": "a fully automated model registry",
         "branch_x_target": "model.registry",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "a manual model registry",
         "branch_y_target": "model.registry",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "dave_data_quality",
@@ -654,7 +696,7 @@
             "kind": "raise_to",
             "target": "model.training_pipeline",
             "value": 3,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": null,
@@ -664,7 +706,19 @@
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "automation"
+        "suggested_axis": "automation",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "reuben_compliance_focus",
@@ -684,17 +738,21 @@
         "ops": [],
         "concedes_metric": "requirements",
         "concedes_loss": 2,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
         "branch_x_description": "a fully automated, governed evaluation process",
         "branch_x_target": "model.evaluation",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "the current, manual evaluation process",
         "branch_y_target": "model.evaluation",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "monica_reproducibility",
@@ -716,22 +774,26 @@
             "kind": "raise_to",
             "target": "model.experiment_tracking",
             "value": 2,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": "model",
         "concedes_loss": 2,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
         "branch_x_description": "automated experiment tracking",
         "branch_x_target": "model.experiment_tracking",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "the current, manual logging process",
         "branch_y_target": "model.experiment_tracking",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "evaluation_harness_state",
@@ -755,7 +817,19 @@
         "concedes_max_level": null,
         "asserts_target": "model.evaluation",
         "asserts_level": 2,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "training_pipeline_state",
@@ -779,7 +853,19 @@
         "concedes_max_level": null,
         "asserts_target": "model.training_pipeline",
         "asserts_level": 2,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "hpo_state",
@@ -803,7 +889,19 @@
         "concedes_max_level": null,
         "asserts_target": "model.hpo",
         "asserts_level": 1,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       }
     ]
   }

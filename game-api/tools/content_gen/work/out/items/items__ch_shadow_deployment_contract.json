@@ -582,14 +582,15 @@
         "holds": {
           "component": "deploy.shadow",
           "op": "gte",
-          "level": 4
+          "level": 3,
+          "axis": "governance"
         },
         "ops": [
           {
             "kind": "raise_to",
             "target": "deploy.shadow",
-            "value": 4,
-            "attr": null
+            "value": 3,
+            "axis": "governance"
           }
         ],
         "concedes_metric": null,
@@ -598,7 +599,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "alex_shadow_tradeoff",
@@ -618,17 +632,21 @@
         "ops": [],
         "concedes_metric": "automation",
         "concedes_loss": 3,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
         "branch_x_description": "governing the shadow environment on its own",
         "branch_x_target": "deploy.shadow",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "leaving the shadow deployment a manual step",
         "branch_y_target": "deploy.shadow",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "ruth_cicd_driver",
@@ -643,14 +661,13 @@
         },
         "metric_id": "reliability",
         "suggested_target": "e.cicd_shadow",
-        "suggested_level": 4,
+        "suggested_level": 3,
         "holds": null,
         "ops": [
           {
             "kind": "set_trigger",
             "target": "e.cicd_shadow",
-            "value": "on_new_version",
-            "attr": null
+            "value": "on_new_version"
           }
         ],
         "concedes_metric": null,
@@ -660,7 +677,19 @@
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "automation"
+        "suggested_axis": "governance",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "reuben_gov_driver",
@@ -675,14 +704,14 @@
         },
         "metric_id": "requirements",
         "suggested_target": "deploy.shadow",
-        "suggested_level": 4,
+        "suggested_level": 3,
         "holds": null,
         "ops": [
           {
             "kind": "raise_to",
             "target": "deploy.shadow",
-            "value": 4,
-            "attr": null
+            "value": 3,
+            "axis": "governance"
           }
         ],
         "concedes_metric": null,
@@ -692,7 +721,19 @@
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "governance"
+        "suggested_axis": "governance",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "emilia_eff_tradeoff",
@@ -712,17 +753,21 @@
         "ops": [],
         "concedes_metric": "efficiency",
         "concedes_loss": 2,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
         "branch_x_description": "running an automated shadow environment",
         "branch_x_target": "deploy.shadow",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "accepting a manual shadow run instead",
         "branch_y_target": "deploy.shadow",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "alex_orch_tradeoff",
@@ -742,17 +787,21 @@
         "ops": [],
         "concedes_metric": "automation",
         "concedes_loss": 4,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
         "branch_x_description": "automating the shadow environment's orchestration",
         "branch_x_target": "deploy.shadow",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "keeping the shadow orchestration a manual step",
         "branch_y_target": "deploy.shadow",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "fact_shadow_missing",
@@ -776,7 +825,19 @@
         "concedes_max_level": null,
         "asserts_target": "deploy.shadow",
         "asserts_level": 0,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_cicd_shadow_edge",
@@ -800,7 +861,20 @@
         "concedes_max_level": null,
         "asserts_target": "e.cicd_shadow",
         "asserts_level": 1,
-        "asserts_trigger": "none"
+        "asserts_trigger": "none",
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_serving_level",
@@ -824,7 +898,19 @@
         "concedes_max_level": null,
         "asserts_target": "deploy.serving",
         "asserts_level": 2,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       }
     ]
   }

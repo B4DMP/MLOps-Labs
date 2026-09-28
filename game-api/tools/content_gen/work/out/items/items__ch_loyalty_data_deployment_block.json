@@ -679,14 +679,15 @@
         "holds": {
           "component": "deploy.cicd",
           "op": "gte",
-          "level": 2
+          "level": 2,
+          "axis": "automation"
         },
         "ops": [
           {
             "kind": "raise_to",
             "target": "deploy.cicd",
             "value": 2,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": null,
@@ -695,7 +696,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "alex_manual_approval",
@@ -716,12 +730,9 @@
           {
             "kind": "set_trigger",
             "target": "e.registry_cicd",
-            "value": "on_approval",
-            "attr": null
+            "value": "on_approval"
           }
         ],
-        "concedes_metric": null,
-        "concedes_loss": null,
         "concedes_target": "deploy.cicd",
         "concedes_max_level": 3,
         "asserts_target": null,
@@ -729,10 +740,17 @@
         "asserts_trigger": null,
         "branch_x_description": "pushing the deployment pipeline to full automation",
         "branch_x_target": "deploy.cicd",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "the pipeline moving with a manual approval gate",
         "branch_y_target": "deploy.cicd",
-        "branch_y_level": 3
+        "branch_y_level": 3,
+        "suggested_axis": null,
+        "concedes_axis": "automation",
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "reuben_compliance_check",
@@ -752,8 +770,6 @@
         "ops": [],
         "concedes_metric": "requirements",
         "concedes_loss": 2,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
@@ -762,7 +778,13 @@
         "branch_x_level": 2,
         "branch_y_description": "the deployment pipeline moving to full automation",
         "branch_y_target": "deploy.cicd",
-        "branch_y_level": 4
+        "branch_y_level": 3,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "automation",
+        "branch_x_ops": [],
+        "branch_y_axis": "governance",
+        "branch_y_ops": []
       },
       {
         "key": "ruth_feedback_loop",
@@ -787,7 +809,19 @@
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "automation"
+        "suggested_axis": "automation",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "emilia_cost_control",
@@ -809,13 +843,11 @@
             "kind": "raise_to",
             "target": "deploy.orchestration",
             "value": 2,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": "efficiency",
         "concedes_loss": 3,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
@@ -824,7 +856,13 @@
         "branch_x_level": 2,
         "branch_y_description": "cost control held at its current, strict level",
         "branch_y_target": "deploy.orchestration",
-        "branch_y_level": 1
+        "branch_y_level": 1,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "automation",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "fact_pipeline_broken",
@@ -848,7 +886,19 @@
         "concedes_max_level": null,
         "asserts_target": "deploy.cicd",
         "asserts_level": 0,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_manual_trigger",
@@ -872,7 +922,20 @@
         "concedes_max_level": null,
         "asserts_target": "e.registry_cicd",
         "asserts_level": 2,
-        "asserts_trigger": "manual_request"
+        "asserts_trigger": "manual_request",
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_serving_stable",
@@ -896,7 +959,19 @@
         "concedes_max_level": null,
         "asserts_target": "deploy.serving",
         "asserts_level": 2,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_canary_missing",
@@ -920,7 +995,19 @@
         "concedes_max_level": null,
         "asserts_target": "deploy.canary_ab",
         "asserts_level": 1,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       }
     ]
   }

@@ -279,7 +279,7 @@
         },
         "metric_id": "requirements",
         "suggested_target": "req.data_contracts",
-        "suggested_level": 4,
+        "suggested_level": 3,
         "holds": null,
         "ops": [],
         "concedes_metric": null,
@@ -289,7 +289,19 @@
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "governance"
+        "suggested_axis": "governance",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "emilia_contracts_compromise",
@@ -307,8 +319,6 @@
         "suggested_level": null,
         "holds": null,
         "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
         "concedes_target": "req.data_contracts",
         "concedes_max_level": 2,
         "asserts_target": null,
@@ -316,10 +326,17 @@
         "asserts_trigger": null,
         "branch_x_description": "the data contracts fully governed with automated consent checks",
         "branch_x_target": "req.data_contracts",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "manual review of the data contracts",
         "branch_y_target": "req.data_contracts",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "concedes_axis": "automation",
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "reuben_kpi_baseline",
@@ -338,14 +355,15 @@
         "holds": {
           "component": "req.kpi_definition",
           "op": "gte",
-          "level": 2
+          "level": 2,
+          "axis": "automation"
         },
         "ops": [
           {
             "kind": "raise_to",
             "target": "req.kpi_definition",
             "value": 2,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": null,
@@ -354,7 +372,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "emilia_efficiency_focus",
@@ -374,17 +405,21 @@
         "ops": [],
         "concedes_metric": "efficiency",
         "concedes_loss": 2,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
         "branch_x_description": "consent checks fully automated in the data contracts",
         "branch_x_target": "req.data_contracts",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "a faster, manual contract review",
         "branch_y_target": "req.data_contracts",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "alex_pipeline_stability",
@@ -404,17 +439,21 @@
         "ops": [],
         "concedes_metric": "automation",
         "concedes_loss": 3,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
         "branch_x_description": "the data contracts fully governed and automated",
         "branch_x_target": "req.data_contracts",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "a temporary manual step in contract review",
         "branch_y_target": "req.data_contracts",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "ruth_monitoring_gap",
@@ -439,7 +478,19 @@
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "governance"
+        "suggested_axis": "automation",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_contracts_missing",
@@ -463,7 +514,19 @@
         "concedes_max_level": null,
         "asserts_target": "req.data_contracts",
         "asserts_level": 0,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_kpi_missing",
@@ -487,7 +550,19 @@
         "concedes_max_level": null,
         "asserts_target": "req.kpi_definition",
         "asserts_level": 1,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_risk_missing",
@@ -511,7 +586,19 @@
         "concedes_max_level": null,
         "asserts_target": "req.risk_assessment",
         "asserts_level": 1,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       }
     ]
   }

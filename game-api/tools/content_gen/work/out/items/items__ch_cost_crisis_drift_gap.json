@@ -500,22 +500,26 @@
             "kind": "raise_to",
             "target": "ops.production_drift_monitoring",
             "value": 0,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": "reliability",
         "concedes_loss": 8,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
         "branch_x_description": "governed, automated drift monitoring",
         "branch_x_target": "ops.production_drift_monitoring",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "drift monitoring cut back to the bare minimum",
         "branch_y_target": "ops.production_drift_monitoring",
-        "branch_y_level": 1
+        "branch_y_level": 1,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "ruth_governed_drift",
@@ -530,14 +534,14 @@
         },
         "metric_id": "reliability",
         "suggested_target": "ops.production_drift_monitoring",
-        "suggested_level": 4,
+        "suggested_level": 3,
         "holds": null,
         "ops": [
           {
             "kind": "raise_to",
             "target": "ops.production_drift_monitoring",
-            "value": 4,
-            "attr": null
+            "value": 3,
+            "axis": "governance"
           }
         ],
         "concedes_metric": null,
@@ -547,7 +551,19 @@
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "governance"
+        "suggested_axis": "governance",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "ruth_no_manual",
@@ -566,14 +582,15 @@
         "holds": {
           "component": "ops.production_drift_monitoring",
           "op": "gte",
-          "level": 3
+          "level": 3,
+          "axis": "automation"
         },
         "ops": [
           {
             "kind": "raise_to",
             "target": "ops.production_drift_monitoring",
             "value": 3,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": null,
@@ -582,7 +599,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "monica_retraining",
@@ -604,13 +634,11 @@
             "kind": "raise_to",
             "target": "e.alert_retrain",
             "value": 3,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": "model",
         "concedes_loss": 4,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
@@ -619,7 +647,13 @@
         "branch_x_level": 3,
         "branch_y_description": "the retraining trigger staying a manual step",
         "branch_y_target": "e.alert_retrain",
-        "branch_y_level": 1
+        "branch_y_level": 1,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "automation",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "reuben_cost_control",
@@ -641,13 +675,11 @@
             "kind": "raise_to",
             "target": "ops.observability",
             "value": 2,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": "data",
         "concedes_loss": 5,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
@@ -656,7 +688,13 @@
         "branch_x_level": 3,
         "branch_y_description": "the current, lower-granularity logging level",
         "branch_y_target": "ops.observability",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "automation",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "emilia_efficiency_kpi",
@@ -712,7 +750,19 @@
         "concedes_max_level": null,
         "asserts_target": "ops.production_drift_monitoring",
         "asserts_level": 0,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_alerting_manual",
@@ -736,7 +786,19 @@
         "concedes_max_level": null,
         "asserts_target": "ops.alerting",
         "asserts_level": 1,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_observability_auto",
@@ -760,7 +822,19 @@
         "concedes_max_level": null,
         "asserts_target": "ops.observability",
         "asserts_level": 2,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_retraining_manual",
@@ -784,7 +858,19 @@
         "concedes_max_level": null,
         "asserts_target": "ops.retraining_trigger",
         "asserts_level": 1,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       }
     ]
   }

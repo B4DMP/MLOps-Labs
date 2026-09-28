@@ -283,14 +283,21 @@
         "holds": {
           "component": "req.acceptance_criteria",
           "op": "gte",
-          "level": 4
+          "level": 3,
+          "axis": "governance"
         },
         "ops": [
           {
             "kind": "raise_to",
             "target": "req.acceptance_criteria",
-            "value": 4,
-            "attr": null
+            "value": 2,
+            "axis": "automation"
+          },
+          {
+            "kind": "raise_to",
+            "target": "req.acceptance_criteria",
+            "value": 3,
+            "axis": "governance"
           }
         ],
         "concedes_metric": null,
@@ -299,7 +306,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "ruth_speed_trade",
@@ -319,17 +339,21 @@
         "ops": [],
         "concedes_metric": "requirements",
         "concedes_loss": 5,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
         "branch_x_description": "the acceptance criteria fully governed",
         "branch_x_target": "req.acceptance_criteria",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "the acceptance criteria kept as a basic manual check",
         "branch_y_target": "req.acceptance_criteria",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "emilia_kpi_driver",
@@ -344,14 +368,14 @@
         },
         "metric_id": "efficiency",
         "suggested_target": "req.kpi_definition",
-        "suggested_level": 4,
+        "suggested_level": 3,
         "holds": null,
         "ops": [
           {
             "kind": "raise_to",
             "target": "req.kpi_definition",
-            "value": 4,
-            "attr": null
+            "value": 3,
+            "axis": "governance"
           }
         ],
         "concedes_metric": null,
@@ -361,7 +385,19 @@
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "automation"
+        "suggested_axis": "governance",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "alex_pipeline_trade",
@@ -388,10 +424,17 @@
         "asserts_trigger": null,
         "branch_x_description": "the data contracts fully automated",
         "branch_x_target": "req.data_contracts",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "the data contracts kept manual for this release",
         "branch_y_target": "req.data_contracts",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "concedes_axis": "automation",
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "ruth_monitoring_driver",
@@ -413,7 +456,7 @@
             "kind": "raise_to",
             "target": "req.acceptance_criteria",
             "value": 2,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": null,
@@ -423,7 +466,19 @@
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "automation"
+        "suggested_axis": "automation",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "emilia_cost_trade",
@@ -443,17 +498,21 @@
         "ops": [],
         "concedes_metric": "efficiency",
         "concedes_loss": 2,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
         "branch_x_description": "the promotion week's KPIs calculated automatically",
         "branch_x_target": "req.kpi_definition",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "a lower, manually tracked level of cost reporting",
         "branch_y_target": "req.kpi_definition",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "fact_acceptance_missing",
@@ -477,7 +536,19 @@
         "concedes_max_level": null,
         "asserts_target": "req.acceptance_criteria",
         "asserts_level": 0,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_kpi_missing",
@@ -501,7 +572,19 @@
         "concedes_max_level": null,
         "asserts_target": "req.kpi_definition",
         "asserts_level": 1,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_risk_manual",
@@ -525,7 +608,19 @@
         "concedes_max_level": null,
         "asserts_target": "req.risk_assessment",
         "asserts_level": 1,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       }
     ]
   }
