@@ -412,61 +412,61 @@
         "kind": "set_to",
         "target": "e.alert_retrain",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.alert_rollback",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.drift_alert",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.observe_drift",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.observe_perf",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.perf_alert",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "ops.alerting",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "ops.observability",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "ops.performance_monitoring",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "ops.production_drift_monitoring",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       }
     ],
     "conflict_candidates": [
@@ -491,12 +491,14 @@
         {
           "component": "ops.production_drift_monitoring",
           "op": "eq",
-          "level": 1
+          "level": 1,
+          "axis": "automation"
         },
         {
           "component": "ops.observability",
           "op": "gte",
-          "level": 2
+          "level": 2,
+          "axis": "automation"
         }
       ]
     },
@@ -506,8 +508,8 @@
         "kind": "set_to",
         "target": "ops.production_drift_monitoring",
         "value": 0,
-        "attr": null,
-        "reason": "budget freeze on automated monitoring tools"
+        "reason": "budget freeze on automated monitoring tools",
+        "axis": "automation"
       }
     ],
     "stalemate_ops": [
@@ -515,8 +517,8 @@
         "kind": "set_to",
         "target": "e.observe_drift",
         "value": 0,
-        "attr": null,
-        "reason": "data pipeline to drift monitor disconnected due to cost"
+        "reason": "data pipeline to drift monitor disconnected due to cost",
+        "axis": "automation"
       }
     ],
     "conflict": {
@@ -524,11 +526,13 @@
       "positions": [
         {
           "stakeholder_id": "efficiency_emilia",
-          "wants": 1
+          "wants": 1,
+          "axis": "automation"
         },
         {
           "stakeholder_id": "reliability_ruth",
-          "wants": 4
+          "wants": 3,
+          "axis": "governance"
         }
       ]
     }

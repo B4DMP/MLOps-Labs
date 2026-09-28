@@ -244,31 +244,31 @@
         "kind": "set_to",
         "target": "e.risk_acceptance",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "req.acceptance_criteria",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "req.data_contracts",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "req.kpi_definition",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "req.risk_assessment",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       }
     ],
     "conflict_candidates": [
@@ -287,28 +287,15 @@
     "name": "The Committed Pallets",
     "description": "A supplier has confirmed a bulk order for a middle aisle promotion that ships next week, leaving no room for model error. #requirements_reuben# insists the acceptance criteria must be fully governed to guarantee the allocation logic is auditable before the trucks leave. #reliability_ruth# argues the criteria are sufficient as manual checks because the physical stock is already committed and the team needs to ship the feature immediately to handle the live orders.",
     "round_introduction": "The middle aisle category team locked the promotion calendar for the upcoming week, and the supplier confirmed the pallets are on the dock. The nightly forecast job is running, but the allocation module has no formal sign off for this specific high risk scenario.",
-    "preconditions": {
-      "all": [
-        {
-          "component": "req.acceptance_criteria",
-          "op": "eq",
-          "level": 1
-        },
-        {
-          "component": "req.risk_assessment",
-          "op": "eq",
-          "level": 1
-        }
-      ]
-    },
+    "preconditions": true,
     "priority": 75,
     "on_enter_ops": [
       {
         "kind": "set_to",
         "target": "req.acceptance_criteria",
         "value": 0,
-        "attr": null,
-        "reason": "The team paused the sign off process to rush the supplier data integration for the locked promotion week"
+        "reason": "The team paused the sign off process to rush the supplier data integration for the locked promotion week",
+        "axis": "automation"
       }
     ],
     "stalemate_ops": [
@@ -316,8 +303,8 @@
         "kind": "set_to",
         "target": "req.risk_assessment",
         "value": 0,
-        "attr": null,
-        "reason": "Without agreed criteria, the risk review was abandoned and the allocation logic went live without validation"
+        "reason": "Without agreed criteria, the risk review was abandoned and the allocation logic went live without validation",
+        "axis": "automation"
       }
     ],
     "conflict": {
@@ -325,11 +312,13 @@
       "positions": [
         {
           "stakeholder_id": "requirements_reuben",
-          "wants": 4
+          "wants": 3,
+          "axis": "governance"
         },
         {
           "stakeholder_id": "reliability_ruth",
-          "wants": 2
+          "wants": 2,
+          "axis": "automation"
         }
       ]
     }

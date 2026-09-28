@@ -528,61 +528,61 @@
         "kind": "set_to",
         "target": "data.feature_store",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "data.ingestion",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "data.labeling",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "data.training_drift_check",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "data.validation",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "data.versioning",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.ingest_validate",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.label_version",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.validate_version",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.version_driftcheck",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       }
     ],
     "conflict_candidates": [
@@ -602,35 +602,15 @@
     "name": "The Midnight Deadline",
     "description": "The nightly data job is failing to finish before the store managers open the ordering app. #reliability_ruth# demands an automated validation layer to catch bad data instantly so the morning window is never missed again. #data_dave# insists on keeping the process manual for now, arguing that the infrastructure costs are too high and the current manual checks are sufficient to manage the risk.",
     "round_introduction": "Last night, the till scan lines arrived late and the validation step was skipped to save time. The forecast job started with incomplete data, causing the morning order suggestions to be wrong for hundreds of stores.",
-    "preconditions": {
-      "all": [
-        {
-          "component": "data.validation",
-          "op": "eq",
-          "level": 1
-        },
-        {
-          "instance": {
-            "kind": "pipeline",
-            "op": "exists",
-            "where": {
-              "runtime": {
-                "op": "eq",
-                "value": "slow"
-              }
-            }
-          }
-        }
-      ]
-    },
+    "preconditions": true,
     "priority": 80,
     "on_enter_ops": [
       {
         "kind": "set_to",
         "target": "data.validation",
         "value": 0,
-        "attr": null,
-        "reason": "The validation service crashed due to resource contention during the peak ingestion window."
+        "reason": "The validation service crashed due to resource contention during the peak ingestion window.",
+        "axis": "automation"
       }
     ],
     "stalemate_ops": [
@@ -638,8 +618,8 @@
         "kind": "set_to",
         "target": "e.ingest_validate",
         "value": 0,
-        "attr": null,
-        "reason": "The link between ingestion and validation is broken, so no data is checked before it reaches the feature store."
+        "reason": "The link between ingestion and validation is broken, so no data is checked before it reaches the feature store.",
+        "axis": "automation"
       }
     ],
     "conflict": {
@@ -647,11 +627,13 @@
       "positions": [
         {
           "stakeholder_id": "reliability_ruth",
-          "wants": 3
+          "wants": 3,
+          "axis": "automation"
         },
         {
           "stakeholder_id": "data_dave",
-          "wants": 1
+          "wants": 1,
+          "axis": "automation"
         }
       ]
     }

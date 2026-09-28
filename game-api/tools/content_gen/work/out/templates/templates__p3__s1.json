@@ -540,55 +540,55 @@
         "kind": "set_to",
         "target": "e.eval_registry",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.hpo_train",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.train_eval",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.train_tracking",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "model.evaluation",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "model.experiment_tracking",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "model.hpo",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "model.registry",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "model.training_pipeline",
         "value": "0",
-        "health_drop": 10.0
+        "health_drop": 10
       }
     ],
     "conflict_candidates": [
@@ -612,12 +612,14 @@
         {
           "component": "model.registry",
           "op": "lte",
-          "level": 1
+          "level": 1,
+          "axis": "automation"
         },
         {
           "component": "model.evaluation",
           "op": "gte",
-          "level": 2
+          "level": 2,
+          "axis": "automation"
         }
       ]
     },
@@ -627,8 +629,8 @@
         "kind": "set_to",
         "target": "model.registry",
         "value": 0,
-        "attr": null,
-        "reason": "The registry service crashed during a weekly retrain, leaving no record of which model version is currently serving the forecast."
+        "reason": "The registry service crashed during a weekly retrain, leaving no record of which model version is currently serving the forecast.",
+        "axis": "automation"
       }
     ],
     "stalemate_ops": [
@@ -636,8 +638,8 @@
         "kind": "set_to",
         "target": "e.eval_registry",
         "value": 0,
-        "attr": null,
-        "reason": "Without an agreed promotion path, the link between evaluation and registry is severed, forcing manual handovers that are error prone."
+        "reason": "Without an agreed promotion path, the link between evaluation and registry is severed, forcing manual handovers that are error prone.",
+        "axis": "automation"
       }
     ],
     "conflict": {
@@ -645,11 +647,13 @@
       "positions": [
         {
           "stakeholder_id": "model_monica",
-          "wants": 4
+          "wants": 3,
+          "axis": "governance"
         },
         {
           "stakeholder_id": "requirements_reuben",
-          "wants": 2
+          "wants": 2,
+          "axis": "automation"
         }
       ]
     }

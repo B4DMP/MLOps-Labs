@@ -226,31 +226,31 @@
         "kind": "set_to",
         "target": "e.risk_acceptance",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "req.acceptance_criteria",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "req.data_contracts",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "req.kpi_definition",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "req.risk_assessment",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       }
     ],
     "conflict_candidates": [
@@ -268,19 +268,15 @@
     "name": "The Summer Forecast Gap",
     "description": "A sudden heatwave has skewed demand for seasonal goods, exposing that our KPI definitions do not account for weather driven spikes. #model_monica# wants to automate the KPI tracking to capture these shifts in real time, while #efficiency_emilia# prefers to keep the process manual to ensure every metric aligns with the broader business strategy. #efficiency_emilia# might accept an automated solution if it clearly supports the agreed business goals.",
     "round_introduction": "Welcome to the Shelfcast project. You are now the project manager responsible for coordinating our MLOps team. Today, we are addressing a critical gap in how we measure success during volatile weather events.",
-    "preconditions": {
-      "component": "req.kpi_definition",
-      "op": "eq",
-      "level": 1
-    },
+    "preconditions": true,
     "priority": 85,
     "on_enter_ops": [
       {
         "kind": "set_to",
         "target": "req.kpi_definition",
         "value": 0,
-        "attr": null,
-        "reason": "The heatwave invalidated the current static KPI definitions, leaving the team without a clear metric to judge forecast accuracy for seasonal items."
+        "reason": "The heatwave invalidated the current static KPI definitions, leaving the team without a clear metric to judge forecast accuracy for seasonal items.",
+        "axis": "automation"
       }
     ],
     "stalemate_ops": [
@@ -288,8 +284,8 @@
         "kind": "set_to",
         "target": "req.acceptance_criteria",
         "value": 0,
-        "attr": null,
-        "reason": "Without an agreed KPI framework, the next promotion week will be planned without any objective measure of forecast reliability."
+        "reason": "Without an agreed KPI framework, the next promotion week will be planned without any objective measure of forecast reliability.",
+        "axis": "automation"
       }
     ],
     "conflict": {
@@ -297,11 +293,13 @@
       "positions": [
         {
           "stakeholder_id": "model_monica",
-          "wants": 4
+          "wants": 3,
+          "axis": "governance"
         },
         {
           "stakeholder_id": "efficiency_emilia",
-          "wants": 2
+          "wants": 2,
+          "axis": "automation"
         }
       ]
     }

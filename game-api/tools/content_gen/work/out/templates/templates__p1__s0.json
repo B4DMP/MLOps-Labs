@@ -244,31 +244,31 @@
         "kind": "set_to",
         "target": "e.risk_acceptance",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "req.acceptance_criteria",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "req.data_contracts",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "req.kpi_definition",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "req.risk_assessment",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       }
     ],
     "conflict_candidates": [
@@ -292,12 +292,14 @@
         {
           "component": "req.data_contracts",
           "op": "eq",
-          "level": 1
+          "level": 1,
+          "axis": "automation"
         },
         {
           "component": "req.kpi_definition",
           "op": "eq",
-          "level": 1
+          "level": 1,
+          "axis": "automation"
         }
       ]
     },
@@ -307,8 +309,8 @@
         "kind": "set_to",
         "target": "req.data_contracts",
         "value": 0,
-        "attr": null,
-        "reason": "compliance audit found missing consent fields in the schema"
+        "reason": "compliance audit found missing consent fields in the schema",
+        "axis": "automation"
       }
     ],
     "stalemate_ops": [
@@ -316,8 +318,8 @@
         "kind": "set_to",
         "target": "req.kpi_definition",
         "value": 0,
-        "attr": null,
-        "reason": "legal team blocked KPI sign off due to unresolved data rights"
+        "reason": "legal team blocked KPI sign off due to unresolved data rights",
+        "axis": "automation"
       }
     ],
     "conflict": {
@@ -325,11 +327,13 @@
       "positions": [
         {
           "stakeholder_id": "requirements_reuben",
-          "wants": 4
+          "wants": 3,
+          "axis": "governance"
         },
         {
           "stakeholder_id": "efficiency_emilia",
-          "wants": 2
+          "wants": 2,
+          "axis": "automation"
         }
       ]
     }

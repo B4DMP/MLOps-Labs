@@ -591,61 +591,61 @@
         "kind": "set_to",
         "target": "deploy.api_gateway",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "deploy.canary_ab",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "deploy.cicd",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "deploy.containerization",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "deploy.orchestration",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "deploy.shadow",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.canary_serving",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.cicd_canary",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.cicd_container",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.cicd_shadow",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       }
     ],
     "conflict_candidates": [
@@ -669,7 +669,8 @@
     "preconditions": {
       "component": "deploy.cicd",
       "op": "gte",
-      "level": 2
+      "level": 2,
+      "axis": "automation"
     },
     "priority": 80,
     "on_enter_ops": [
@@ -677,8 +678,8 @@
         "kind": "set_to",
         "target": "deploy.cicd",
         "value": 0,
-        "attr": null,
-        "reason": "The deployment pipeline was halted after a compliance audit flagged the use of loyalty data without verified consent."
+        "reason": "The deployment pipeline was halted after a compliance audit flagged the use of loyalty data without verified consent.",
+        "axis": "automation"
       }
     ],
     "stalemate_ops": [
@@ -686,8 +687,8 @@
         "kind": "set_to",
         "target": "deploy.canary_ab",
         "value": 0,
-        "attr": null,
-        "reason": "The canary testing infrastructure was disabled to prevent any unverified model from reaching a subset of stores."
+        "reason": "The canary testing infrastructure was disabled to prevent any unverified model from reaching a subset of stores.",
+        "axis": "automation"
       }
     ],
     "conflict": {
@@ -695,11 +696,13 @@
       "positions": [
         {
           "stakeholder_id": "automation_alex",
-          "wants": 4
+          "wants": 3,
+          "axis": "governance"
         },
         {
           "stakeholder_id": "requirements_reuben",
-          "wants": 2
+          "wants": 2,
+          "axis": "automation"
         }
       ]
     }
