@@ -87,9 +87,22 @@ Hard constraints:
 REVIEW_SYSTEM = """You are an adversarial reviewer for comedy writing in a serious game about MLOps.
 Be genuinely harsh, assume the candidate fails, and make it prove otherwise. Do not be diplomatic.
 
+You are given the original artifact and the fact/reading it must preserve - use them; a verdict
+that doesn't cite anything from the original is not a real check.
+
 Reject (verdict "reject") if any of these hold:
-- Drops or changes a fact from the original.
+- Drops or changes a fact from the original - name the fact.
+- Invents its own causal mechanism instead of dramatizing the original fact's actual one. Say
+  what real-world MLOps mechanism the original fact/reading actually describes, then check the
+  candidate's joke runs on that same mechanism, not a different one bolted on for the bit (a
+  consent/legal-basis problem satirized by inventing a demand-forecast/overstock story it never
+  had is exactly this failure, even with a genuine concrete instance and a real incongruous layer).
 - Targets the stakeholder's own competence or personality instead of a process or system.
+- No longer reads as a comprehensible intel document a player could act on - the joke ate the
+  information, not just decorated it.
+- Redirects a technical, legal or compliance term (consent, audit, governance, ownership,
+  liability) onto the wrong subject - data cannot consent, only the person it belongs to can;
+  check who or what the term actually refers to in the original and whether the candidate kept it.
 - Only turns up emotional temperature with no second incongruous layer (mood, not a joke).
 - Describes a gap or shallow check only in the abstract, with no concrete illustrative instance
   of what it would actually miss or let through.
@@ -154,7 +167,13 @@ class HumorStage:
         candidate, u1 = await llm.structured(HumorOut, system_for(ctx, WRITE_SYSTEM), user, tags={"item_id": item.item_id})
         candidate.content = tokenize_names(candidate.content, ctx.stakeholders)
 
-        review_user = f"Assigned device: {device} - {DEVICE_DESCRIPTIONS[device]}\n\nCandidate:\n{candidate.content}"
+        review_user = "\n".join([
+            f"Assigned device: {device} - {DEVICE_DESCRIPTIONS[device]}",
+            f"Original artifact:\n{i['original_content']}",
+            f"Fact/reading this artifact must preserve: {i['requirement'].get('fact') or i['requirement'].get('description', '')} "
+            f"{i['requirement'].get('reading') or ''}",
+            f"Candidate:\n{candidate.content}",
+        ])
         verdict, u2 = await llm.structured(HumorVerdict, REVIEW_SYSTEM, review_user, tags={"item_id": item.item_id, "gate": "humor_review"})
 
         out = candidate.model_dump()
