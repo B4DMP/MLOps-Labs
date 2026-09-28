@@ -100,36 +100,6 @@
       "is_known": true
     },
     {
-      "id": "art_gen_heatwave_kpi_gap_fact_criteria_manual",
-      "requirement_id": "gen_heatwave_kpi_gap_fact_criteria_manual",
-      "challenge_id": 113,
-      "stakeholder_id": null,
-      "narrator_id": "model_monica",
-      "artifact_type": "email",
-      "content": "I checked the repository and the pipeline logs for the current forecasting cycle. The acceptance criteria for model validation are not stored in the configuration files. Instead, I observed the team manually copying threshold values from a shared document into the test scripts before every weekly retraining run. This manual step happens every Friday evening. I noted that the values change occasionally based on recent performance discussions, but there is no automated check that verifies these numbers against a central source. The process relies entirely on the person running the job to input the correct figures each time.",
-      "wrong_descriptions": {
-        "driver": "The team wants to automate the acceptance criteria.",
-        "boundary": "The team will not accept automated acceptance criteria.",
-        "trade_off": "The team would accept manual acceptance criteria if the process is fast."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_heatwave_kpi_gap_fact_risk_manual",
-      "requirement_id": "gen_heatwave_kpi_gap_fact_risk_manual",
-      "challenge_id": 113,
-      "stakeholder_id": null,
-      "narrator_id": "model_monica",
-      "artifact_type": "email",
-      "content": "I spent the morning tracing the risk assessment workflow with the operations team. A planner opens a shared spreadsheet and types the risk score for each article by hand. They then copy those scores into the deployment checklist. I timed the process for the last three promotion weeks. It takes roughly four hours per week. The spreadsheet is the only record of the assessment. No logs are generated when a score is changed. The data moves from the spreadsheet to the deployment system via a manual copy and paste action.",
-      "wrong_descriptions": {
-        "driver": "The team wants to automate the risk assessment.",
-        "boundary": "The team will not accept automated risk assessment.",
-        "trade_off": "The team would accept manual risk assessment if it is thorough."
-      },
-      "is_known": false
-    },
-    {
       "id": "art_gen_loyalty_consent_gap_reuben_contracts_governance",
       "requirement_id": "gen_loyalty_consent_gap_reuben_contracts_governance",
       "challenge_id": 114,
@@ -227,36 +197,6 @@
         "trade_off": "The absence of data contracts is accepted if it keeps the project moving."
       },
       "is_known": true
-    },
-    {
-      "id": "art_gen_loyalty_consent_gap_fact_kpi_missing",
-      "requirement_id": "gen_loyalty_consent_gap_fact_kpi_missing",
-      "challenge_id": 114,
-      "stakeholder_id": null,
-      "narrator_id": "requirements_reuben",
-      "artifact_type": "meeting_notes",
-      "content": "I was tracing the nightly forecast job through the logs. The pipeline finishes its run for every store and pushes the suggested replenishment orders to the ordering system before the morning window opens. The store manager app receives the data as usual. I checked the configuration repository for the metric definitions. There are no entries for availability, waste, or residual stock. The code calculates the numbers, but there is no formal definition stored in the system. The team currently relies on informal discussions to interpret what the output means. I saw the same gap in the promotion allocation module. The buyer sees the allocation figures, but the system does not document how those figures are derived or defined.",
-      "wrong_descriptions": {
-        "driver": "The absence of KPI definitions is a problem that needs addressing for alignment.",
-        "boundary": "The absence of KPI definitions is a line that no one will cross without agreement.",
-        "trade_off": "The absence of KPI definitions is accepted if it keeps the project moving."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_loyalty_consent_gap_fact_risk_missing",
-      "requirement_id": "gen_loyalty_consent_gap_fact_risk_missing",
-      "challenge_id": 114,
-      "stakeholder_id": null,
-      "narrator_id": "requirements_reuben",
-      "artifact_type": "meeting_notes",
-      "content": "The loyalty basket feed pulls consent flags from the app every night and drops them into the warehouse. The nightly job then cleans those records and routes them to the feature store for the promotion sizing models. There is no step in that pipeline that checks for a signed risk assessment before the data moves. The architecture diagrams show the flow from the loyalty API to the warehouse, but no document links a specific risk evaluation to that path. The team trains the models and runs the allocation jobs using only the available consent metadata. The missing assessment does not pause the pipeline or trigger an alert. It simply is not there, and the jobs complete their runs as usual.",
-      "wrong_descriptions": {
-        "driver": "The absence of a risk assessment is a problem that needs addressing for compliance.",
-        "boundary": "The absence of a risk assessment is a line that no one will cross without agreement.",
-        "trade_off": "The absence of a risk assessment is accepted if it keeps the project moving."
-      },
-      "is_known": false
     },
     {
       "id": "art_gen_committed_pallets_reuben_governance_wall",
@@ -358,36 +298,6 @@
       "is_known": true
     },
     {
-      "id": "art_gen_committed_pallets_fact_kpi_missing",
-      "requirement_id": "gen_committed_pallets_fact_kpi_missing",
-      "challenge_id": 110,
-      "stakeholder_id": null,
-      "narrator_id": "requirements_reuben",
-      "artifact_type": "email",
-      "content": "During the sprint review, the team discussed the promotion week metrics. The current workflow lacks a formal definition for the key performance indicator. When the weekly report is generated, the system does not pull a predefined threshold from the configuration file. Instead, the analyst manually enters the target value into the spreadsheet after the data aggregation job completes. The dashboard displays the raw availability and residual stock figures without a benchmark line. The alerting service does not trigger any notifications because there is no baseline to compare against. The process relies entirely on the analyst's manual input to establish the reference point for the week's performance summary.",
-      "wrong_descriptions": {
-        "driver": "The team wants to define KPIs to measure success.",
-        "boundary": "The team will not start the project without KPIs.",
-        "trade_off": "The team would accept missing KPIs if it saves time."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_committed_pallets_fact_risk_manual",
-      "requirement_id": "gen_committed_pallets_fact_risk_manual",
-      "challenge_id": 110,
-      "stakeholder_id": null,
-      "narrator_id": "requirements_reuben",
-      "artifact_type": "slack_message",
-      "content": "I walked through the allocation module workflow this morning. The risk assessment step is handled entirely by hand. Each week, a planner opens a shared spreadsheet and fills in the exposure figures for the middle aisle promotions. There is no automated check or validation script running in the background. The process relies on manual entry and review. I observed three separate instances where the figures were updated by different people using local copies of the file. The data flows from the promotion calendar into this manual step before the final allocation is locked. No system currently flags discrepancies or enforces consistency rules during this phase. The work is performed by individuals with direct access to the planning tools.",
-      "wrong_descriptions": {
-        "driver": "The team wants to automate the risk assessment.",
-        "boundary": "The team will not proceed without a risk assessment.",
-        "trade_off": "The team would accept a manual risk assessment if it is faster."
-      },
-      "is_known": false
-    },
-    {
       "id": "art_gen_silent_ingestion_failure_ruth_driver_ingest",
       "requirement_id": "gen_silent_ingestion_failure_ruth_driver_ingest",
       "challenge_id": 120,
@@ -485,36 +395,6 @@
         "trade_off": "No one would accept a broken ingestion pipeline."
       },
       "is_known": true
-    },
-    {
-      "id": "art_gen_silent_ingestion_failure_fact_validation_level",
-      "requirement_id": "gen_silent_ingestion_failure_fact_validation_level",
-      "challenge_id": 120,
-      "stakeholder_id": null,
-      "narrator_id": "data_dave",
-      "artifact_type": "email",
-      "content": "The nightly point of sale ingest runs without any validation step. Raw scan lines from every till drop directly into the staging area. I observe no checks for missing store identifiers, negative quantities, or duplicate transaction timestamps before the data moves to the feature store. The pipeline simply copies the files as they arrive. There is no log of rejected records, no quarantine folder for malformed rows, and no alert when a store fails to transmit its nightly batch. The models train on whatever arrives, assuming the source systems are accurate.",
-      "wrong_descriptions": {
-        "driver": "The more rigorous the validation, the fewer compliance issues arise.",
-        "boundary": "No one will accept an absent validation process.",
-        "trade_off": "No one would accept an absent validation process."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_silent_ingestion_failure_fact_edge_trigger",
-      "requirement_id": "gen_silent_ingestion_failure_fact_edge_trigger",
-      "challenge_id": 120,
-      "stakeholder_id": null,
-      "narrator_id": "data_dave",
-      "artifact_type": "document",
-      "content": "While tracing the nightly latency spike in the point of sale ingestion, I noticed the validation step never started until someone clicked run in the orchestration console. The logs show a manual trigger timestamp at 02:14 every night for the past three months. The ingestion job completes, but the downstream validation waits for that specific human action before checking for nulls or schema mismatches. If the operator is on leave or the console is unreachable, the pipeline stalls until the next business day. I have not seen any automated schedule attached to that specific node in the workflow definition. The current setup operates by waiting for a direct command to proceed from raw data receipt to quality checks.",
-      "wrong_descriptions": {
-        "driver": "The more automated the trigger, the faster the data flows.",
-        "boundary": "No one will accept a manual trigger for critical data flows.",
-        "trade_off": "No one would accept a manual trigger for critical data flows."
-      },
-      "is_known": false
     },
     {
       "id": "art_gen_nightly_window_miss_ruth_validation_driver",
@@ -616,51 +496,6 @@
       "is_known": true
     },
     {
-      "id": "art_gen_nightly_window_miss_fact_ingestion_level",
-      "requirement_id": "gen_nightly_window_miss_fact_ingestion_level",
-      "challenge_id": 116,
-      "stakeholder_id": null,
-      "narrator_id": "data_dave",
-      "artifact_type": "document",
-      "content": "The nightly point of sale scan line ingestion is still handled manually. I export the raw files from each store and load them into the warehouse staging area after the forecast job completes. I check the file sizes and row counts against the expected totals for the day. If a file is missing or truncated, I rerun the export for that specific store. There is no automated validation step in place yet. I simply verify the data lands correctly before the morning order window opens.",
-      "wrong_descriptions": {
-        "driver": "The team wants to automate ingestion to reduce manual effort.",
-        "boundary": "The process cannot be fully automated without proper infrastructure.",
-        "trade_off": "The team might accept a slower process if it is more reliable."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_nightly_window_miss_fact_edge_trigger",
-      "requirement_id": "gen_nightly_window_miss_fact_edge_trigger",
-      "challenge_id": 116,
-      "stakeholder_id": null,
-      "narrator_id": "data_dave",
-      "artifact_type": "email",
-      "content": "I was tracing the nightly batch logs and saw that the move from ingestion to validation is not automatic. The transition only happens when a user sends a manual request to kick off the validation step. I see this pattern repeating across the last few weeks of run history. The ingestion completes, but the data sits idle until someone triggers the next stage. It is a consistent behavior in the current setup.",
-      "wrong_descriptions": {
-        "driver": "The team wants to automate the trigger to ensure timely validation.",
-        "boundary": "The system cannot run automatically without proper triggers.",
-        "trade_off": "The team might accept a less frequent trigger if it reduces load."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_nightly_window_miss_fact_feature_store_level",
-      "requirement_id": "gen_nightly_window_miss_fact_feature_store_level",
-      "challenge_id": 116,
-      "stakeholder_id": null,
-      "narrator_id": "data_dave",
-      "artifact_type": "slack_message",
-      "content": "The nightly batch job pulls raw point of sale scan lines and stock on hand records directly from the warehouse systems. Each model retraining run recalculates every derived metric from scratch, reading the same historical tables repeatedly. There is no shared layer holding precomputed features. When the promotion allocation script needs article price history or store size, it queries the source databases again. The data pipelines handle the extraction and transformation, but nothing persists the results for reuse across the daily forecast and the weekly buyer allocation runs.",
-      "wrong_descriptions": {
-        "driver": "The team wants to build a feature store to improve model performance.",
-        "boundary": "The system cannot scale without a feature store.",
-        "trade_off": "The team might accept a simpler solution if the build is delayed."
-      },
-      "is_known": false
-    },
-    {
       "id": "art_gen_heatwave_forecast_gap_monica_driver_eval",
       "requirement_id": "gen_heatwave_forecast_gap_monica_driver_eval",
       "challenge_id": 112,
@@ -760,51 +595,6 @@
       "is_known": true
     },
     {
-      "id": "art_gen_heatwave_forecast_gap_fact_train_manual",
-      "requirement_id": "gen_heatwave_forecast_gap_fact_train_manual",
-      "challenge_id": 112,
-      "stakeholder_id": null,
-      "narrator_id": "model_monica",
-      "artifact_type": "document",
-      "content": "I was digging through the configuration files for the current model update cycle while preparing the next retraining run. The training pipeline is set up to start automatically based on the weekly schedule, but the active trigger for this specific cycle is not configured. The system is currently relying on a manual start command to kick off the evaluation process. There are no pending changes to the trigger logic in the queue, and the previous cycle followed the same pattern. The logs confirm the manual initiation steps are being logged as expected. It seems the evaluation setup works this way today, with the manual step being the standard part of the nightly routine for now.",
-      "wrong_descriptions": {
-        "driver": "Setting a scheduled trigger would speed up the model update process.",
-        "boundary": "The absence of a trigger ensures that only approved models are trained.",
-        "trade_off": "The team could accept an automated trigger if the approval process is streamlined."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_heatwave_forecast_gap_fact_registry_absent",
-      "requirement_id": "gen_heatwave_forecast_gap_fact_registry_absent",
-      "challenge_id": 112,
-      "stakeholder_id": null,
-      "narrator_id": "model_monica",
-      "artifact_type": "email",
-      "content": "The training script sits in a shared directory with no version control. I overwrite the file each week. The previous configuration is gone once the new run starts. I keep a local copy of the hyperparameters in a spreadsheet on my desktop. The evaluation metrics land in a text file next to the script. There is no central log of which model version produced the order suggestions for the northern stores. I cannot retrieve the exact parameters used three weeks ago. The backup is a zip file I created by hand before the last update. The system has no record of model lineage. I replace the code and restart the nightly job. The artifacts exist only on my workstation and in the shared folder.",
-      "wrong_descriptions": {
-        "driver": "Implementing a registry would improve the tracking of model versions.",
-        "boundary": "The registry must be in place before any model is deployed to production.",
-        "trade_off": "The team could accept a temporary manual versioning system if the registry is not available."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_heatwave_forecast_gap_fact_hpo_manual",
-      "requirement_id": "gen_heatwave_forecast_gap_fact_hpo_manual",
-      "challenge_id": 112,
-      "stakeholder_id": null,
-      "narrator_id": "model_monica",
-      "artifact_type": "document",
-      "content": "I handle the hyperparameter tuning for the weekly retraining cycle by hand. I pick the learning rate and batch size values myself, then run each configuration on the cluster one by one. I check the validation loss in a spreadsheet to see which setup works best. There is no script that loops through a grid of options automatically. I adjust the parameters for each specific article and store group based on what I have seen in previous runs. The evaluation setup works this way right now, with me making every choice manually before the model is ready for the next night's forecast job.",
-      "wrong_descriptions": {
-        "driver": "Automating the tuning would improve the model's performance.",
-        "boundary": "The manual tuning ensures that the model parameters are carefully selected.",
-        "trade_off": "The team could accept an automated tuning process if the results are validated."
-      },
-      "is_known": false
-    },
-    {
       "id": "art_gen_override_blind_spot_registry_gap",
       "requirement_id": "gen_override_blind_spot_registry_gap",
       "challenge_id": 117,
@@ -900,51 +690,6 @@
         "driver": "{model_monica.first} wants the registry to make every model run reproducible.",
         "boundary": "{model_monica.first} will not deploy a model that cannot be reproduced.",
         "fact": "That is simply how the current logging setup works today."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_override_blind_spot_evaluation_harness_state",
-      "requirement_id": "gen_override_blind_spot_evaluation_harness_state",
-      "challenge_id": 117,
-      "stakeholder_id": null,
-      "narrator_id": "model_monica",
-      "artifact_type": "document",
-      "content": "I pulled the logs for the last three weekly retraining cycles to check why the feature importance scores were drifting. The evaluation harness is still run manually. I export the test set predictions to a spreadsheet, calculate the error metrics by hand, and paste the results into the shared drive. There is no automated pipeline to trigger these checks after a model update. It takes about two hours each time, and I have to remember to do it before the next deployment window opens. The process is consistent, but it relies entirely on me remembering the steps and not making a copy paste error in the formulas.",
-      "wrong_descriptions": {
-        "driver": "Automating the evaluation harness would provide more consistent and reliable results.",
-        "boundary": "The evaluation harness must be manual to ensure thorough review of each model.",
-        "trade_off": "The team could accept a manual harness if it is the only option."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_override_blind_spot_training_pipeline_state",
-      "requirement_id": "gen_override_blind_spot_training_pipeline_state",
-      "challenge_id": 117,
-      "stakeholder_id": null,
-      "narrator_id": "model_monica",
-      "artifact_type": "slack_message",
-      "content": "I was digging through the logs for the latest retraining run and noticed the usual pattern. The data prep scripts are sitting in a shared folder, and the actual training job only kicks off when someone manually triggers it from the command line. There is no automated schedule or dependency check to start the process once the nightly point of sale data lands. We are essentially waiting for a human to remember to run the pipeline every week. The last three cycles show timestamps that align perfectly with when a person logged in and typed the start command. It is a straightforward manual step in the current workflow, and the system does not initiate the training sequence on its own.",
-      "wrong_descriptions": {
-        "driver": "Automating the training pipeline would reduce manual errors and speed up model updates.",
-        "boundary": "The training pipeline must be manual to allow for careful tuning of each model.",
-        "trade_off": "The team could accept a manual pipeline if it provides more control over the training process."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_override_blind_spot_hpo_state",
-      "requirement_id": "gen_override_blind_spot_hpo_state",
-      "challenge_id": 117,
-      "stakeholder_id": null,
-      "narrator_id": "model_monica",
-      "artifact_type": "meeting_notes",
-      "content": "During the weekly retraining cycle, the model architecture is loaded with the same fixed set of parameters that were selected during the initial pilot phase. No search process runs to evaluate alternative configurations or adjust learning rates based on recent performance. The training job executes the script with these static values, generates the new model weights, and pushes them to the staging environment. This process has remained unchanged since the platform went live, with no mechanism in place to test or modify the underlying tuning parameters before the model is deployed to the production forecast job.",
-      "wrong_descriptions": {
-        "driver": "Adding hyperparameter tuning would improve model performance by finding better configurations.",
-        "boundary": "Hyperparameter tuning must be manual to ensure the team understands each parameter's impact.",
-        "trade_off": "The team could skip hyperparameter tuning if the current models perform adequately."
       },
       "is_known": false
     },
@@ -1048,51 +793,6 @@
       "is_known": true
     },
     {
-      "id": "art_gen_loyalty_data_deployment_block_fact_manual_trigger",
-      "requirement_id": "gen_loyalty_data_deployment_block_fact_manual_trigger",
-      "challenge_id": 115,
-      "stakeholder_id": null,
-      "narrator_id": "automation_alex",
-      "artifact_type": "document",
-      "content": "I noticed the deployment flow during the last incident review. When the model registry confirms a new build, nothing automatically pushes it into the CI/CD pipeline. A person has to manually trigger that step every single time. I checked the logs for the past two weeks and saw the same pattern: the registry job finishes, then sits idle until someone clicks the deploy button in the dashboard. It is a simple gap in the automation chain. The infrastructure is ready, but the connection between the two systems relies entirely on human action to move the artifact forward. No alerts fire, no scripts run, just a waiting state until a teammate notices and acts.",
-      "wrong_descriptions": {
-        "driver": "The manual trigger allows for more control over when the pipeline is run.",
-        "boundary": "The manual trigger is a safety measure that prevents accidental deployments.",
-        "trade_off": "The manual trigger slows down the deployment process, but it is necessary for compliance."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_loyalty_data_deployment_block_fact_serving_stable",
-      "requirement_id": "gen_loyalty_data_deployment_block_fact_serving_stable",
-      "challenge_id": 115,
-      "stakeholder_id": null,
-      "narrator_id": "automation_alex",
-      "artifact_type": "email",
-      "content": "The nightly forecast job completed its run across all stores without interruption this week. The model serving endpoint responded to every request within the expected time frame, keeping the morning order window open for the store manager app. I observed no dropped connections or timeout errors in the logs during the peak load period. The infrastructure held steady while the system processed the full set of replenishment suggestions. This stability means the ordering system received clean data before the distribution centres began planning their truck loads. The current setup continues to handle the volume of point of sale scan lines and stock on hand updates as they arrive per store. No manual intervention was needed to keep the service online during the deployment cycle.",
-      "wrong_descriptions": {
-        "driver": "The stable serving endpoint ensures that the model is available to users without interruption.",
-        "boundary": "The stable serving endpoint is a requirement that must be maintained at all times.",
-        "trade_off": "The stable serving endpoint can be compromised if the new model is deployed without proper testing."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_loyalty_data_deployment_block_fact_canary_missing",
-      "requirement_id": "gen_loyalty_data_deployment_block_fact_canary_missing",
-      "challenge_id": 115,
-      "stakeholder_id": null,
-      "narrator_id": "automation_alex",
-      "artifact_type": "email",
-      "content": "I checked the deployment logs for the last three weekly model retraining cycles. Every run pushed the new forecast binary to all store nodes simultaneously. There is no flag to route a percentage of traffic to a shadow instance, and no mechanism to split store groups for comparative evaluation. The pipeline moves from build to production in a single atomic step. I observed no intermediate state where a subset of stores received the updated logic while others retained the previous version. The process simply swaps the active model version across the entire cluster at the scheduled maintenance window.",
-      "wrong_descriptions": {
-        "driver": "The canary testing would allow for a gradual rollout of the new model, reducing risk.",
-        "boundary": "The canary testing is a mandatory step that must be in place before any new model is deployed.",
-        "trade_off": "The canary testing can be skipped if the deployment is urgent, but it increases the risk of issues."
-      },
-      "is_known": false
-    },
-    {
       "id": "art_gen_shadow_deployment_contract_ruth_shadow_boundary",
       "requirement_id": "gen_shadow_deployment_contract_ruth_shadow_boundary",
       "challenge_id": 118,
@@ -1190,36 +890,6 @@
         "trade_off": "The stakeholder would accept a temporary manual workaround if the shadow environment cannot be built in time for the promotion week."
       },
       "is_known": true
-    },
-    {
-      "id": "art_gen_shadow_deployment_contract_fact_cicd_shadow_edge",
-      "requirement_id": "gen_shadow_deployment_contract_fact_cicd_shadow_edge",
-      "challenge_id": 118,
-      "stakeholder_id": null,
-      "narrator_id": "automation_alex",
-      "artifact_type": "slack_message",
-      "content": "I was checking the deployment logs for the last three model releases. Each time the main build finished, the shadow deployment stayed idle. No job started automatically. I had to open the console, find the shadow environment, and manually run the deploy script for each release. The gap between the main build finishing and the shadow deployment starting was between forty and ninety minutes, depending on when I noticed it. There is no webhook or scheduled trigger linking the two. The shadow environment only updates when I remember to push the code over myself.",
-      "wrong_descriptions": {
-        "driver": "The team wants this connection to be automated and triggered on every new model version to ensure continuous validation.",
-        "boundary": "The stakeholder will not allow this connection to be changed until the shadow environment is fully stable and governed.",
-        "trade_off": "The stakeholder would accept a manual trigger for this connection if the automated setup is not yet ready."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_shadow_deployment_contract_fact_serving_level",
-      "requirement_id": "gen_shadow_deployment_contract_fact_serving_level",
-      "challenge_id": 118,
-      "stakeholder_id": null,
-      "narrator_id": "automation_alex",
-      "artifact_type": "slack_message",
-      "content": "I checked the serving layer for the forecast service this morning. The endpoint is currently running on a manual request trigger. There is no automatic scaling or automated triggering in place. When the nightly job finishes, a human has to manually invoke the service to push the new predictions to the ordering system. If that step is missed, the stores fall back to last week's numbers. The infrastructure is stable, but the deployment path for the serving work remains entirely manual.",
-      "wrong_descriptions": {
-        "driver": "The team wants the serving endpoint to be automated to handle the increased load from the shadow environment.",
-        "boundary": "The stakeholder will not change the serving endpoint configuration if it risks disrupting the live forecast service during the promotion week.",
-        "trade_off": "The stakeholder would accept a manual serving setup if the automated configuration is not yet stable."
-      },
-      "is_known": false
     },
     {
       "id": "art_gen_silent_forecast_failure_ruth_driver_monitoring",
@@ -1321,66 +991,6 @@
       "is_known": true
     },
     {
-      "id": "art_gen_silent_forecast_failure_fact_alerting_level",
-      "requirement_id": "gen_silent_forecast_failure_fact_alerting_level",
-      "challenge_id": 119,
-      "stakeholder_id": null,
-      "narrator_id": "reliability_ruth",
-      "artifact_type": "document",
-      "content": "I checked the deployment configuration for the nightly forecast job. The service writes results to the ordering system, but no alerting rule is attached to the job status. I pulled the logs for the last seven days. On the third day, the job exited with an error code at 04:12. The morning order window opened at 06:00. The ordering system served the cached data from the previous night. No notification was sent to the on call channel. The team identified the gap during a routine code review on the following Tuesday. The current setup relies on manual inspection of the logs to detect these interruptions.",
-      "wrong_descriptions": {
-        "driver": "The team wants to improve the alerting to catch forecast failures earlier.",
-        "boundary": "The team will not accept any changes to the alert rules without first fixing the missing alerting.",
-        "trade_off": "The team would accept a manual alerting process if the automated system is too costly."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_silent_forecast_failure_fact_edge_perf_alert",
-      "requirement_id": "gen_silent_forecast_failure_fact_edge_perf_alert",
-      "challenge_id": 119,
-      "stakeholder_id": null,
-      "narrator_id": "reliability_ruth",
-      "artifact_type": "email",
-      "content": "During last week's routine audit of the forecasting service, I checked the status of the monitoring hooks. The logs show that the nightly batch completes and writes its output files to the shared directory. However, the alerting service that is supposed to watch those files has no active connection to the monitoring queue. I watched the system for three consecutive nights. When the batch finished, the files appeared. No notification was sent to the on call channel. The dashboard still displays a green status indicator because the service reports a successful heartbeat, but the actual data validation step is skipped entirely. I simply observed the file timestamps and the empty alert history. There is no automated check confirming whether the numbers in those files are sane or stale.",
-      "wrong_descriptions": {
-        "driver": "The team wants to fix the pipeline to ensure that forecast failures are caught and alerted on.",
-        "boundary": "The team will not accept any changes to the pipeline without first fixing the broken connection.",
-        "trade_off": "The team would accept a manual alerting process if the automated pipeline is too costly to fix."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_silent_forecast_failure_fact_edge_observe_perf",
-      "requirement_id": "gen_silent_forecast_failure_fact_edge_observe_perf",
-      "challenge_id": 119,
-      "stakeholder_id": null,
-      "narrator_id": "reliability_ruth",
-      "artifact_type": "slack_message",
-      "content": "I am writing from my usual spot in the deployment logs. Right now, there is no automated link between the raw observability streams and the performance dashboard. I check the service health by hand every morning. I look at the raw error counts in the terminal. I then open the monitoring tool separately. I compare the two sets of numbers by eye. If the error count jumps, I note it in a text file. There is no alert that fires on its own. I do not see a trend line for latency until I manually pull the data. This is the exact sequence I follow today. It is a manual cross check. No code connects the two sides.",
-      "wrong_descriptions": {
-        "driver": "The team wants to fix the pipeline to ensure that performance data is monitored automatically.",
-        "boundary": "The team will not accept any changes to the pipeline without first fixing the missing connection.",
-        "trade_off": "The team would accept a manual monitoring process if the automated pipeline is too costly to fix."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_silent_forecast_failure_fact_edge_drift_alert",
-      "requirement_id": "gen_silent_forecast_failure_fact_edge_drift_alert",
-      "challenge_id": 119,
-      "stakeholder_id": null,
-      "narrator_id": "reliability_ruth",
-      "artifact_type": "slack_message",
-      "content": "I checked the deployment logs for the last three weeks. The drift detection module runs nightly, writing its output to a local file on the worker node. There is no step in the pipeline that reads that file or pushes it to the alerting service. I watched a spike in prediction error for the northern stores on Tuesday. The file recorded the anomaly at 03:14. No notification went out. The next morning, the ordering system served the stale forecast to the store managers. I looked at the configuration for the promotion allocation job. It has the same setup. The drift metrics sit in the file system, untouched, until the weekly retraining overwrites them. I am just noting how the current workflow operates without a connection to the monitoring dashboard.",
-      "wrong_descriptions": {
-        "driver": "The team wants to fix the pipeline to ensure that drift is detected and alerted on.",
-        "boundary": "The team will not accept any changes to the pipeline without first fixing the missing connection.",
-        "trade_off": "The team would accept a manual alerting process if the automated pipeline is too costly to fix."
-      },
-      "is_known": false
-    },
-    {
       "id": "art_gen_cost_crisis_drift_gap_emilia_cut_drift",
       "requirement_id": "gen_cost_crisis_drift_gap_emilia_cut_drift",
       "challenge_id": 111,
@@ -1478,51 +1088,6 @@
         "trade_off": "The team would accept a delay in other features to implement drift monitoring."
       },
       "is_known": true
-    },
-    {
-      "id": "art_gen_cost_crisis_drift_gap_fact_alerting_manual",
-      "requirement_id": "gen_cost_crisis_drift_gap_fact_alerting_manual",
-      "challenge_id": 111,
-      "stakeholder_id": null,
-      "narrator_id": "reliability_ruth",
-      "artifact_type": "slack_message",
-      "content": "During the morning order window, I open the monitoring dashboard every fifteen minutes to check the status of the forecast service. The last entry in the shared log shows a manual refresh at 06:45. When a batch job fails, the error appears in the console only after I click the refresh button. I record the timestamp of each manual check in a spreadsheet. There is no automated page sent to the on call engineer when latency increases. The system does not send a notification to the distribution centres if the service is down. I observe the screen to confirm the job completed. The logs show the exact time of my last manual interaction with the interface.",
-      "wrong_descriptions": {
-        "driver": "The team wants to automate the alerting system to reduce manual effort.",
-        "boundary": "The team will not accept manual alerting as it is error prone.",
-        "trade_off": "The team would accept a delay in other tasks to automate the alerting system."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_cost_crisis_drift_gap_fact_observability_auto",
-      "requirement_id": "gen_cost_crisis_drift_gap_fact_observability_auto",
-      "challenge_id": 111,
-      "stakeholder_id": null,
-      "narrator_id": "reliability_ruth",
-      "artifact_type": "slack_message",
-      "content": "The logging pipeline for the forecast service runs fully automated. It captures every request and response from the model endpoints without any manual intervention. Observability metrics stream continuously to the central monitoring stack, and alerts fire automatically when latency or error rates drift outside the defined thresholds. No one has to check the health of the deployment by hand or gather performance data manually. The system records the state of the service in real time, and the data is available for review at any moment. All monitoring tasks are handled by the automated tooling in place, so the infrastructure just keeps running its checks while the team focuses on other work.",
-      "wrong_descriptions": {
-        "driver": "The team wants to improve the observability to catch more issues.",
-        "boundary": "The team will not reduce the observability as it is critical for debugging.",
-        "trade_off": "The team would accept a reduction in observability if it saves costs."
-      },
-      "is_known": false
-    },
-    {
-      "id": "art_gen_cost_crisis_drift_gap_fact_retraining_manual",
-      "requirement_id": "gen_cost_crisis_drift_gap_fact_retraining_manual",
-      "challenge_id": 111,
-      "stakeholder_id": null,
-      "narrator_id": "reliability_ruth",
-      "artifact_type": "document",
-      "content": "I walked through the deployment pipeline this morning to check the latest model update. The retraining job did not start automatically as the schedule suggested. I found the process sitting idle in the queue. A colleague had to log in and click the start button manually to kick off the weekly cycle. This happens every week without fail. The system waits for a human to initiate the run. There is no automated trigger listening for new data or time based intervals. I watched the job begin only after that manual action. The logs show the timestamp of the human click, not a scheduled event. The pipeline remains static until someone intervenes directly.",
-      "wrong_descriptions": {
-        "driver": "The team wants to automate the retraining trigger to improve model freshness.",
-        "boundary": "The team will not accept manual retraining as it is slow.",
-        "trade_off": "The team would accept a delay in other tasks to automate the retraining trigger."
-      },
-      "is_known": false
     }
   ]
 }

@@ -156,40 +156,6 @@
       }
     },
     {
-      "id": "gen_heatwave_kpi_gap_fact_criteria_manual",
-      "challenge_id": 113,
-      "type": "fact",
-      "description": "The acceptance criteria are done by hand. That is simply how the acceptance criteria setup works today.",
-      "fact": "The acceptance criteria are done by hand.",
-      "reading": "That is simply how the acceptance criteria setup works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "req.acceptance_criteria",
-        "level": 1,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_heatwave_kpi_gap_fact_risk_manual",
-      "challenge_id": 113,
-      "type": "fact",
-      "description": "The risk assessment is done by hand. That is simply how the risk assessment setup works today.",
-      "fact": "The risk assessment is done by hand.",
-      "reading": "That is simply how the risk assessment setup works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "req.risk_assessment",
-        "level": 1,
-        "axis": "automation"
-      }
-    },
-    {
       "id": "gen_loyalty_consent_gap_reuben_contracts_governance",
       "challenge_id": 114,
       "stakeholder_id": "requirements_reuben",
@@ -395,40 +361,6 @@
       "asserts": {
         "target": "req.data_contracts",
         "level": 0,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_loyalty_consent_gap_fact_kpi_missing",
-      "challenge_id": 114,
-      "type": "fact",
-      "description": "The KPI definitions are currently missing from the system. That is simply how the KPI definition setup works today.",
-      "fact": "The KPI definitions are currently missing from the system.",
-      "reading": "That is simply how the KPI definition setup works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "req.kpi_definition",
-        "level": 1,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_loyalty_consent_gap_fact_risk_missing",
-      "challenge_id": 114,
-      "type": "fact",
-      "description": "The risk assessment is currently missing from the system. That is simply how the risk assessment setup works today.",
-      "fact": "The risk assessment is currently missing from the system.",
-      "reading": "That is simply how the risk assessment setup works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "req.risk_assessment",
-        "level": 1,
         "axis": "automation"
       }
     },
@@ -645,40 +577,6 @@
       }
     },
     {
-      "id": "gen_committed_pallets_fact_kpi_missing",
-      "challenge_id": 110,
-      "type": "fact",
-      "description": "The KPI definition for the promotion week is currently missing. That is simply how the KPI definition works today.",
-      "fact": "The KPI definition for the promotion week is currently missing.",
-      "reading": "That is simply how the KPI definition works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "req.kpi_definition",
-        "level": 1,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_committed_pallets_fact_risk_manual",
-      "challenge_id": 110,
-      "type": "fact",
-      "description": "The risk assessment for the allocation module is currently done by hand. That is simply how the risk assessment works today.",
-      "fact": "The risk assessment for the allocation module is currently done by hand.",
-      "reading": "That is simply how the risk assessment works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "req.risk_assessment",
-        "level": 1,
-        "axis": "automation"
-      }
-    },
-    {
       "id": "gen_silent_ingestion_failure_ruth_driver_ingest",
       "challenge_id": 120,
       "stakeholder_id": "reliability_ruth",
@@ -886,41 +784,6 @@
       }
     },
     {
-      "id": "gen_silent_ingestion_failure_fact_validation_level",
-      "challenge_id": 120,
-      "type": "fact",
-      "description": "The data validation process is currently absent. That is simply how the validation setup works today.",
-      "fact": "The data validation process is currently absent.",
-      "reading": "That is simply how the validation setup works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "data.validation",
-        "level": 1,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_silent_ingestion_failure_fact_edge_trigger",
-      "challenge_id": 120,
-      "type": "fact",
-      "description": "The pipeline from data ingestion to data validation is triggered manually. That is simply how the pipeline setup works today.",
-      "fact": "The pipeline from data ingestion to data validation is triggered manually.",
-      "reading": "That is simply how the pipeline setup works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "e.ingest_validate",
-        "level": 2,
-        "trigger": "manual_request",
-        "axis": "automation"
-      }
-    },
-    {
       "id": "gen_nightly_window_miss_ruth_validation_driver",
       "challenge_id": 116,
       "stakeholder_id": "reliability_ruth",
@@ -1103,58 +966,6 @@
       "asserts": {
         "target": "data.validation",
         "level": 0,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_nightly_window_miss_fact_ingestion_level",
-      "challenge_id": 116,
-      "type": "fact",
-      "description": "Data ingestion is currently done by hand. That is simply how the ingestion setup works today.",
-      "fact": "Data ingestion is currently done by hand.",
-      "reading": "That is simply how the ingestion setup works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "data.ingestion",
-        "level": 2,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_nightly_window_miss_fact_edge_trigger",
-      "challenge_id": 116,
-      "type": "fact",
-      "description": "The edge between ingestion and validation is triggered by manual request. That is simply how the edge setup works today.",
-      "fact": "The edge between ingestion and validation is triggered by manual request.",
-      "reading": "That is simply how the edge setup works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "e.ingest_validate",
-        "level": 2,
-        "trigger": "manual_request",
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_nightly_window_miss_fact_feature_store_level",
-      "challenge_id": 116,
-      "type": "fact",
-      "description": "The feature store is currently missing. That is simply how the feature store setup works today.",
-      "fact": "The feature store is currently missing.",
-      "reading": "That is simply how the feature store setup works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "data.feature_store",
-        "level": 1,
         "axis": "automation"
       }
     },
@@ -1355,57 +1166,6 @@
       "asserts": {
         "target": "model.evaluation",
         "level": 0,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_heatwave_forecast_gap_fact_train_manual",
-      "challenge_id": 112,
-      "type": "fact",
-      "description": "The training pipeline has no active trigger configured for the current model update cycle. That is simply how the evaluation setup works today.",
-      "fact": "The training pipeline has no active trigger configured for the current model update cycle.",
-      "reading": "That is simply how the evaluation setup works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "model.training_pipeline",
-        "level": 2,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_heatwave_forecast_gap_fact_registry_absent",
-      "challenge_id": 112,
-      "type": "fact",
-      "description": "The model registry is absent and models are not versioned. That is simply how the evaluation setup works today.",
-      "fact": "The model registry is absent and models are not versioned.",
-      "reading": "That is simply how the evaluation setup works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "model.registry",
-        "level": 1,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_heatwave_forecast_gap_fact_hpo_manual",
-      "challenge_id": 112,
-      "type": "fact",
-      "description": "Hyperparameter tuning is done by hand for each model run. That is simply how the evaluation setup works today.",
-      "fact": "Hyperparameter tuning is done by hand for each model run.",
-      "reading": "That is simply how the evaluation setup works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "model.hpo",
-        "level": 1,
         "axis": "automation"
       }
     },
@@ -1617,57 +1377,6 @@
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": []
-    },
-    {
-      "id": "gen_override_blind_spot_evaluation_harness_state",
-      "challenge_id": 117,
-      "type": "fact",
-      "description": "The model evaluation harness is currently done by hand. That is simply how the evaluation harness works today.",
-      "fact": "The model evaluation harness is currently done by hand.",
-      "reading": "That is simply how the evaluation harness works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "model.evaluation",
-        "level": 2,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_override_blind_spot_training_pipeline_state",
-      "challenge_id": 117,
-      "type": "fact",
-      "description": "The model training pipeline is currently done by hand. That is simply how the training pipeline works today.",
-      "fact": "The model training pipeline is currently done by hand.",
-      "reading": "That is simply how the training pipeline works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "model.training_pipeline",
-        "level": 2,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_override_blind_spot_hpo_state",
-      "challenge_id": 117,
-      "type": "fact",
-      "description": "Hyperparameter tuning is currently missing from the system. That is simply how the hyperparameter tuning setup works today.",
-      "fact": "Hyperparameter tuning is currently missing from the system.",
-      "reading": "That is simply how the hyperparameter tuning setup works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "model.hpo",
-        "level": 1,
-        "axis": "automation"
-      }
     },
     {
       "id": "gen_loyalty_data_deployment_block_alex_promotion_deadline",
@@ -1889,58 +1598,6 @@
       }
     },
     {
-      "id": "gen_loyalty_data_deployment_block_fact_manual_trigger",
-      "challenge_id": 115,
-      "type": "fact",
-      "description": "The pipeline from the model registry to the CI/CD pipeline is triggered manually. The pipeline from the model registry to the CI/CD pipeline is currently triggered manually.",
-      "fact": "The pipeline from the model registry to the CI/CD pipeline is triggered manually.",
-      "reading": "The pipeline from the model registry to the CI/CD pipeline is currently triggered manually.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "e.registry_cicd",
-        "level": 2,
-        "trigger": "manual_request",
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_loyalty_data_deployment_block_fact_serving_stable",
-      "challenge_id": 115,
-      "type": "fact",
-      "description": "The model serving endpoint is currently stable and has acceptable latency. The current serving infrastructure handles the nightly forecast load without reported failures.",
-      "fact": "The model serving endpoint is currently stable and has acceptable latency.",
-      "reading": "The current serving infrastructure handles the nightly forecast load without reported failures.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "deploy.serving",
-        "level": 2,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_loyalty_data_deployment_block_fact_canary_missing",
-      "challenge_id": 115,
-      "type": "fact",
-      "description": "The canary and A/B testing capability is currently absent from the deployment process. The deployment process does not currently include a mechanism for gradual traffic shifting or comparative testing.",
-      "fact": "The canary and A/B testing capability is currently absent from the deployment process.",
-      "reading": "The deployment process does not currently include a mechanism for gradual traffic shifting or comparative testing.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "deploy.canary_ab",
-        "level": 1,
-        "axis": "automation"
-      }
-    },
-    {
       "id": "gen_shadow_deployment_contract_ruth_shadow_boundary",
       "challenge_id": 118,
       "stakeholder_id": "reliability_ruth",
@@ -2135,41 +1792,6 @@
       "asserts": {
         "target": "deploy.shadow",
         "level": 0,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_shadow_deployment_contract_fact_cicd_shadow_edge",
-      "challenge_id": 118,
-      "type": "fact",
-      "description": "The pipeline connection from the CI/CD pipeline to the shadow deployment is manual and has no trigger set. That is simply the current configuration of the pipeline, with no automatic connection between the CI/CD and shadow deployment.",
-      "fact": "The pipeline connection from the CI/CD pipeline to the shadow deployment is manual and has no trigger set.",
-      "reading": "That is simply the current configuration of the pipeline, with no automatic connection between the CI/CD and shadow deployment.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "e.cicd_shadow",
-        "level": 1,
-        "trigger": "none",
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_shadow_deployment_contract_fact_serving_level",
-      "challenge_id": 118,
-      "type": "fact",
-      "description": "The model serving endpoint is manual and runs on a manual request trigger for the forecast service. That is simply the current state of the serving endpoint, with no automatic scaling or triggering in place.",
-      "fact": "The model serving endpoint is manual and runs on a manual request trigger for the forecast service.",
-      "reading": "That is simply the current state of the serving endpoint, with no automatic scaling or triggering in place.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "deploy.serving",
-        "level": 2,
         "axis": "automation"
       }
     },
@@ -2383,77 +2005,6 @@
       "asserts": {
         "target": "ops.performance_monitoring",
         "level": 1,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_silent_forecast_failure_fact_alerting_level",
-      "challenge_id": 119,
-      "type": "fact",
-      "description": "The alerting system is currently missing. That is simply the current state of the alerting setup.",
-      "fact": "The alerting system is currently missing.",
-      "reading": "That is simply the current state of the alerting setup.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "ops.alerting",
-        "level": 1,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_silent_forecast_failure_fact_edge_perf_alert",
-      "challenge_id": 119,
-      "type": "fact",
-      "description": "The pipeline from performance monitoring to alerting is broken. That is simply the current state of the pipeline setup.",
-      "fact": "The pipeline from performance monitoring to alerting is broken.",
-      "reading": "That is simply the current state of the pipeline setup.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "e.perf_alert",
-        "level": 0,
-        "trigger": "none",
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_silent_forecast_failure_fact_edge_observe_perf",
-      "challenge_id": 119,
-      "type": "fact",
-      "description": "The pipeline from observability to performance monitoring is missing. That is simply the current state of the pipeline setup.",
-      "fact": "The pipeline from observability to performance monitoring is missing.",
-      "reading": "That is simply the current state of the pipeline setup.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "e.observe_perf",
-        "level": 1,
-        "trigger": "none",
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_silent_forecast_failure_fact_edge_drift_alert",
-      "challenge_id": 119,
-      "type": "fact",
-      "description": "The pipeline from drift monitoring to alerting is missing. That is simply the current state of the pipeline setup.",
-      "fact": "The pipeline from drift monitoring to alerting is missing.",
-      "reading": "That is simply the current state of the pipeline setup.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "e.drift_alert",
-        "level": 1,
-        "trigger": "none",
         "axis": "automation"
       }
     },
@@ -2682,57 +2233,6 @@
       "asserts": {
         "target": "ops.production_drift_monitoring",
         "level": 0,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_cost_crisis_drift_gap_fact_alerting_manual",
-      "challenge_id": 111,
-      "type": "fact",
-      "description": "The alerting system is done by hand. That is simply the state of the system today.",
-      "fact": "The alerting system is done by hand.",
-      "reading": "That is simply the state of the system today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "ops.alerting",
-        "level": 1,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_cost_crisis_drift_gap_fact_observability_auto",
-      "challenge_id": 111,
-      "type": "fact",
-      "description": "Logging and observability are automated. That is simply the state of the system today.",
-      "fact": "Logging and observability are automated.",
-      "reading": "That is simply the state of the system today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "ops.observability",
-        "level": 2,
-        "axis": "automation"
-      }
-    },
-    {
-      "id": "gen_cost_crisis_drift_gap_fact_retraining_manual",
-      "challenge_id": 111,
-      "type": "fact",
-      "description": "The retraining trigger is done by hand. That is simply the state of the system today.",
-      "fact": "The retraining trigger is done by hand.",
-      "reading": "That is simply the state of the system today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "ops.retraining_trigger",
-        "level": 1,
         "axis": "automation"
       }
     }

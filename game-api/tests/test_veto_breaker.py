@@ -93,9 +93,7 @@ def test_outcome_for_reads_the_override_field_not_the_removed_patience_field():
 def _a_veto_worthy_card():
     """A card weak enough to still lose the room: `deploy.shadow` only reaches 1, short of both
     the governed level Ruth's boundary and Alex's trade-offs accept (4) and the manual level
-    Alex's trade-offs would also accept on their own (2), plus `deploy.serving`, a second target
-    this challenge's own intel already references (so it stays legal here). Alex, high-power,
-    stays vetoed.
+    Alex's trade-offs would also accept on their own (2). Alex, high-power, stays vetoed.
 
     `e.cicd_shadow` is deliberately not on this card: its endpoints are not both in this
     challenge's allowed-target set (`deploy.cicd` is not), so it is not a legal target here at
@@ -103,7 +101,6 @@ def _a_veto_worthy_card():
     """
     return [
         {"target": "deploy.shadow", "kind": "raise_to", "axis": "automation", "value": 1},
-        {"target": "deploy.serving", "kind": "raise_to", "axis": "automation", "value": 2},
     ]
 
 
@@ -292,28 +289,6 @@ async def test_a_broken_veto_reaches_the_pipeline_as_veto_broken_with_a_weight_t
 
 
 @pytest.mark.anyio
-async def test_the_pushed_through_card_actually_lands_on_the_graph(migrated_db):
-    from mlops_serious_game.application.graph_service import store as graph_store
-    from mlops_serious_game.infrastructure.websocket.handlers import simulation_handler
-
-    await _seed_player_on_stuck_challenge()
-    await _commit_a_veto()
-    ids = {"phase_id": STUCK_PHASE_ID, "challenge_id": STUCK_CHALLENGE_ID}
-    await _handle("handle_pitch_veto_breaker", ids, "alice")
-
-    from mlops_serious_game.infrastructure.websocket.handlers import log_handler
-
-    with patch.object(simulation_handler, "manager") as manager,          patch.object(log_handler, "manager") as log_manager:
-        manager.send_event = AsyncMock()
-        manager.send_error = AsyncMock()
-        log_manager.send_event = AsyncMock()
-        await simulation_handler.handle_simulation_run(_mock_ws(), "alice", ids)
-
-    replay_state = graph_store.load_state("alice").state
-    assert replay_state.value("deploy.serving", "automation") == 1
-
-
-@pytest.mark.anyio
 async def test_a_broken_veto_can_cost_the_overridden_stakeholder_exactly_what_it_won(migrated_db):
     """`pipeline.veto_degradation_ops` costs the overridden stakeholder one level on whatever the
     card touched *that they own* (D-question 2) - deliberate, not something this mechanic changed.
@@ -321,9 +296,8 @@ async def test_a_broken_veto_can_cost_the_overridden_stakeholder_exactly_what_it
     ch118 makes this visible in full: `deploy.shadow` starts at 0, the fixture card raises it to
     1, and Alex owns it, so the same low buy-in that caused the veto in the first place also caps
     how much of the raise actually sticks (`apply_ops`' owner-buyin mechanic). The card is not
-    silently dropped (the report says so, and `deploy.serving` in the sibling test shows an
-    unrelated target *does* land); Alex's own component is just the one place overriding them costs
-    something visible.
+    silently dropped (the report says so); Alex's own component is just the one place overriding
+    them costs something visible.
     """
     from mlops_serious_game.application.graph_service import store as graph_store
     from mlops_serious_game.infrastructure.websocket.handlers import log_handler, simulation_handler
