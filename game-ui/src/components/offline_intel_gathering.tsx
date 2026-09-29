@@ -95,7 +95,7 @@ export interface IntelArtifact {
 const REQUIREMENT_TAGS = [...INTEL_TAGS, CHALLENGE_INTEL_META].map((t) => ({
   type: t.type,
   label: t.label,
-  icon: t.emoji,
+  icon: t.icon,
   color: t.color,
   description: t.description,
   about: t.about,
@@ -785,7 +785,7 @@ export default function OfflineIntelGathering({
                               onTagArtifact(dossierTargetFor(art, taggedTypes[key]));
                             }
                           }}
-                          className={`btn btn-xs fw-bold ${styles.navPill} ${
+                          className={`btn btn-xs fw-bold ${styles.navPillIcon} ${styles.navPill} ${
                             art.is_known
                               ? (isOnRecordFact(art) ? styles.navPillOnRecordFact : styles.navPillOnRecord)
                               : isTagged
@@ -799,7 +799,7 @@ export default function OfflineIntelGathering({
                           aria-label={`${pillLabel}: ${pillStatus}`}
                         >
                           {art.is_known ? (
-                            <Icon icon={isOnRecordFact(art) ? intelTagMeta("fact").icon : "ph:megaphone-simple-bold"} />
+                            <Icon icon={isOnRecordFact(art) ? intelTagMeta("fact").icon : "ph:user-sound-duotone"} />
                           ) : (
                             idx + 1
                           )}
@@ -1303,7 +1303,7 @@ export default function OfflineIntelGathering({
                               >
                                 <div className={styles.tagButtonHeader}>
                                   <span className={styles.tagButtonLabelGroup}>
-                                    <span>{tag.icon}</span>{" "}
+                                    <Icon icon={tag.icon} style={{ color: tag.color }} />{" "}
                                     <span className={styles.tagButtonLabel} style={{ color: tag.color }}>{tag.label}</span>
                                   </span>
                                   {isSelected && (

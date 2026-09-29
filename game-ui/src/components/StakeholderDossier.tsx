@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useLayoutEffect, useContext } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
+import { EmojiIcon } from "../utils/emojiIcons";
 import styles from "./StakeholderDossier.module.css";
 import { StakeholderContext, type EmotionGatingInfo, type EmotionGatingDimension } from "./StakeholderProvider";
 
@@ -255,11 +256,11 @@ const TAG_STYLE_CLASS: Record<string, string> = {
   requirement: styles.tagRequirement,
   preference: styles.tagNegotiable,
   friction: styles.tagFriction,
-  default: styles.tagFriction,
+  default: styles.tagDefault,
 };
 
-const CATEGORY_META: Record<string, { label: string; icon: string; styleClass: string }> = Object.fromEntries(
-  [...INTEL_TAGS, CHALLENGE_INTEL_META].map((t) => [t.type, { label: t.label, icon: t.emoji, styleClass: TAG_STYLE_CLASS[t.styleKey] }])
+const CATEGORY_META: Record<string, { label: string; icon: string; color: string; styleClass: string }> = Object.fromEntries(
+  [...INTEL_TAGS, CHALLENGE_INTEL_META].map((t) => [t.type, { label: t.label, icon: t.icon, color: t.color, styleClass: TAG_STYLE_CLASS[t.styleKey] }])
 );
 
 /** Document wording for the "your read of their ..." caption. */
@@ -279,7 +280,7 @@ const getSourceCaption = (item: IntelEntry): { icon: string; text: string; title
   switch ((item.source || "").toLowerCase()) {
     case "public_record":
       return {
-        icon: "ph:megaphone-bold",
+        icon: "ph:megaphone-duotone",
         text: "Said openly in the team channel",
         title: "They said this in a channel the whole team reads, before you started digging.",
       };
@@ -1825,19 +1826,21 @@ export default function StakeholderDossier({
                 <div className={styles.buyInTopRow}>
                   <div className="d-flex align-items-center gap-2">
                     <span style={{ fontSize: "0.74rem", fontWeight: 700, color: "#1e293b" }}>
-                      ⚖️ Buy-In Progress
+                      <EmojiIcon name="balanceScale" /> Buy-In Progress
                     </span>
                     <span
                       className={`badge ${isBoundaryViolated || buyInInfo.blocks ? "bg-danger" : buyInInfo.isPersuaded ? "bg-success" : "bg-warning text-dark"}`}
                       style={{ fontSize: "0.62rem" }}
                     >
-                      {isBoundaryViolated
-                        ? `⛔ Boundary Violated (${totalPercent}%)`
-                        : buyInInfo.blocks
-                        ? `⛔ Resistant (${totalPercent}%)`
-                        : buyInInfo.isPersuaded
-                        ? `✅ Persuaded (${totalPercent}%)`
-                        : `⚠️ Wavering (${totalPercent}%)`}
+                      {isBoundaryViolated ? (
+                        <><EmojiIcon name="noEntry" /> Boundary Violated ({totalPercent}%)</>
+                      ) : buyInInfo.blocks ? (
+                        <><EmojiIcon name="noEntry" /> Resistant ({totalPercent}%)</>
+                      ) : buyInInfo.isPersuaded ? (
+                        <><EmojiIcon name="checkMark" /> Persuaded ({totalPercent}%)</>
+                      ) : (
+                        <><EmojiIcon name="warning" /> Wavering ({totalPercent}%)</>
+                      )}
                     </span>
                   </div>
                   <span style={{ fontSize: "0.65rem", color: "#64748b", fontWeight: 600 }}>
@@ -1886,8 +1889,8 @@ export default function StakeholderDossier({
 
                 {/* Breakdown Legend Row */}
                 <div className={styles.buyInLegendRow}>
-                  <span>🃏 Card: <b>{isBoundaryViolated ? "0% (Boundary Violated)" : `+${cardPercent}%`}</b></span>
-                  <span>🎭 Emotion: <b>+{emotionPercent}%</b></span>
+                  <span><EmojiIcon name="cardJoker" /> Card: <b>{isBoundaryViolated ? "0% (Boundary Violated)" : `+${cardPercent}%`}</b></span>
+                  <span><EmojiIcon name="emotion" /> Emotion: <b>+{emotionPercent}%</b></span>
                 </div>
               </div>
 
@@ -1964,7 +1967,10 @@ export default function StakeholderDossier({
                       onClick={() => setCollapseAddressed(false)}
                       title={`${collapsedMeta.title} Click to unfold every note again.`}
                     >
-                      <span>{(CATEGORY_META[item.categorized_type || "driver"] || CATEGORY_META.driver).icon}</span>
+                      <Icon
+                        icon={(CATEGORY_META[item.categorized_type || "driver"] || CATEGORY_META.driver).icon}
+                        style={{ color: (CATEGORY_META[item.categorized_type || "driver"] || CATEGORY_META.driver).color }}
+                      />
                       <span className={styles.collapsedText}>{item.description}</span>
                       <span className={`${styles.statusBadge} ${styles[collapsedMeta.styleClass]}`}>{collapsedMeta.label}</span>
                     </button>
@@ -2074,7 +2080,9 @@ export default function StakeholderDossier({
                           onFocus={(e) => showInfoTag(e, catMeta.label, "Click to re-tag")}
                           onBlur={hideInfoTag}
                         >
-                          <span>{catMeta.icon} {catMeta.label}</span>
+                          <span className={styles.categoryBadgeContent}>
+                            <Icon icon={catMeta.icon} style={{ color: catMeta.color }} /> {catMeta.label}
+                          </span>
                           <span className={styles.reTagIconBtn} aria-label="Re-tag">
                             <Icon icon="ph:pencil-simple-bold" />
                           </span>
@@ -2089,7 +2097,9 @@ export default function StakeholderDossier({
                           onFocus={(e) => showInfoTag(e, catMeta.label, "Locked once intel is confirmed/verified")}
                           onBlur={hideInfoTag}
                         >
-                          <span>{catMeta.icon} {catMeta.label}</span>
+                          <span className={styles.categoryBadgeContent}>
+                            <Icon icon={catMeta.icon} style={{ color: catMeta.color }} /> {catMeta.label}
+                          </span>
                         </div>
                       )}
                       {hasArtifact && onOpenArtifact && (
@@ -2174,7 +2184,7 @@ export default function StakeholderDossier({
                               handleReTagIntel(item.id, typeOptKey);
                             }}
                           >
-                            {metaOpt.icon} {metaOpt.label}
+                            <Icon icon={metaOpt.icon} style={{ color: metaOpt.color }} /> {metaOpt.label}
                           </button>
                         ))}
                       </div>
@@ -2303,7 +2313,11 @@ export default function StakeholderDossier({
             <div className={styles.emptyStateCard}>
               <div className={styles.paperclip} />
               <div className={styles.emptyStateTitle}>
-                {hasIntelEntries ? "🔍 Nothing Matches These Filters" : "📋 No Field Intelligence Collected Yet"}
+                {hasIntelEntries ? (
+                  <><EmojiIcon name="searchGlass" /> Nothing Matches These Filters</>
+                ) : (
+                  <><EmojiIcon name="actionItems" /> No Field Intelligence Collected Yet</>
+                )}
               </div>
               <div className={styles.emptyStateText}>
                 {hasIntelEntries ? (
@@ -2314,9 +2328,9 @@ export default function StakeholderDossier({
               </div>
               <div className={styles.emptyStateHint}>
                 {hasIntelEntries ? (
-                  <>💡 <em>Clear the stage row or the search box below to see them again.</em></>
+                  <><EmojiIcon name="tip" /> <em>Clear the stage row or the search box below to see them again.</em></>
                 ) : (
-                  <>💡 <em>Participate in Intel Gathering activities to uncover and verify their hidden constraints.</em></>
+                  <><EmojiIcon name="tip" /> <em>Participate in Intel Gathering activities to uncover and verify their hidden constraints.</em></>
                 )}
               </div>
             </div>
@@ -2419,7 +2433,7 @@ export default function StakeholderDossier({
             )}
             {challengeIntelIndex >= 0 && (
               <HeaderIconButton
-                icon="ph:buildings-bold"
+                icon={intelTagMeta("fact").icon}
                 label="Challenge-Intel"
                 detail={systemPips.length > 0 ? describeIntelPips(systemPips) : undefined}
                 ariaLabel={`Challenge-Intel: facts about the system already on record at the start of the challenge — ${describeIntelPips(systemPips)}`}

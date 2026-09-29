@@ -12,8 +12,6 @@ export interface IntelTagMeta {
   type: IntelTag | "fact";
   label: string;
   shortLabel: string;
-  /** Emoji for compact labels. */
-  emoji: string;
   /** Iconify icon id. */
   icon: string;
   color: string;
@@ -28,7 +26,6 @@ export const INTEL_TAGS: IntelTagMeta[] = [
     type: "driver",
     label: "Driver",
     shortLabel: "DRV",
-    emoji: "🎯",
     icon: "ph:target-bold",
     color: "#16a34a",
     about: "stakeholder",
@@ -39,7 +36,6 @@ export const INTEL_TAGS: IntelTagMeta[] = [
     type: "boundary",
     label: "Boundary",
     shortLabel: "BND",
-    emoji: "🛑",
     icon: "ph:prohibit-bold",
     color: "#2563eb",
     about: "stakeholder",
@@ -50,7 +46,6 @@ export const INTEL_TAGS: IntelTagMeta[] = [
     type: "trade_off",
     label: "Trade-off",
     shortLabel: "TRD",
-    emoji: "⚖️",
     icon: "ph:scales-bold",
     color: "#d97706",
     about: "stakeholder",
@@ -64,8 +59,7 @@ export const CHALLENGE_INTEL_META: IntelTagMeta = {
   type: "fact",
   label: "Challenge-Intel",
   shortLabel: "CHI",
-  emoji: "⚙️",
-  icon: "ph:gear-six-bold",
+  icon: "ph:certificate-duotone",
   color: "#7c3aed",
   about: "system",
   description: "How the system stands at the start of the challenge.",
@@ -76,7 +70,6 @@ const FALLBACK: IntelTagMeta = {
   type: "driver",
   label: "Intel",
   shortLabel: "INTEL",
-  emoji: "🏷️",
   icon: "ph:tag-bold",
   color: "#64748b",
   about: "stakeholder",

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useContext, useLayoutEffect, useMemo, useRef } from "react";
 import { Icon } from "@iconify/react";
+import { EmojiIcon } from "../utils/emojiIcons";
 import PhaseOverview from "./PhaseOverview";
 import MetricTab from "./MetricTab";
 import type { IntelEntry, StakeholderDossierEntry } from "./StakeholderDossier";
@@ -175,7 +176,7 @@ interface LinkedNote {
 }
 
 const NOTE_SOURCE_META: Record<string, { icon: string; label: string }> = {
-  public_record: { icon: "ph:megaphone-bold", label: "Said openly in the team channel" },
+  public_record: { icon: "ph:megaphone-duotone", label: "Said openly in the team channel" },
   interview: { icon: "ph:chats-circle-bold", label: "They told you this directly" },
   debate: { icon: "ph:microphone-stage-bold", label: "Came out during the pitch" },
   offline_artifact: { icon: "ph:file-text-bold", label: "You read this in a document" },
@@ -1355,13 +1356,13 @@ export default function PerformanceDashboard({
 
                                   {selComponentData.capped_by && selComponentData.effective_automation !== undefined && selComponentData.nominal_automation !== undefined && selComponentData.effective_automation < selComponentData.nominal_automation && (
                                     <div className="p-2 rounded" style={{ fontSize: "0.78rem", color: "#9a3412", background: "#fff7ed", border: "1px solid #ffedd5" }}>
-                                      <strong>⛓ Held Back:</strong> Bottlenecked by <strong>{selComponentData.capped_by}</strong>. Raising this component changes nothing until that is addressed.
+                                      <strong><EmojiIcon name="chains" /> Held Back:</strong> Bottlenecked by <strong>{selComponentData.capped_by}</strong>. Raising this component changes nothing until that is addressed.
                                     </div>
                                   )}
 
                                   {selComponentData.debt && selComponentData.debt.length > 0 && (
                                     <div className="p-2 rounded" style={{ fontSize: "0.78rem", color: "#854d0e", background: "#fefce8", border: "1px solid #fef08a" }}>
-                                      <strong>🧾 Technical Debt:</strong> {selComponentData.debt[0].axis === "governance" ? "Governance meant" : "Meant"} to be <strong>{formatAxisLevel(selComponentData.debt[0].axis ?? "automation", selComponentData.debt[0].intended)}</strong>, landed <strong>{formatAxisLevel(selComponentData.debt[0].axis ?? "automation", selComponentData.debt[0].applied)}</strong>
+                                      <strong><EmojiIcon name="techDebtReceipt" /> Technical Debt:</strong> {selComponentData.debt[0].axis === "governance" ? "Governance meant" : "Meant"} to be <strong>{formatAxisLevel(selComponentData.debt[0].axis ?? "automation", selComponentData.debt[0].intended)}</strong>, landed <strong>{formatAxisLevel(selComponentData.debt[0].axis ?? "automation", selComponentData.debt[0].applied)}</strong>
                                       {selComponentData.debt[0].owner_id && <> without support from {selComponentData.debt[0].owner_id.replace(/_/g, " ")}</>}.
                                     </div>
                                   )}

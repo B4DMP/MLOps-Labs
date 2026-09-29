@@ -1,6 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
+import { EMOJI_ICON } from "../utils/emojiIcons";
 import styles from "./ComposeActionProposalModal.module.css";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import type { Stakeholder } from "./StakeholderProvider";
@@ -229,7 +230,7 @@ interface LinkedNote {
 }
 
 const NOTE_SOURCE_META: Record<string, { icon: string; label: string }> = {
-  public_record: { icon: "ph:megaphone-bold", label: "Said openly in the team channel" },
+  public_record: { icon: "ph:megaphone-duotone", label: "Said openly in the team channel" },
   interview: { icon: "ph:chats-circle-bold", label: "They told you this directly" },
   debate: { icon: "ph:microphone-stage-bold", label: "Came out during the pitch" },
   offline_artifact: { icon: "ph:file-text-bold", label: "You read this in a document" },
@@ -281,8 +282,8 @@ const LEGEND_GROUPS: Array<{
   {
     heading: "Marks",
     items: [
-      { label: "In your proposal", glyph: "⚡" },
-      { label: "Another phase - view only", glyph: "👁" },
+      { label: "In your proposal", icon: EMOJI_ICON.power.icon, iconColor: EMOJI_ICON.power.color },
+      { label: "Another phase - view only", icon: "noto:eye" },
       { label: "Dashed outline: undiscovered", swatch: { border: "1.5px dashed #94a3b8", background: "#f8fafc" } },
       { label: "Flat pale face: another phase", swatch: { border: "1.5px solid #cbd5e1", background: "#eef2f7" } },
       {
@@ -1085,8 +1086,8 @@ export default function ComposeActionProposalModal({
                       <span className={styles.legendHeading}>{group.heading}</span>
                       {group.items.map((item) => (
                         <span key={item.label} className={styles.legendItem}>
-                          {item.glyph ? (
-                            <span className={styles.legendGlyph}>{item.glyph}</span>
+                          {item.icon ? (
+                            <Icon icon={item.icon} className={styles.legendGlyph} style={{ color: item.iconColor }} />
                           ) : (
                             <span className={styles.legendSwatch} style={item.swatch} />
                           )}

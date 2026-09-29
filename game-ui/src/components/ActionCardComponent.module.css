@@ -18,7 +18,7 @@
 }
 
 .cardContainer:not(.not_interactable):hover {
-  transform: translateY(-2px);
+  transform: scale(1.02);
 }
 
 .descriptionBox {

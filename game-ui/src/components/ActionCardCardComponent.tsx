@@ -1,5 +1,6 @@
 import { useContext, useMemo } from "react";
 import { Icon } from "@iconify/react";
+import { EmojiIcon } from "../utils/emojiIcons";
 import styles from "./ActionCardCardComponent.module.css";
 import type { ActionCard, AtomicChange, ItemPrediction } from "../types/ActionCard";
 import { StakeholderContext, type Stakeholder } from "./StakeholderProvider";
@@ -319,7 +320,7 @@ export default function ActionCardCardComponent({
                     >
                       <div className="d-flex align-items-center justify-content-between gap-2">
                         <span className="fw-bold text-dark">
-                          ⚡ {name}
+                          <EmojiIcon name="power" /> {name}
                         </span>
                         <span
                           className="badge"
@@ -331,12 +332,12 @@ export default function ActionCardCardComponent({
                       {label !== stepBadge(ac) && <div className="text-secondary">{label}</div>}
                       {pred?.upstream_uncertain && (
                         <div className="text-warning fw-semibold" style={{ fontSize: "0.7rem" }}>
-                          ❓ Functional Status Uncertain: Upstream predecessor is undiscovered.
+                          <EmojiIcon name="questionMark" /> Functional Status Uncertain: Upstream predecessor is undiscovered.
                         </div>
                       )}
                       {pred?.capped_by && (
                         <div className="text-danger fw-semibold" style={{ fontSize: "0.7rem" }}>
-                          ⛓ Bottlenecked: Functional throughput capped at "{formatAxisLevel(pred.axis ?? ac.axis ?? "automation", pred.predicted)}" by {pred.capped_by}.
+                          <EmojiIcon name="chains" /> Bottlenecked: Functional throughput capped at "{formatAxisLevel(pred.axis ?? ac.axis ?? "automation", pred.predicted)}" by {pred.capped_by}.
                         </div>
                       )}
                     </div>
