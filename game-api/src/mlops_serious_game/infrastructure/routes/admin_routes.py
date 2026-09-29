@@ -1,3 +1,4 @@
+import datetime
 from typing import Any, Literal
 from fastapi import APIRouter, HTTPException, Depends, Query, Request
 from pydantic import BaseModel
@@ -16,6 +17,11 @@ from mlops_serious_game.application.services.admin_service import (
     get_config_file,
     save_and_reload_config_file,
     trigger_generate_offline_intel_artifacts
+)
+from mlops_serious_game.application.services.bug_report_service import (
+    BugReportSort,
+    delete_bug_report,
+    list_bug_reports,
 )
 from mlops_serious_game.application.services.bug_report_settings_service import (
     get_recipients as get_bug_report_recipients,
@@ -410,6 +416,30 @@ async def send_test_email(req: TestEmailRequest, _: str = Depends(check_admin_to
 
 class BugReportRecipientsUpdateRequest(BaseModel):
     recipients: list[str]
+
+
+@router.get("/bug-reports")
+async def list_bug_reports_route(
+    search: str | None = None,
+    email: str | None = None,
+    campaign: str | None = None,
+    since: datetime.datetime | None = None,
+    until: datetime.datetime | None = None,
+    sort: BugReportSort = "time_stamp",
+    order: Literal["asc", "desc"] = "desc",
+    _: str = Depends(check_admin_token),
+):
+    return list_bug_reports(
+        search=search, email=email, campaign_key=campaign, since=since, until=until,
+        sort=sort, descending=order == "desc",
+    )
+
+
+@router.delete("/bug-reports/{report_id}")
+async def delete_bug_report_route(report_id: int, _: str = Depends(check_admin_token)):
+    if not delete_bug_report(report_id):
+        raise HTTPException(status_code=404, detail="Bug report not found.")
+    return {"success": True}
 
 
 @router.get("/bug-reports/recipients")

@@ -28,6 +28,7 @@ import { ConfigEditor } from "./ConfigEditor";
 import { GraphDebug } from "./GraphDebug";
 import AdminResults from "./Results/AdminResults";
 import TeacherManager from "./TeacherManager";
+import BugReportsAdmin from "./BugReportsAdmin";
 import {
   fetchAdminDashboard,
   fetchAdminEmailStatus,
@@ -123,7 +124,7 @@ export function Admin({
   questionaire_results,
 }: AdminProps) {
   // Navigation
-  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis" | "results" | "graph_debug" | "teachers" | "email">("config");
+  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis" | "results" | "graph_debug" | "teachers" | "bug_reports" | "email">("config");
 
   // Email / SMTP state
   const [emailStatus, setEmailStatus] = useState<AdminEmailStatus | null>(null);
@@ -660,6 +661,14 @@ export function Admin({
             </button>
             <button
               type="button"
+              className={`${styles.navTab} ${activeSubpage === "bug_reports" ? styles.navTabActive : ""}`}
+              onClick={() => setActiveSubpage("bug_reports")}
+            >
+              <Icon icon="ph:bug-bold" />
+              <span>Bug Reports</span>
+            </button>
+            <button
+              type="button"
               className={`${styles.navTab} ${activeSubpage === "email" ? styles.navTabActive : ""}`}
               onClick={() => setActiveSubpage("email")}
             >
@@ -675,6 +684,7 @@ export function Admin({
             {activeSubpage === "results" && "How finished games went: grades, pillars, and each player's own results"}
             {activeSubpage === "graph_debug" && "Inspect the MLOps pipeline graph state per player"}
             {activeSubpage === "teachers" && "Manage teacher accounts and their live monitoring access"}
+            {activeSubpage === "bug_reports" && "Player-submitted bug reports"}
             {activeSubpage === "email" && "Inspect SMTP configuration and send test emails"}
           </div>
         </div>
@@ -1763,6 +1773,8 @@ export function Admin({
           {/* SUBPAGE: TEACHER ACCOUNTS & LIVE MONITORING              */}
           {/* ======================================================== */}
           {activeSubpage === "teachers" && <TeacherManager campaigns={campaigns} />}
+
+          {activeSubpage === "bug_reports" && <BugReportsAdmin campaigns={campaigns} />}
 
           {/* ======================================================== */}
           {/* SUBPAGE 5: SMTP EMAIL CONFIGURATION & TEST               */}
