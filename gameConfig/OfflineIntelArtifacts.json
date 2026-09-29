@@ -225,16 +225,16 @@
       "challenge_id": 110,
       "stakeholder_id": "requirements_reuben",
       "artifact_type": "document",
-      "content": "Quick note: the trucks roll next week, the order's confirmed, the stock is committed, and there is no room in this plan for the model to be wrong. I won't approve the release with manual acceptance criteria. An unauditable automated decision might be flawless, or it might be wrong in exactly one place, and once the trucks leave there is no way to find out which. The logic needs to be governed and auditable before goods ship. Manual checks aren't sufficient for risk at this scale. I will not sign off until the governance framework is in place and the audit trail is verifiable end to end. This is a hard requirement for my team. Once the trucks leave, the inventory is locked in with the supplier, and I am not the one explaining afterward why an unauditable decision made the call. That liability is not mine to carry.",
+      "content": "The supplier confirmed the bulk order; trucks leave next week. With physical stock committed, there is no room for model error. I will not approve this release if the acceptance criteria remain manual. We must have the criteria fully governed to guarantee the logic is auditable before the goods ship. Manual checks are insufficient for this scale of financial and operational risk. I will not sign off until the governance framework is in place and the audit trail is verifiable. This is a hard requirement. We cannot accept the liability of an unauditable automated decision when the inventory is already locked in with the supplier. The current manual check is a performance. The developer writes the logic, then, from the same desk and using the same login, clicks approve as the compliance officer. It is the same afternoon, the same chair, and the same tired eyes checking their own work.",
       "wrong_descriptions": {
         "driver": "He wants the audit trail to be as detailed as possible for every promotion week.",
         "trade_off": "He would drop the audit requirement if the supplier delays the shipment by a week.",
         "fact": "The current workflow does not include a governance step for the acceptance criteria."
       },
       "is_known": true,
-      "humor_archetype": "Undetectable falsehood in a plausible dataset",
+      "humor_archetype": "A reviewer who is also the author",
       "humor_verdict": "strong",
-      "humor_review_reason": "Already written and human-reviewed in game-ui/.../humor-memo/WorkedExamples.tsx before the automated pipeline existed; reused as-is rather than regenerated."
+      "humor_review_reason": "The candidate preserves the core fact: the author refuses to approve the release because the acceptance criteria are not governed/auditable, specifically due to the locked-in supplier inventory. It correctly identifies the mechanism (lack of governance/auditability for a high-stakes automated decision) and does not invent a new causal chain. The assigned device (reviewer = author) is used effectively to dramatize the 'manual check' deficiency by providing a concrete, incongruous instance: the same person, same login, same desk, and same afternoon performing both the coding and the compliance approval. This lands the joke without obscuring the technical requirement for a verifiable audit trail. It does not target the stakeholder's competence but rather the structural flaw of the process (manual checks collapsing into self-review)."
     },
     {
       "id": "art_gen_committed_pallets_ruth_speed_trade",
@@ -259,16 +259,16 @@
       "challenge_id": 110,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "meeting_notes",
-      "content": "The leaflet is in shoppers' hands. We need the residual stock and margin KPIs calculated automatically the moment the last till closes. Manual checks are too slow to react while the promotion is fresh. I want a live dashboard updating every hour to see how the allocation performs against the committed pallets. This is the core of judging the logic before trucks leave the distribution centre. The dashboard will flag any store where forecasted demand exceeds allocated cases by more than five percent. It will also verify the total pallet count for the garden furniture article matches the supplier confirmation exactly. That figure is listed as forty-two pallets in the current promotion calendar. It looks correct, and it is the only number in the entire dataset that has not been cross-referenced with the actual goods receipt note from the previous week.",
+      "content": "The promotion week is too short to wait for a spreadsheet. I need the residual stock and margin KPIs calculated automatically the moment the last till closes. If the team has to run manual checks after the fact, we lose the ability to react while the leaflet is still fresh in shoppers' hands. I want a live dashboard that updates every hour so we can see exactly how the allocation is performing against the committed pallets. The more real time visibility we have, the better we can protect the margin and avoid overstock. This is not a nice to have feature. It is the core of how we will judge whether the new logic actually works before the trucks leave the distribution centre.",
       "wrong_descriptions": {
         "boundary": "She will not approve the project if the KPIs are not defined.",
         "trade_off": "She would accept a manual KPI report if the automated version is delayed.",
         "fact": "The KPI definition is currently missing."
       },
       "is_known": false,
-      "humor_archetype": "Undetectable falsehood in a plausible dataset",
-      "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully preserves the core fact (automatic KPI calculation for residual stock/margin to enable real-time reaction before trucks leave) while executing the assigned device ('Undetectable falsehood in a plausible dataset') effectively. It introduces a specific, plausible-sounding detail (42 pallets of garden furniture) that appears correct but is flagged as the single uncross-referenced data point. This creates the required incongruity: the system is rigorous about everything else (5% demand flags, hourly updates) but has a silent gap in one specific, verifiable number. The joke lands because the reader realizes the 'core' logic depends on a figure that might be wrong, and the specific detail (garden furniture, 42 pallets) is concrete enough to be actionable intel for the player. It does not invent a new causal mechanism; it dramatizes the original urgency by showing exactly where the 'automatic' calculation might fail silently."
+      "humor_archetype": null,
+      "humor_verdict": null,
+      "humor_review_reason": null
     },
     {
       "id": "art_gen_committed_pallets_alex_pipeline_trade",
@@ -718,16 +718,16 @@
       "challenge_id": 117,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "document",
-      "content": "I have reviewed the cost estimates for the proposed registry implementation. The fully automated solution needs capital and upkeep I can't justify against the current budget. I will accept a manual registry if it cuts total project cost by a substantial margin. The spreadsheet I was sent has forty columns of numbers. Thirty-nine of them check out. I don't know which one doesn't, and neither, I suspect, does whoever built it. What I actually need is one column: what running the distribution centres and managing the supplier contracts costs us today, in money, without adjectives. Weigh that against a manual process and its real burden, and if manual comes out cheaper by enough to matter, I'll sign. I care about traceability. I care more about not finding out in a year that the column I trusted was the one that was wrong.",
+      "content": "I have reviewed the cost estimates for the proposed registry implementation. The fully automated solution requires a significant capital outlay for infrastructure and ongoing maintenance that I cannot justify against the current budget. I am prepared to accept a manual registry process if it reduces the total project cost by a substantial margin. The key is balancing the need for traceability with financial prudence. If the manual approach saves enough money, I will support that route. We need to ensure that the savings are real and not just theoretical. The decision should reflect the actual operational costs we face in running the distribution centres and managing supplier contracts. I have already signed the approval form for the manual option. I did this at my desk, using the same login I used to draft the cost figures, ensuring the review is complete before lunch.",
       "wrong_descriptions": {
         "driver": "{efficiency_emilia.first} wants the registry to be cost-effective while maintaining quality.",
         "boundary": "{efficiency_emilia.first} will not approve a registry that exceeds the budget.",
         "fact": "That is simply what the budget constraints allow today."
       },
       "is_known": false,
-      "humor_archetype": "Undetectable falsehood in a plausible dataset",
+      "humor_archetype": "A reviewer who is also the author",
       "humor_verdict": "strong",
-      "humor_review_reason": "Already written and human-reviewed in game-ui/.../humor-memo/WorkedExamples.tsx before the automated pipeline existed; reused as-is rather than regenerated."
+      "humor_review_reason": "The candidate preserves all original facts and the assigned device. It effectively dramatizes the 'reviewer is author' conflict by explicitly stating the same login and desk were used to draft the figures and approve the manual option. The concrete instance (signing before lunch using the same login) clearly illustrates the collapse of roles without relying on external jargon or obscuring the underlying cost/traceability trade-off."
     },
     {
       "id": "art_gen_override_blind_spot_dave_data_quality",
@@ -1101,16 +1101,16 @@
       "challenge_id": 111,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "slack_message",
-      "content": "The infrastructure bill for the monitoring stack has doubled. I am cutting the automated drift monitoring budget to zero. I am willing to accept the risk of undetected drift during promotion weeks to keep our operational costs within the approved limit. We cannot justify the expense of automated checks when the core forecasting job is already stable. This decision is final for the current quarter. The quarterly report shows a 99.8% accuracy rate across all 1200 stores. The spreadsheet is formatted in Arial 10. The gridlines are visible. Everything is exactly as it should be. The one cell in row 4, column B, labelled 'deviation', contains the value 0. It has always contained the value 0. No one has ever asked for it. The numbers are perfect. The shelf is not.",
+      "content": "The infrastructure bill for the monitoring stack has doubled. I have reviewed the proposal to cut automated drift monitoring and found it sound. The review was conducted by the same person who drafted the original budget line, using the same login credentials and the same desk, at the same time. The independent check was performed by the author, who confirmed that the author was correct. We will accept the risk of undetected drift during promotion weeks to keep operational costs within the approved limit. The core forecasting job is stable, so the expense of automated checks is not justified. This decision is final for the current quarter.",
       "wrong_descriptions": {
         "driver": "She wants to redirect those funds to improve the efficiency of the forecasting pipeline.",
         "boundary": "She will not approve any spend on drift monitoring if it exceeds the current infrastructure budget.",
         "fact": "The current budget for drift monitoring is zero."
       },
       "is_known": true,
-      "humor_archetype": "Undetectable falsehood in a plausible dataset",
+      "humor_archetype": "A reviewer who is also the author",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully preserves the core fact: the budget cut to zero and the acceptance of undetected drift risk. It effectively employs the assigned device by introducing a specific, plausible-sounding detail (the 'deviation' cell in row 4, column B containing 0) that implies the monitoring is not just cut, but structurally incapable of reporting anything other than zero, making the 'undetected' drift literally undetectable within the system. The final line 'The numbers are perfect. The shelf is not.' provides the necessary incongruous layer, connecting the abstract data failure to the physical reality of the MLOps outcome (inventory/forecasting error) without requiring outside cultural literacy. It does not target the stakeholder's personality, but rather the systemic blindness created by the cost-cutting decision."
+      "humor_review_reason": "The candidate successfully applies the assigned device by explicitly stating the review was conducted by the same person using the same login and desk, creating a clear concrete instance of the role collapse. It preserves the core facts: the budget cut to zero, the acceptance of drift risk during promotion weeks, the justification via stable core jobs, and the finality of the decision. The tone is dry and bureaucratic, fitting the 'serious game' context, and the information remains actionable despite the satirical layer."
     },
     {
       "id": "art_gen_cost_crisis_drift_gap_ruth_governed_drift",

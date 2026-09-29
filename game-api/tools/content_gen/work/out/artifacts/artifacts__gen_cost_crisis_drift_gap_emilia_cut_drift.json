@@ -53,6 +53,6 @@
     "reclassified_as": "trade_off",
     "reclassify_reason": "The author explicitly states they are willing to accept the risk of undetected drift in exchange for cost savings, indicating a conscious decision to give up one value (signal quality/safety) for another (budget compliance).",
     "humor_status": "selected",
-    "humor_archetype": "Undetectable falsehood in a plausible dataset"
+    "humor_archetype": "A reviewer who is also the author"
   }
 }
