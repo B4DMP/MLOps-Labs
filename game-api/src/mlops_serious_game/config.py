@@ -109,6 +109,8 @@ class Settings(BaseSettings):
     POSTGRES_GAME_EVENT_TABLE: str = "game_event"
     POSTGRES_USER_SETTINGS_TABLE: str = "user_settings"
     POSTGRES_GAME_RESULT_TABLE: str = "game_result"
+    POSTGRES_BUG_REPORT_TABLE: str = "bug_report"
+    POSTGRES_BUG_REPORT_RECIPIENTS_TABLE: str = "bug_report_recipients"
     AUTO_MIGRATE: bool = Field(
         default=True,
         description=(
@@ -203,6 +205,19 @@ class Settings(BaseSettings):
     def _split_frontend_origins(cls, value):
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
+        return value
+
+    # --- Bug reports: who gets notified on a new "Report a Bug" submission. Admin-editable at
+    # runtime (bug_report_recipients table) - this is only the seed/fallback when no row exists.
+    BUG_REPORT_DEFAULT_RECIPIENTS: list[str] = Field(
+        default=["bela.veltrup@rwth-aachen.de", "slupczynski@dbis.rwth-aachen.de"],
+    )
+
+    @field_validator("BUG_REPORT_DEFAULT_RECIPIENTS", mode="before")
+    @classmethod
+    def _split_bug_report_recipients(cls, value):
+        if isinstance(value, str):
+            return [email.strip() for email in value.split(",") if email.strip()]
         return value
 
 import os

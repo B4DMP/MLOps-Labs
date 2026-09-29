@@ -18,6 +18,7 @@ from mlops_serious_game.infrastructure.routes.auth_routes import router as auth_
 from mlops_serious_game.infrastructure.routes.admin_routes import router as admin_router
 from mlops_serious_game.infrastructure.routes.glossary_routes import router as glossary_router
 from mlops_serious_game.infrastructure.routes.tts_routes import router as tts_router
+from mlops_serious_game.infrastructure.routes.bug_report_routes import router as bug_report_router
 from mlops_serious_game.infrastructure.websocket.router import router as websocket_router
 
 from mlops_serious_game.infrastructure.database import init_db, init_checkpointer, run_migrations
@@ -66,6 +67,7 @@ app.include_router(auth_router)
 app.include_router(admin_router)
 app.include_router(glossary_router)
 app.include_router(tts_router)
+app.include_router(bug_report_router)
 
 # Include Unified WebSocket Router (/ws)
 app.include_router(websocket_router)

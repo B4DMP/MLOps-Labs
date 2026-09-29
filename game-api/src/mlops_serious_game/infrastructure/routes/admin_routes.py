@@ -16,6 +16,10 @@ from mlops_serious_game.application.services.admin_service import (
     save_and_reload_config_file,
     trigger_generate_offline_intel_artifacts
 )
+from mlops_serious_game.application.services.bug_report_settings_service import (
+    get_recipients as get_bug_report_recipients,
+    update_recipients as update_bug_report_recipients,
+)
 from mlops_serious_game.application.services.admin_results import (
     get_player_results,
     get_results_dashboard,
@@ -320,4 +324,20 @@ async def send_test_email(req: TestEmailRequest, _: str = Depends(check_admin_to
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class BugReportRecipientsUpdateRequest(BaseModel):
+    recipients: list[str]
+
+
+@router.get("/bug-reports/recipients")
+async def get_bug_report_recipients_route(_: str = Depends(check_admin_token)):
+    return {"recipients": get_bug_report_recipients()}
+
+
+@router.post("/bug-reports/recipients")
+async def update_bug_report_recipients_route(
+    req: BugReportRecipientsUpdateRequest, _: str = Depends(check_admin_token)
+):
+    return {"recipients": update_bug_report_recipients(req.recipients)}
 

@@ -290,3 +290,46 @@ class GameResult(Base):
     time_stamp: Mapped[datetime.datetime] = mapped_column(
         DateTime, default=datetime.datetime.utcnow, nullable=False
     )
+
+
+class BugReportRow(Base):
+    """A player-submitted "Report a Bug" note, with a client-supplied debug snapshot attached.
+
+    No docker/container logs are gathered here - just what the browser already knows (current
+    phase/challenge, page URL, user agent) plus the player's own message.
+    """
+
+    __tablename__ = settings.POSTGRES_BUG_REPORT_TABLE
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    message: Mapped[str] = mapped_column(String(4000), nullable=False)
+    page_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
+    user_agent: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    debug_info: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
+    time_stamp: Mapped[datetime.datetime] = mapped_column(
+        DateTime, default=datetime.datetime.utcnow, nullable=False
+    )
+
+
+class BugReportRecipientsRow(Base):
+    """Single-row table (id=1) holding who gets emailed on a new bug report. Admin-editable via
+    /api/admin/bug-reports/recipients; falls back to `settings.BUG_REPORT_DEFAULT_RECIPIENTS`
+    when no row exists yet."""
+
+    __tablename__ = settings.POSTGRES_BUG_REPORT_RECIPIENTS_TABLE
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    recipients: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime,
+        default=datetime.datetime.utcnow,
+        onupdate=datetime.datetime.utcnow,
+        nullable=False,
+    )
