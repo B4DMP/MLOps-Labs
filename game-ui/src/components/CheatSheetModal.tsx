@@ -2,8 +2,11 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import { EmojiIcon } from "../utils/emojiIcons";
+import { submitBugReport } from "../services/api/bugReports";
 import styles from "./CheatSheetModal.module.css";
 import { INTEL_TAGS } from "../types/IntelTag";
+
+const MAX_BUG_MESSAGE_LENGTH = 4000;
 
 const STAMP_STYLE_CLASS: Record<string, string> = {
   verified: styles.miniStampVerified,
@@ -17,6 +20,11 @@ interface CheatSheetModalProps {
   /** Which card to scroll to and pop once the sheet opens, matching the screen it was opened
    * from. Omit to open scrolled to the top with no card called out. */
   activeSectionTitle?: string;
+  /** Debug context attached to a bug report filed from the "Report Bug" tab. */
+  username?: string;
+  currentPhase?: number;
+  currentChallenge?: number;
+  challengeTitle?: string;
 }
 
 interface CheatSheetSection {
@@ -145,13 +153,32 @@ const SECTIONS: CheatSheetSection[] = [
   },
 ];
 
-export default function CheatSheetModal({ isOpen, onClose, activeSectionTitle }: CheatSheetModalProps) {
+export default function CheatSheetModal({
+  isOpen,
+  onClose,
+  activeSectionTitle,
+  username,
+  currentPhase,
+  currentChallenge,
+  challengeTitle,
+}: CheatSheetModalProps) {
   const [isClosing, setIsClosing] = useState(false);
   const [poppingTitle, setPoppingTitle] = useState<string | null>(null);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
+  const [activeTab, setActiveTab] = useState<"guide" | "bug">("guide");
+  const [bugMessage, setBugMessage] = useState("");
+  const [bugStatus, setBugStatus] = useState<"idle" | "submitting" | "sent" | "error">("idle");
+  const [bugError, setBugError] = useState<string | null>(null);
+
   useEffect(() => {
-    if (isOpen) setIsClosing(false);
+    if (isOpen) {
+      setIsClosing(false);
+      setActiveTab("guide");
+      setBugMessage("");
+      setBugStatus("idle");
+      setBugError(null);
+    }
   }, [isOpen]);
 
   // Wait out the panel's own entrance animation (modalPop, ~0.25s) before scrolling, so the
@@ -189,6 +216,29 @@ export default function CheatSheetModal({ isOpen, onClose, activeSectionTitle }:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, isClosing]);
 
+  const handleBugSubmit = async () => {
+    if (!bugMessage.trim() || bugStatus === "submitting") return;
+    setBugStatus("submitting");
+    setBugError(null);
+    try {
+      await submitBugReport({
+        message: bugMessage.trim(),
+        debugInfo: {
+          timestamp: new Date().toISOString(),
+          username,
+          currentPhase,
+          currentChallenge,
+          challengeTitle,
+          userAgent: navigator.userAgent,
+        },
+      });
+      setBugStatus("sent");
+    } catch (e) {
+      setBugStatus("error");
+      setBugError(e instanceof Error ? e.message : "Could not submit your bug report.");
+    }
+  };
+
   if (!isOpen) return null;
 
   return createPortal(
@@ -217,6 +267,53 @@ export default function CheatSheetModal({ isOpen, onClose, activeSectionTitle }:
           />
         </div>
 
+        <div className={styles.tabBar}>
+          <button
+            type="button"
+            className={`${styles.tab} ${activeTab === "guide" ? styles.tabActive : ""}`}
+            onClick={() => setActiveTab("guide")}
+          >
+            <Icon icon="ph:question-bold" />
+            <span>Guide</span>
+          </button>
+          <button
+            type="button"
+            className={`${styles.tab} ${activeTab === "bug" ? styles.tabActive : ""}`}
+            onClick={() => setActiveTab("bug")}
+          >
+            <Icon icon="ph:bug-bold" />
+            <span>Report Bug</span>
+          </button>
+        </div>
+
+        {activeTab === "bug" ? (
+          <div className={styles.modalBody}>
+            {bugStatus === "sent" ? (
+              <p className={styles.successText}>
+                <Icon icon="ph:check-circle-bold" />
+                Thanks, we got it. We'll take a look.
+              </p>
+            ) : (
+              <>
+                <p className={styles.intro}>
+                  Ran into something broken or confusing? Describe what happened and what you
+                  expected instead.
+                </p>
+                <textarea
+                  className={styles.textarea}
+                  value={bugMessage}
+                  maxLength={MAX_BUG_MESSAGE_LENGTH}
+                  placeholder="What went wrong?"
+                  onChange={(e) => setBugMessage(e.target.value)}
+                />
+                <div className={styles.debugSummary}>
+                  <span>Sent along automatically: timestamp, username, current phase/challenge, page URL.</span>
+                </div>
+                {bugStatus === "error" && <p className={styles.errorText}>{bugError}</p>}
+              </>
+            )}
+          </div>
+        ) : (
         <div className={styles.modalBody}>
 
           {SECTIONS.map((section) => (
@@ -311,18 +408,46 @@ export default function CheatSheetModal({ isOpen, onClose, activeSectionTitle }:
             </div>
           ))}
         </div>
+        )}
 
         <div className={styles.footer}>
-          <div className={styles.footerHint}>
-            <Icon icon="ph:info-bold" className={styles.footerHintIcon} />
-            <span>Always one click away, top right of the dossier.</span>
-          </div>
-          <div className={styles.actions}>
-            <button className={styles.actionButton} onClick={handleClose}>
-              <span>Got it</span>
-              <Icon icon="ph:check-bold" />
-            </button>
-          </div>
+          {activeTab === "bug" ? (
+            bugStatus === "sent" ? (
+              <div className={styles.actions}>
+                <button className={styles.actionButton} onClick={handleClose}>
+                  <span>Done</span>
+                  <Icon icon="ph:check-bold" />
+                </button>
+              </div>
+            ) : (
+              <div className={styles.actions} style={{ justifyContent: "flex-end", gap: "0.6rem", width: "100%" }}>
+                <button className={styles.secondaryButton} onClick={handleClose}>
+                  Cancel
+                </button>
+                <button
+                  className={styles.actionButton}
+                  onClick={handleBugSubmit}
+                  disabled={!bugMessage.trim() || bugStatus === "submitting"}
+                >
+                  <span>{bugStatus === "submitting" ? "Sending…" : "Send Report"}</span>
+                  {bugStatus !== "submitting" && <Icon icon="ph:paper-plane-tilt-bold" />}
+                </button>
+              </div>
+            )
+          ) : (
+            <>
+              <div className={styles.footerHint}>
+                <Icon icon="ph:info-bold" className={styles.footerHintIcon} />
+                <span>Always one click away, top right of the dossier.</span>
+              </div>
+              <div className={styles.actions}>
+                <button className={styles.actionButton} onClick={handleClose}>
+                  <span>Got it</span>
+                  <Icon icon="ph:check-bold" />
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>,

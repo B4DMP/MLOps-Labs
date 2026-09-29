@@ -14,7 +14,6 @@ import { CHALLENGE_INTEL_META, INTEL_TAGS, intelTagMeta } from "../types/IntelTa
 import { faceForEmotionState, iconForEmotionState } from "../utils/emotionFace";
 import { healthBucket, healthBucketColor, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
 import CheatSheetModal from "./CheatSheetModal";
-import BugReportModal from "./BugReportModal";
 import HoverTooltip from "./HoverToolTip";
 
 /** Answer key for one authored item. Only sent when the API runs with ENABLE_DOSSIER_DEBUG. */
@@ -922,7 +921,6 @@ export default function StakeholderDossier({
 
   /** The cheat sheet is static reference content, so it needs no state from outside. */
   const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
-  const [isBugReportOpen, setIsBugReportOpen] = useState(false);
 
   // Track fading out highlight state
   const [fadingOutIntelId, setFadingOutIntelId] = useState<string | null>(null);
@@ -2472,18 +2470,10 @@ export default function StakeholderDossier({
             <HeaderIconButton
               icon="ph:question-bold"
               label="Cheat Sheet"
-              detail="Quick reference for every phase"
-              ariaLabel="Cheat Sheet: quick reference for every phase, in plain language"
+              detail="Quick reference for every phase, and a Report Bug tab"
+              ariaLabel="Cheat Sheet: quick reference for every phase, in plain language, and a Report Bug tab"
               active={isCheatSheetOpen}
               onClick={() => setIsCheatSheetOpen(true)}
-            />
-            <HeaderIconButton
-              icon="ph:bug-bold"
-              label="Report Bug"
-              detail="Something broken or confusing?"
-              ariaLabel="Report a Bug: tell us what went wrong"
-              active={isBugReportOpen}
-              onClick={() => setIsBugReportOpen(true)}
             />
           </div>
           <div className={styles.headerArrowGroup}>
@@ -2680,13 +2670,6 @@ export default function StakeholderDossier({
       isOpen={isCheatSheetOpen}
       onClose={() => setIsCheatSheetOpen(false)}
       activeSectionTitle={cheatSheetActiveSection}
-    />
-  );
-
-  const bugReport = (
-    <BugReportModal
-      isOpen={isBugReportOpen}
-      onClose={() => setIsBugReportOpen(false)}
       username={username}
       currentPhase={currentPhase}
       currentChallenge={currentChallenge}
@@ -2698,7 +2681,6 @@ export default function StakeholderDossier({
       <div style={{ width: "100%", height: "100%", minHeight: "450px", position: "relative", pointerEvents: "auto" }}>
         {windowContent}
         {cheatSheet}
-        {bugReport}
       </div>
     );
   }
@@ -2707,7 +2689,6 @@ export default function StakeholderDossier({
     <div className={styles.dossierOverlay}>
       {windowContent}
       {cheatSheet}
-      {bugReport}
     </div>
   );
 }
