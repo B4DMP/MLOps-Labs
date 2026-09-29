@@ -141,6 +141,8 @@ function App({ username: _username, onLogout }: AppProps) {
     let phase: GamePhaseLabel | null = null;
     if (progressionIndex === 4) {
       phase = "report";
+    } else if (progressionIndex === 1) {
+      phase = "briefing";
     } else if (progressionIndex === 2) {
       if (isPhaseDialogueOpen) {
         phase = "briefing";

@@ -27,7 +27,6 @@
     "@mui/system": "^7.3.9",
     "@mui/x-charts": "^8.27.5",
     "@types/intro.js": "^5.1.5",
-    "@types/video.js": "^7.3.58",
     "bootstrap": "^5.3.8",
     "chart.js": "^4.5.1",
     "countup.js": "^2.10.0",
@@ -43,8 +42,7 @@
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
     "react-pageflip": "^2.0.3",
-    "react-use-websocket": "^4.13.0",
-    "video.js": "^8.23.7"
+    "react-use-websocket": "^4.13.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

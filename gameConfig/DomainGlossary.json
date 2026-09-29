@@ -20,6 +20,12 @@
   },
   "categories": [
     {
+      "id": "company",
+      "label": "The Company & the Platform",
+      "color": "#3b82f6",
+      "icon": "ph:buildings-bold"
+    },
+    {
       "id": "store",
       "label": "In the Store",
       "color": "#f97316",
@@ -51,6 +57,24 @@
     }
   ],
   "terms": [
+    {
+      "id": "lindenmarkt",
+      "term": "Lindenmarkt",
+      "aliases": [
+        "the chain"
+      ],
+      "category": "company",
+      "definition": "The discount supermarket chain the game is set in: about 1200 stores, a small core range, and a middle aisle promotion that rotates every week.",
+      "why_it_matters": "Every stakeholder, every metric and every trade-off in this project is downstream of how this chain actually runs."
+    },
+    {
+      "id": "shelfcast",
+      "term": "Shelfcast",
+      "aliases": [],
+      "category": "company",
+      "definition": "Lindenmarkt's demand forecasting and replenishment platform. Every night it forecasts demand for every article in every store and turns that into order suggestions for the distribution centres.",
+      "why_it_matters": "This is the system the player is here to run. Every challenge in the game is a decision about what Shelfcast should do next."
+    },
     {
       "id": "liability",
       "term": "liability",
