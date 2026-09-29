@@ -46,6 +46,8 @@
   "output": {
     "content": "During the review of the evaluation pipeline, {model_monica} noted that the availability metric calculation in the monitoring dashboard has stopped updating correctly. The underlying job that computes the KPI from the point of sale scan lines fails silently after the nightly batch completes. Because the system output is unreliable, the team currently exports the raw scan data and calculates the availability figures manually in a spreadsheet before each weekly review. This manual step takes about an hour and is performed by whoever is on call for the model team. The dashboard widget still displays the last successful value from three weeks ago, which no longer reflects current store performance.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text describes the current operational state of the pipeline failure, the resulting manual workaround, and the stale dashboard data without expressing a wish, refusal, or explicit trade-off."
+    "reclassify_reason": "The text describes the current operational state of the pipeline failure, the resulting manual workaround, and the stale dashboard data without expressing a wish, refusal, or explicit trade-off.",
+    "humor_status": "selected",
+    "humor_archetype": "Personification"
   }
 }

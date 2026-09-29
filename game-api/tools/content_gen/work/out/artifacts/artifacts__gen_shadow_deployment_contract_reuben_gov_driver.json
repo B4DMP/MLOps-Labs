@@ -49,6 +49,8 @@
   "output": {
     "content": "I want the shadow deployment environment to be fully governed so that every data flow is auditable and compliant with our internal security policies. The more rigorous the access controls and the clearer the audit trail, the safer we are. I am not asking for a minimal setup. I am asking for a fully governed environment where every step is logged and verifiable. This is the baseline for protecting the live forecast and ensuring we meet our data protection obligations.",
     "reclassified_as": "driver",
-    "reclassify_reason": "The text explicitly states that 'the more rigorous the access controls... the safer we are' and clarifies that a minimal setup is insufficient, indicating that exceeding the basic request for governance increases satisfaction."
+    "reclassify_reason": "The text explicitly states that 'the more rigorous the access controls... the safer we are' and clarifies that a minimal setup is insufficient, indicating that exceeding the basic request for governance increases satisfaction.",
+    "humor_status": "selected",
+    "humor_archetype": "Silence mistaken for testimony"
   }
 }
