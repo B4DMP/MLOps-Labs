@@ -527,6 +527,7 @@ export default function EngagementCardTargetModal({
                                 stakeholderColor={stColor}
                                 stakeholderId={st.id}
                                 isFramed={true}
+                                backgroundColor="#ffffff"
                                 play_blink_animation={false}
                                 size="100%"
                                 title={st.name}
