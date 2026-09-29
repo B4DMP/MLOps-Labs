@@ -6,7 +6,6 @@ const CATALOG: { archetype: string; technique: number; example: string }[] = [
   { archetype: "Literal scale collision", technique: 6, example: "The consent question is item 4 on the agenda, between office plant rotation and kitchen fridge cleaning schedule." },
   { archetype: "Retroactively-satisfiable criterion", technique: 5, example: "“The agreed goals” get decided after the results are in." },
   { archetype: "Silence mistaken for testimony", technique: 5, example: "The feature store hears a shrug and writes down zero, like someone gave it that number on purpose." },
-  { archetype: "Undetectable falsehood in a plausible dataset", technique: 5, example: "Forty columns of numbers. Thirty-nine check out. Nobody knows which one doesn't." },
   { archetype: "Banal contingency collision", technique: 6, example: "The only heatwave plan on record recommends more scarves." },
   { archetype: "Procedural self-sabotage", technique: 6, example: "The shadow run is queued behind the deploy it's supposed to clear." },
   { archetype: "Representation mistaken for reality", technique: 6, example: "The display's plastic vegetables were the only produce left in the store." },
@@ -17,6 +16,7 @@ const CATALOG: { archetype: string; technique: number; example: string }[] = [
   { archetype: "A label unrevised by the reality it names", technique: 6, example: "The flooded warehouse's stock is still labeled on the schedule as “as forecasted.”" },
   { archetype: "A health check that asks the wrong question", technique: 5, example: "The dashboard's green light only asks whether the service is breathing, not whether the numbers make sense." },
   { archetype: "A gap left idling with a pet's patience", technique: 5, example: "The deploy job sits by the door like a dog waiting to be let out." },
+  { archetype: "A reviewer who is also the author", technique: 5, example: "The independent check was performed by the author, who confirmed that the author was correct." },
 ];
 
 export default function WorkedExamples() {
@@ -129,12 +129,12 @@ export default function WorkedExamples() {
 
       <Example
         kind="artifact"
-        archetype="undetectable falsehood in a plausible dataset"
+        archetype="a reviewer who is also the author"
         title="Reuben's governance memo"
         source="OfflineIntelArtifacts.json:267, Committed Pallets"
         original="The supplier has confirmed the bulk order for the middle aisle promotion, and the trucks leave next week. Because the physical stock is already committed, there is no room for model error in the allocation logic. I am not willing to approve this release if the acceptance criteria remain manual. We must have the criteria fully governed to guarantee the logic is auditable before the goods ship. Manual checks are not sufficient for this scale of financial and operational risk. I will not sign off on the deployment until the governance framework is in place and the audit trail is verifiable. This is a hard requirement for my team. We cannot accept the liability of an unauditable automated decision when the inventory is already locked in with the supplier."
-        rewriteLabel="Rewrite (149 words)"
-        rewrite={`Quick note: the trucks roll next week, the order's confirmed, the stock is committed, and there is no room in this plan for the model to be wrong. I won't approve the release with manual acceptance criteria. An unauditable automated decision might be flawless, or it might be wrong in exactly one place, and once the trucks leave there is no way to find out which. The logic needs to be governed and auditable before goods ship. Manual checks aren't sufficient for risk at this scale. I will not sign off until the governance framework is in place and the audit trail is verifiable end to end. This is a hard requirement for my team. Once the trucks leave, the inventory is locked in with the supplier, and I am not the one explaining afterward why an unauditable decision made the call. That liability is not mine to carry.`}
+        rewriteLabel="Rewrite (150 words)"
+        rewrite={`The supplier confirmed the bulk order; trucks leave next week. With physical stock committed, there is no room for model error. I will not approve this release if the acceptance criteria remain manual. We must have the criteria fully governed to guarantee the logic is auditable before the goods ship. Manual checks are insufficient for this scale of financial and operational risk. I will not sign off until the governance framework is in place and the audit trail is verifiable. This is a hard requirement. We cannot accept the liability of an unauditable automated decision when the inventory is already locked in with the supplier. The current manual check is a performance. The developer writes the logic, then, from the same desk and using the same login, clicks approve as the compliance officer. It is the same afternoon, the same chair, and the same tired eyes checking their own work.`}
       />
 
       <Example
@@ -177,11 +177,11 @@ export default function WorkedExamples() {
 
       <Example
         kind="artifact"
-        archetype="undetectable falsehood in a plausible dataset"
+        archetype="a reviewer who is also the author"
         title="Emilia's registry document"
         source="OfflineIntelArtifacts.json:856, The Override Blind Spot"
         original="I have reviewed the cost estimates for the proposed registry implementation. The fully automated solution requires a significant capital outlay for infrastructure and ongoing maintenance that I cannot justify against the current budget. I am prepared to accept a manual registry process if it reduces the total project cost by a substantial margin. The key is balancing the need for traceability with financial prudence. If the manual approach saves enough money, I will support that route. We need to ensure that the savings are real and not just theoretical. The decision should reflect the actual operational costs we face in running the distribution centres and managing supplier contracts."
-        rewrite="I have reviewed the cost estimates for the proposed registry implementation. The fully automated solution needs capital and upkeep I can't justify against the current budget. I will accept a manual registry if it cuts total project cost by a substantial margin. The spreadsheet I was sent has forty columns of numbers. Thirty-nine of them check out. I don't know which one doesn't, and neither, I suspect, does whoever built it. What I actually need is one column: what running the distribution centres and managing the supplier contracts costs us today, in money, without adjectives. Weigh that against a manual process and its real burden, and if manual comes out cheaper by enough to matter, I'll sign. I care about traceability. I care more about not finding out in a year that the column I trusted was the one that was wrong."
+        rewrite="I have reviewed the cost estimates for the proposed registry implementation. The fully automated solution requires a significant capital outlay for infrastructure and ongoing maintenance that I cannot justify against the current budget. I am prepared to accept a manual registry process if it reduces the total project cost by a substantial margin. The key is balancing the need for traceability with financial prudence. If the manual approach saves enough money, I will support that route. We need to ensure that the savings are real and not just theoretical. The decision should reflect the actual operational costs we face in running the distribution centres and managing supplier contracts. I have already signed the approval form for the manual option. I did this at my desk, using the same login I used to draft the cost figures, ensuring the review is complete before lunch."
       />
 
       <Example
@@ -274,9 +274,9 @@ export default function WorkedExamples() {
       <DialogueExample
         speaker="efficiency_emilia, relieved"
         emotion="relieved"
-        archetype="undetectable falsehood in a plausible dataset"
+        archetype="a reviewer who is also the author"
         original="This proposal directly addresses the silent store gap by locking down the ingestion pipeline. Raising the validation to fully governed status will prevent these gaps from slipping through. I'm fully supportive of this path forward."
-        rewrite="This proposal directly addresses the silent store gap by locking down the ingestion pipeline. Raising the validation to fully governed status will prevent these gaps from slipping through, the same gap that would currently wave through a scan line for a product we stopped selling two years ago. I'm fully supportive of this path forward."
+        rewrite="This proposal directly addresses the silent store gap by locking down the ingestion pipeline. Raising the validation to fully governed status will prevent these gaps from slipping through, the same validation that's currently signed off by whoever wrote it, same login, same afternoon. I'm fully supportive of this path forward."
       />
     </Section>
   );

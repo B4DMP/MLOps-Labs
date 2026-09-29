@@ -16,11 +16,11 @@ YOUR ASSIGNED DEVICE (from \`content_gen select-humor\` - see humor_selection.py
 DEVICE REFERENCE (your assigned one is above; the rest are here only so you know what "a health check" or "personification" means as a category):
 - Retroactively-satisfiable criterion: a vague trade-off condition that can always be declared met after the fact.
 - Silence mistaken for testimony: an absence gets treated as a deliberate, on-purpose data point.
-- Undetectable falsehood in a plausible dataset: almost everything checks out, and not knowing which one thing doesn't is the joke.
 - Recursive bureaucracy: a process needs its own meta-process (a form to approve the form).
 - Personification: an inanimate process or object is described as having its own attitude toward the rule it's bound by.
 - A health check that asks the wrong question: a shallow check (did it run) stands in for the real one (is it correct) - land it with one concrete, absurd, still-plausible example of what the shallow check would wave through.
 - A gap left idling with a pet's patience: an automation gap, anthropomorphized as waiting patiently for a human to notice.
+- A reviewer who is also the author: a process meant to have independent review turns out to be the same person checking their own work under a different hat - land it with one concrete instance of exactly how the two roles collapse into one (the same login, the same afternoon, the same desk).
 [ADD ANY NEWLY SHIPPED DEVICE HERE]
 
 HARD CONSTRAINTS (a strict adversarial reviewer will reject anything that breaks these, no partial credit):
@@ -142,6 +142,8 @@ export default function Process() {
             <li>Bias-clean and length-clean isn't sufficient &mdash; trace the joke's mechanism against the challenge's own component before checking whether it's funny.</li>
             <li>An accurate description of a gap isn't a joke about it &mdash; "only checks if it ran, not if it's correct" is still just the mechanism; "would pass a coin flip too" is the joke. Bit us twice before it became guardrail 16.</li>
             <li>"Institutional euphemism" and "institutional metaphor transplant" both retired outright: each only lands if the reader already recognizes an outside register (corporate-speak, a courtroom, a sports replay booth) as the thing being satirized, and the actual player is an MLOps novice, not a seasoned practitioner. Generalized into guardrail 17 &mdash; no device may require outside professional/cultural literacy, for any technique, not just garnish.</li>
+            <li>"Undetectable falsehood in a plausible dataset" retired too, for a different reason: unlike every other device, its own concept supplies no comic mechanism &mdash; "there's an error and you'll never find it" is unease, not a joke, until something else genuinely funny gets bolted on. Replaced with "a reviewer who is also the author," which has a real structural irony built in (guardrail 18).</li>
+            <li>The automated writer/reviewer pair had quietly drifted from the hand-designed prompts on this page: the reviewer stopped receiving the original artifact and fact at all, so "preserves every fact" and "causally consistent" were unverifiable and had been rubber-stamping everything. The hand-written prompts above already had this right from the start &mdash; the Python port just never carried it over faithfully.</li>
           </ul>
 
           <Collapsible label="reusable writer + reviewer prompts">

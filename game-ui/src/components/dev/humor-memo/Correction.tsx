@@ -24,10 +24,10 @@ Per-state menu (technique-5 devices only - nothing needing the full 150 words to
 - overwhelmed -> recursive bureaucracy
 - skeptical -> personification
 - frustrated -> a gap left idling with a pet's patience
-- anxious -> a health check that asks the wrong question, or undetectable falsehood in a plausible dataset
+- anxious -> a health check that asks the wrong question
 - angry -> silence mistaken for testimony
 - enthusiastic -> retroactively-satisfiable criterion
-- relieved -> undetectable falsehood in a plausible dataset, or a label unrevised by the reality it names
+- relieved -> a reviewer who is also the author, or a label unrevised by the reality it names
 - apathetic / neutral -> none, omit this block`;
 
 export default function Correction() {
