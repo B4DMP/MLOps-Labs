@@ -12,7 +12,7 @@ const BASE_URL = `${PROTOCOL}//${API_HOST}`;
 // Identity rides an httpOnly cookie now, never a token the JS holds
 // (docs/plans/session-persistence-and-url-routing.md, D-cookies/D-login-response).
 export interface LoginResponse {
-  type: "login_success" | "admin_login_success" | "verification_required";
+  type: "login_success" | "admin_login_success" | "teacher_login_success" | "verification_required";
   username?: string;
 }
 
@@ -39,6 +39,7 @@ export interface ResetPasswordResponse {
 export interface WhoamiResponse {
   player: { username: string } | null;
   admin: { valid: true } | null;
+  teacher: { id: number; user_name: string } | null;
 }
 
 async function postJson<T>(
@@ -122,7 +123,7 @@ export async function resetPassword(
 export async function whoami(): Promise<WhoamiResponse> {
   const response = await fetch(`${BASE_URL}/api/auth/whoami`, { credentials: "include" });
   if (!response.ok) {
-    return { player: null, admin: null };
+    return { player: null, admin: null, teacher: null };
   }
   return response.json();
 }
@@ -137,6 +138,14 @@ export async function logout(): Promise<void> {
 
 export async function adminLogout(): Promise<void> {
   await fetch(`${BASE_URL}/api/auth/admin-logout`, {
+    method: "POST",
+    credentials: "include",
+    headers: { ...csrfHeaders() },
+  });
+}
+
+export async function teacherLogout(): Promise<void> {
+  await fetch(`${BASE_URL}/api/auth/teacher-logout`, {
     method: "POST",
     credentials: "include",
     headers: { ...csrfHeaders() },

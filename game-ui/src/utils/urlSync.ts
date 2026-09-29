@@ -20,7 +20,8 @@ export type ScreenPath =
   | "/forgot-password"
   | "/reset-password"
   | "/game"
-  | "/admin";
+  | "/admin"
+  | "/teacher";
 
 /** Pushes a new history entry for a screen-level navigation, unless already there. */
 export function pushScreen(path: ScreenPath): void {
@@ -59,6 +60,7 @@ export function currentScreenPath(): ScreenPath {
     "/forgot-password",
     "/reset-password",
     "/admin",
+    "/teacher",
   ];
   return known.find((p) => p === pathname) ?? "/";
 }

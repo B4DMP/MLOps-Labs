@@ -5,11 +5,13 @@ from mlops_serious_game.application.services.auth_service import (
     ADMIN_COOKIE_NAME,
     CSRF_COOKIE_NAME,
     PLAYER_COOKIE_NAME,
+    TEACHER_COOKIE_NAME,
     authenticate_user,
     change_password as change_password_service,
     change_username as change_username_service,
     clear_admin_cookie,
     clear_player_cookie,
+    clear_teacher_cookie,
     confirm_email_change as confirm_email_change_service,
     forgot_password,
     register_user,
@@ -17,8 +19,10 @@ from mlops_serious_game.application.services.auth_service import (
     reset_password,
     set_admin_cookie,
     set_player_cookie,
+    set_teacher_cookie,
     sliding_refresh_admin,
     sliding_refresh_player,
+    sliding_refresh_teacher,
     verify_email_code,
     verify_player_token,
 )
@@ -104,6 +108,13 @@ async def login(req: LoginRequest, request: Request, response: Response):
             response, secure=_is_secure(request), existing_csrf=request.cookies.get(CSRF_COOKIE_NAME)
         )
         return {"type": "admin_login_success"}
+
+    if result.get("is_teacher"):
+        set_teacher_cookie(
+            response, result["teacher_id"], result["username"],
+            secure=_is_secure(request), existing_csrf=request.cookies.get(CSRF_COOKIE_NAME),
+        )
+        return {"type": "teacher_login_success", "username": result["username"]}
 
     if result.get("needs_verification"):
         return {"type": "verification_required", "username": result["username"]}
@@ -195,9 +206,13 @@ async def whoami(request: Request, response: Response):
     admin_valid = sliding_refresh_admin(
         request.cookies.get(ADMIN_COOKIE_NAME), response, secure=secure, existing_csrf=existing_csrf
     )
+    teacher = sliding_refresh_teacher(
+        request.cookies.get(TEACHER_COOKIE_NAME), response, secure=secure, existing_csrf=existing_csrf
+    )
     return {
         "player": {"username": player_username} if player_username else None,
         "admin": {"valid": True} if admin_valid else None,
+        "teacher": {"id": teacher["id"], "user_name": teacher["user_name"]} if teacher else None,
     }
 
 
@@ -210,6 +225,12 @@ async def logout(response: Response):
 @router.post("/admin-logout")
 async def admin_logout(response: Response):
     clear_admin_cookie(response)
+    return {"success": True}
+
+
+@router.post("/teacher-logout")
+async def teacher_logout(response: Response):
+    clear_teacher_cookie(response)
     return {"success": True}
 
 

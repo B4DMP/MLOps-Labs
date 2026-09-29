@@ -13,7 +13,7 @@ from mlops_serious_game.application.services.auth_service import (
     ADMIN_COOKIE_NAME,
     CSRF_COOKIE_NAME,
     PLAYER_COOKIE_NAME,
-    _hash_password,
+    hash_password,
 )
 from mlops_serious_game.config import settings
 from mlops_serious_game.infrastructure.api import app
@@ -54,7 +54,7 @@ def registered_player():
             campaign_key=campaign_key,
             campaign_id=campaign.id,
             email=f"{username}@example.test",
-            password_hash=_hash_password(password),
+            password_hash=hash_password(password),
             users_on_machine=1,
             is_verified=True,
         ))
@@ -99,7 +99,7 @@ def test_whoami_reflects_no_session(client):
     response = fresh_client.get("/api/auth/whoami")
 
     assert response.status_code == 200
-    assert response.json() == {"player": None, "admin": None}
+    assert response.json() == {"player": None, "admin": None, "teacher": None}
 
 
 def test_whoami_reflects_player_session(client, registered_player):
@@ -109,7 +109,7 @@ def test_whoami_reflects_player_session(client, registered_player):
     response = client.get("/api/auth/whoami")
 
     assert response.status_code == 200
-    assert response.json() == {"player": {"username": username}, "admin": None}
+    assert response.json() == {"player": {"username": username}, "admin": None, "teacher": None}
 
 
 def _csrf_headers(client) -> dict[str, str]:

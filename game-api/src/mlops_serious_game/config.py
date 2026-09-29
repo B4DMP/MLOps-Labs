@@ -109,6 +109,8 @@ class Settings(BaseSettings):
     POSTGRES_GAME_EVENT_TABLE: str = "game_event"
     POSTGRES_USER_SETTINGS_TABLE: str = "user_settings"
     POSTGRES_GAME_RESULT_TABLE: str = "game_result"
+    POSTGRES_TEACHER_DATA_TABLE: str = "teacher_data"
+    POSTGRES_TEACHER_CAMPAIGN_TABLE: str = "teacher_campaign_data"
     AUTO_MIGRATE: bool = Field(
         default=True,
         description=(

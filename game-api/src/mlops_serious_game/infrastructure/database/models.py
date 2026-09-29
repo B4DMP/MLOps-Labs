@@ -66,6 +66,44 @@ class Campaign(Base):
     require_email_verification: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
 
+class Teacher(Base):
+    """A monitoring-only account (docs/plans/teacher-role.md): can watch the players of its
+    assigned campaigns in real time, but has none of the admin panel's editing rights. Unlike
+    the admin account (settings.ADMIN_USER, no DB row), teachers are plural and self-contained,
+    so they get a real table - created and password-managed only by an admin, never by
+    self-registration."""
+
+    __tablename__ = settings.POSTGRES_TEACHER_DATA_TABLE
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_name: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime, default=datetime.datetime.utcnow, nullable=False
+    )
+
+
+class TeacherCampaign(Base):
+    """Which campaigns a teacher may monitor - a teacher sees nothing outside this join, unlike
+    the admin preview route which can pick any campaign set on the fly."""
+
+    __tablename__ = settings.POSTGRES_TEACHER_CAMPAIGN_TABLE
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    teacher_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey(f"{settings.POSTGRES_TEACHER_DATA_TABLE}.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    campaign_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey(f"{settings.POSTGRES_CAMPAIGN_DATA_TABLE}.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
 class GameProgression(Base):
     __tablename__ = settings.POSTGRES_PROGRESSION_DATA_TABLE
 

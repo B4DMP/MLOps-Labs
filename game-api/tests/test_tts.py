@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from mlops_serious_game.application.services import user_settings_service
-from mlops_serious_game.application.services.auth_service import _hash_password, register_user
+from mlops_serious_game.application.services.auth_service import hash_password, register_user
 from mlops_serious_game.application.services.tts_service import (
     DEFAULT_PLAYER_VOICE_GENDER,
     FIXED_VOICES,
@@ -143,7 +143,7 @@ def logged_in_player(client):
             campaign_key=TEST_CAMPAIGN_KEY,
             campaign_id=campaign.id,
             email=f"{username}@example.test",
-            password_hash=_hash_password(password),
+            password_hash=hash_password(password),
             users_on_machine=1,
             is_verified=True,
         ))
@@ -238,7 +238,7 @@ def logged_in_player_with_voice_gender(client):
                 campaign_key=TEST_CAMPAIGN_KEY,
                 campaign_id=campaign.id,
                 email=f"{username}@example.test",
-                password_hash=_hash_password(password),
+                password_hash=hash_password(password),
                 users_on_machine=1,
                 is_verified=True,
             ))
@@ -342,7 +342,7 @@ def test_tts_endpoint_speed_setting_shifts_the_rate(client):
             campaign_key=TEST_CAMPAIGN_KEY,
             campaign_id=campaign.id,
             email=f"{username}@example.test",
-            password_hash=_hash_password(password),
+            password_hash=hash_password(password),
             users_on_machine=1,
             is_verified=True,
         ))

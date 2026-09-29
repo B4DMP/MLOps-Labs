@@ -27,6 +27,7 @@ ChartJS.register(
 import { ConfigEditor } from "./ConfigEditor";
 import { GraphDebug } from "./GraphDebug";
 import AdminResults from "./Results/AdminResults";
+import TeacherManager from "./TeacherManager";
 import {
   fetchAdminDashboard,
   fetchAdminEmailStatus,
@@ -120,7 +121,7 @@ export function Admin({
   questionaire_results,
 }: AdminProps) {
   // Navigation
-  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis" | "results" | "graph_debug" | "email">("config");
+  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis" | "results" | "graph_debug" | "teachers" | "email">("config");
 
   // Email / SMTP state
   const [emailStatus, setEmailStatus] = useState<AdminEmailStatus | null>(null);
@@ -590,6 +591,14 @@ export function Admin({
             </button>
             <button
               type="button"
+              className={`${styles.navTab} ${activeSubpage === "teachers" ? styles.navTabActive : ""}`}
+              onClick={() => setActiveSubpage("teachers")}
+            >
+              <Icon icon="ph:chalkboard-teacher-bold" />
+              <span>Teachers</span>
+            </button>
+            <button
+              type="button"
               className={`${styles.navTab} ${activeSubpage === "email" ? styles.navTabActive : ""}`}
               onClick={() => setActiveSubpage("email")}
             >
@@ -604,6 +613,7 @@ export function Admin({
             {activeSubpage === "analysis" && "Research metrics and questionnaire evaluations"}
             {activeSubpage === "results" && "How finished games went: grades, pillars, and each player's own results"}
             {activeSubpage === "graph_debug" && "Inspect the MLOps pipeline graph state per player"}
+            {activeSubpage === "teachers" && "Manage teacher accounts and their live monitoring access"}
             {activeSubpage === "email" && "Inspect SMTP configuration and send test emails"}
           </div>
         </div>
@@ -1687,6 +1697,11 @@ export function Admin({
               <GraphDebug adminToken={adminToken} campaigns={campaigns} players={players} />
             </div>
           )}
+
+          {/* ======================================================== */}
+          {/* SUBPAGE: TEACHER ACCOUNTS & LIVE MONITORING              */}
+          {/* ======================================================== */}
+          {activeSubpage === "teachers" && <TeacherManager campaigns={campaigns} />}
 
           {/* ======================================================== */}
           {/* SUBPAGE 5: SMTP EMAIL CONFIGURATION & TEST               */}

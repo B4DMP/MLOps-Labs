@@ -8,6 +8,7 @@ import { ResetPassword } from "./components/ResetPassword";
 import Game from "./Game";
 import ErrorDialog from "./components/ErrorDialog";
 import { Admin } from "./components/Admin";
+import { Teacher } from "./components/Teacher";
 import LoadingScreen from "./components/LoadingScreen";
 import { ReadyState } from "./services/websocket/types";
 
@@ -20,6 +21,7 @@ import {
   whoami,
   logout as logoutApi,
   adminLogout as adminLogoutApi,
+  teacherLogout as teacherLogoutApi,
 } from "./services/api/auth";
 import {
   fetchAdminDashboard,
@@ -77,6 +79,8 @@ function App() {
   const [registerError, setRegisterError] = useState("");
   const [isInAdminUi, setIsInAdminUi] = useState(false);
   const [adminToken, setAdminToken] = useState("");
+  const [isInTeacherUi, setIsInTeacherUi] = useState(false);
+  const [teacherUserName, setTeacherUserName] = useState("");
 
   // Whether the initial `whoami` check (mount-time session restore) is still in flight - shows
   // LoadingScreen instead of flashing Home first (docs/plans/session-persistence-and-url-routing.md).
@@ -126,6 +130,19 @@ function App() {
     updateAdminState(dashData);
   };
 
+  const enterTeacherUi = async (loggedInTeacherName?: string) => {
+    setIsInLoginUi(false);
+    setIsInRegisterUi(false);
+    setIsInTeacherUi(true);
+    if (loggedInTeacherName) {
+      setTeacherUserName(loggedInTeacherName);
+    } else {
+      const result = await whoami();
+      if (result.teacher) setTeacherUserName(result.teacher.user_name);
+    }
+    pushScreen("/teacher");
+  };
+
   // Path-scoped guard logic (docs/plans/session-persistence-and-url-routing.md, D-guards):
   // `/game` and `/` ask `whoami` and look at `player` only; `/admin` looks at `admin` only;
   // `/login`/`/register`/etc render unconditionally, never consulting either cookie for gating -
@@ -147,6 +164,16 @@ function App() {
       const result = await whoami();
       if (result.admin) {
         await enterAdminUi();
+      } else {
+        setIsInLoginUi(true);
+        pushScreen("/login");
+      }
+      return;
+    }
+    if (path === "/teacher") {
+      const result = await whoami();
+      if (result.teacher) {
+        await enterTeacherUi(result.teacher.user_name);
       } else {
         setIsInLoginUi(true);
         pushScreen("/login");
@@ -187,8 +214,10 @@ function App() {
   const handleSessionExpired = () => {
     setIsInGame(false);
     setIsInAdminUi(false);
+    setIsInTeacherUi(false);
     setUsername("");
     setAdminToken("");
+    setTeacherUserName("");
     setIsInLoginUi(true);
     pushScreen("/login");
     setLoginError("Your session expired. Please log in again.");
@@ -216,6 +245,17 @@ function App() {
     }
   };
 
+  const handleTeacherLogout = async () => {
+    try {
+      await teacherLogoutApi();
+    } finally {
+      setIsInTeacherUi(false);
+      setTeacherUserName("");
+      setIsInLoginUi(true);
+      pushScreen("/login");
+    }
+  };
+
   const handleLoginSubmit = async (inputUsername: string, password: string, loginStartMuted: boolean) => {
     setIsAuthenticating(true);
     setLoginError("");
@@ -225,6 +265,8 @@ function App() {
         enterGameAsPlayer(inputUsername, loginStartMuted);
       } else if (data.type === "admin_login_success") {
         await enterAdminUi();
+      } else if (data.type === "teacher_login_success") {
+        await enterTeacherUi(data.username);
       } else if (data.type === "verification_required") {
         setUsername(inputUsername);
         setPendingPassword(password);
@@ -629,6 +671,16 @@ function App() {
                   intro_questionaire_average={introQuestionaireAverage}
                   outro_questionaire_average={outroQuestionaireAverage}
                   questionaire_results={questionaireResults}
+                />
+              </motion.div>
+            );
+          } else if (isInTeacherUi) {
+            return (
+              <motion.div {...FADE_TRANSITION} key="teacher" style={screenStyle}>
+                <Teacher
+                  userName={teacherUserName}
+                  onLogout={handleTeacherLogout}
+                  onSessionExpired={handleSessionExpired}
                 />
               </motion.div>
             );
