@@ -43,6 +43,8 @@
   "output": {
     "content": "I need the loyalty basket model deployed before the leaflet print run locks. The promotion deadline is immovable, and every hour of delay pushes the allocation error closer to a stockout on the first morning. I am happy to insert a manual approval gate into the pipeline if that keeps the legal team comfortable. I just need that gate to be a single click, not a full audit review. The faster we get the model live, the better the residual stock numbers will look for the middle aisle. I am not asking to skip the check, but I am asking for the check to be quick enough to keep the pipeline moving without stalling the entire release train.",
     "reclassified_as": "driver",
-    "reclassify_reason": "The author explicitly states that the faster the model is deployed, the better the outcome will be, indicating that exceeding the minimum speed requirement would increase their satisfaction."
+    "reclassify_reason": "The author explicitly states that the faster the model is deployed, the better the outcome will be, indicating that exceeding the minimum speed requirement would increase their satisfaction.",
+    "humor_status": "selected",
+    "humor_archetype": "A gap left idling with a pet's patience"
   }
 }

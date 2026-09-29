@@ -1,0 +1,56 @@
+{
+  "item_id": "humor:gen_heatwave_kpi_gap_emilia_kpi_boundary",
+  "stage": "humor",
+  "input_hash": "c63e376acd7bb0ba07b15c294dd0c01f307edceaba93f3c3a15dc7c7a09dfaee",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "original_content": "We need to lock the definition of success before we build any new tracking. The margin on the promotion week is the only metric that matters to the business right now. If a KPI definition does not include that specific number, I will not sign off on it. We cannot let operational speed or model accuracy override the financial reality of the promotion. Any proposal that ignores the margin on the promotion week is a no from my side. We are not negotiating this point. The strategy is clear, and the KPIs must reflect it exactly. Do not bring me a dashboard that measures availability or waste in isolation without tying it back to that margin figure. That is the line.",
+    "device": "A health check that asks the wrong question",
+    "requirement": {
+      "id": "gen_heatwave_kpi_gap_emilia_kpi_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "boundary",
+      "description": "{efficiency_emilia} brought up the need for KPI definitions to reflect the margin on the promotion week. {efficiency_emilia} will not accept any KPI definition that does not include margin on the promotion week.",
+      "fact": "{efficiency_emilia} brought up the need for KPI definitions to reflect the margin on the promotion week.",
+      "reading": "{efficiency_emilia} will not accept any KPI definition that does not include margin on the promotion week.",
+      "metric_id": "efficiency",
+      "suggested": null,
+      "holds": {
+        "component": "req.kpi_definition",
+        "op": "gte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.kpi_definition",
+          "value": 2
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "challenge": {
+      "name": "The Summer Forecast Gap",
+      "description": "A sudden heatwave has skewed demand for seasonal goods, exposing that our KPI definitions do not account for weather driven spikes. #model_monica# wants to automate the KPI tracking to capture these shifts in real time, while #efficiency_emilia# prefers to keep the process manual to ensure every metric aligns with the broader business strategy. #efficiency_emilia# might accept an automated solution if it clearly supports the agreed business goals."
+    }
+  },
+  "output": {
+    "content": "We must lock the definition before building. The margin on the promotion week is the only metric that matters. If a KPI definition does not include that specific number, I will not sign off. We cannot let operational speed override financial reality. Any proposal ignoring that margin is a no. The strategy is clear. Do not bring me a dashboard measuring availability or waste without tying it to that margin figure. That is the line. {model_monica} wants real time tracking, but I need the business goal first. The current manual check asks if the report generated. It does not ask if the report is right. Last week, the tracker confirmed the margin calculation ran successfully. It did not check that the margin was actually negative. The green light was accurate. The business was bleeding. We need a definition that catches the gap, not just a timestamp.",
+    "device": "A health check that asks the wrong question",
+    "verdict": {
+      "verdict": "strong",
+      "reason": "The candidate successfully preserves the core fact that {efficiency_emilia} (implied as the speaker/authority, though the name is missing from the text, the stance is identical) refuses KPIs without the promotion week margin. It effectively uses the assigned device: the 'shallow check' is the system confirming the report 'ran successfully' (status: green), while the 'real check' is whether the margin is negative (substance: bleeding). The concrete example of a green light masking a financial loss is absurd yet plausible in an MLOps context where pipeline success is often conflated with data validity. It does not invent a new causal mechanism but dramatizes the gap between operational status and business correctness.",
+      "used_assigned_device": true
+    }
+  }
+}

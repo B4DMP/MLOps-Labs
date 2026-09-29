@@ -8,7 +8,7 @@
     "challenge": {
       "phase_id": 1,
       "template_id": "ch_loyalty_consent_gap",
-      "name": "The Consent Void",
+      "name": "The Loyalty Data Audit",
       "description": "A legal audit flagged that loyalty basket data lacks valid consent records, breaking the legal basis for using it in forecasts. #requirements_reuben# demands the data contracts be fully automated and governed to enforce consent checks before any data enters the pipeline. #efficiency_emilia# argues that manual review is sufficient for now to avoid delaying the promotion planning cycle, though she might accept a middle ground if it does not stall the weekly leaflet.",
       "roundIntroduction": "The compliance team suspended access to the loyalty app basket feed after discovering that retention policies were not documented in the data contracts. The KPI definitions for the next promotion cycle were never formally agreed upon, leaving the team without a clear baseline for how to handle the missing personal data signals.",
       "metric_changes": {},
@@ -279,7 +279,7 @@
         },
         "metric_id": "requirements",
         "suggested_target": "req.data_contracts",
-        "suggested_level": 4,
+        "suggested_level": 3,
         "holds": null,
         "ops": [],
         "concedes_metric": null,
@@ -288,7 +288,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "governance",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "emilia_contracts_compromise",
@@ -306,8 +319,6 @@
         "suggested_level": null,
         "holds": null,
         "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
         "concedes_target": "req.data_contracts",
         "concedes_max_level": 2,
         "asserts_target": null,
@@ -315,10 +326,17 @@
         "asserts_trigger": null,
         "branch_x_description": "the data contracts fully governed with automated consent checks",
         "branch_x_target": "req.data_contracts",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "manual review of the data contracts",
         "branch_y_target": "req.data_contracts",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "concedes_axis": "automation",
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "reuben_kpi_baseline",
@@ -337,14 +355,15 @@
         "holds": {
           "component": "req.kpi_definition",
           "op": "gte",
-          "level": 2
+          "level": 2,
+          "axis": "automation"
         },
         "ops": [
           {
             "kind": "raise_to",
             "target": "req.kpi_definition",
             "value": 2,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": null,
@@ -353,7 +372,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "emilia_efficiency_focus",
@@ -373,17 +405,21 @@
         "ops": [],
         "concedes_metric": "efficiency",
         "concedes_loss": 2,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
         "branch_x_description": "consent checks fully automated in the data contracts",
         "branch_x_target": "req.data_contracts",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "a faster, manual contract review",
         "branch_y_target": "req.data_contracts",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "alex_pipeline_stability",
@@ -403,17 +439,21 @@
         "ops": [],
         "concedes_metric": "automation",
         "concedes_loss": 3,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
         "branch_x_description": "the data contracts fully governed and automated",
         "branch_x_target": "req.data_contracts",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "a temporary manual step in contract review",
         "branch_y_target": "req.data_contracts",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "ruth_monitoring_gap",
@@ -437,7 +477,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "automation",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_contracts_missing",
@@ -461,55 +514,19 @@
         "concedes_max_level": null,
         "asserts_target": "req.data_contracts",
         "asserts_level": 0,
-        "asserts_trigger": null
-      },
-      {
-        "key": "fact_kpi_missing",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "The KPI definitions are currently missing from the system.",
-        "readings": {
-          "driver": "The absence of KPI definitions is a problem that needs addressing for alignment.",
-          "boundary": "The absence of KPI definitions is a line that no one will cross without agreement.",
-          "trade_off": "The absence of KPI definitions is accepted if it keeps the project moving.",
-          "fact": "That is simply how the KPI definition setup works today."
-        },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": "req.kpi_definition",
-        "asserts_level": 1,
-        "asserts_trigger": null
-      },
-      {
-        "key": "fact_risk_missing",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "The risk assessment is currently missing from the system.",
-        "readings": {
-          "driver": "The absence of a risk assessment is a problem that needs addressing for compliance.",
-          "boundary": "The absence of a risk assessment is a line that no one will cross without agreement.",
-          "trade_off": "The absence of a risk assessment is accepted if it keeps the project moving.",
-          "fact": "That is simply how the risk assessment setup works today."
-        },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": "req.risk_assessment",
-        "asserts_level": 1,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       }
     ]
   }

@@ -12,6 +12,10 @@
   diff [--stage S]                    what the current config would make stale
   assemble [--dry-run]                writes approved content into gameConfig
   validate                            runs the content gates on gameConfig
+  select-humor [--seed S] [--ratio R] [--per-challenge-cap N] [--dry-run]
+                                       deterministically flags the next batch of artifacts
+                                       for a humor pass (see humor_selection.py) - re-running
+                                       with the same seed/ratio is a no-op
 """
 
 import argparse
@@ -203,6 +207,45 @@ def cmd_assemble(ctx, ledger, args) -> int:
     return 0
 
 
+def cmd_select_humor(ctx, ledger, args) -> int:
+    from content_gen.humor_selection import assign_archetypes, plan_selection
+
+    art_dir = ctx.work_dir / "out" / "artifacts"
+    files = sorted(art_dir.glob("*.json"))
+    records = []
+    for path in files:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        output = data.get("output", {})
+        records.append({
+            "item_id": data["item_id"],
+            "challenge": data["inputs"]["challenge"]["name"],
+            "humor_status": output.get("humor_status", "unselected"),
+            "has_archetype": "humor_archetype" in output,
+            "path": path,
+        })
+
+    chosen = set(plan_selection(
+        [{"item_id": r["item_id"], "challenge": r["challenge"], "humor_status": r["humor_status"]} for r in records],
+        seed=args.seed, ratio=args.ratio, per_challenge_cap=args.per_challenge_cap,
+    ))
+    already_assigned_count = sum(1 for r in records if r["has_archetype"])
+    devices = assign_archetypes([r["item_id"] for r in records if r["item_id"] in chosen], already_assigned_count, args.seed)
+
+    for r in records:
+        if r["item_id"] not in chosen:
+            continue
+        archetype = devices[r["item_id"]]
+        print(f"selected  {r['item_id']}  ({r['challenge']})  -> {archetype}")
+        if not args.dry_run:
+            data = json.loads(r["path"].read_text(encoding="utf-8"))
+            data["output"]["humor_status"] = "selected"
+            data["output"]["humor_archetype"] = archetype
+            r["path"].write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+    print(f"{len(chosen)} artifact(s) {'would be ' if args.dry_run else ''}selected")
+    return 0
+
+
 def cmd_validate(ctx, ledger, args) -> int:
     from content_gen.gates import run_gates
 
@@ -260,12 +303,17 @@ def main(argv=None) -> int:
     p = sub.add_parser("assemble")
     p.add_argument("--dry-run", action="store_true")
     sub.add_parser("validate")
+    p = sub.add_parser("select-humor")
+    p.add_argument("--seed", default="shelfcast-humor-v1")
+    p.add_argument("--ratio", type=float, default=0.35)
+    p.add_argument("--per-challenge-cap", type=int, default=1)
+    p.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
 
     ctx = Context.load(args.config, args.work, args.scope)
     ledger = Ledger(ctx.ledger_path)
     try:
-        return globals()[f"cmd_{args.cmd}"](ctx, ledger, args)
+        return globals()[f"cmd_{args.cmd.replace('-', '_')}"](ctx, ledger, args)
     finally:
         ledger.close()
 

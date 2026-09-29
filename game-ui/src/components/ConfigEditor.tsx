@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { EmojiIcon } from "../utils/emojiIcons";
 import { JsonForms, withJsonFormsControlProps } from "@jsonforms/react";
 import { scopeEndsWith, rankWith, type ControlProps } from "@jsonforms/core";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
@@ -525,7 +526,7 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
         <div className="card bg-dark text-light border-info mb-4 shadow-lg overflow-hidden">
           <div className="card-header bg-gradient d-flex justify-content-between align-items-center py-2 px-3" style={{ backgroundColor: "#1e293b", borderBottom: "1px solid rgba(56, 189, 248, 0.4)" }}>
             <div className="d-flex align-items-center gap-2">
-              <span className="fs-5">🎭</span>
+              <span className="fs-5"><EmojiIcon name="emotion" /></span>
               <h5 className="mb-0 text-info fw-bold" style={{ fontSize: "1.05rem" }}>
                 Stakeholder Avatars Live Preview <small className="text-muted fw-normal ms-2">(Open Peeps • Animated Blink Active)</small>
               </h5>
@@ -614,12 +615,12 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
                           )}
                           {av.accessories && (
                             <span className="badge bg-dark border border-secondary text-light" style={{ fontSize: "0.7rem" }}>
-                              👓 {av.accessories}
+                              <EmojiIcon name="avatarGlasses" /> {av.accessories}
                             </span>
                           )}
                           {av.facialHair && av.facialHairProbability !== 0 && (
                             <span className="badge bg-dark border border-secondary text-light" style={{ fontSize: "0.7rem" }}>
-                              🧔 {av.facialHair}
+                              <EmojiIcon name="avatarBeard" /> {av.facialHair}
                             </span>
                           )}
                           {av.skinColor && (

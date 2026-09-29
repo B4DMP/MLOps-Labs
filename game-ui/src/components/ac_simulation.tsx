@@ -15,6 +15,7 @@
 import { useEffect, useState, useContext, useRef, useLayoutEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
+import { EmojiIcon } from "../utils/emojiIcons";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import ActionCardCardComponent from "./ActionCardCardComponent";
 import PhaseOverview from "./PhaseOverview";
@@ -841,11 +842,13 @@ export default function AcSimulation({
                               : styles.outcomeVetoBroken;
 
                           const statusLabel =
-                            st.status === "committed"
-                              ? "🟢 Committed"
-                              : st.status === "resistant"
-                              ? "🟡 Resistant (Friction)"
-                              : "🔴 Overruled (Escalation)";
+                            st.status === "committed" ? (
+                              <><EmojiIcon name="dotGreen" /> Committed</>
+                            ) : st.status === "resistant" ? (
+                              <><EmojiIcon name="dotYellow" /> Resistant (Friction)</>
+                            ) : (
+                              <><EmojiIcon name="dotRed" /> Overruled (Escalation)</>
+                            );
 
                           return (
                             <div key={st.stakeholder_id} className={styles.stakeholderCard}>

@@ -1,0 +1,50 @@
+{
+  "item_id": "humor:gen_cost_crisis_drift_gap_fact_drift_absent",
+  "stage": "humor",
+  "input_hash": "a1a0f1510d2a8ea42312b9df05643f226577876551d0190236d4778060c910ff",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "original_content": "The production drift monitoring pipeline has been throwing errors since the last deployment. The automated alerts that used to flag when forecast accuracy dipped below threshold no longer fire. The team now relies on a manual workaround, checking the validation metrics dashboard every morning before the forecast job starts to see if anything looks off. This process depends on someone remembering to look. It is the only way we currently catch issues before they hit the stores. The underlying service is still deployed, but the configuration is stale and the connection to the feature store times out, which is why the automated checks fail.",
+    "device": "A health check that asks the wrong question",
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_fact_drift_absent",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "Production drift monitoring is broken. That is simply the state of the system today.",
+      "fact": "Production drift monitoring is broken.",
+      "reading": "That is simply the state of the system today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "ops.production_drift_monitoring",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "challenge": {
+      "name": "The Cost Cliff",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "Drift monitoring is broken. Automated alerts are silent. The team now performs a manual health check each morning: they verify the validation dashboard loads. If the page renders, the check passes. This stands in for the real question of whether the numbers are correct. The underlying service is deployed, but the configuration is stale and the feature store connection times out. Consequently, the dashboard happily displays last week's metrics as if they were current. A concrete example of what this misses: if the model suddenly predicts that every store needs zero pallets of garden furniture for the promotion week, the dashboard will still load successfully. It confirms the service is alive. It does not confirm the forecast is sane. We are currently relying on someone remembering to look at the validation dashboard before the forecast job starts to catch this. That is the only safeguard left.",
+    "device": "A health check that asks the wrong question",
+    "verdict": {
+      "verdict": "strong",
+      "reason": "The candidate successfully preserves the core fact that production drift monitoring is broken and relies on manual checks. It correctly identifies the shallow check (does the dashboard load?) versus the real check (are the numbers correct?). The concrete example (predicting zero pallets of garden furniture) is absurd yet plausible in a retail context, and it clearly demonstrates the failure mode: the system reports 'alive' while the data is nonsensical. The assigned device is used effectively to highlight the gap between operational status and data integrity.",
+      "used_assigned_device": true
+    }
+  }
+}

@@ -582,14 +582,15 @@
         "holds": {
           "component": "deploy.shadow",
           "op": "gte",
-          "level": 4
+          "level": 3,
+          "axis": "governance"
         },
         "ops": [
           {
             "kind": "raise_to",
             "target": "deploy.shadow",
-            "value": 4,
-            "attr": null
+            "value": 3,
+            "axis": "governance"
           }
         ],
         "concedes_metric": null,
@@ -598,7 +599,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "alex_shadow_tradeoff",
@@ -618,17 +632,21 @@
         "ops": [],
         "concedes_metric": "automation",
         "concedes_loss": 3,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
         "branch_x_description": "governing the shadow environment on its own",
         "branch_x_target": "deploy.shadow",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "leaving the shadow deployment a manual step",
         "branch_y_target": "deploy.shadow",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "ruth_cicd_driver",
@@ -643,14 +661,13 @@
         },
         "metric_id": "reliability",
         "suggested_target": "e.cicd_shadow",
-        "suggested_level": 4,
+        "suggested_level": 3,
         "holds": null,
         "ops": [
           {
             "kind": "set_trigger",
             "target": "e.cicd_shadow",
-            "value": "on_new_version",
-            "attr": null
+            "value": "on_new_version"
           }
         ],
         "concedes_metric": null,
@@ -659,7 +676,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "governance",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "reuben_gov_driver",
@@ -674,14 +704,14 @@
         },
         "metric_id": "requirements",
         "suggested_target": "deploy.shadow",
-        "suggested_level": 4,
+        "suggested_level": 3,
         "holds": null,
         "ops": [
           {
             "kind": "raise_to",
             "target": "deploy.shadow",
-            "value": 4,
-            "attr": null
+            "value": 3,
+            "axis": "governance"
           }
         ],
         "concedes_metric": null,
@@ -690,7 +720,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "governance",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "emilia_eff_tradeoff",
@@ -710,17 +753,21 @@
         "ops": [],
         "concedes_metric": "efficiency",
         "concedes_loss": 2,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
         "branch_x_description": "running an automated shadow environment",
         "branch_x_target": "deploy.shadow",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "accepting a manual shadow run instead",
         "branch_y_target": "deploy.shadow",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "alex_orch_tradeoff",
@@ -740,17 +787,21 @@
         "ops": [],
         "concedes_metric": "automation",
         "concedes_loss": 4,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
         "branch_x_description": "automating the shadow environment's orchestration",
         "branch_x_target": "deploy.shadow",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "keeping the shadow orchestration a manual step",
         "branch_y_target": "deploy.shadow",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "fact_shadow_missing",
@@ -774,55 +825,19 @@
         "concedes_max_level": null,
         "asserts_target": "deploy.shadow",
         "asserts_level": 0,
-        "asserts_trigger": null
-      },
-      {
-        "key": "fact_cicd_shadow_edge",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "The pipeline connection from the CI/CD pipeline to the shadow deployment is manual and has no trigger set.",
-        "readings": {
-          "driver": "The team wants this connection to be automated and triggered on every new model version to ensure continuous validation.",
-          "boundary": "The stakeholder will not allow this connection to be changed until the shadow environment is fully stable and governed.",
-          "trade_off": "The stakeholder would accept a manual trigger for this connection if the automated setup is not yet ready.",
-          "fact": "That is simply the current configuration of the pipeline, with no automatic connection between the CI/CD and shadow deployment."
-        },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": "e.cicd_shadow",
-        "asserts_level": 1,
-        "asserts_trigger": "none"
-      },
-      {
-        "key": "fact_serving_level",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "The model serving endpoint is manual and runs on a manual request trigger for the forecast service.",
-        "readings": {
-          "driver": "The team wants the serving endpoint to be automated to handle the increased load from the shadow environment.",
-          "boundary": "The stakeholder will not change the serving endpoint configuration if it risks disrupting the live forecast service during the promotion week.",
-          "trade_off": "The stakeholder would accept a manual serving setup if the automated configuration is not yet stable.",
-          "fact": "That is simply the current state of the serving endpoint, with no automatic scaling or triggering in place."
-        },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": "deploy.serving",
-        "asserts_level": 2,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       }
     ]
   }

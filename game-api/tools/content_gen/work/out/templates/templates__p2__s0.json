@@ -528,61 +528,61 @@
         "kind": "set_to",
         "target": "data.feature_store",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "data.ingestion",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "data.labeling",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "data.training_drift_check",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "data.validation",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "data.versioning",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.ingest_validate",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.label_version",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.validate_version",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.version_driftcheck",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       }
     ],
     "conflict_candidates": [
@@ -605,7 +605,8 @@
     "preconditions": {
       "component": "data.ingestion",
       "op": "gte",
-      "level": 2
+      "level": 2,
+      "axis": "automation"
     },
     "priority": 80,
     "on_enter_ops": [
@@ -613,8 +614,8 @@
         "kind": "set_to",
         "target": "data.ingestion",
         "value": 0,
-        "attr": null,
-        "reason": "The nightly batch job crashed due to a schema mismatch in the new store master data."
+        "reason": "The nightly batch job crashed due to a schema mismatch in the new store master data.",
+        "axis": "automation"
       }
     ],
     "stalemate_ops": [
@@ -622,8 +623,8 @@
         "kind": "set_to",
         "target": "e.ingest_validate",
         "value": 0,
-        "attr": null,
-        "reason": "Without a resolution on ingestion reliability, the validation link is disabled to prevent bad data from propagating."
+        "reason": "Without a resolution on ingestion reliability, the validation link is disabled to prevent bad data from propagating.",
+        "axis": "automation"
       }
     ],
     "conflict": {
@@ -631,11 +632,13 @@
       "positions": [
         {
           "stakeholder_id": "reliability_ruth",
-          "wants": 4
+          "wants": 3,
+          "axis": "governance"
         },
         {
           "stakeholder_id": "data_dave",
-          "wants": 2
+          "wants": 2,
+          "axis": "automation"
         }
       ]
     }

@@ -1,0 +1,50 @@
+{
+  "item_id": "humor:gen_shadow_deployment_contract_fact_shadow_missing",
+  "stage": "humor",
+  "input_hash": "8272dc720706275d0b2d970989ce05e6b177bee8f9f3e96e12870de168bdb137",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "original_content": "The shadow deployment environment is currently broken, so we cannot route live traffic to a candidate model for comparison. The pipeline that was supposed to mirror production data to the shadow instance stopped working after the last infrastructure update, and the logs show the connection failing immediately. Because that setup is not functioning, the team is manually exporting a sample of recent production inputs and running the candidate model against that static dataset in a separate notebook. This manual step is the only way to check if a new version behaves correctly before we consider promoting it. The shadow infrastructure itself is still provisioned, but it is not receiving any data.",
+    "device": "A gap left idling with a pet's patience",
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_fact_shadow_missing",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The shadow deployment environment is broken, so no new model version can be verified against live traffic. That is simply the current state of the system, with the shadow deployment setup in a broken state.",
+      "fact": "The shadow deployment environment is broken, so no new model version can be verified against live traffic.",
+      "reading": "That is simply the current state of the system, with the shadow deployment setup in a broken state.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "deploy.shadow",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "challenge": {
+      "name": "The Locked Shadow",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "The shadow deployment environment is broken. We cannot route live traffic to a candidate model for comparison. The pipeline mirroring production data stopped working after the last infrastructure update; logs show the connection failing immediately. The team now manually exports a sample of recent production inputs and runs the candidate model against that static dataset in a separate notebook. This manual step is the only way to check if a new version behaves correctly before promoting it. The shadow infrastructure remains provisioned but receives no data. It sits there with the unblinking patience of a cat waiting for a treat. It has been waiting since the infrastructure update for any live data to arrive, and it remains perfectly content to wait indefinitely.",
+    "device": "A gap left idling with a pet's patience",
+    "verdict": {
+      "verdict": "strong",
+      "reason": "The candidate preserves all critical facts from the original artifact, including the broken state, the manual workaround, and the specific cause (infrastructure update). It successfully employs the assigned device by anthropomorphizing the idle infrastructure as a cat waiting for a treat. The concrete instance required by the device is provided ('waiting since the infrastructure update') and the specific object of the wait ('any live data') is clearly stated. The metaphor is simple enough for a novice to understand without external cultural literacy, and the humor lands without obscuring the operational reality or targeting individual competence.",
+      "used_assigned_device": true
+    }
+  }
+}

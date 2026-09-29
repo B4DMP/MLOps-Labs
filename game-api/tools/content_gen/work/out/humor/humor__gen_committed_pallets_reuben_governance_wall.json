@@ -1,0 +1,56 @@
+{
+  "item_id": "humor:gen_committed_pallets_reuben_governance_wall",
+  "stage": "humor",
+  "input_hash": "7890bce74fed92efef881b8c86140227e4ba30f845f5ab4e72dfd256e7a2f1d0",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "original_content": "The supplier has confirmed the bulk order for the middle aisle promotion, and the trucks leave next week. Because the physical stock is already committed, there is no room for model error in the allocation logic. I am not willing to approve this release if the acceptance criteria remain manual. We must have the criteria fully governed to guarantee the logic is auditable before the goods ship. Manual checks are not sufficient for this scale of financial and operational risk. I will not sign off on the deployment until the governance framework is in place and the audit trail is verifiable. This is a hard requirement for my team. We cannot accept the liability of an unauditable automated decision when the inventory is already locked in with the supplier.",
+    "device": "A reviewer who is also the author",
+    "requirement": {
+      "id": "gen_committed_pallets_reuben_governance_wall",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} proposed that the acceptance criteria be governed to make the allocation logic auditable. He will not approve the release if the acceptance criteria remain below the governed level.",
+      "fact": "{requirements_reuben} proposed that the acceptance criteria be governed to make the allocation logic auditable.",
+      "reading": "He will not approve the release if the acceptance criteria remain below the governed level.",
+      "metric_id": "requirements",
+      "suggested": null,
+      "holds": {
+        "component": "req.acceptance_criteria",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.acceptance_criteria",
+          "value": 4
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "challenge": {
+      "name": "The Committed Pallets",
+      "description": "A supplier has confirmed a bulk order for a middle aisle promotion that ships next week, leaving no room for model error. #requirements_reuben# insists the acceptance criteria must be fully governed to guarantee the allocation logic is auditable before the trucks leave. #reliability_ruth# argues the criteria are sufficient as manual checks because the physical stock is already committed and the team needs to ship the feature immediately to handle the live orders."
+    }
+  },
+  "output": {
+    "content": "The supplier confirmed the bulk order; trucks leave next week. With physical stock committed, there is no room for model error. I will not approve this release if the acceptance criteria remain manual. We must have the criteria fully governed to guarantee the logic is auditable before the goods ship. Manual checks are insufficient for this scale of financial and operational risk. I will not sign off until the governance framework is in place and the audit trail is verifiable. This is a hard requirement. We cannot accept the liability of an unauditable automated decision when the inventory is already locked in with the supplier. The current manual check is a performance. The developer writes the logic, then, from the same desk and using the same login, clicks approve as the compliance officer. It is the same afternoon, the same chair, and the same tired eyes checking their own work.",
+    "device": "A reviewer who is also the author",
+    "verdict": {
+      "verdict": "strong",
+      "reason": "The candidate preserves the core fact: the author refuses to approve the release because the acceptance criteria are not governed/auditable, specifically due to the locked-in supplier inventory. It correctly identifies the mechanism (lack of governance/auditability for a high-stakes automated decision) and does not invent a new causal chain. The assigned device (reviewer = author) is used effectively to dramatize the 'manual check' deficiency by providing a concrete, incongruous instance: the same person, same login, same desk, and same afternoon performing both the coding and the compliance approval. This lands the joke without obscuring the technical requirement for a verifiable audit trail. It does not target the stakeholder's competence but rather the structural flaw of the process (manual checks collapsing into self-review).",
+      "used_assigned_device": true
+    }
+  }
+}

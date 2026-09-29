@@ -82,13 +82,13 @@ export default function Techniques() {
         <div className="card-body">
           <p>A joke needs a reversal, a loop, or a reveal &mdash; not just dry tone. Restricted to single-voice content: each side gets its own artifact, so any bias is symmetric by construction. Not for two-stakeholder briefs &mdash; see technique 6.</p>
           <ul className="mb-2">
-            <li><strong>Recursive bureaucracy</strong> &mdash; a process needs its own meta-process (a form to approve the form).</li>
-            <li><strong>Unresolved resolution</strong> &mdash; a full agreement is signed, and nobody checked if the real problem got fixed.</li>
             <li><strong>Retroactively-satisfiable criterion</strong> &mdash; a vague trade-off condition that can always be declared met after the fact.</li>
-            <li><strong>Institutional euphemism</strong> &mdash; a refusal dressed in escalating official language.</li>
             <li><strong>Silence mistaken for testimony</strong> &mdash; an absence or non-response gets treated as a deliberate, on-purpose data point (a shrug logged as an answer).</li>
-            <li><strong>Undetectable falsehood in a plausible dataset</strong> &mdash; almost everything in a record checks out, and the joke is not knowing which one figure doesn't.</li>
-            <li><strong>Institutional metaphor transplant</strong> &mdash; a rigorous outside process (a courtroom, a quarantine, a sports replay booth) gets mapped completely and sustained in the stakeholder's own voice.</li>
+            <li><strong>A reviewer who is also the author</strong> &mdash; a process meant to have independent review turns out to be the same person checking their own work under a different hat.</li>
+            <li><strong>Recursive bureaucracy</strong> &mdash; a process needs its own meta-process (a form to approve the form).</li>
+            <li><strong>Personification</strong> &mdash; an inanimate process or object is described as having its own attitude toward the rule it's bound by.</li>
+            <li><strong>A health check that asks the wrong question</strong> &mdash; a shallow check (did it run) stands in for the real one (is it correct); lands with one concrete, absurd, still-plausible example of what the shallow check would wave through.</li>
+            <li><strong>A gap left idling with a pet's patience</strong> &mdash; an automation gap, anthropomorphized as waiting patiently for a human to notice.</li>
           </ul>
           <p className="mb-0">Check if one is already latent in the artifact before reaching for something else.</p>
         </div>

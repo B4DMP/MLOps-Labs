@@ -106,6 +106,7 @@ class ItemOut(BaseModel):
     # trade-off, each pulled from something already established for the challenge, never invented.
     branch_x_description: Optional[str] = None
     branch_x_target: Optional[str] = None
+    branch_x_axis: Optional[AxisName] = Field(default=None, description="required with branch_x_target")
     branch_x_level: Optional[int] = None
     branch_x_ops: list[StanceOp] = Field(
         default_factory=list, description="optional extra raise_to ops for a composite branch_x, "
@@ -113,6 +114,7 @@ class ItemOut(BaseModel):
     )
     branch_y_description: Optional[str] = None
     branch_y_target: Optional[str] = None
+    branch_y_axis: Optional[AxisName] = Field(default=None, description="required with branch_y_target")
     branch_y_level: Optional[int] = None
     branch_y_ops: list[StanceOp] = Field(
         default_factory=list, description="optional extra raise_to ops for a composite branch_y, "
@@ -313,6 +315,7 @@ class ItemsStage:
                     data[branch] = {
                         "description": it[f"{branch}_description"],
                         "target": it.get(f"{branch}_target"),
+                        "axis": it.get(f"{branch}_axis"),
                         "level": it.get(f"{branch}_level"),
                         "ops": branch_ops,
                     }
@@ -534,6 +537,8 @@ _LEVEL_FIELDS = (
     ("suggested_level", "suggested_axis", "suggested_target", "suggested"),
     ("concedes_max_level", "concedes_axis", "concedes_target", "concedes"),
     ("asserts_level", "asserts_axis", "asserts_target", "asserts"),
+    ("branch_x_level", "branch_x_axis", "branch_x_target", "branch_x"),
+    ("branch_y_level", "branch_y_axis", "branch_y_target", "branch_y"),
 )
 
 

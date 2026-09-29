@@ -46,6 +46,8 @@
   "output": {
     "content": "The production drift monitoring pipeline has been throwing errors since the last deployment. The automated alerts that used to flag when forecast accuracy dipped below threshold no longer fire. The team now relies on a manual workaround, checking the validation metrics dashboard every morning before the forecast job starts to see if anything looks off. This process depends on someone remembering to look. It is the only way we currently catch issues before they hit the stores. The underlying service is still deployed, but the configuration is stale and the connection to the feature store times out, which is why the automated checks fail.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text describes the current operational state, specific technical failures, and the manual workaround in use without expressing a wish, refusal, acceptance, or explicit trade-off."
+    "reclassify_reason": "The text describes the current operational state, specific technical failures, and the manual workaround in use without expressing a wish, refusal, acceptance, or explicit trade-off.",
+    "humor_status": "selected",
+    "humor_archetype": "A health check that asks the wrong question"
   }
 }

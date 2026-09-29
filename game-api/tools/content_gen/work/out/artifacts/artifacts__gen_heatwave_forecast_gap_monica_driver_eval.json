@@ -49,6 +49,8 @@
   "output": {
     "content": "I need the evaluation harness to run automatically so I can test new weather features without waiting for a manual queue. The northern region is already showing significant drift in seasonal demand during heat events, and the current forecast misses the mark badly on those articles. If I can iterate on the feature set overnight, I can catch those shifts before the next promotion week locks in. Every additional hour spent on manual documentation delays the model update, which means more residual stock in the warehouse. I want the system to flag when a new feature improves accuracy so I can move it to production immediately.",
     "reclassified_as": "driver",
-    "reclassify_reason": "The author explicitly states that being able to iterate overnight would allow them to catch demand shifts before a deadline, indicating that fulfilling this need for speed would make them happier by reducing stock risk."
+    "reclassify_reason": "The author explicitly states that being able to iterate overnight would allow them to catch demand shifts before a deadline, indicating that fulfilling this need for speed would make them happier by reducing stock risk.",
+    "humor_status": "selected",
+    "humor_archetype": "Retroactively-satisfiable criterion"
   }
 }

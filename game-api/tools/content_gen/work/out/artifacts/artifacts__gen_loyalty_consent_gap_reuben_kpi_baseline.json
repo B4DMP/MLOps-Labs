@@ -43,13 +43,15 @@
       "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
     },
     "challenge": {
-      "name": "The Consent Void",
+      "name": "The Loyalty Data Audit",
       "description": "A legal audit flagged that loyalty basket data lacks valid consent records, breaking the legal basis for using it in forecasts. #requirements_reuben# demands the data contracts be fully automated and governed to enforce consent checks before any data enters the pipeline. #efficiency_emilia# argues that manual review is sufficient for now to avoid delaying the promotion planning cycle, though she might accept a middle ground if it does not stall the weekly leaflet."
     }
   },
   "output": {
     "content": "The audit confirmed that loyalty basket records lack valid consent, so that data is out of scope until the legal basis is restored. I am not evaluating any model against the next promotion cycle until the KPI definitions are formally documented and signed off. The current draft definitions are not agreed, and I will not proceed on assumptions. I expect the team to deliver a governed, automated consent check before any personal data re-enters the pipeline. I will not accept a manual review as a permanent fix, and I will not approve a model that relies on data without a verified legal basis. The KPI documentation is a prerequisite for my sign off, not a parallel task.",
     "reclassified_as": "boundary",
-    "reclassify_reason": "The text explicitly states conditions under which the author will refuse to proceed or accept solutions, such as 'I will not accept a manual review' and 'I will not approve a model that relies on data without a verified legal basis', which define hard limits rather than wishes or trade-offs."
+    "reclassify_reason": "The text explicitly states conditions under which the author will refuse to proceed or accept solutions, such as 'I will not accept a manual review' and 'I will not approve a model that relies on data without a verified legal basis', which define hard limits rather than wishes or trade-offs.",
+    "humor_status": "selected",
+    "humor_archetype": "Recursive bureaucracy"
   }
 }

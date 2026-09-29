@@ -432,7 +432,7 @@
 .stakeholderCard:hover:not(.stakeholderDisabled) {
   border-color: rgba(56, 189, 248, 0.6);
   background: linear-gradient(145deg, rgba(38, 52, 75, 0.95) 0%, rgba(20, 30, 50, 0.98) 100%);
-  transform: translateY(-2px);
+  transform: scale(1.02);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
 }
 
@@ -583,7 +583,7 @@
 .intelCard:hover:not(.intelDisabled) {
   border-color: rgba(56, 189, 248, 0.6);
   background: linear-gradient(145deg, rgba(38, 52, 75, 0.95) 0%, rgba(20, 30, 50, 0.98) 100%);
-  transform: translateY(-2px);
+  transform: scale(1.02);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
 }
 

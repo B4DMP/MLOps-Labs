@@ -1,0 +1,51 @@
+{
+  "item_id": "humor:gen_heatwave_kpi_gap_emilia_risk_manual",
+  "stage": "humor",
+  "input_hash": "53257c2f6d67603f68c870ff37ce3e95926fdd9db2d24e16497b9160e75360c9",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "original_content": "I see the current risk assessment for weather driven spikes is done by hand, which slows down our response to heatwaves. I am prepared to accept an automated system for this task if it includes a manual override specifically for legal issues. This allows us to maintain strict compliance with our contractual obligations while gaining the speed we need. Without that safety valve, I cannot support automation, as the risk of an unreviewed legal breach is too high for my comfort. I want the system to handle the routine calculations so my team can focus on strategy, but only if we retain final control over the sensitive parts.",
+    "device": "Retroactively-satisfiable criterion",
+    "requirement": {
+      "id": "gen_heatwave_kpi_gap_emilia_risk_manual",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted that the risk assessment is currently done by hand. {efficiency_emilia} would accept automated risk assessment if it includes a manual override for legal issues.",
+      "fact": "{efficiency_emilia} noted that the risk assessment is currently done by hand.",
+      "reading": "{efficiency_emilia} would accept automated risk assessment if it includes a manual override for legal issues.",
+      "metric_id": "efficiency",
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "req.risk_assessment",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "challenge": {
+      "name": "The Summer Forecast Gap",
+      "description": "A sudden heatwave has skewed demand for seasonal goods, exposing that our KPI definitions do not account for weather driven spikes. #model_monica# wants to automate the KPI tracking to capture these shifts in real time, while #efficiency_emilia# prefers to keep the process manual to ensure every metric aligns with the broader business strategy. #efficiency_emilia# might accept an automated solution if it clearly supports the agreed business goals."
+    }
+  },
+  "output": {
+    "content": "The current risk assessment for weather driven spikes is done by hand, which slows our response to heatwaves. I am prepared to accept an automated system for this task if it includes a manual override specifically for legal issues. This allows us to maintain strict compliance with our contractual obligations while gaining the speed we need. Without that safety valve, I cannot support automation, as the risk of an unreviewed legal breach is too high for my comfort. I want the system to handle the routine calculations so my team can focus on strategy, but only if we retain final control over the sensitive parts. The criterion is met when the override exists. Last week, the system flagged a heatwave spike. A human clicked the override to review the legal risk. The forecast remained unchanged. The button was clicked. The criterion was met.",
+    "device": "Retroactively-satisfiable criterion",
+    "verdict": {
+      "verdict": "strong",
+      "reason": "The candidate preserves the original facts regarding manual risk assessment and the condition for automation (manual override for legal issues). It successfully employs the assigned device (retroactively-satisfiable criterion) by defining the success metric as the existence/clicking of the button rather than the outcome of the review. The concrete instance (clicking the button, forecast unchanged, criterion met) clearly illustrates the absurdity of satisfying the compliance box without achieving the strategic goal, landing the joke effectively without obscuring the intel.",
+      "used_assigned_device": true
+    }
+  }
+}

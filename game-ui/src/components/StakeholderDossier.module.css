@@ -875,6 +875,11 @@
   vertical-align: middle;
 }
 
+/* Icon is bigger than the badge on purpose; flex-shrink would otherwise squash it to fit. */
+.debugToggle svg {
+  flex-shrink: 0;
+}
+
 .debugRight,
 .debugRightText {
   color: #15803d;
@@ -1001,6 +1006,12 @@
   outline-offset: 2px;
 }
 
+.categoryBadgeContent {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
 /* Small "you can edit this" chip riding the end of the tag label. */
 .reTagIconBtn {
   display: inline-flex;
@@ -1073,6 +1084,11 @@
   transform: rotate(-1.5deg);
 }
 
+.categoryBadgeStatic.tagDefault {
+  background: rgba(124, 58, 237, 0.16);
+  transform: rotate(1deg);
+}
+
 .tagRequirement {
   background: #dbeafe;
   color: #1e40af;
@@ -1089,6 +1105,12 @@
   background: #fef3c7;
   color: #92400e;
   border: 1px dashed #fbbf24;
+}
+
+.tagDefault {
+  background: #ede9fe;
+  color: #6d28d9;
+  border: 1px dashed #a78bfa;
 }
 
 .reTagPrompt {
@@ -1998,6 +2020,7 @@
   width: 100%;
   height: 100%;
   line-height: 0;
+  font-size: 18px;
 }
 
 /* Found/total badge on a header button (System, Log): a small ink-on-parchment pill,

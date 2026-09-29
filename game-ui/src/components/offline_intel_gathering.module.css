@@ -479,8 +479,9 @@
 
 .headerArtifactBadgeIcon {
     display: inline-flex;
-    width: 0.9rem;
-    height: 0.9rem;
+    width: 1.3rem;
+    height: 1.3rem;
+    margin: -0.2rem;
     flex-shrink: 0;
 }
 
@@ -518,6 +519,10 @@
     flex-shrink: 0;
     padding: 0 0.55rem;
     border-style: solid;
+}
+
+.navPillOnRecordFact, .navPillOnRecord {
+    font-size: 1.0rem;
 }
 
 .navPillUntagged {
@@ -759,17 +764,18 @@
     flex-direction: column;
     justify-content: space-between;
     position: relative;
-    background-color: #ffffff;
+    background: linear-gradient(180deg, #ffffff 0%, #dfdfdf 100%);
     color: #000000;
     cursor: pointer;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
     border-width: 2px;
     border-style: solid;
-    transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    transition: all 0.3s;
 }
 
 .tagButton:hover {
-    transform: translateY(-2px);
+    background: linear-gradient(180deg, #ffffff 0%, #eceef1 100%);
+    transform: scale(1.02);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -1008,7 +1014,7 @@
     border: 1.5px dashed currentColor;
     background: #ffffff;
     color: #a16207;
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     cursor: pointer;
 }
 

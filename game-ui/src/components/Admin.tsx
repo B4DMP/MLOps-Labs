@@ -32,6 +32,8 @@ import {
   fetchAdminDashboard,
   fetchAdminEmailStatus,
   sendAdminTestEmail,
+  fetchBugReportRecipients,
+  updateBugReportRecipients,
   type AdminEmailStatus,
   type AdminTestEmailTemplate,
 } from "../services/api/admin";
@@ -151,6 +153,65 @@ export function Admin({
       loadEmailStatus();
     }
   }, [activeSubpage, adminToken]);
+
+  // Bug report notification recipients
+  const [bugReportRecipients, setBugReportRecipients] = useState<string[] | null>(null);
+  const [bugReportRecipientsLoading, setBugReportRecipientsLoading] = useState(false);
+  const [bugReportRecipientDraft, setBugReportRecipientDraft] = useState("");
+  const [bugReportRecipientsSaving, setBugReportRecipientsSaving] = useState(false);
+  const [bugReportRecipientsError, setBugReportRecipientsError] = useState<string | null>(null);
+  const [bugReportRecipientsSaved, setBugReportRecipientsSaved] = useState(false);
+
+  const loadBugReportRecipients = async () => {
+    if (!adminToken) return;
+    setBugReportRecipientsLoading(true);
+    setBugReportRecipientsError(null);
+    try {
+      const res = await fetchBugReportRecipients();
+      setBugReportRecipients(res.recipients);
+    } catch (err: any) {
+      setBugReportRecipientsError(err.message || "Failed to load bug report recipients.");
+    } finally {
+      setBugReportRecipientsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeSubpage === "email" && bugReportRecipients === null && !bugReportRecipientsLoading) {
+      loadBugReportRecipients();
+    }
+  }, [activeSubpage, adminToken]);
+
+  const saveBugReportRecipients = async (next: string[]) => {
+    setBugReportRecipientsSaving(true);
+    setBugReportRecipientsError(null);
+    setBugReportRecipientsSaved(false);
+    try {
+      const res = await updateBugReportRecipients(next);
+      setBugReportRecipients(res.recipients);
+      setBugReportRecipientsSaved(true);
+    } catch (err: any) {
+      setBugReportRecipientsError(err.message || "Failed to save bug report recipients.");
+    } finally {
+      setBugReportRecipientsSaving(false);
+    }
+  };
+
+  const handleAddBugReportRecipient = () => {
+    const email = bugReportRecipientDraft.trim();
+    if (!email || !email.includes("@")) return;
+    const current = bugReportRecipients || [];
+    if (current.includes(email)) {
+      setBugReportRecipientDraft("");
+      return;
+    }
+    setBugReportRecipientDraft("");
+    saveBugReportRecipients([...current, email]);
+  };
+
+  const handleRemoveBugReportRecipient = (email: string) => {
+    saveBugReportRecipients((bugReportRecipients || []).filter((r) => r !== email));
+  };
 
   const handleSendTestEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1899,6 +1960,115 @@ export function Admin({
                     </button>
                   </div>
                 </form>
+              </div>
+
+              {/* Bug Report Notification Recipients Card */}
+              <div className={styles.cardSurface}>
+                <div className={styles.sectionHeader}>
+                  <div>
+                    <h2 className={styles.sectionTitle}>
+                      <Icon icon="ph:bug-bold" />
+                      <span>Bug Report Notifications</span>
+                    </h2>
+                    <p className={styles.sectionSubtitle}>
+                      Who gets emailed when a player submits a bug report from the in-game cheat sheet.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.outlineButton}
+                    onClick={loadBugReportRecipients}
+                    disabled={bugReportRecipientsLoading}
+                  >
+                    <Icon
+                      icon={bugReportRecipientsLoading ? "ph:spinner-bold" : "ph:arrows-clockwise-bold"}
+                      className={bugReportRecipientsLoading ? styles.spinner : ""}
+                    />
+                    <span>Refresh</span>
+                  </button>
+                </div>
+
+                {bugReportRecipientsLoading && bugReportRecipients === null && (
+                  <div className="text-center py-4 text-muted">
+                    <Icon icon="ph:spinner-bold" className={`fs-2 mb-2 ${styles.spinner}`} />
+                    <p className="small mb-0">Loading recipients...</p>
+                  </div>
+                )}
+
+                {bugReportRecipients !== null && (
+                  <div style={{ maxWidth: "560px" }}>
+                    <div className="d-flex flex-wrap gap-2 mb-3">
+                      {bugReportRecipients.length === 0 ? (
+                        <span className="text-muted small">No recipients configured - notifications go nowhere.</span>
+                      ) : (
+                        bugReportRecipients.map((email) => (
+                          <span
+                            key={email}
+                            className={`${styles.pillBadge} ${styles.badgeNeutral} d-inline-flex align-items-center gap-2`}
+                          >
+                            <Icon icon="ph:envelope-simple-bold" />
+                            <span>{email}</span>
+                            <button
+                              type="button"
+                              className="btn btn-sm p-0 border-0 d-flex align-items-center"
+                              style={{ background: "none", lineHeight: 1 }}
+                              onClick={() => handleRemoveBugReportRecipient(email)}
+                              disabled={bugReportRecipientsSaving}
+                              title={`Remove ${email}`}
+                            >
+                              <Icon icon="ph:x-bold" />
+                            </button>
+                          </span>
+                        ))
+                      )}
+                    </div>
+
+                    <div className="d-flex gap-2 align-items-end mb-2">
+                      <div className="flex-grow-1">
+                        <label htmlFor="bugReportRecipientDraft" className="form-label fw-bold small text-secondary">
+                          Add Recipient
+                        </label>
+                        <input
+                          id="bugReportRecipientDraft"
+                          type="email"
+                          className="form-control"
+                          placeholder="e.g. name@example.com"
+                          value={bugReportRecipientDraft}
+                          onChange={(e) => setBugReportRecipientDraft(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddBugReportRecipient();
+                            }
+                          }}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        className={styles.actionButton}
+                        style={{ padding: "0.55rem 1.1rem" }}
+                        onClick={handleAddBugReportRecipient}
+                        disabled={!bugReportRecipientDraft.trim() || bugReportRecipientsSaving}
+                      >
+                        <Icon icon="ph:plus-bold" />
+                        <span>Add</span>
+                      </button>
+                    </div>
+
+                    {bugReportRecipientsSaved && (
+                      <div className="alert alert-success d-flex align-items-center gap-2 py-2 px-3 mb-0" role="alert">
+                        <Icon icon="ph:check-circle-bold" />
+                        <div className="small">Saved.</div>
+                      </div>
+                    )}
+                    {bugReportRecipientsError && (
+                      <div className="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 mb-0" role="alert">
+                        <Icon icon="ph:warning-octagon-bold" />
+                        <div className="small">{bugReportRecipientsError}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}

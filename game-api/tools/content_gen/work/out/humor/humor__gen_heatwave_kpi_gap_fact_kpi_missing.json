@@ -1,0 +1,50 @@
+{
+  "item_id": "humor:gen_heatwave_kpi_gap_fact_kpi_missing",
+  "stage": "humor",
+  "input_hash": "f83ba06d7c91b784c28917c80292203579f2a102c2326e4302fc95ab75bec7e2",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "original_content": "During the review of the evaluation pipeline, {model_monica} noted that the availability metric calculation in the monitoring dashboard has stopped updating correctly. The underlying job that computes the KPI from the point of sale scan lines fails silently after the nightly batch completes. Because the system output is unreliable, the team currently exports the raw scan data and calculates the availability figures manually in a spreadsheet before each weekly review. This manual step takes about an hour and is performed by whoever is on call for the model team. The dashboard widget still displays the last successful value from three weeks ago, which no longer reflects current store performance.",
+    "device": "Personification",
+    "requirement": {
+      "id": "gen_heatwave_kpi_gap_fact_kpi_missing",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The KPI definition is broken in the system. That is simply how the KPI setup works today.",
+      "fact": "The KPI definition is broken in the system.",
+      "reading": "That is simply how the KPI setup works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "req.kpi_definition",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "challenge": {
+      "name": "The Summer Forecast Gap",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "{model_monica} noted the availability KPI calculation has developed a profound contempt for the rule that it must actually compute anything. It sits in the pipeline after the nightly batch, treating the requirement to generate a number as a suggestion it finds personally offensive. It fails silently, offering no error, only a void where the metric should be. The dashboard widget still displays the last successful value from three weeks ago, a number that has become a historical artifact while actual store performance shifts beneath it. To compensate, the team exports raw scan data and calculates the figures manually in a spreadsheet. This hour long ritual is performed by whoever is on call. The calculation does not break; it simply regards the act of producing a result as beneath its dignity, leaving the team to do the work it was built to do.",
+    "device": "Personification",
+    "verdict": {
+      "verdict": "strong",
+      "reason": "The candidate successfully employs the assigned device (personification) by attributing a specific attitude ('profound contempt', 'regards... as beneath its dignity') to the inanimate calculation process. It preserves the core fact that the KPI definition is broken in the system ('fails silently', 'stopped updating correctly') and accurately dramatizes the actual mechanism: the job fails silently after the nightly batch, forcing a manual workaround. The humor arises from the incongruity of a software process having an ego, which is a clear second layer, rather than just raising emotional temperature. It does not target a person's competence, nor does it invent a new causal mechanism (it sticks to the 'silent failure' described in the original). The information remains comprehensible as an intel document.",
+      "used_assigned_device": true
+    }
+  }
+}

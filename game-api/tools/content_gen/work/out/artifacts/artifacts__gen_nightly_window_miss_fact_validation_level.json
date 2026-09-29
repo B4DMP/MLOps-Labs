@@ -46,6 +46,8 @@
   "output": {
     "content": "The nightly ingestion pipeline pulls point of sale scan lines and stock on hand records into the staging area. There is no automated check to confirm that every store sent a complete file before the forecast job starts. The process waits for the configured timeout, then moves whatever arrived into the training set. If a regional distribution centre fails to transmit its data, the system proceeds with the missing entries. I observed this happen three times in the last month. In each case, the job logged a warning but continued execution without flagging the gap to the model team. The forecast ran on the partial dataset and produced output for the affected stores.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text is a purely descriptive account of the current pipeline behavior, observed incidents, and lack of validation checks, without expressing any wishes, refusals, or stated trade-offs."
+    "reclassify_reason": "The text is a purely descriptive account of the current pipeline behavior, observed incidents, and lack of validation checks, without expressing any wishes, refusals, or stated trade-offs.",
+    "humor_status": "selected",
+    "humor_archetype": "A health check that asks the wrong question"
   }
 }

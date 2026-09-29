@@ -14,6 +14,13 @@ Reference for the animated (Lordicon) icons used across the UI, and how to add m
   card that just appeared) - never for small inline glyphs next to running text, which stay on
   plain `@iconify/react` `Icon`. Kept to a handful of screens on purpose: one per moment, not
   motion everywhere.
+- One exception: `BriefingPage.tsx`'s header hero icon plays continuously, driving the truck
+  icon's own `loop-cycle` state (see its `nm` markers) on repeat via `onComplete` ->
+  `playFromBeginning()` - `@lordicon/react`'s `Player` (`IPlayerOptions`) has no built-in loop
+  trigger, unlike the `lord-icon` web component. Not `OnceIcon`, and not the default reveal
+  animation looped against Lordicon's advice: `loop-cycle` is the icon's own named
+  continuous-motion segment, the one screen meant to feel like ambient motion rather than a
+  one-shot arrival.
 - Every mapping is a plain `Record<string, object>` from a domain id (grade epilogue "beat" id,
   `ArtifactType` value, correct/incorrect) to an imported icon JSON, e.g. `BEAT_ICON` in
   `ResultsHero.tsx` or `ARTIFACT_TYPE_ICON` in `offline_intel_gathering.tsx`.
@@ -38,6 +45,7 @@ Reference for the animated (Lordicon) icons used across the UI, and how to add m
 | `VetoDialog.tsx` | Header, every veto | `road-barrier` |
 | `IntelVerificationDialog.tsx` | Stance verification result | `puzzle-square` (correct), `warning-triangle` (corrected/incorrect) |
 | `ac_simulation.tsx` (Rollout Debrief) | Executive Directive Banner hero, one random icon per outcome tone, re-rolled every time the debrief is shown (`OUTCOME_HERO_ICONS`) | `firework`/`shooting-stars`/`confetti`/`disco-ball` (PASS), `wrench`/`warning-triangle`/`alarm` (SOFT_PASS), `ball-bowling`/`no-entry`/`stop` (VETO_BROKEN), `trash-bin`/`road-barrier`/`truck`/`person-protesting` (STALEMATE) |
+| `BriefingPage.tsx` | Header hero icon, continuous ambient motion (not `OnceIcon`, self-looped via `onComplete`) | `truck` (`state="loop-cycle"`) |
 
 Only 4 of the 9 `ArtifactType` values (`email`, `slack_message`, `meeting_notes`, `document`) are
 ever assigned by the real content pipeline (`content_gen/stages/artifacts.py`'s `ARTIFACT_TYPES`);

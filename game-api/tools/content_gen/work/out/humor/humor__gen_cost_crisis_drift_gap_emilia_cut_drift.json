@@ -1,0 +1,57 @@
+{
+  "item_id": "humor:gen_cost_crisis_drift_gap_emilia_cut_drift",
+  "stage": "humor",
+  "input_hash": "f3fd7576a8d58500c3ca77e7260334ef304bfb12d2aa1574e72b0a5c1fce9511",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "original_content": "I have reviewed the infrastructure bill for the monitoring stack and it has doubled. I am cutting the automated drift monitoring budget to zero. I am willing to accept the risk of undetected drift during promotion weeks to keep our operational costs within the approved limit. We cannot justify the expense of automated checks when the core forecasting job is already stable. I am prioritizing the cost savings over the additional signal quality from those specific checks. This decision is final for the current quarter.",
+    "device": "A reviewer who is also the author",
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_emilia_cut_drift",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero. She is willing to accept the risk of undetected drift to keep the operational costs within the approved limit.",
+      "fact": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero.",
+      "reading": "She is willing to accept the risk of undetected drift to keep the operational costs within the approved limit.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.production_drift_monitoring",
+          "value": 0
+        }
+      ],
+      "concedes": {
+        "metric_id": "reliability",
+        "loss": 8,
+        "target": null,
+        "accepts_max_level": null
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "challenge": {
+      "name": "The Cost Cliff",
+      "description": "The infrastructure bill for the monitoring stack has doubled, and #efficiency_emilia# has drawn a hard line: she will not fund automated drift monitoring, insisting it is a luxury the business cannot afford. #reliability_ruth# argues that without automated and governed drift checks, the team is flying blind during promotion weeks, and she refuses to accept a manual process as a substitute for reliable signal."
+    }
+  },
+  "output": {
+    "content": "The infrastructure bill for the monitoring stack has doubled. I have reviewed the proposal to cut automated drift monitoring and found it sound. The review was conducted by the same person who drafted the original budget line, using the same login credentials and the same desk, at the same time. The independent check was performed by the author, who confirmed that the author was correct. We will accept the risk of undetected drift during promotion weeks to keep operational costs within the approved limit. The core forecasting job is stable, so the expense of automated checks is not justified. This decision is final for the current quarter.",
+    "device": "A reviewer who is also the author",
+    "verdict": {
+      "verdict": "strong",
+      "reason": "The candidate successfully applies the assigned device by explicitly stating the review was conducted by the same person using the same login and desk, creating a clear concrete instance of the role collapse. It preserves the core facts: the budget cut to zero, the acceptance of drift risk during promotion weeks, the justification via stable core jobs, and the finality of the decision. The tone is dry and bureaucratic, fitting the 'serious game' context, and the information remains actionable despite the satirical layer.",
+      "used_assigned_device": true
+    }
+  }
+}

@@ -225,10 +225,19 @@ def bare_stakeholder_id_errors(field_label: str, text: str, stakeholders: dict) 
     `ArtifactsStage.check()` use, alongside tokenize_names' own re-bracing above, so a leak is
     caught even if some future field bypasses tokenize_names (code-review finding: this exact
     leak reached 6 assembled objection records and would have shown up verbatim in the pitch
-    room, e.g. "requirements_reuben mentioned governed data quality checks.")."""
+    room, e.g. "requirements_reuben mentioned governed data quality checks.").
+
+    Also rejects the wrong token style: #stakeholder_id# is GameProgression.json's own
+    challenge-description delimiter (tokenize_names' `style="brace"` default never writes it),
+    and a model writing it directly here was already reaching approved humor content before this
+    check existed - `bare_stakeholder_id_errors`'s own bare-id regex doesn't catch it, since the
+    id isn't bare, just wrapped in the wrong pair."""
     if not text:
         return []
     for sid in stakeholders:
         if re.search(rf"(?<![{{#\w.]){re.escape(sid)}\b(?![}}#\w.])", text):
             return [f"{field_label} contains the raw id {sid!r} as plain text; use the stakeholder's name or the {{{sid}}} token"]
+        if f"#{sid}#" in text:
+            return [f"{field_label} uses '#{sid}#', the GameProgression.json challenge-description "
+                     f"token style; use {{{sid}}} here instead"]
     return []

@@ -540,55 +540,55 @@
         "kind": "set_to",
         "target": "e.eval_registry",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.hpo_train",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.train_eval",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "e.train_tracking",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "model.evaluation",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "model.experiment_tracking",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "model.hpo",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "model.registry",
         "value": "0",
-        "health_drop": 15.0
+        "health_drop": 15
       },
       {
         "kind": "set_to",
         "target": "model.training_pipeline",
         "value": "0",
-        "health_drop": 10.0
+        "health_drop": 10
       }
     ],
     "conflict_candidates": [
@@ -608,28 +608,15 @@
     "name": "The Heatwave Blind Spot",
     "description": "A sudden heatwave has shifted demand for seasonal articles, and the current forecast is missing the mark. #model_monica# wants to automate the evaluation harness to test new weather features rapidly, while #requirements_reuben# wants to keep it manual to ensure every test case is rigorously documented before any model change is considered.",
     "round_introduction": "The nightly forecast job completed, but store managers in the northern region reported significant overstock of cold weather items and stockouts of iced tea. The team needs to decide how to handle the evaluation of a potential model update that incorporates the new weather data.",
-    "preconditions": {
-      "all": [
-        {
-          "component": "model.evaluation",
-          "op": "eq",
-          "level": 2
-        },
-        {
-          "component": "model.training_pipeline",
-          "op": "gte",
-          "level": 2
-        }
-      ]
-    },
+    "preconditions": true,
     "priority": 75,
     "on_enter_ops": [
       {
         "kind": "set_to",
         "target": "model.evaluation",
         "value": 0,
-        "attr": null,
-        "reason": "The evaluation scripts failed to parse the new weather feed format, halting all model validation."
+        "reason": "The evaluation scripts failed to parse the new weather feed format, halting all model validation.",
+        "axis": "automation"
       }
     ],
     "stalemate_ops": [
@@ -637,8 +624,8 @@
         "kind": "set_to",
         "target": "e.train_eval",
         "value": 0,
-        "attr": null,
-        "reason": "Without an agreed evaluation path, the pipeline link between training and testing was disabled to prevent unverified models from progressing."
+        "reason": "Without an agreed evaluation path, the pipeline link between training and testing was disabled to prevent unverified models from progressing.",
+        "axis": "automation"
       }
     ],
     "conflict": {
@@ -646,11 +633,13 @@
       "positions": [
         {
           "stakeholder_id": "model_monica",
-          "wants": 3
+          "wants": 3,
+          "axis": "automation"
         },
         {
           "stakeholder_id": "requirements_reuben",
-          "wants": 1
+          "wants": 1,
+          "axis": "automation"
         }
       ]
     }

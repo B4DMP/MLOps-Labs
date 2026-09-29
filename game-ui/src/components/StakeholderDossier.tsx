@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useLayoutEffect, useContext } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
+import { EmojiIcon } from "../utils/emojiIcons";
 import styles from "./StakeholderDossier.module.css";
 import { StakeholderContext, type EmotionGatingInfo, type EmotionGatingDimension } from "./StakeholderProvider";
 
@@ -13,6 +14,7 @@ import { CHALLENGE_INTEL_META, INTEL_TAGS, intelTagMeta } from "../types/IntelTa
 import { faceForEmotionState, iconForEmotionState } from "../utils/emotionFace";
 import { healthBucket, healthBucketColor, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
 import CheatSheetModal from "./CheatSheetModal";
+import BugReportModal from "./BugReportModal";
 import HoverTooltip from "./HoverToolTip";
 
 /** Answer key for one authored item. Only sent when the API runs with ENABLE_DOSSIER_DEBUG. */
@@ -30,6 +32,12 @@ export interface IntelDebugInfo {
     speaker_id?: string | null;
     is_known: boolean;
     content: string;
+    /** Which comedic device content_gen's humor stage rewrote this artifact with, if any. */
+    humor_archetype?: string | null;
+    /** The humor stage's own adversarial reviewer's verdict: "strong"/"weak"/"reject". */
+    humor_verdict?: string | null;
+    /** That reviewer's reasoning for the verdict above. */
+    humor_review_reason?: string | null;
   } | null;
 }
 
@@ -209,6 +217,27 @@ const DebugRequirement: React.FC<{ info: IntelDebugInfo; playerTag?: string }> =
           {info.artifact.is_known && <> (on record at start)</>}:
         </strong>
         <pre className={styles.debugArtifact}>{info.artifact.content}</pre>
+        <div>
+          <strong>Humor:</strong>{" "}
+          {info.artifact.humor_archetype ? (
+            <span className={styles.debugRightText}>{info.artifact.humor_archetype}</span>
+          ) : (
+            <span className={styles.debugWrongText}>none</span>
+          )}
+          {info.artifact.humor_verdict && (
+            <>
+              {" "}·{" "}
+              <span className={info.artifact.humor_verdict === "strong" ? styles.debugRightText : styles.debugWrongText}>
+                {info.artifact.humor_verdict}
+              </span>
+            </>
+          )}
+        </div>
+        {info.artifact.humor_review_reason && (
+          <div className={styles.debugRow}>
+            <strong>Humor review:</strong> {info.artifact.humor_review_reason}
+          </div>
+        )}
       </div>
     ) : (
       <div className={styles.debugRow}>
@@ -228,11 +257,11 @@ const TAG_STYLE_CLASS: Record<string, string> = {
   requirement: styles.tagRequirement,
   preference: styles.tagNegotiable,
   friction: styles.tagFriction,
-  default: styles.tagFriction,
+  default: styles.tagDefault,
 };
 
-const CATEGORY_META: Record<string, { label: string; icon: string; styleClass: string }> = Object.fromEntries(
-  [...INTEL_TAGS, CHALLENGE_INTEL_META].map((t) => [t.type, { label: t.label, icon: t.emoji, styleClass: TAG_STYLE_CLASS[t.styleKey] }])
+const CATEGORY_META: Record<string, { label: string; icon: string; color: string; styleClass: string }> = Object.fromEntries(
+  [...INTEL_TAGS, CHALLENGE_INTEL_META].map((t) => [t.type, { label: t.label, icon: t.icon, color: t.color, styleClass: TAG_STYLE_CLASS[t.styleKey] }])
 );
 
 /** Document wording for the "your read of their ..." caption. */
@@ -252,7 +281,7 @@ const getSourceCaption = (item: IntelEntry): { icon: string; text: string; title
   switch ((item.source || "").toLowerCase()) {
     case "public_record":
       return {
-        icon: "ph:megaphone-bold",
+        icon: "ph:megaphone-duotone",
         text: "Said openly in the team channel",
         title: "They said this in a channel the whole team reads, before you started digging.",
       };
@@ -811,7 +840,7 @@ export default function StakeholderDossier({
   onOpenArtifact,
   cheatSheetActiveSection,
 }: StakeholderDossierProps) {
-  const { emit, subscribe } = useGameWebSocket();
+  const { emit, subscribe, username } = useGameWebSocket();
   const { stakeholders, emotionColors: contextEmotionColors } = useContext(StakeholderContext) || {
     stakeholders: {},
     emotionColors: {},
@@ -881,7 +910,7 @@ export default function StakeholderDossier({
   // keeps following the challenge's focus stages as those change.
   const [phaseFilter, setPhaseFilter] = useState<Set<number>>(new Set());
   const [search, setSearch] = useState("");
-  const [collapseAddressed, setCollapseAddressed] = useState(false);
+  const [collapseAddressed, setCollapseAddressed] = useState(true);
   const [confFilter, setConfFilter] = useState<
     "all" | "on_record" | "verified" | "unconfirmed"
   >("all");
@@ -893,6 +922,7 @@ export default function StakeholderDossier({
 
   /** The cheat sheet is static reference content, so it needs no state from outside. */
   const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
+  const [isBugReportOpen, setIsBugReportOpen] = useState(false);
 
   // Track fading out highlight state
   const [fadingOutIntelId, setFadingOutIntelId] = useState<string | null>(null);
@@ -1798,19 +1828,21 @@ export default function StakeholderDossier({
                 <div className={styles.buyInTopRow}>
                   <div className="d-flex align-items-center gap-2">
                     <span style={{ fontSize: "0.74rem", fontWeight: 700, color: "#1e293b" }}>
-                      ⚖️ Buy-In Progress
+                      <EmojiIcon name="balanceScale" /> Buy-In Progress
                     </span>
                     <span
                       className={`badge ${isBoundaryViolated || buyInInfo.blocks ? "bg-danger" : buyInInfo.isPersuaded ? "bg-success" : "bg-warning text-dark"}`}
                       style={{ fontSize: "0.62rem" }}
                     >
-                      {isBoundaryViolated
-                        ? `⛔ Boundary Violated (${totalPercent}%)`
-                        : buyInInfo.blocks
-                        ? `⛔ Resistant (${totalPercent}%)`
-                        : buyInInfo.isPersuaded
-                        ? `✅ Persuaded (${totalPercent}%)`
-                        : `⚠️ Wavering (${totalPercent}%)`}
+                      {isBoundaryViolated ? (
+                        <><EmojiIcon name="noEntry" /> Boundary Violated ({totalPercent}%)</>
+                      ) : buyInInfo.blocks ? (
+                        <><EmojiIcon name="noEntry" /> Resistant ({totalPercent}%)</>
+                      ) : buyInInfo.isPersuaded ? (
+                        <><EmojiIcon name="checkMark" /> Persuaded ({totalPercent}%)</>
+                      ) : (
+                        <><EmojiIcon name="warning" /> Wavering ({totalPercent}%)</>
+                      )}
                     </span>
                   </div>
                   <span style={{ fontSize: "0.65rem", color: "#64748b", fontWeight: 600 }}>
@@ -1859,8 +1891,8 @@ export default function StakeholderDossier({
 
                 {/* Breakdown Legend Row */}
                 <div className={styles.buyInLegendRow}>
-                  <span>🃏 Card: <b>{isBoundaryViolated ? "0% (Boundary Violated)" : `+${cardPercent}%`}</b></span>
-                  <span>🎭 Emotion: <b>+{emotionPercent}%</b></span>
+                  <span><EmojiIcon name="cardJoker" /> Card: <b>{isBoundaryViolated ? "0% (Boundary Violated)" : `+${cardPercent}%`}</b></span>
+                  <span><EmojiIcon name="emotion" /> Emotion: <b>+{emotionPercent}%</b></span>
                 </div>
               </div>
 
@@ -1937,7 +1969,10 @@ export default function StakeholderDossier({
                       onClick={() => setCollapseAddressed(false)}
                       title={`${collapsedMeta.title} Click to unfold every note again.`}
                     >
-                      <span>{(CATEGORY_META[item.categorized_type || "driver"] || CATEGORY_META.driver).icon}</span>
+                      <Icon
+                        icon={(CATEGORY_META[item.categorized_type || "driver"] || CATEGORY_META.driver).icon}
+                        style={{ color: (CATEGORY_META[item.categorized_type || "driver"] || CATEGORY_META.driver).color }}
+                      />
                       <span className={styles.collapsedText}>{item.description}</span>
                       <span className={`${styles.statusBadge} ${styles[collapsedMeta.styleClass]}`}>{collapsedMeta.label}</span>
                     </button>
@@ -2047,7 +2082,9 @@ export default function StakeholderDossier({
                           onFocus={(e) => showInfoTag(e, catMeta.label, "Click to re-tag")}
                           onBlur={hideInfoTag}
                         >
-                          <span>{catMeta.icon} {catMeta.label}</span>
+                          <span className={styles.categoryBadgeContent}>
+                            <Icon icon={catMeta.icon} style={{ color: catMeta.color }} /> {catMeta.label}
+                          </span>
                           <span className={styles.reTagIconBtn} aria-label="Re-tag">
                             <Icon icon="ph:pencil-simple-bold" />
                           </span>
@@ -2062,7 +2099,9 @@ export default function StakeholderDossier({
                           onFocus={(e) => showInfoTag(e, catMeta.label, "Locked once intel is confirmed/verified")}
                           onBlur={hideInfoTag}
                         >
-                          <span>{catMeta.icon} {catMeta.label}</span>
+                          <span className={styles.categoryBadgeContent}>
+                            <Icon icon={catMeta.icon} style={{ color: catMeta.color }} /> {catMeta.label}
+                          </span>
                         </div>
                       )}
                       {hasArtifact && onOpenArtifact && (
@@ -2098,6 +2137,24 @@ export default function StakeholderDossier({
                           <Icon icon="ph:bug-bold" />
                         </button>
                       )}
+                      {item.debug && item.debug.artifact && (
+                        <button
+                          className={`${styles.debugToggle} ${
+                            item.debug.artifact.humor_archetype ? styles.debugRight : styles.debugWrong
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleDebug(noteId);
+                          }}
+                          title={
+                            item.debug.artifact.humor_archetype
+                              ? `Debug: humor applied (${item.debug.artifact.humor_archetype})`
+                              : "Debug: no humor applied"
+                          }
+                        >
+                          <Icon icon={item.debug.artifact.humor_archetype ? "ph:mask-happy-bold" : "ph:mask-happy"} />
+                        </button>
+                      )}
                       {item.status && STATUS_META[item.status] && (
                         <span
                           className={`${styles.statusBadge} ${styles[STATUS_META[item.status].styleClass]}`}
@@ -2129,7 +2186,7 @@ export default function StakeholderDossier({
                               handleReTagIntel(item.id, typeOptKey);
                             }}
                           >
-                            {metaOpt.icon} {metaOpt.label}
+                            <Icon icon={metaOpt.icon} style={{ color: metaOpt.color }} /> {metaOpt.label}
                           </button>
                         ))}
                       </div>
@@ -2258,7 +2315,11 @@ export default function StakeholderDossier({
             <div className={styles.emptyStateCard}>
               <div className={styles.paperclip} />
               <div className={styles.emptyStateTitle}>
-                {hasIntelEntries ? "🔍 Nothing Matches These Filters" : "📋 No Field Intelligence Collected Yet"}
+                {hasIntelEntries ? (
+                  <><EmojiIcon name="searchGlass" /> Nothing Matches These Filters</>
+                ) : (
+                  <><EmojiIcon name="actionItems" /> No Field Intelligence Collected Yet</>
+                )}
               </div>
               <div className={styles.emptyStateText}>
                 {hasIntelEntries ? (
@@ -2269,9 +2330,9 @@ export default function StakeholderDossier({
               </div>
               <div className={styles.emptyStateHint}>
                 {hasIntelEntries ? (
-                  <>💡 <em>Clear the stage row or the search box below to see them again.</em></>
+                  <><EmojiIcon name="tip" /> <em>Clear the stage row or the search box below to see them again.</em></>
                 ) : (
-                  <>💡 <em>Participate in Intel Gathering activities to uncover and verify their hidden constraints.</em></>
+                  <><EmojiIcon name="tip" /> <em>Participate in Intel Gathering activities to uncover and verify their hidden constraints.</em></>
                 )}
               </div>
             </div>
@@ -2374,7 +2435,7 @@ export default function StakeholderDossier({
             )}
             {challengeIntelIndex >= 0 && (
               <HeaderIconButton
-                icon="ph:buildings-bold"
+                icon={intelTagMeta("fact").icon}
                 label="Challenge-Intel"
                 detail={systemPips.length > 0 ? describeIntelPips(systemPips) : undefined}
                 ariaLabel={`Challenge-Intel: facts about the system already on record at the start of the challenge — ${describeIntelPips(systemPips)}`}
@@ -2415,6 +2476,14 @@ export default function StakeholderDossier({
               ariaLabel="Cheat Sheet: quick reference for every phase, in plain language"
               active={isCheatSheetOpen}
               onClick={() => setIsCheatSheetOpen(true)}
+            />
+            <HeaderIconButton
+              icon="ph:bug-bold"
+              label="Report Bug"
+              detail="Something broken or confusing?"
+              ariaLabel="Report a Bug: tell us what went wrong"
+              active={isBugReportOpen}
+              onClick={() => setIsBugReportOpen(true)}
             />
           </div>
           <div className={styles.headerArrowGroup}>
@@ -2614,11 +2683,22 @@ export default function StakeholderDossier({
     />
   );
 
+  const bugReport = (
+    <BugReportModal
+      isOpen={isBugReportOpen}
+      onClose={() => setIsBugReportOpen(false)}
+      username={username}
+      currentPhase={currentPhase}
+      currentChallenge={currentChallenge}
+    />
+  );
+
   if (isEmbedded) {
     return (
       <div style={{ width: "100%", height: "100%", minHeight: "450px", position: "relative", pointerEvents: "auto" }}>
         {windowContent}
         {cheatSheet}
+        {bugReport}
       </div>
     );
   }
@@ -2627,6 +2707,7 @@ export default function StakeholderDossier({
     <div className={styles.dossierOverlay}>
       {windowContent}
       {cheatSheet}
+      {bugReport}
     </div>
   );
 }

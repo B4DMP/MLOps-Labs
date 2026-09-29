@@ -1,0 +1,56 @@
+{
+  "item_id": "humor:gen_nightly_window_miss_dave_validation_boundary",
+  "stage": "humor",
+  "input_hash": "b8cccebe6af0c73866ce0733ccde0857d9e55a8f1f52753874716d0fef9b476b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "original_content": "I have reviewed the proposal for an automated validation layer. I will not approve moving to automated checks until the infrastructure costs are reduced to a level we can sustain. The current manual process is sufficient to manage the risk, and I am not willing to cross the line into automated infrastructure spending at this time. I am holding the process manual for now. If the costs remain high, I will refuse to sign off on any automated validation work. This is my firm position on the data pipeline architecture.",
+    "device": "A health check that asks the wrong question",
+    "requirement": {
+      "id": "gen_nightly_window_miss_dave_validation_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "data_dave",
+      "type": "boundary",
+      "description": "{data_dave} proposed keeping the data validation process manual. He will not move to automated validation until the infrastructure costs are reduced.",
+      "fact": "{data_dave} proposed keeping the data validation process manual.",
+      "reading": "He will not move to automated validation until the infrastructure costs are reduced.",
+      "metric_id": "data",
+      "suggested": null,
+      "holds": {
+        "component": "data.validation",
+        "op": "lte",
+        "level": 1
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.validation",
+          "value": 1
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "challenge": {
+      "name": "The Midnight Deadline",
+      "description": "The nightly data job is failing to finish before the store managers open the ordering app. #reliability_ruth# demands an automated validation layer to catch bad data instantly so the morning window is never missed again. #data_dave# insists on keeping the process manual for now, arguing that the infrastructure costs are too high and the current manual checks are sufficient to manage the risk."
+    }
+  },
+  "output": {
+    "content": "I will not approve automated checks until infrastructure costs drop. The current manual process is sufficient to manage the risk. I am holding the process manual for now. If costs remain high, I refuse to sign off on automated validation work. This is my firm position on the data pipeline architecture. Consider the current manual check: it asks if the job finished. It does not ask if the data is correct. A shallow check that confirms the job ran would happily wave through a scenario where every store’s demand forecast is set to zero. The app opens, the numbers look tidy, and the morning order window proceeds with absolute confidence in a complete lack of inventory.",
+    "device": "A health check that asks the wrong question",
+    "verdict": {
+      "verdict": "strong",
+      "reason": "The candidate successfully executes the assigned device by contrasting the shallow check ('did it run') with the real question ('is it correct'). It provides a concrete, absurd, yet plausible example: a demand forecast of zero passing a status check, leading to a confident but empty inventory. The humor lands through the incongruity of 'tidy numbers' masking a total failure, and it does not rely on outside cultural literacy or target the stakeholder's personality directly (though the stakeholder's stubbornness is the context, the joke is on the process).",
+      "used_assigned_device": true
+    }
+  }
+}

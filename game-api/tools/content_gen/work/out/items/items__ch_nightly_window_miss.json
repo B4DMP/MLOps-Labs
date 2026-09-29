@@ -593,34 +593,39 @@
     "items": [
       {
         "key": "ruth_validation_driver",
-        "tag": "driver",
+        "tag": "trade_off",
         "stakeholder_id": "reliability_ruth",
         "fact": "{reliability_ruth} proposed automating the data validation step.",
         "readings": {
           "driver": "Automated validation catches bad data instantly, preventing the morning order window from being missed again.",
           "boundary": "She will not allow the forecast to run without a fully automated validation layer in place.",
-          "trade_off": "She would accept a slower forecast if the validation step remains manual.",
+          "trade_off": "She would settle for a smaller step up if it still catches bad data before the morning order window closes.",
           "fact": "That is simply how the validation setup works today."
         },
         "metric_id": "reliability",
-        "suggested_target": "data.validation",
-        "suggested_level": 3,
+        "suggested_target": null,
+        "suggested_level": null,
         "holds": null,
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "data.validation",
-            "value": 3,
-            "attr": null
-          }
-        ],
+        "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
+        "concedes_target": "data.validation",
+        "concedes_max_level": 2,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": "automation",
+        "branch_x_description": "data validation fully automated",
+        "branch_x_target": "data.validation",
+        "branch_x_axis": "automation",
+        "branch_x_level": 3,
+        "branch_x_ops": [],
+        "branch_y_description": "data validation raised just enough to clear the backlog, short of full automation",
+        "branch_y_target": "data.validation",
+        "branch_y_axis": "automation",
+        "branch_y_level": 2,
+        "branch_y_ops": []
       },
       {
         "key": "dave_validation_boundary",
@@ -639,14 +644,15 @@
         "holds": {
           "component": "data.validation",
           "op": "lte",
-          "level": 1
+          "level": 1,
+          "axis": "automation"
         },
         "ops": [
           {
             "kind": "raise_to",
             "target": "data.validation",
             "value": 1,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": null,
@@ -655,7 +661,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "ruth_ingestion_tradeoff",
@@ -679,7 +698,20 @@
         "concedes_max_level": 2,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": "automation",
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "dave_ingestion_tradeoff",
@@ -703,7 +735,20 @@
         "concedes_max_level": 2,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": "automation",
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "reuben_validation_tradeoff",
@@ -727,15 +772,28 @@
         "concedes_max_level": 3,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": "automation",
+        "asserts_axis": null,
+        "branch_x_description": "data validation kept rigorously tested and formally governed",
+        "branch_x_target": "data.validation",
+        "branch_x_axis": "governance",
+        "branch_x_level": 3,
+        "branch_x_ops": [],
+        "branch_y_description": "data validation fully automated, with lighter manual testing rigor",
+        "branch_y_target": "data.validation",
+        "branch_y_axis": "automation",
+        "branch_y_level": 3,
+        "branch_y_ops": []
       },
       {
         "key": "emilia_validation_driver",
         "tag": "driver",
         "stakeholder_id": "efficiency_emilia",
-        "fact": "{efficiency_emilia} suggested optimizing the cost of data validation.",
+        "fact": "{efficiency_emilia} suggested automating data validation instead of paying overtime for manual spot checks.",
         "readings": {
-          "driver": "Cost optimization improves the overall efficiency of the data validation process.",
+          "driver": "She wants the validation cost to track the automation level, not the headcount doing the checking.",
           "boundary": "She will not accept any increase in data validation costs.",
           "trade_off": "She would accept a less automated validation process if it reduces costs.",
           "fact": "That is simply how the validation setup works today."
@@ -749,7 +807,7 @@
             "kind": "raise_to",
             "target": "data.validation",
             "value": 2,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": null,
@@ -758,7 +816,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "automation",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_validation_level",
@@ -782,79 +853,19 @@
         "concedes_max_level": null,
         "asserts_target": "data.validation",
         "asserts_level": 0,
-        "asserts_trigger": null
-      },
-      {
-        "key": "fact_ingestion_level",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "Data ingestion is currently done by hand.",
-        "readings": {
-          "driver": "The team wants to automate ingestion to reduce manual effort.",
-          "boundary": "The process cannot be fully automated without proper infrastructure.",
-          "trade_off": "The team might accept a slower process if it is more reliable.",
-          "fact": "That is simply how the ingestion setup works today."
-        },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": "data.ingestion",
-        "asserts_level": 2,
-        "asserts_trigger": null
-      },
-      {
-        "key": "fact_edge_trigger",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "The edge between ingestion and validation is triggered by manual request.",
-        "readings": {
-          "driver": "The team wants to automate the trigger to ensure timely validation.",
-          "boundary": "The system cannot run automatically without proper triggers.",
-          "trade_off": "The team might accept a less frequent trigger if it reduces load.",
-          "fact": "That is simply how the edge setup works today."
-        },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": "e.ingest_validate",
-        "asserts_level": 2,
-        "asserts_trigger": "manual_request"
-      },
-      {
-        "key": "fact_feature_store_level",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "The feature store is currently missing.",
-        "readings": {
-          "driver": "The team wants to build a feature store to improve model performance.",
-          "boundary": "The system cannot scale without a feature store.",
-          "trade_off": "The team might accept a simpler solution if the build is delayed.",
-          "fact": "That is simply how the feature store setup works today."
-        },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": "data.feature_store",
-        "asserts_level": 1,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       }
     ]
   }

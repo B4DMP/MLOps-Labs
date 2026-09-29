@@ -8,7 +8,7 @@
     "challenge": {
       "phase_id": 5,
       "template_id": "ch_silent_forecast_failure",
-      "name": "The Silent Failure",
+      "name": "The Warehouse Flood",
       "description": "A forecast job failed silently for three days, leaving stores ordering blind, and the team never knew until the warehouse was flooded with unsold promotion stock. #reliability_ruth# argues that the performance monitoring must be automated and governed to catch such failures instantly, while #efficiency_emilia# is willing to accept a manual monthly audit of the logs to save on tooling costs.",
       "roundIntroduction": "The nightly forecast job crashed on a Tuesday night and nobody saw it until the distribution centre reported a spike in manual overrides on Friday morning. The logs show the job died, but the alerting system never fired because the monitoring pipeline was not connected to the alerting service.",
       "metric_changes": {},
@@ -493,14 +493,14 @@
         },
         "metric_id": "reliability",
         "suggested_target": "ops.performance_monitoring",
-        "suggested_level": 4,
+        "suggested_level": 3,
         "holds": null,
         "ops": [
           {
             "kind": "raise_to",
             "target": "ops.performance_monitoring",
-            "value": 4,
-            "attr": null
+            "value": 3,
+            "axis": "governance"
           }
         ],
         "concedes_metric": null,
@@ -509,7 +509,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "governance",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "emilia_tradeoff_monitoring",
@@ -531,16 +544,27 @@
             "kind": "raise_to",
             "target": "ops.performance_monitoring",
             "value": 2,
-            "attr": null
+            "axis": "automation"
           }
         ],
-        "concedes_metric": null,
-        "concedes_loss": null,
         "concedes_target": "ops.performance_monitoring",
         "concedes_max_level": 2,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": "automation",
+        "asserts_axis": null,
+        "branch_x_description": "model performance monitoring moved to a governed, automated state",
+        "branch_x_target": "ops.performance_monitoring",
+        "branch_x_axis": "governance",
+        "branch_x_level": 3,
+        "branch_x_ops": [],
+        "branch_y_description": "a manual monthly audit of the performance monitoring logs",
+        "branch_y_target": "ops.performance_monitoring",
+        "branch_y_axis": "automation",
+        "branch_y_level": 2,
+        "branch_y_ops": []
       },
       {
         "key": "monica_driver_drift",
@@ -562,7 +586,7 @@
             "kind": "raise_to",
             "target": "ops.production_drift_monitoring",
             "value": 3,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": null,
@@ -571,7 +595,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "automation",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "reuben_boundary_observability",
@@ -590,14 +627,15 @@
         "holds": {
           "component": "ops.observability",
           "op": "gte",
-          "level": 3
+          "level": 3,
+          "axis": "automation"
         },
         "ops": [
           {
             "kind": "raise_to",
             "target": "ops.observability",
             "value": 3,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": null,
@@ -606,7 +644,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "automation",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "ruth_tradeoff_alerting",
@@ -628,16 +679,27 @@
             "kind": "raise_to",
             "target": "ops.alerting",
             "value": 3,
-            "attr": null
+            "axis": "automation"
           }
         ],
-        "concedes_metric": null,
-        "concedes_loss": null,
         "concedes_target": "ops.alerting",
         "concedes_max_level": 2,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": "automation",
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "emilia_tradeoff_retraining",
@@ -659,16 +721,27 @@
             "kind": "raise_to",
             "target": "ops.retraining_trigger",
             "value": 2,
-            "attr": null
+            "axis": "automation"
           }
         ],
-        "concedes_metric": null,
-        "concedes_loss": null,
         "concedes_target": "ops.retraining_trigger",
         "concedes_max_level": 2,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": "automation",
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "fact_monitoring_level",
@@ -692,103 +765,19 @@
         "concedes_max_level": null,
         "asserts_target": "ops.performance_monitoring",
         "asserts_level": 1,
-        "asserts_trigger": null
-      },
-      {
-        "key": "fact_alerting_level",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "The alerting system is currently missing.",
-        "readings": {
-          "driver": "The team wants to improve the alerting to catch forecast failures earlier.",
-          "boundary": "The team will not accept any changes to the alert rules without first fixing the missing alerting.",
-          "trade_off": "The team would accept a manual alerting process if the automated system is too costly.",
-          "fact": "That is simply the current state of the alerting setup."
-        },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": "ops.alerting",
-        "asserts_level": 1,
-        "asserts_trigger": null
-      },
-      {
-        "key": "fact_edge_perf_alert",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "The pipeline from performance monitoring to alerting is broken.",
-        "readings": {
-          "driver": "The team wants to fix the pipeline to ensure that forecast failures are caught and alerted on.",
-          "boundary": "The team will not accept any changes to the pipeline without first fixing the broken connection.",
-          "trade_off": "The team would accept a manual alerting process if the automated pipeline is too costly to fix.",
-          "fact": "That is simply the current state of the pipeline setup."
-        },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": "e.perf_alert",
-        "asserts_level": 0,
-        "asserts_trigger": "none"
-      },
-      {
-        "key": "fact_edge_observe_perf",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "The pipeline from observability to performance monitoring is missing.",
-        "readings": {
-          "driver": "The team wants to fix the pipeline to ensure that performance data is monitored automatically.",
-          "boundary": "The team will not accept any changes to the pipeline without first fixing the missing connection.",
-          "trade_off": "The team would accept a manual monitoring process if the automated pipeline is too costly to fix.",
-          "fact": "That is simply the current state of the pipeline setup."
-        },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": "e.observe_perf",
-        "asserts_level": 1,
-        "asserts_trigger": "none"
-      },
-      {
-        "key": "fact_edge_drift_alert",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "The pipeline from drift monitoring to alerting is missing.",
-        "readings": {
-          "driver": "The team wants to fix the pipeline to ensure that drift is detected and alerted on.",
-          "boundary": "The team will not accept any changes to the pipeline without first fixing the missing connection.",
-          "trade_off": "The team would accept a manual alerting process if the automated pipeline is too costly to fix.",
-          "fact": "That is simply the current state of the pipeline setup."
-        },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": "e.drift_alert",
-        "asserts_level": 1,
-        "asserts_trigger": "none"
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       }
     ]
   }

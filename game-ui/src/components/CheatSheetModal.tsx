@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
+import { EmojiIcon } from "../utils/emojiIcons";
 import styles from "./CheatSheetModal.module.css";
 import { INTEL_TAGS } from "../types/IntelTag";
 
@@ -112,12 +113,18 @@ const SECTIONS: CheatSheetSection[] = [
       </>,
       "Build your proposal at the PITCH DECK: up to 3 changes to the pipeline.",
       <>
-        Intel chip: 🟢 ready to pitch, 🟡 still thin, 🔴 not enough yet.
+        Intel chip: <EmojiIcon name="dotGreen" /> ready to pitch, <EmojiIcon name="dotYellow" /> still thin,{" "}
+        <EmojiIcon name="dotRed" /> not enough yet.
         <br />
         Verified intel turns it green.
       </>,
-      "High-power stakeholder can 🚫 veto if you crossed a boundary or skipped a driver.",
-      "After a veto: revise the card and re-pitch, or ⚡ Push It Through with an Escalation Point (3 for the whole game, never refill). The stakeholder who vetoed you will remember it.",
+      <>
+        High-power stakeholder can <EmojiIcon name="vetoStrip" /> veto if you crossed a boundary or skipped a driver.
+      </>,
+      <>
+        After a veto: revise the card and re-pitch, or <EmojiIcon name="power" /> Push It Through with an Escalation
+        Point (3 for the whole game, never refill). The stakeholder who vetoed you will remember it.
+      </>,
     ],
   },
   {

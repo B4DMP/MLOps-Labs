@@ -500,22 +500,26 @@
             "kind": "raise_to",
             "target": "ops.production_drift_monitoring",
             "value": 0,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": "reliability",
         "concedes_loss": 8,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
         "branch_x_description": "governed, automated drift monitoring",
         "branch_x_target": "ops.production_drift_monitoring",
-        "branch_x_level": 4,
+        "branch_x_level": 3,
         "branch_y_description": "drift monitoring cut back to the bare minimum",
         "branch_y_target": "ops.production_drift_monitoring",
-        "branch_y_level": 1
+        "branch_y_level": 1,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "governance",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "ruth_governed_drift",
@@ -530,14 +534,14 @@
         },
         "metric_id": "reliability",
         "suggested_target": "ops.production_drift_monitoring",
-        "suggested_level": 4,
+        "suggested_level": 3,
         "holds": null,
         "ops": [
           {
             "kind": "raise_to",
             "target": "ops.production_drift_monitoring",
-            "value": 4,
-            "attr": null
+            "value": 3,
+            "axis": "governance"
           }
         ],
         "concedes_metric": null,
@@ -546,7 +550,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "governance",
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "ruth_no_manual",
@@ -565,14 +582,15 @@
         "holds": {
           "component": "ops.production_drift_monitoring",
           "op": "gte",
-          "level": 3
+          "level": 3,
+          "axis": "automation"
         },
         "ops": [
           {
             "kind": "raise_to",
             "target": "ops.production_drift_monitoring",
             "value": 3,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": null,
@@ -581,7 +599,20 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       },
       {
         "key": "monica_retraining",
@@ -603,13 +634,11 @@
             "kind": "raise_to",
             "target": "e.alert_retrain",
             "value": 3,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": "model",
         "concedes_loss": 4,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
@@ -618,7 +647,13 @@
         "branch_x_level": 3,
         "branch_y_description": "the retraining trigger staying a manual step",
         "branch_y_target": "e.alert_retrain",
-        "branch_y_level": 1
+        "branch_y_level": 1,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "automation",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "reuben_cost_control",
@@ -640,13 +675,11 @@
             "kind": "raise_to",
             "target": "ops.observability",
             "value": 2,
-            "attr": null
+            "axis": "automation"
           }
         ],
         "concedes_metric": "data",
         "concedes_loss": 5,
-        "concedes_target": null,
-        "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
@@ -655,38 +688,49 @@
         "branch_x_level": 3,
         "branch_y_description": "the current, lower-granularity logging level",
         "branch_y_target": "ops.observability",
-        "branch_y_level": 2
+        "branch_y_level": 2,
+        "suggested_axis": null,
+        "asserts_axis": null,
+        "branch_x_axis": "automation",
+        "branch_x_ops": [],
+        "branch_y_axis": "automation",
+        "branch_y_ops": []
       },
       {
         "key": "emilia_efficiency_kpi",
-        "tag": "driver",
+        "tag": "trade_off",
         "stakeholder_id": "efficiency_emilia",
         "fact": "{efficiency_emilia} proposed aligning the monitoring budget with the efficiency KPI.",
         "readings": {
-          "driver": "She wants to ensure that every dollar spent on monitoring contributes directly to operational efficiency.",
+          "driver": "She wants the cost of watching the system to scale with infrastructure, not headcount.",
           "boundary": "She will not fund monitoring tools that do not have a clear link to the efficiency KPI.",
-          "trade_off": "She would accept a lower level of monitoring if it keeps the efficiency KPI on track.",
+          "trade_off": "She would leave logging at its current granularity if the budget stays flat, but wants full observability if the spend is approved.",
           "fact": "The efficiency KPI is currently not linked to the monitoring budget."
         },
         "metric_id": "efficiency",
-        "suggested_target": "ops.observability",
-        "suggested_level": 3,
+        "suggested_target": null,
+        "suggested_level": null,
         "holds": null,
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "ops.observability",
-            "value": 3,
-            "attr": null
-          }
-        ],
+        "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
+        "concedes_target": "ops.observability",
+        "concedes_max_level": 2,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": null,
+        "concedes_axis": "automation",
+        "branch_x_description": "full observability automation, budget permitting",
+        "branch_x_target": "ops.observability",
+        "branch_x_axis": "automation",
+        "branch_x_level": 3,
+        "branch_x_ops": [],
+        "branch_y_description": "observability left at its current, cheaper granularity",
+        "branch_y_target": "ops.observability",
+        "branch_y_axis": "automation",
+        "branch_y_level": 2,
+        "branch_y_ops": []
       },
       {
         "key": "fact_drift_absent",
@@ -710,79 +754,19 @@
         "concedes_max_level": null,
         "asserts_target": "ops.production_drift_monitoring",
         "asserts_level": 0,
-        "asserts_trigger": null
-      },
-      {
-        "key": "fact_alerting_manual",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "The alerting system is done by hand.",
-        "readings": {
-          "driver": "The team wants to automate the alerting system to reduce manual effort.",
-          "boundary": "The team will not accept manual alerting as it is error prone.",
-          "trade_off": "The team would accept a delay in other tasks to automate the alerting system.",
-          "fact": "That is simply the state of the system today."
-        },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": "ops.alerting",
-        "asserts_level": 1,
-        "asserts_trigger": null
-      },
-      {
-        "key": "fact_observability_auto",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "Logging and observability are automated.",
-        "readings": {
-          "driver": "The team wants to improve the observability to catch more issues.",
-          "boundary": "The team will not reduce the observability as it is critical for debugging.",
-          "trade_off": "The team would accept a reduction in observability if it saves costs.",
-          "fact": "That is simply the state of the system today."
-        },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": "ops.observability",
-        "asserts_level": 2,
-        "asserts_trigger": null
-      },
-      {
-        "key": "fact_retraining_manual",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "The retraining trigger is done by hand.",
-        "readings": {
-          "driver": "The team wants to automate the retraining trigger to improve model freshness.",
-          "boundary": "The team will not accept manual retraining as it is slow.",
-          "trade_off": "The team would accept a delay in other tasks to automate the retraining trigger.",
-          "fact": "That is simply the state of the system today."
-        },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": "ops.retraining_trigger",
-        "asserts_level": 1,
-        "asserts_trigger": null
+        "suggested_axis": null,
+        "concedes_axis": null,
+        "asserts_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
       }
     ]
   }

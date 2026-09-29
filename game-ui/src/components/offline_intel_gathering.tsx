@@ -95,7 +95,7 @@ export interface IntelArtifact {
 const REQUIREMENT_TAGS = [...INTEL_TAGS, CHALLENGE_INTEL_META].map((t) => ({
   type: t.type,
   label: t.label,
-  icon: t.emoji,
+  icon: t.icon,
   color: t.color,
   description: t.description,
   about: t.about,
@@ -785,7 +785,7 @@ export default function OfflineIntelGathering({
                               onTagArtifact(dossierTargetFor(art, taggedTypes[key]));
                             }
                           }}
-                          className={`btn btn-xs fw-bold ${styles.navPill} ${
+                          className={`btn btn-xs fw-bold ${styles.navPillIcon} ${styles.navPill} ${
                             art.is_known
                               ? (isOnRecordFact(art) ? styles.navPillOnRecordFact : styles.navPillOnRecord)
                               : isTagged
@@ -799,7 +799,7 @@ export default function OfflineIntelGathering({
                           aria-label={`${pillLabel}: ${pillStatus}`}
                         >
                           {art.is_known ? (
-                            <Icon icon={isOnRecordFact(art) ? intelTagMeta("fact").icon : "ph:megaphone-simple-bold"} />
+                            <Icon icon={isOnRecordFact(art) ? intelTagMeta("fact").icon : "ph:user-sound-duotone"} />
                           ) : (
                             idx + 1
                           )}
@@ -1144,6 +1144,23 @@ export default function OfflineIntelGathering({
                               <Icon icon="ph:bug-bold" />
                             </button>
                           )}
+                          {currentArtifact.debug?.artifact && (
+                            <button
+                              type="button"
+                              className={`${styles.debugToggle} ${
+                                currentArtifact.debug.artifact.humor_archetype ? styles.debugRight : styles.debugWrong
+                              }`}
+                              onClick={() => setIsDebugOpen((open) => !open)}
+                              title={
+                                currentArtifact.debug.artifact.humor_archetype
+                                  ? `Debug: humor applied (${currentArtifact.debug.artifact.humor_archetype})`
+                                  : "Debug: no humor applied"
+                              }
+                              aria-label="Toggle answer key (debug)"
+                            >
+                              <Icon icon={currentArtifact.debug.artifact.humor_archetype ? "ph:mask-happy-bold" : "ph:mask-happy"} />
+                            </button>
+                          )}
                           </div>
                           <h6 className={styles.taggingTitle}>
                             {isOnKnownArtifact
@@ -1222,6 +1239,33 @@ export default function OfflineIntelGathering({
                             </>
                           )}
                           {" "}· <span className={styles.debugId}>{currentArtifact.debug.id}</span>
+                          <br />
+                          <strong>Humor:</strong>{" "}
+                          {currentArtifact.debug.artifact?.humor_archetype ? (
+                            <span className={styles.debugRightText}>{currentArtifact.debug.artifact.humor_archetype}</span>
+                          ) : (
+                            <span className={styles.debugWrongText}>none</span>
+                          )}
+                          {currentArtifact.debug.artifact?.humor_verdict && (
+                            <>
+                              {" "}·{" "}
+                              <span
+                                className={
+                                  currentArtifact.debug.artifact.humor_verdict === "strong"
+                                    ? styles.debugRightText
+                                    : styles.debugWrongText
+                                }
+                              >
+                                {currentArtifact.debug.artifact.humor_verdict}
+                              </span>
+                            </>
+                          )}
+                          {currentArtifact.debug.artifact?.humor_review_reason && (
+                            <>
+                              <br />
+                              <strong>Humor review:</strong> {currentArtifact.debug.artifact.humor_review_reason}
+                            </>
+                          )}
                         </div>
                       )}
 
@@ -1259,7 +1303,7 @@ export default function OfflineIntelGathering({
                               >
                                 <div className={styles.tagButtonHeader}>
                                   <span className={styles.tagButtonLabelGroup}>
-                                    <span>{tag.icon}</span>{" "}
+                                    <Icon icon={tag.icon} style={{ color: tag.color }} />{" "}
                                     <span className={styles.tagButtonLabel} style={{ color: tag.color }}>{tag.label}</span>
                                   </span>
                                   {isSelected && (

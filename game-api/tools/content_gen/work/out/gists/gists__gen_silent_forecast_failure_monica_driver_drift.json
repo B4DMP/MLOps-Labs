@@ -16,7 +16,7 @@
       "reliability",
       "requirements"
     ],
-    "challenge_name": "The Silent Failure"
+    "challenge_name": "The Warehouse Flood"
   },
   "output": {
     "gist": "The question of how to detect model drift in production has been raised by {model_monica}.",

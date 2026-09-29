@@ -1,4 +1,5 @@
 import { Icon } from "@iconify/react";
+import { EmojiIcon } from "../utils/emojiIcons";
 import StakeholdersList from "./StakeholderList";
 import React, { useState, useEffect, useRef, useContext, useMemo } from "react";
 import { Reorder } from "motion/react";
@@ -320,7 +321,7 @@ export default function StakeholderInteractionArea({
     >
       <div className="d-flex justify-content-between align-items-center mb-1 w-100 flex-shrink-0">
         {showHeader && <h6 className={`transparent-div-label ${styles.chatHeaderTitle}`}>
-          💬 Conversation History {chatMsgs.length > 0 ? `(${chatMsgs.length})` : ""}
+          <EmojiIcon name="chatThread" /> Conversation History {chatMsgs.length > 0 ? `(${chatMsgs.length})` : ""}
         </h6>}
         {onToggleMaximize && (
           <button

@@ -16,7 +16,7 @@
       "reliability",
       "requirements"
     ],
-    "challenge_name": "The Silent Failure"
+    "challenge_name": "The Warehouse Flood"
   },
   "output": {
     "gist": "The manual retraining trigger for the nightly forecast job keeps coming up in efficiency discussions.",

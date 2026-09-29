@@ -436,3 +436,23 @@ export function fetchAdminTeacherPreview(campaignKeys: string[]): Promise<Teache
   const params = new URLSearchParams({ campaigns: campaignKeys.join(",") });
   return adminGet(`/api/admin/teacher-preview?${params}`, "Failed to fetch the live monitoring preview.");
 }
+
+export function fetchBugReportRecipients(): Promise<{ recipients: string[] }> {
+  return adminGet("/api/admin/bug-reports/recipients", "Failed to fetch bug report recipients.");
+}
+
+export async function updateBugReportRecipients(recipients: string[]): Promise<{ recipients: string[] }> {
+  const response = await fetch(`${BASE_URL}/api/admin/bug-reports/recipients`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeaders() },
+    body: JSON.stringify({ recipients }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to update bug report recipients.");
+  }
+
+  return response.json();
+}

@@ -24,6 +24,7 @@ from mlops_serious_game.application.pitch_debate_service.state import (
 )
 from mlops_serious_game.application.graph_service import store as graph_store
 from mlops_serious_game.application.graph_service.story import story_for
+from mlops_serious_game.application.pitch_debate_service.humor import humor_directive
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.graph import NARRATIVE_TIER_NAMES
 from mlops_serious_game.domain.graph_factory import GraphFactory
@@ -429,6 +430,8 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
 
     current_emotion = EmotionFactory.derive_emotional_state(st_emotion_values)
     emotion_instruction = EmotionFactory.derive_emotion_prompt(current_emotion)
+    if humor := humor_directive(current_emotion, st_emotion_values):
+        emotion_instruction += humor
 
     # Gather all intel items belonging to this stakeholder for private context
     all_intel_items = list(state.get("intel_items", []) or [])

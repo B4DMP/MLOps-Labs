@@ -44,8 +44,10 @@
     "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "During the pipeline review, {data_dave} observed that the nightly point of sale scan line ingestion from the till systems is not functioning. Currently, the model training process relies entirely on the previous night’s cached data stored in the local warehouse. No new transaction records from the last fourteen days have been written to the feature store. The retraining job executed on Tuesday morning used the same input dataset as the prior cycle. The data quality dashboard shows zero incoming rows for the last seven days across all regional distribution centres. The system logs confirm that the connection to the store master data feed remains active, but the scan line stream is silent.",
+    "content": "During the pipeline review, {data_dave} observed that the nightly point of sale scan line ingestion from the till systems is not functioning. Currently, the model training process relies entirely on the previous night\u2019s cached data stored in the local warehouse. No new transaction records from the last fourteen days have been written to the feature store. The retraining job executed on Tuesday morning used the same input dataset as the prior cycle. The data quality dashboard shows zero incoming rows for the last seven days across all regional distribution centres. The system logs confirm that the connection to the store master data feed remains active, but the scan line stream is silent.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text objectively reports the status of the data ingestion pipeline and the resulting lack of new data without expressing any wishes, refusals, or stated trade-offs."
+    "reclassify_reason": "The text objectively reports the status of the data ingestion pipeline and the resulting lack of new data without expressing any wishes, refusals, or stated trade-offs.",
+    "humor_status": "selected",
+    "humor_archetype": "A gap left idling with a pet's patience"
   }
 }

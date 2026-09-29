@@ -6,7 +6,7 @@ teacher_campaign_data - see application/services/teacher_service.py. Guarded DDL
 b8c9d0e1f2a3: a no-op on a database that already has these tables, a real create on a fresh one.
 
 Revision ID: a2b3c4d5e6f7
-Revises: d3e4f5a6b7c8
+Revises: f2a3b4c5d6e7
 Create Date: 2026-09-28 00:00:00.000000
 
 """
@@ -18,7 +18,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = 'a2b3c4d5e6f7'
-down_revision: Union[str, None] = 'd3e4f5a6b7c8'
+down_revision: Union[str, None] = 'f2a3b4c5d6e7'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -1,6 +1,7 @@
 import styles from "./IntelArtifactViewer.module.css";
 import GlossaryText, { GlossaryMarkdown } from "./glossary/GlossaryText";
 import SpokenText from "./SpokenText";
+import { EmojiIcon } from "../utils/emojiIcons";
 
 interface IntelArtifactViewerProps {
   content: string;
@@ -106,14 +107,14 @@ export default function IntelArtifactViewer({
         {/* Channel Header */}
         <div className={styles.chatChannelHeader}>
           <div className={styles.channelTitle}>
-            <span>{isPublicRecord ? "📣" : "💬"}</span>{" "}
+            <EmojiIcon name={isPublicRecord ? "publicChannel" : "chatThread"} />{" "}
             {isPublicRecord ? "#project-general" : "#mlops-architecture-sync"}
             <span className={styles.channelTopic}>
               {isPublicRecord ? "| Everyone on the project" : "| Model Monitoring & System SLA"}
             </span>
           </div>
           <div className={styles.channelMembers}>
-            {isPublicRecord ? "👥 128 Members" : "👥 6 Members"}
+            <EmojiIcon name="members" /> {isPublicRecord ? "128 Members" : "6 Members"}
           </div>
         </div>
 
@@ -138,10 +139,10 @@ export default function IntelArtifactViewer({
 
           {/* Emoji Reactions & Thread Bar */}
           <div className={styles.reactionBar}>
-            <div className={styles.reactionChip}>👍 4</div>
-            <div className={styles.reactionChip}>👀 2</div>
-            <div className={styles.reactionChip}>🚀 1</div>
-            <div className={styles.threadIndicator}>💬 3 replies from team</div>
+            <div className={styles.reactionChip}><EmojiIcon name="reactionThumbsUp" /> 4</div>
+            <div className={styles.reactionChip}><EmojiIcon name="reactionEyes" /> 2</div>
+            <div className={styles.reactionChip}><EmojiIcon name="reactionRocket" /> 1</div>
+            <div className={styles.threadIndicator}><EmojiIcon name="chatThread" /> 3 replies from team</div>
           </div>
         </div>
       </div>
@@ -157,10 +158,10 @@ export default function IntelArtifactViewer({
         {/* Wiki Breadcrumb Bar */}
         <div className={styles.wikiBreadcrumbBar}>
           <div className={styles.breadcrumbs}>
-            <span>📚 Enterprise Wiki</span> / <span>MLOps Governance</span> / <span>Meeting Minutes</span>
+            <span><EmojiIcon name="wiki" /> Enterprise Wiki</span> / <span>MLOps Governance</span> / <span>Meeting Minutes</span>
           </div>
           <div className={styles.wikiStatusGroup}>
-            <span className={styles.metaChip}>👤 Key Contributor: {name}</span>
+            <span className={styles.metaChip}><EmojiIcon name="contributor" /> Key Contributor: {name}</span>
             <span className={styles.wikiStatusTag}>SUMMARY</span>
           </div>
         </div>
@@ -175,9 +176,9 @@ export default function IntelArtifactViewer({
           </div>
 
           <div className={styles.actionChecklist}>
-            <div className={styles.checklistTitle}>📋 Mandatory Action Items:</div>
-            <div>☑ Audit system constraints & latency targets</div>
-            <div>☐ Incorporate stakeholder stance into Sprint 1 backlog</div>
+            <div className={styles.checklistTitle}><EmojiIcon name="actionItems" /> Mandatory Action Items:</div>
+            <div><EmojiIcon name="checklistDone" /> Audit system constraints & latency targets</div>
+            <div><EmojiIcon name="checklistTodo" /> Incorporate stakeholder stance into Sprint 1 backlog</div>
           </div>
         </div>
       </div>
