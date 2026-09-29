@@ -16,21 +16,22 @@ vi.mock("../services/api/auth", () => ({
   changePassword: vi.fn(),
   changeEmail: vi.fn(),
   confirmEmailChange: vi.fn(),
-  changeUsername: vi.fn(),
 }));
 
 import { loadVoices, speak } from "../utils/speech";
-import { changeUsername } from "../services/api/auth";
+import { changeEmail, confirmEmailChange } from "../services/api/auth";
 
 const mockedLoadVoices = vi.mocked(loadVoices);
 const mockedSpeak = vi.mocked(speak);
-const mockedChangeUsername = vi.mocked(changeUsername);
+const mockedChangeEmail = vi.mocked(changeEmail);
+const mockedConfirmEmailChange = vi.mocked(confirmEmailChange);
 
-function fakeWebSocketContext(username = "alice", setUsername = vi.fn()): WebSocketContextValue {
+function fakeWebSocketContext(email = "alice@example.test", setEmail = vi.fn()): WebSocketContextValue {
   return {
     isConnected: true,
-    username,
-    setUsername,
+    userId: 1,
+    email,
+    setEmail,
     emit: vi.fn(),
     subscribe: vi.fn(() => () => {}),
     lastError: null,
@@ -45,13 +46,13 @@ function fakeVoice(name: string, lang = "en-US"): SpeechSynthesisVoice {
 function renderPanel(opts: {
   settings?: Partial<PlayerSettings>;
   canResetAccount?: boolean;
-  username?: string;
+  email?: string;
   onLogout?: () => void;
-  setUsername?: (u: string) => void;
+  setEmail?: (e: string) => void;
 } = {}) {
   const settings: PlayerSettings = { ...DEFAULT_SETTINGS, ...opts.settings };
   return render(
-    <WebSocketContext.Provider value={fakeWebSocketContext(opts.username ?? "alice", opts.setUsername)}>
+    <WebSocketContext.Provider value={fakeWebSocketContext(opts.email ?? "alice@example.test", opts.setEmail)}>
       <SettingsContext.Provider
         value={{
           settings,
@@ -76,14 +77,13 @@ async function openSection(name: string) {
 describe("SettingsPanel accordion", () => {
   afterEach(() => {
     mockedLoadVoices.mockReset();
-    mockedChangeUsername.mockReset();
   });
 
   it("starts with every section collapsed", async () => {
     mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
     renderPanel({ canResetAccount: true });
 
-    expect(screen.queryByText("Signed in as alice")).not.toBeInTheDocument();
+    expect(screen.queryByText("Signed in as alice@example.test")).not.toBeInTheDocument();
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
     expect(screen.queryByText("Reset my account")).not.toBeInTheDocument();
   });
@@ -115,9 +115,9 @@ describe("SettingsPanel accordion", () => {
     expect(await screen.findByText("Reset my account")).toBeInTheDocument();
   });
 
-  it("keeps the final reset button disabled until the username is typed", async () => {
+  it("keeps the final reset button disabled until the email is typed", async () => {
     mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
-    renderPanel({ canResetAccount: true, username: "alice" });
+    renderPanel({ canResetAccount: true, email: "alice@example.test" });
 
     const user = await openSection("Account");
     await user.click(screen.getByText("Reset my account"));
@@ -126,11 +126,11 @@ describe("SettingsPanel accordion", () => {
     expect(confirmButton).toBeDisabled();
 
     const input = screen.getByRole("textbox");
-    await user.type(input, "wrong-name");
+    await user.type(input, "wrong@example.test");
     expect(confirmButton).toBeDisabled();
 
     await user.clear(input);
-    await user.type(input, "alice");
+    await user.type(input, "alice@example.test");
     expect(confirmButton).toBeEnabled();
   });
 
@@ -308,7 +308,8 @@ describe("SettingsPanel accordion", () => {
 describe("SettingsPanel profile section", () => {
   afterEach(() => {
     mockedLoadVoices.mockReset();
-    mockedChangeUsername.mockReset();
+    mockedChangeEmail.mockReset();
+    mockedConfirmEmailChange.mockReset();
   });
 
   it("calls onLogout when the Log out button is clicked", async () => {
@@ -321,34 +322,37 @@ describe("SettingsPanel profile section", () => {
     expect(onLogout).toHaveBeenCalledTimes(1);
   });
 
-  it("calls the websocket's setUsername with the new name on a successful username change", async () => {
+  it("tells the websocket context the new email once the change is confirmed", async () => {
     mockedLoadVoices.mockResolvedValue([]);
-    mockedChangeUsername.mockResolvedValue({ type: "username_changed", username: "bob" });
-    const setUsername = vi.fn();
-    renderPanel({ setUsername, username: "alice" });
+    mockedChangeEmail.mockResolvedValue({ type: "email_change_code_sent" });
+    mockedConfirmEmailChange.mockResolvedValue({ type: "email_changed" });
+    const setEmail = vi.fn();
+    renderPanel({ setEmail, email: "alice@example.test" });
 
     const user = await openSection("Profile");
-    await user.type(screen.getByPlaceholderText("New username"), "bob");
-    // "Current password" also appears in the change-password form above this one.
-    await user.type(screen.getAllByPlaceholderText("Current password")[1], "correct-horse-battery-staple");
-    await user.click(screen.getByRole("button", { name: "Change username" }));
+    await user.type(screen.getByPlaceholderText("New email address"), "bob@example.test");
+    await user.click(screen.getByRole("button", { name: "Send confirmation code" }));
+    await user.type(await screen.findByPlaceholderText("6-digit code"), "123456");
+    await user.click(screen.getByRole("button", { name: "Confirm" }));
 
-    expect(await screen.findByText("Username changed to bob.")).toBeInTheDocument();
-    expect(setUsername).toHaveBeenCalledWith("bob");
+    expect(await screen.findByText("Email changed.")).toBeInTheDocument();
+    expect(setEmail).toHaveBeenCalledWith("bob@example.test");
   });
 
-  it("shows an error and does not call setUsername when the change fails", async () => {
+  it("does not touch the websocket context when the confirmation fails", async () => {
     mockedLoadVoices.mockResolvedValue([]);
-    mockedChangeUsername.mockRejectedValue(new Error("That username is taken."));
-    const setUsername = vi.fn();
-    renderPanel({ setUsername });
+    mockedChangeEmail.mockResolvedValue({ type: "email_change_code_sent" });
+    mockedConfirmEmailChange.mockRejectedValue(new Error("Invalid code."));
+    const setEmail = vi.fn();
+    renderPanel({ setEmail });
 
     const user = await openSection("Profile");
-    await user.type(screen.getByPlaceholderText("New username"), "bob");
-    await user.type(screen.getAllByPlaceholderText("Current password")[1], "wrong");
-    await user.click(screen.getByRole("button", { name: "Change username" }));
+    await user.type(screen.getByPlaceholderText("New email address"), "bob@example.test");
+    await user.click(screen.getByRole("button", { name: "Send confirmation code" }));
+    await user.type(await screen.findByPlaceholderText("6-digit code"), "123456");
+    await user.click(screen.getByRole("button", { name: "Confirm" }));
 
-    expect(await screen.findByText("That username is taken.")).toBeInTheDocument();
-    expect(setUsername).not.toHaveBeenCalled();
+    expect(await screen.findByText("Invalid code.")).toBeInTheDocument();
+    expect(setEmail).not.toHaveBeenCalled();
   });
 });

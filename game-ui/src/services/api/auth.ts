@@ -11,33 +11,44 @@ const BASE_URL = `${PROTOCOL}//${API_HOST}`;
 
 // Identity rides an httpOnly cookie now, never a token the JS holds
 // (docs/plans/session-persistence-and-url-routing.md, D-cookies/D-login-response).
+export interface PlayerIdentity {
+  id: number;
+  email: string;
+}
+
 export interface LoginResponse {
   type: "login_success" | "admin_login_success" | "teacher_login_success" | "verification_required";
+  user_id?: number;
+  email?: string;
+  /** Teacher accounts only - they still sign in by name. */
   username?: string;
 }
 
 export interface RegisterResponse {
-  type: "register_pending_verification" | "admin_login_success" | "login_success";
-  username?: string;
+  type: "register_pending_verification" | "login_success";
+  user_id?: number;
+  email: string;
 }
 
 export interface VerifyEmailResponse {
   type: "login_success";
-  username: string;
+  user_id: number;
+  email: string;
 }
 
 export interface ForgotPasswordResponse {
   type: "password_reset_code_sent";
-  username: string;
+  email: string;
 }
 
 export interface ResetPasswordResponse {
   type: "login_success";
-  username: string;
+  user_id: number;
+  email: string;
 }
 
 export interface WhoamiResponse {
-  player: { username: string } | null;
+  player: PlayerIdentity | null;
   admin: { valid: true } | null;
   teacher: { id: number; user_name: string } | null;
 }
@@ -63,12 +74,12 @@ async function postJson<T>(
   return response.json();
 }
 
-export async function loginUser(username: string, password: string): Promise<LoginResponse> {
-  return postJson("/api/auth/login", { username, password }, "Login failed.");
+/** `email` is the player's email; admin and teacher accounts still sign in by their name. */
+export async function loginUser(email: string, password: string): Promise<LoginResponse> {
+  return postJson("/api/auth/login", { email, password }, "Login failed.");
 }
 
 export interface RegisterFields {
-  username: string;
   email: string;
   emailConfirm: string;
   password: string;
@@ -82,7 +93,6 @@ export async function registerUser(fields: RegisterFields): Promise<RegisterResp
   return postJson(
     "/api/auth/register",
     {
-      username: fields.username,
       email: fields.email,
       email_confirm: fields.emailConfirm,
       password: fields.password,
@@ -95,23 +105,23 @@ export async function registerUser(fields: RegisterFields): Promise<RegisterResp
   );
 }
 
-export async function verifyEmailCode(username: string, code: string): Promise<VerifyEmailResponse> {
-  return postJson("/api/auth/verify-email", { username, code }, "Verification failed.");
+export async function verifyEmailCode(email: string, code: string): Promise<VerifyEmailResponse> {
+  return postJson("/api/auth/verify-email", { email, code }, "Verification failed.");
 }
 
-export async function forgotPassword(username: string, email: string): Promise<ForgotPasswordResponse> {
-  return postJson("/api/auth/forgot-password", { username, email }, "Could not request a password reset.");
+export async function forgotPassword(email: string): Promise<ForgotPasswordResponse> {
+  return postJson("/api/auth/forgot-password", { email }, "Could not request a password reset.");
 }
 
 export async function resetPassword(
-  username: string,
+  email: string,
   code: string,
   newPassword: string,
   newPasswordConfirm: string
 ): Promise<ResetPasswordResponse> {
   return postJson(
     "/api/auth/reset-password",
-    { username, code, new_password: newPassword, new_password_confirm: newPasswordConfirm },
+    { email, code, new_password: newPassword, new_password_confirm: newPasswordConfirm },
     "Could not reset your password."
   );
 }
@@ -185,16 +195,5 @@ export function confirmEmailChange(code: string): Promise<{ type: string }> {
     "/api/auth/confirm-email-change",
     { code },
     "Could not confirm the email change."
-  );
-}
-
-export function changeUsername(
-  newUsername: string,
-  currentPassword: string
-): Promise<{ type: string; username: string }> {
-  return postJsonWithCsrf(
-    "/api/auth/change-username",
-    { new_username: newUsername, current_password: currentPassword },
-    "Could not change your username."
   );
 }

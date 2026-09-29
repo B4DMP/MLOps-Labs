@@ -112,8 +112,8 @@ async def test_dossier_chains_stances_and_pages_facts_separately():
 
     ws = AsyncMock()
     username = f"test_dossier_chains_{uuid.uuid4()}"
-    ensure_test_user(username)
-    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(username)}
+    user_id = ensure_test_user(username)
+    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(user_id)}
 
     pool = [_requirement("tess_1"), _requirement("tess_2", refines_id="tess_1")]
     with patch.object(RequirementFactory, "requirements", pool), \
@@ -165,8 +165,8 @@ async def test_dossier_does_not_leak_trade_off_branches_for_boundary_item():
 
     ws = AsyncMock()
     username = f"test_boundary_branches_{uuid.uuid4()}"
-    ensure_test_user(username)
-    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(username)}
+    user_id = ensure_test_user(username)
+    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(user_id)}
 
     with patch.object(RequirementFactory, "requirements", [boundary_req]), \
          patch("mlops_serious_game.application.intel_handler.retrieve_intel_items", new_callable=AsyncMock) as mock_retrieve, \

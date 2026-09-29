@@ -12,21 +12,27 @@ from mlops_serious_game.infrastructure.database import (
     GameChallenge,
     User,
     get_session,
-    get_user_id,
 )
 from mlops_serious_game.infrastructure.database.run_scope import FIRST_RUN
 
 # Checkpoint tables are managed internally by LangGraph, not by our ORM models, and are keyed
-# by thread_id rather than username - these are the thread naming conventions used across the
+# by thread_id rather than by user - these are the thread naming conventions used across the
 # app (chat_handler, online_intel_service) for a given player.
 CHECKPOINT_TABLES = ("checkpoints", "checkpoint_writes", "checkpoint_blobs")
 
 
+def _emails_by_id(session) -> dict[int, str]:
+    return dict(session.execute(select(User.id, User.email)).all())
+
+
+def _user_id_for(email: str):
+    """Scalar subquery resolving a player's email (the admin panel's player key) to `User.id`."""
+    return select(User.id).where(User.email == email).scalar_subquery()
+
+
 def _player_thread_ids(user_id: int) -> list[str]:
-    """Keyed by user_id, not username - see D-user-id in
-    docs/plans/session-persistence-and-url-routing.md. Doesn't cover the per-challenge
-    Action_Card_Pitch_*/Action_Card_Veto_* threads (variable-length suffix, pre-existing gap not
-    introduced by this plan)."""
+    """Doesn't cover the per-challenge Action_Card_Pitch_*/Action_Card_Veto_* threads
+    (variable-length suffix, pre-existing gap)."""
     return [f"MLOps_Convo_{user_id}", f"Online_Intel_{user_id}"]
 
 
@@ -51,7 +57,7 @@ def _delete_all_checkpoints(session) -> None:
 def get_campaign_users(campaign_key: str) -> list[str]:
     try:
         with get_session() as session:
-            users = session.scalars(select(User.user_name).where(User.campaign_key == campaign_key)).all()
+            users = session.scalars(select(User.email).where(User.campaign_key == campaign_key)).all()
             return list(users)
     except Exception:
         return []
@@ -82,12 +88,13 @@ def get_player_data() -> dict[str, Any]:
     try:
         player_data: dict[str, Any] = {}
         with get_session() as session:
+            emails = _emails_by_id(session)
             # 1. Populate all registered users first
             users = session.scalars(select(User)).all()
             campaign_by_key = {c.campaign_key: c for c in session.scalars(select(Campaign)).all()}
             for user in users:
                 campaign = campaign_by_key.get(user.campaign_key)
-                player_data[user.user_name] = {
+                player_data[user.email] = {
                     "maxProgressIndex": 0,
                     "furthestProgression": (0, 0),
                     "lastPlayed": None,
@@ -109,15 +116,16 @@ def get_player_data() -> dict[str, Any]:
             progressions = session.scalars(
                 select(GameProgression).where(GameProgression.run_index == FIRST_RUN)
             ).all()
-            run_counts = dict(
-                session.execute(
-                    select(GameProgression.user_name, func.max(GameProgression.run_index)).group_by(
-                        GameProgression.user_name
+            run_counts = {
+                emails.get(user_id): highest
+                for user_id, highest in session.execute(
+                    select(GameProgression.user_id, func.max(GameProgression.run_index)).group_by(
+                        GameProgression.user_id
                     )
                 ).all()
-            )
+            }
             for prog in progressions:
-                player = prog.user_name
+                player = emails.get(prog.user_id)
                 g_idx = prog.game_progress_index
                 ts = prog.time_stamp
                 if player not in player_data:
@@ -143,7 +151,7 @@ def get_player_data() -> dict[str, Any]:
                 select(GameChallenge).where(GameChallenge.run_index == FIRST_RUN)
             ).all()
             for gs in game_sessions:
-                player = gs.user_name
+                player = emails.get(gs.user_id)
                 p_idx = gs.phase_index
                 c_idx = gs.challenge_index
                 ts = gs.time_stamp
@@ -186,7 +194,7 @@ def get_valid_players_set(
     valid_players = set()
     try:
         def _fetch(s):
-            stmt = select(User.user_name)
+            stmt = select(User.email)
             if not include_playtest:
                 stmt = stmt.where(User.playtest_tainted.is_(False))
             if campaign_key and campaign_key != "all":
@@ -209,7 +217,9 @@ def get_finished_players_set(session=None, campaign_key: str | None = None) -> s
         def _fetch(s):
             valid = get_valid_players_set(s, campaign_key=campaign_key)
             users = s.scalars(
-                select(GameProgression.user_name).where(
+                select(User.email)
+                .join(GameProgression, GameProgression.user_id == User.id)
+                .where(
                     GameProgression.game_progress_index == 4,
                     GameProgression.run_index == FIRST_RUN,
                 )
@@ -233,7 +243,7 @@ def calculate_intro_percentage(player_name: str) -> int:
             prog = session.scalar(
                 select(GameProgression).where(
                     GameProgression.run_index == FIRST_RUN,
-                    GameProgression.user_id == get_user_id(session, player_name),
+                    GameProgression.user_id == _user_id_for(player_name),
                     GameProgression.game_progress_index == 1,
                 )
             )
@@ -268,7 +278,7 @@ def calculate_outro_percentage(player_name: str) -> int:
             prog = session.scalar(
                 select(GameProgression).where(
                     GameProgression.run_index == FIRST_RUN,
-                    GameProgression.user_id == get_user_id(session, player_name),
+                    GameProgression.user_id == _user_id_for(player_name),
                     GameProgression.game_progress_index == 4,
                 )
             )
@@ -298,6 +308,7 @@ def calculate_outro_percentage(player_name: str) -> int:
 def calculate_intro_questionaire_average(campaign_key: str | None = None) -> int:
     try:
         with get_session() as session:
+            emails = _emails_by_id(session)
             valid_players = get_valid_players_set(session, campaign_key=campaign_key)
             finished_players = get_finished_players_set(session, campaign_key=campaign_key)
             sum_score = 0
@@ -309,7 +320,7 @@ def calculate_intro_questionaire_average(campaign_key: str | None = None) -> int
                 )
             ).all()
             for prog in intro_progs:
-                user = prog.user_name
+                user = emails.get(prog.user_id)
                 if user not in valid_players or user not in finished_players:
                     continue
                 player_score = calculate_intro_percentage(user)
@@ -325,6 +336,7 @@ def calculate_intro_questionaire_average(campaign_key: str | None = None) -> int
 def calculate_outro_questionaire_average(campaign_key: str | None = None) -> int:
     try:
         with get_session() as session:
+            emails = _emails_by_id(session)
             valid_players = get_valid_players_set(session, campaign_key=campaign_key)
             sum_score = 0
             player_amount = 0
@@ -335,7 +347,7 @@ def calculate_outro_questionaire_average(campaign_key: str | None = None) -> int
                 )
             ).all()
             for prog in outro_progs:
-                user = prog.user_name
+                user = emails.get(prog.user_id)
                 if user not in valid_players:
                     continue
                 player_score = calculate_outro_percentage(user)
@@ -382,7 +394,7 @@ def calculate_metric_sum_per_challenge(campaign_key: str | None = None) -> list[
                 return [0.0] * total_expected_challenges
 
             valid_user_ids = session.scalars(
-                select(User.id).where(User.user_name.in_(valid_players))
+                select(User.id).where(User.email.in_(valid_players))
             ).all()
 
             if not valid_user_ids:
@@ -494,6 +506,7 @@ def get_questionaire_results(campaign_key: str | None = None) -> dict[str, Any]:
     ret: dict[str, Any] = {"intro": [], "outro": []}
     try:
         with get_session() as session:
+            emails = _emails_by_id(session)
             valid_players = get_valid_players_set(session, campaign_key=campaign_key)
             finished_players = get_finished_players_set(session, campaign_key=campaign_key)
             expert_players = set()
@@ -505,7 +518,7 @@ def get_questionaire_results(campaign_key: str | None = None) -> dict[str, Any]:
                 )
             ).all()
             for prog in intro_progs:
-                user = prog.user_name
+                user = emails.get(prog.user_id)
                 if user not in valid_players or user not in finished_players:
                     continue
                 additional_data = prog.additional_data or []
@@ -531,7 +544,7 @@ def get_questionaire_results(campaign_key: str | None = None) -> dict[str, Any]:
                         {"answer_name": "Written Feedback", "amount": 0, "amount_experts": 0, "notes": []}
                     ]
                 for prog in intro_progs:
-                    user = prog.user_name
+                    user = emails.get(prog.user_id)
                     if user not in valid_players or user not in finished_players:
                         continue
                     additional_data = prog.additional_data or []
@@ -558,7 +571,7 @@ def get_questionaire_results(campaign_key: str | None = None) -> dict[str, Any]:
                         {"answer_name": "Written Feedback", "amount": 0, "amount_experts": 0, "notes": []}
                     ]
                 for prog in outro_progs:
-                    user = prog.user_name
+                    user = emails.get(prog.user_id)
                     if user not in valid_players or user not in finished_players:
                         continue
                     additional_data = prog.additional_data or []
@@ -790,7 +803,7 @@ def remove_all_campaigns() -> None:
 def remove_player(player_name: str) -> None:
     """Removes all player-related data of the selected player across all tables.
 
-    Reusing a username after deletion must behave like a genuinely new player: leaving
+    Reusing an email after deletion must behave like a genuinely new player: leaving
     GraphOpLog, GameEventRow or checkpoint rows behind lets the old graph state/history bleed
     into the "new" account (e.g. the scheduler replaying stale ops when picking their first
     challenge), so every per-player table needs to be covered here, not just the obvious ones -
@@ -798,7 +811,7 @@ def remove_player(player_name: str) -> None:
     """
     try:
         with get_session() as session:
-            user = session.scalar(select(User).where(User.user_name == player_name))
+            user = session.scalar(select(User).where(User.email == player_name))
             if user is not None:
                 _cleanup_and_delete_user(session, user)
     except Exception as e:
@@ -806,16 +819,16 @@ def remove_player(player_name: str) -> None:
         raise
 
 
-def reset_player(player_name: str) -> None:
+def reset_player(user_id: int) -> None:
     """Wipes a player's own progress and returns them to a freshly registered account.
 
     Same per-table cleanup as `remove_player`, but re-inserts a `User` row with the same
-    `user_name`, `campaign_key` and `campaign_id` so the player stays in their campaign instead
-    of being removed outright. `user_settings` goes with the cascade too, so the recreated
+    `id` (so live sessions stay valid), `campaign_key` and `campaign_id`, so the player stays in
+    their campaign instead of being removed outright. `user_settings` goes with the cascade too, so the recreated
     account starts on defaults - see docs/plans/player-settings-and-tts.md.
     """
     with get_session() as session:
-        user = session.scalar(select(User).where(User.user_name == player_name))
+        user = session.get(User, user_id)
         if user is None:
             return
         campaign_key = user.campaign_key
@@ -826,7 +839,7 @@ def reset_player(player_name: str) -> None:
         is_verified = user.is_verified
         _cleanup_and_delete_user(session, user)
         session.add(User(
-            user_name=player_name,
+            id=user_id,
             campaign_key=campaign_key,
             campaign_id=campaign_id,
             email=email,

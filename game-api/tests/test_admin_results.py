@@ -33,13 +33,13 @@ def _finished(username: str, campaign_key: str, *, tainted: bool = False, runs: 
 
     user_id = _seed_user(username, campaign_key)
     for run in range(1, runs + 1):
-        _start_run(user_id, run, None, username)
+        _start_run(user_id, run, None)
         _add_challenge(
             user_id, run, PLAYED_PHASE, PLAYED_CHALLENGE,
-            [10 * run, 0, 0, 0, 0, 0, 0, 0], {"model_monica": {"trust": 0.6}}, username,
+            [10 * run, 0, 0, 0, 0, 0, 0, 0], {"model_monica": {"trust": 0.6}},
         )
-        _add_session(user_id, run, escalation=3, grudges=[], username=username)
-        _finish_run(user_id, run, username)
+        _add_session(user_id, run, escalation=3, grudges=[])
+        _finish_run(user_id, run)
     if tainted:
         with get_session() as session:
             session.get(User, user_id).playtest_tainted = True
@@ -59,8 +59,8 @@ def test_a_tainted_account_is_left_out_of_the_valid_players_by_default(migrated_
     _finished("alice", "camp-1")
     _finished("bob", "camp-2", tainted=True)
 
-    assert _valid() == {"alice"}
-    assert _valid(include_playtest=True) == {"alice", "bob"}
+    assert _valid() == {"alice@example.test"}
+    assert _valid(include_playtest=True) == {"alice@example.test", "bob@example.test"}
 
 
 def test_the_exclusion_reaches_the_pre_existing_aggregates_not_just_this_page(migrated_db):
@@ -87,12 +87,12 @@ def test_the_dashboard_reports_how_many_accounts_it_left_out(migrated_db):
     default = get_results_dashboard()
     assert default["aggregates"]["runs"] == 1
     assert default["excluded_playtest_accounts"] == 1
-    assert [p["name"] for p in default["players"]] == ["alice"]
+    assert [p["name"] for p in default["players"]] == ["alice@example.test"]
 
     included = get_results_dashboard(include_playtest=True)
     assert included["aggregates"]["runs"] == 2
     assert included["excluded_playtest_accounts"] == 0
-    assert {p["name"]: p["playtest_tainted"] for p in included["players"]} == {"alice": False, "bob": True}
+    assert {p["name"]: p["playtest_tainted"] for p in included["players"]} == {"alice@example.test": False, "bob@example.test": True}
 
 
 # ── First run, or all runs ───────────────────────────────────────────────────
@@ -122,7 +122,7 @@ def test_a_player_who_never_finished_is_not_listed(migrated_db):
     from mlops_serious_game.application.services.admin_results import get_results_dashboard
 
     user_id = _seed_user("carol", "camp-3")
-    _start_run(user_id, 1, None, "carol")  # in progress, never index 4
+    _start_run(user_id, 1, None)  # in progress, never index 4
 
     dashboard = get_results_dashboard()
     assert dashboard["players"] == []
@@ -161,7 +161,7 @@ def test_the_campaign_filter_narrows_to_that_campaign(migrated_db):
     _finished("alice", "camp-1")
     _finished("dan", "camp-2")
 
-    assert [p["name"] for p in get_results_dashboard("camp-2")["players"]] == ["dan"]
+    assert [p["name"] for p in get_results_dashboard("camp-2")["players"]] == ["dan@example.test"]
     assert len(get_results_dashboard("all")["players"]) == 2
 
 
@@ -172,21 +172,21 @@ def test_one_unreadable_run_does_not_take_the_page_down(migrated_db):
     from mlops_serious_game.application.results_service import service
     from mlops_serious_game.application.services.admin_results import get_results_dashboard
 
-    _finished("alice", "camp-1")
+    alice_id = _finished("alice", "camp-1")
     _finished("dan", "camp-2")
     real = service.results_for
 
-    def flaky(username, run_index=None, **kwargs):
-        if username == "alice":
+    def flaky(user_id, run_index=None, **kwargs):
+        if user_id == alice_id:
             raise RuntimeError("corrupt row")
-        return real(username, run_index, **kwargs)
+        return real(user_id, run_index, **kwargs)
 
     with patch.object(service, "results_for", flaky):
         dashboard = get_results_dashboard()
 
     assert dashboard["unreadable_runs"] == 1
     assert dashboard["aggregates"]["runs"] == 1
-    assert [p["name"] for p in dashboard["players"]] == ["dan"]
+    assert [p["name"] for p in dashboard["players"]] == ["dan@example.test"]
 
 
 # ── Per-item intel rates ─────────────────────────────────────────────────────
@@ -201,7 +201,7 @@ def test_intel_items_are_rated_against_the_runs_that_actually_dealt_their_challe
     user_id = _finished("alice", "camp-1")
     found = RequirementFactory.get_requirements_for_challenge(PLAYED_CHALLENGE)[0]
     with get_session() as session:
-        session.add(IntelItem(user_name="alice", user_id=user_id, run_index=1, intel_item_data={"id": found.id}))
+        session.add(IntelItem(user_id=user_id, run_index=1, intel_item_data={"id": found.id}))
 
     items = get_results_dashboard()["intel_items"]
 
@@ -224,9 +224,9 @@ def test_a_replay_does_not_move_a_players_recorded_progress(migrated_db):
     from mlops_serious_game.infrastructure.database.connection import get_session  # noqa: F401
 
     user_id = _finished("alice", "camp-1")
-    _start_run(user_id, 2, None, "alice")  # second game begun, not finished
+    _start_run(user_id, 2, None)  # second game begun, not finished
 
-    alice = get_player_data()["alice"]
+    alice = get_player_data()["alice@example.test"]
     assert alice["maxProgressIndex"] == 4
     assert alice["runs"] == 2
 
@@ -242,7 +242,7 @@ def test_the_player_list_flags_a_tainted_account(migrated_db):
     from mlops_serious_game.application.services.admin_service import get_admin_dashboard_data
 
     _finished("bob", "camp-2", tainted=True)
-    row = next(p for p in get_admin_dashboard_data()["players"] if p["name"] == "bob")
+    row = next(p for p in get_admin_dashboard_data()["players"] if p["name"] == "bob@example.test")
     assert row["playtestTainted"] is True
     assert row["runs"] == 1
 
@@ -254,7 +254,7 @@ def test_the_drill_down_defaults_to_the_first_finished_run(migrated_db):
     from mlops_serious_game.application.services.admin_results import get_player_results
 
     _finished("alice", "camp-1", runs=2)
-    result = get_player_results("alice")
+    result = get_player_results("alice@example.test")
 
     assert result["run_index"] == 1
     assert result["runs"] == [1, 2]
@@ -266,12 +266,12 @@ def test_the_drill_down_can_open_a_replay(migrated_db):
     from mlops_serious_game.application.services.admin_results import get_player_results
 
     _finished("alice", "camp-1", runs=2)
-    assert get_player_results("alice", 2)["results"]["run_index"] == 2
+    assert get_player_results("alice@example.test", 2)["results"]["run_index"] == 2
 
 
 @pytest.mark.parametrize(
     "player, run",
-    [("nobody", None), ("carol", None), ("alice", 3)],
+    [("nobody@example.test", None), ("carol@example.test", None), ("alice@example.test", 3)],
     ids=["unknown player", "never finished", "run not finished"],
 )
 def test_the_drill_down_refuses_what_has_no_verdict(migrated_db, player, run):
@@ -280,7 +280,7 @@ def test_the_drill_down_refuses_what_has_no_verdict(migrated_db, player, run):
 
     _finished("alice", "camp-1")
     carol = _seed_user("carol", "camp-3")
-    _start_run(carol, 1, None, "carol")
+    _start_run(carol, 1, None)
 
     with pytest.raises(ValueError):
         get_player_results(player, run)

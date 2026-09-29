@@ -47,7 +47,6 @@ from mlops_serious_game.infrastructure.database.run_scope import (
     parent_run,
     run_chain,
 )
-from mlops_serious_game.infrastructure.database.user_lookup import get_user_id
 
 # Tutorial-phase metrics: they belong to the introduction, and carrying them into the headline
 # would dilute the read of the real run.
@@ -64,11 +63,11 @@ OUTRO_PROGRESS_INDEX = 4
 CORRECT_ANSWER_ID = 0
 
 
-def _graph_view(username: str, run_index: Optional[int], phase_id: Optional[int]) -> dict:
+def _graph_view(user_id: int, run_index: Optional[int], phase_id: Optional[int]) -> dict:
     """The `graph:state` payload as of a given run: the same view the Performance Dashboard
     renders, so the results Pipeline tab reads as that dashboard at rest."""
     graph = GraphFactory.get_graph()
-    replay = graph_store.load_state(username, run_index)
+    replay = graph_store.load_state(user_id, run_index)
     evaluation = evaluate_graph(graph, replay.state, PatternFactory.patterns, PatternFactory.order)
     return build_graph_state(
         graph=graph,
@@ -99,7 +98,7 @@ def _room_for_phases(phase_ids: set[int]) -> list[tuple[str, str, str]]:
     return [(st_id, power, interest) for st_id, (power, interest) in best.items()]
 
 
-def _intel_facts(username: str, run_index: Optional[int], challenge_ids: set[int]) -> dict[str, Any]:
+def _intel_facts(user_id: int, run_index: Optional[int], challenge_ids: set[int]) -> dict[str, Any]:
     """How much of the available intel the player found, and how much of it they read correctly.
 
     `available` counts the requirements belonging to the challenges this run actually dealt, not
@@ -109,7 +108,6 @@ def _intel_facts(username: str, run_index: Optional[int], challenge_ids: set[int
     from mlops_serious_game.application.intel_handler import intel_rows
 
     with get_session() as session:
-        user_id = get_user_id(session, username)
         rows = intel_rows(session, user_id, run_index)
         items: list[StakeholderIntelItem] = []
         for row in rows:
@@ -193,7 +191,7 @@ def _gate7_target_rows(graph_view: dict[str, Any]) -> list[dict[str, Any]]:
     return rows
 
 
-def _knowledge(username: str) -> dict[str, Any]:
+def _knowledge(user_id: int) -> dict[str, Any]:
     """The before/after read, across every run the player has finished (D3).
 
     Deliberately **not** run-scoped: the whole point is the series, and a later run's outro is
@@ -203,7 +201,6 @@ def _knowledge(username: str) -> dict[str, Any]:
     total = len(knowledge_questions)
 
     with get_session() as session:
-        user_id = get_user_id(session, username)
         rows = session.scalars(
             select(GameProgression)
             .where(GameProgression.user_id == user_id)
@@ -226,12 +223,11 @@ def _knowledge(username: str) -> dict[str, Any]:
     return compute.knowledge_delta(intro_correct, outro_per_run, total)
 
 
-def build_results(username: str, run_index: Optional[int] = None) -> dict[str, Any]:
+def build_results(user_id: int, run_index: Optional[int] = None) -> dict[str, Any]:
     """The whole results payload for one run: pillars, grade, and every detail section."""
     with get_session() as session:
-        user_id = get_user_id(session, username)
-        if user_id is None:
-            raise ValueError(f"unknown player '{username}'")
+        if session.get(User, user_id) is None:
+            raise ValueError(f"unknown player {user_id}")
         run = run_index if run_index is not None else current_run_index(session, user_id)
         baseline_run = parent_run(session, user_id, run)
         chain = run_chain(session, user_id, run)
@@ -273,11 +269,11 @@ def build_results(username: str, run_index: Optional[int] = None) -> dict[str, A
     challenge_ids = {row["challenge_index"] for row in challenge_rows}
     latest_phase = max(phase_ids) if phase_ids else None
 
-    events = event_store.load_events(username, run_index=run)
+    events = event_store.load_events(user_id, run_index=run)
     fired_grudges = sum(1 for e in events if e.cause == "grudge.fired")
 
-    graph_view = _graph_view(username, run, latest_phase)
-    baseline_view = _graph_view(username, baseline_run, latest_phase) if baseline_run else None
+    graph_view = _graph_view(user_id, run, latest_phase)
+    baseline_view = _graph_view(user_id, baseline_run, latest_phase) if baseline_run else None
 
     final_emotions: dict[str, dict[str, float]] = {}
     for row in reversed(challenge_rows):
@@ -285,7 +281,7 @@ def build_results(username: str, run_index: Optional[int] = None) -> dict[str, A
             final_emotions = row["emotion_values"]
             break
 
-    intel = _intel_facts(username, run, challenge_ids)
+    intel = _intel_facts(user_id, run, challenge_ids)
     counts = intel["counts"]
 
     pillars = [
@@ -355,7 +351,7 @@ def build_results(username: str, run_index: Optional[int] = None) -> dict[str, A
         "epilogue": epilogue,
         "pillars": [p.model_dump() for p in pillars],
         "metrics": metrics,
-        "knowledge": _knowledge(username),
+        "knowledge": _knowledge(user_id),
         "intel": intel["breakdown"],
         "decisions": decisions,
         "mood": mood,
@@ -377,12 +373,9 @@ def build_results(username: str, run_index: Optional[int] = None) -> dict[str, A
 # ── Caching ──────────────────────────────────────────────────────────────────
 
 
-def load_cached(username: str, run_index: int) -> Optional[dict[str, Any]]:
+def load_cached(user_id: int, run_index: int) -> Optional[dict[str, Any]]:
     """The stored payload for a finished run, or None if it was never computed."""
     with get_session() as session:
-        user_id = get_user_id(session, username)
-        if user_id is None:
-            return None
         row = session.scalar(
             select(GameResult).where(
                 GameResult.user_id == user_id, GameResult.run_index == run_index
@@ -391,7 +384,7 @@ def load_cached(username: str, run_index: int) -> Optional[dict[str, Any]]:
         return dict(row.payload) if row and row.payload else None
 
 
-def store_results(username: str, run_index: int, payload: dict[str, Any]) -> None:
+def store_results(user_id: int, run_index: int, payload: dict[str, Any]) -> None:
     """Writes the payload for a run, replacing any earlier one.
 
     Replacing rather than erroring matters for a run still in progress: the player can open the
@@ -399,9 +392,6 @@ def store_results(username: str, run_index: int, payload: dict[str, Any]) -> Non
     to whatever the first look happened to catch.
     """
     with get_session() as session:
-        user_id = get_user_id(session, username)
-        if user_id is None:
-            return
         row = session.scalar(
             select(GameResult).where(
                 GameResult.user_id == user_id, GameResult.run_index == run_index
@@ -410,7 +400,7 @@ def store_results(username: str, run_index: int, payload: dict[str, Any]) -> Non
         if row is None:
             session.add(
                 GameResult(
-                    user_name=username, user_id=user_id, run_index=run_index, payload=payload
+                    user_id=user_id, run_index=run_index, payload=payload
                 )
             )
         else:
@@ -419,7 +409,7 @@ def store_results(username: str, run_index: int, payload: dict[str, Any]) -> Non
 
 
 def results_for(
-    username: str,
+    user_id: int,
     run_index: Optional[int] = None,
     *,
     refresh: bool = False,
@@ -430,18 +420,15 @@ def results_for(
     replaying player gets when they reopen a run they have since played further.
     """
     with get_session() as session:
-        user_id = get_user_id(session, username)
-        if user_id is None:
-            raise ValueError(f"unknown player '{username}'")
         run = run_index if run_index is not None else current_run_index(session, user_id)
 
     if not refresh:
-        cached = load_cached(username, run)
+        cached = load_cached(user_id, run)
         if cached is not None:
             return cached
 
-    payload = build_results(username, run)
-    store_results(username, run, payload)
+    payload = build_results(user_id, run)
+    store_results(user_id, run, payload)
     return payload
 
 

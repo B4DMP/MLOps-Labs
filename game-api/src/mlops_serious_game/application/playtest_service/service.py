@@ -21,10 +21,9 @@ from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.infrastructure.database.connection import get_session
 from mlops_serious_game.infrastructure.database.models import GameChallenge, IntelItem, User
 from mlops_serious_game.infrastructure.database.run_scope import current_run_index
-from mlops_serious_game.infrastructure.database.user_lookup import get_user_id
 
 
-def taint_user(username: str) -> bool:
+def taint_user(user_id: int) -> bool:
     """Marks the account as a playtest account. Returns True if it was not marked already.
 
     Account-level and never cleared (D10): contamination does not stay inside the challenge that
@@ -36,14 +35,14 @@ def taint_user(username: str) -> bool:
     the account.
     """
     with get_session() as session:
-        user = session.scalar(select(User).where(User.user_name == username))
+        user = session.scalar(select(User).where(User.id == user_id))
         if user is None or user.playtest_tainted:
             return False
         user.playtest_tainted = True
         return True
 
 
-def auto_gather(username: str, challenge: Challenge) -> int:
+def auto_gather(user_id: int, challenge: Challenge) -> int:
     """Puts everything the challenge holds into the dossier, verified and correctly tagged.
 
     Needed because a card can only touch targets the player has looked at, so skipping the gathering
@@ -53,7 +52,6 @@ def auto_gather(username: str, challenge: Challenge) -> int:
     requirements = RequirementFactory.get_requirements_for_challenge(challenge.id)
     changed = 0
     with get_session() as session:
-        user_id = get_user_id(session, username)
         records = list(intel_rows(session, user_id))
         by_id = {
             r.intel_item_data.get("id"): r
@@ -75,7 +73,6 @@ def auto_gather(username: str, challenge: Challenge) -> int:
                 item.discovered_challenge_template = challenge.template_id
                 session.add(
                     IntelItem(
-                        user_name=username,
                         user_id=user_id,
                         run_index=current_run_index(session, user_id),
                         intel_item_data=item.model_dump(mode="json"),
@@ -101,11 +98,10 @@ def auto_gather(username: str, challenge: Challenge) -> int:
     return changed
 
 
-def mark_auto_played(username: str, phase_id: int, challenge_id: int) -> None:
+def mark_auto_played(user_id: int, phase_id: int, challenge_id: int) -> None:
     """Records that a playtest tool advanced this challenge. A debugging breadcrumb and nothing
     more: nothing filters on it, the exclusion from research data is `User.playtest_tainted`."""
     with get_session() as session:
-        user_id = get_user_id(session, username)
         row = session.scalars(
             select(GameChallenge)
             .where(

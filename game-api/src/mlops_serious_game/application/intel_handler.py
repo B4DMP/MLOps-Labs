@@ -33,20 +33,20 @@ from mlops_serious_game.application.pitch_debate_service.chains import (
 )
 from mlops_serious_game.application.pitch_debate_service.state import DialogueOption
 from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, verify_player_token
-from mlops_serious_game.infrastructure.database import IntelItem, GameSession, get_session, get_user_id
+from mlops_serious_game.infrastructure.database import IntelItem, GameSession, get_session
 from mlops_serious_game.infrastructure.database.run_scope import current_run_index, run_chain
 from mlops_serious_game.config import settings
 
 
-def _username_from_ws(ws: WebSocket) -> str:
+def _user_id_from_ws(ws: WebSocket) -> int:
     """The websocket handshake authenticates off the `mlops_player` cookie alone now, not a
     `username` query param (docs/plans/session-persistence-and-url-routing.md, D-ws-cookie) - this
     is the one place left that re-derives it from the connection instead of taking it as an
     already-resolved argument."""
-    username = verify_player_token(ws.cookies.get(PLAYER_COOKIE_NAME))
-    if username is None:
+    user_id = verify_player_token(ws.cookies.get(PLAYER_COOKIE_NAME))
+    if user_id is None:
         raise ValueError("No valid player session on this websocket connection.")
-    return username
+    return user_id
 
 
 def intel_rows(session, user_id: int, run_index: Optional[int] = None):
@@ -154,7 +154,7 @@ def _deck_debug(requirement_id: str) -> Dict[str, Any]:
     return {"debug": _debug_requirement(req)} if req else {}
 
 
-async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: str = None) -> List[Dict[str, Any]]:
+async def generate_offline_intel_artifacts(curr_challenge: Challenge, user_id: int = None) -> List[Dict[str, Any]]:
     """Loads offline intel artifacts for the current challenge.
 
     Known artifacts are dealt into the deck too, already tagged and locked. They used to be seeded
@@ -223,7 +223,7 @@ def _phase_of_challenge(challenge_id: Optional[int]) -> Optional[int]:
 
 
 def load_known_intel_items_for_challenge(
-    curr_challenge: Challenge, username: str
+    curr_challenge: Challenge, user_id: int
 ) -> tuple[List[StakeholderIntelItem], List[StakeholderIntelItem]]:
     """Loads all is_known==True intel items for the current challenge into the DB as verified.
 
@@ -243,7 +243,6 @@ def load_known_intel_items_for_challenge(
     loaded_items: List[StakeholderIntelItem] = []
     newly_added: List[StakeholderIntelItem] = []
     with get_session() as session:
-        user_id = get_user_id(session, username)
         records = intel_rows(session, user_id)
         existing_ids = {
             r.intel_item_data.get("id")
@@ -268,7 +267,6 @@ def load_known_intel_items_for_challenge(
                 new_item.discovered_phase_id = curr_challenge.phase_id
                 new_item.discovered_challenge_template = curr_challenge.template_id
                 new_record = IntelItem(
-                    user_name=username,
                     user_id=user_id,
                     run_index=current_run_index(session, user_id),
                     intel_item_data=new_item.model_dump(mode="json"),
@@ -306,14 +304,14 @@ def load_known_intel_items_for_challenge(
 # ── Plan 05: Persistent dossier ───────────────────────────────────────────────
 
 
-def load_known_intel_items(username: str, up_to_phase: Optional[int] = None) -> List[StakeholderIntelItem]:
+def load_known_intel_items(user_id: int, up_to_phase: Optional[int] = None) -> List[StakeholderIntelItem]:
     """Return all intel items the player has ever collected, across all phases.
 
     If `up_to_phase` is given, only items with `discovered_phase_id <= up_to_phase` are returned
     (items without the field are always included for backward compatibility).
     """
     with get_session() as session:
-        records = intel_rows(session, get_user_id(session, username))
+        records = intel_rows(session, user_id)
         items: List[StakeholderIntelItem] = []
         dirty = False
         for r in records:
@@ -507,7 +505,7 @@ def item_target(item) -> Optional[str]:
     return _shared_item_target(item)
 
 
-def _graph_snapshot(username: str):
+def _graph_snapshot(user_id: int):
     """(graph, state, evaluation) as the player's graph stands, or None when it cannot be read.
 
     The dossier is a reading surface. If the graph store is unavailable the notes still have to
@@ -519,7 +517,7 @@ def _graph_snapshot(username: str):
         from mlops_serious_game.domain.graph_factory import GraphFactory
 
         graph = GraphFactory.get_graph()
-        state = graph_store.load_state(username).state
+        state = graph_store.load_state(user_id).state
         return graph, state, evaluate_graph(graph, state)
     except Exception:
         return None
@@ -597,14 +595,14 @@ def carried_over_status(item, snapshot) -> str:
         return "stale"
 
 
-def _archived_items(username: str, up_to_phase: Optional[int]) -> List[StakeholderIntelItem]:
+def _archived_items(user_id: int, up_to_phase: Optional[int]) -> List[StakeholderIntelItem]:
     """Everything the player found in earlier phases (plan 05).
 
     A failed read must never take the dossier down with it: this challenge's own notes are
     enough to render a page.
     """
     try:
-        return load_known_intel_items(username, up_to_phase=up_to_phase)
+        return load_known_intel_items(user_id, up_to_phase=up_to_phase)
     except Exception as e:
         print(f"[Dossier] could not read the intel archive: {e}")
         return []
@@ -623,8 +621,7 @@ async def store_intel_item(curr_challenge: Challenge, ws: WebSocket, intel_item:
         intel_item.discovered_phase_id = curr_challenge.phase_id
         intel_item.discovered_challenge_template = curr_challenge.template_id
     with get_session() as session:
-        username = _username_from_ws(ws)
-        user_id = get_user_id(session, username)
+        user_id = _user_id_from_ws(ws)
         records = intel_rows(session, user_id)
 
         target_record = None
@@ -641,7 +638,6 @@ async def store_intel_item(curr_challenge: Challenge, ws: WebSocket, intel_item:
             flag_modified(target_record, "intel_item_data")
         else:
             new_record = IntelItem(
-                user_name=username,
                 user_id=user_id,
                 run_index=current_run_index(session, user_id),
                 intel_item_data=dict(item_dict)
@@ -656,7 +652,7 @@ async def retrieve_intel_items(curr_challenge: Challenge, ws: WebSocket) -> List
     intel_items: List[StakeholderIntelItem] = []
 
     with get_session() as session:
-        records = intel_rows(session, get_user_id(session, _username_from_ws(ws)))
+        records = intel_rows(session, _user_id_from_ws(ws))
 
         dirty = False
         for record in records:
@@ -1035,7 +1031,7 @@ async def handle_intel_verification(
 
 
 def correct_and_verify_intel_item(
-    username: str,
+    user_id: int,
     requirement_id: str,
     curr_challenge: Challenge = None,
 ) -> StakeholderIntelItem:
@@ -1045,7 +1041,6 @@ def correct_and_verify_intel_item(
         return None
 
     with get_session() as session:
-        user_id = get_user_id(session, username)
         records = intel_rows(session, user_id)
 
         target_record = None
@@ -1086,7 +1081,6 @@ def correct_and_verify_intel_item(
                 source=IntelSource.DEBATE,
             )
             new_record = IntelItem(
-                user_name=username,
                 user_id=user_id,
                 intel_item_data=new_item.model_dump(mode="json")
             )
@@ -1206,16 +1200,16 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
     target chain into one growing card, and Facts go to their own Challenge-Intel page grouped by
     stage. The player cannot tag a Fact, so the true tag decides the page.
     """
-    username = _username_from_ws(ws)
+    user_id = _user_id_from_ws(ws)
     collected_items = await retrieve_intel_items(curr_challenge, ws)
     # This challenge's notes win where the archive holds the same id: they are the fresher read.
     items_by_id: Dict[str, StakeholderIntelItem] = {
-        i.id: i for i in _archived_items(username, getattr(curr_challenge, "phase_id", None))
+        i.id: i for i in _archived_items(user_id, getattr(curr_challenge, "phase_id", None))
     }
     items_by_id.update({i.id: i for i in collected_items})
     all_items = list(items_by_id.values())
 
-    snapshot = _graph_snapshot(username)
+    snapshot = _graph_snapshot(user_id)
     chains = chain_index(all_items)
     successors = authored_successors()
     held_ids = set(items_by_id)

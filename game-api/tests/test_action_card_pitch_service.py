@@ -251,7 +251,7 @@ async def test_run_action_card_pitch_workflow_end_to_end():
          patch("mlops_serious_game.application.action_card_pitch_service.nodes.get_stakeholder_pitch_chain", return_value=mock_st_chain):
 
         player_msg, st_resps, out_state = await run_action_card_pitch_workflow(
-            username="testuser",
+            user_id=1,
             phase_id=0,
             challenge_id=0,
             challenge_context="Challenge intro",

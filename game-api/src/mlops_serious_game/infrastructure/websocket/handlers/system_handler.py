@@ -4,7 +4,7 @@ from ..manager import manager
 
 async def handle_ping(
     websocket: WebSocket,
-    username: str,
+    user_id: int,
     payload: dict
 ) -> None:
     await manager.send_event(

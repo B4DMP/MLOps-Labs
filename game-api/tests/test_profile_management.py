@@ -1,5 +1,5 @@
 """Profile management tests (docs/plans/session-persistence-and-url-routing.md): change
-password/email/username, reachable once already logged in via the player cookie."""
+password/email, reachable once already logged in via the player cookie."""
 
 import uuid
 
@@ -9,7 +9,6 @@ from sqlalchemy import select
 
 from mlops_serious_game.application.services.auth_service import (
     CSRF_COOKIE_NAME,
-    PLAYER_COOKIE_NAME,
     hash_password,
 )
 from mlops_serious_game.config import settings
@@ -20,7 +19,6 @@ from mlops_serious_game.infrastructure.database import (
     GameProgression,
     User,
     get_session,
-    get_user_id,
 )
 from mlops_serious_game.infrastructure.middleware.csrf import CSRF_HEADER_NAME
 
@@ -39,7 +37,7 @@ def _clear_cookie_jar(client):
 
 
 def _register_and_login(client, password="correct-horse-battery-staple"):
-    username = f"profile_test_{uuid.uuid4().hex[:8]}"
+    email = f"profile_test_{uuid.uuid4().hex[:8]}@example.test"
     campaign_key = "profile-test-campaign"
     with get_session() as session:
         campaign = session.scalar(select(Campaign).where(Campaign.campaign_key == campaign_key))
@@ -48,17 +46,16 @@ def _register_and_login(client, password="correct-horse-battery-staple"):
             session.add(campaign)
             session.flush()
         session.add(User(
-            user_name=username,
             campaign_key=campaign_key,
             campaign_id=campaign.id,
-            email=f"{username}@example.test",
+            email=email,
             password_hash=hash_password(password),
             users_on_machine=1,
             is_verified=True,
         ))
-    client.post("/api/auth/login", json={"username": username, "password": password})
+    client.post("/api/auth/login", json={"email": email, "password": password})
     csrf_token = client.cookies.get(CSRF_COOKIE_NAME)
-    return username, password, {CSRF_HEADER_NAME: csrf_token}
+    return email, password, {CSRF_HEADER_NAME: csrf_token}
 
 
 def test_change_password_requires_authentication(client):
@@ -74,7 +71,7 @@ def test_change_password_requires_authentication(client):
 
 
 def test_change_password_rejects_wrong_current_password(client):
-    username, password, headers = _register_and_login(client)
+    email, password, headers = _register_and_login(client)
     response = client.post(
         "/api/auth/change-password",
         json={
@@ -88,7 +85,7 @@ def test_change_password_rejects_wrong_current_password(client):
 
 
 def test_change_password_succeeds_and_new_password_then_works(client):
-    username, password, headers = _register_and_login(client)
+    email, password, headers = _register_and_login(client)
     response = client.post(
         "/api/auth/change-password",
         json={
@@ -102,15 +99,15 @@ def test_change_password_succeeds_and_new_password_then_works(client):
 
     client.cookies.clear()
     login_response = client.post(
-        "/api/auth/login", json={"username": username, "password": "brand-new-password-1"}
+        "/api/auth/login", json={"email": email, "password": "brand-new-password-1"}
     )
     assert login_response.status_code == 200
     assert login_response.json()["type"] == "login_success"
 
 
 def test_change_email_requires_confirmation_code(client):
-    username, password, headers = _register_and_login(client)
-    new_email = f"{username}-new@example.test"
+    email, password, headers = _register_and_login(client)
+    new_email = f"new-{email}"
 
     response = client.post(
         "/api/auth/change-email", json={"new_email": new_email}, headers=headers
@@ -118,7 +115,7 @@ def test_change_email_requires_confirmation_code(client):
     assert response.status_code == 200
 
     with get_session() as session:
-        user = session.scalar(select(User).where(User.user_name == username))
+        user = session.scalar(select(User).where(User.email == email))
         assert user.email != new_email
         assert user.pending_email == new_email
         code = user.email_change_code
@@ -129,18 +126,18 @@ def test_change_email_requires_confirmation_code(client):
     assert confirm_response.status_code == 200
 
     with get_session() as session:
-        user = session.scalar(select(User).where(User.user_name == username))
-        assert user.email == new_email
+        user = session.scalar(select(User).where(User.email == new_email))
+        assert user is not None
         assert user.pending_email is None
 
 
 def test_confirm_email_change_rejects_reused_code(client):
-    username, password, headers = _register_and_login(client)
-    new_email = f"{username}-new2@example.test"
+    email, password, headers = _register_and_login(client)
+    new_email = f"new2-{email}"
     client.post("/api/auth/change-email", json={"new_email": new_email}, headers=headers)
 
     with get_session() as session:
-        user = session.scalar(select(User).where(User.user_name == username))
+        user = session.scalar(select(User).where(User.email == email))
         code = user.email_change_code
 
     first = client.post("/api/auth/confirm-email-change", json={"code": code}, headers=headers)
@@ -150,53 +147,41 @@ def test_confirm_email_change_rejects_reused_code(client):
     assert second.status_code == 400
 
 
-def test_change_username_rejects_duplicate(client):
-    username_a, _, headers_a = _register_and_login(client)
+def test_change_email_rejects_an_address_already_in_use(client):
+    email_a, _, _ = _register_and_login(client)
     client.cookies.clear()
-    username_b, password_b, headers_b = _register_and_login(client)
+    _, _, headers_b = _register_and_login(client)
 
-    response = client.post(
-        "/api/auth/change-username",
-        json={"new_username": username_a, "current_password": password_b},
-        headers=headers_b,
-    )
+    response = client.post("/api/auth/change-email", json={"new_email": email_a}, headers=headers_b)
     assert response.status_code == 400
 
 
-def test_change_username_renames_across_tables_and_resets_cookie(client):
-    username, password, headers = _register_and_login(client)
-    new_username = f"{username}_renamed"
+def test_session_and_progress_survive_an_email_change(client):
+    email, password, headers = _register_and_login(client)
+    new_email = f"changed-{email}"
 
     with get_session() as session:
-        user_id = get_user_id(session, username)
+        user_id = session.scalar(select(User.id).where(User.email == email))
         session.add(GameProgression(
-            user_name=username, user_id=user_id, run_index=1, game_progress_index=1,
+            user_id=user_id, run_index=1, game_progress_index=1,
             time_stamp=__import__("datetime").datetime.utcnow(), additional_data=[],
         ))
         session.add(GameChallenge(
-            user_name=username, user_id=user_id, run_index=1, phase_index=0, challenge_index=0,
+            user_id=user_id, run_index=1, phase_index=0, challenge_index=0,
             challenge_loop_index=0, action_card={}, metric_values=[], messages=[],
             time_stamp=__import__("datetime").datetime.utcnow(), attention_tokens=20,
         ))
 
-    response = client.post(
-        "/api/auth/change-username",
-        json={"new_username": new_username, "current_password": password},
-        headers=headers,
-    )
-    assert response.status_code == 200
-    assert response.json()["username"] == new_username
-    assert client.cookies.get(PLAYER_COOKIE_NAME) is not None
+    client.post("/api/auth/change-email", json={"new_email": new_email}, headers=headers)
+    with get_session() as session:
+        code = session.scalar(select(User.email_change_code).where(User.id == user_id))
+    confirm = client.post("/api/auth/confirm-email-change", json={"code": code}, headers=headers)
+    assert confirm.status_code == 200
 
-    whoami = client.get("/api/auth/whoami")
-    assert whoami.json()["player"] == {"username": new_username}
+    # The cookie names the user id, so the session outlives the address that was used to log in.
+    player = client.get("/api/auth/whoami").json()["player"]
+    assert player == {"id": user_id, "email": new_email}
 
     with get_session() as session:
-        user = session.scalar(select(User).where(User.user_name == new_username))
-        assert user is not None
-        assert session.scalar(select(User).where(User.user_name == username)) is None
-
-        progression = session.scalar(select(GameProgression).where(GameProgression.user_id == user.id))
-        assert progression.user_name == new_username
-        challenge = session.scalar(select(GameChallenge).where(GameChallenge.user_id == user.id))
-        assert challenge.user_name == new_username
+        assert session.scalar(select(GameProgression).where(GameProgression.user_id == user_id)) is not None
+        assert session.scalar(select(GameChallenge).where(GameChallenge.user_id == user_id)) is not None

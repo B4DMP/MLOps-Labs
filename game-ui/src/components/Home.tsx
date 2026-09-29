@@ -40,7 +40,7 @@ export function Home({ onLogin, onRegister }: HomeProps) {
             onClick={onLogin}
           >
             <Icon icon="ph:sign-in-bold" style={{ fontSize: "1.2rem" }} />
-            <span>Resume Game with Username</span>
+            <span>Resume Game with Email</span>
           </button>
         </div>
       </motion.div>

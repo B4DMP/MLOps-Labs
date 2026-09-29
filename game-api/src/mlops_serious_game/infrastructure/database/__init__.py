@@ -12,8 +12,7 @@ from .models import (
     Teacher,
     TeacherCampaign,
 )
-from .run_scope import chain_for, current_run_index, parent_run, run_chain
-from .user_lookup import get_user_id
+from .run_scope import current_run_index, parent_run, run_chain
 __all__ = [
     "Base",
     "engine",
@@ -33,8 +32,6 @@ __all__ = [
     "UserSettings",
     "Teacher",
     "TeacherCampaign",
-    "get_user_id",
-    "chain_for",
     "current_run_index",
     "parent_run",
     "run_chain",

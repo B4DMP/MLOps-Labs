@@ -256,14 +256,13 @@ async def test_pitch_debate_action_card_kickoff_and_refutation():
     from unittest.mock import AsyncMock
     from conftest import ensure_test_user
     from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, _create_player_token
-    test_user = f"user_{thread_id}"
-    ensure_test_user(test_user)
+    test_user = ensure_test_user(f"user_{thread_id}")
     mock_ws = AsyncMock()
     mock_ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(test_user)}
 
     await store_intel_item(curr_challenge, mock_ws, wrong_intel)
     correct_and_verify_intel_item(
-        username=test_user,
+        user_id=test_user,
         requirement_id=target_req.id,
         curr_challenge=curr_challenge,
     )

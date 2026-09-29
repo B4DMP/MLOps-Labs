@@ -12,13 +12,13 @@
 
 const STORAGE_PREFIX = "mlops_seen_briefings";
 
-function storageKey(username: string): string {
-  return `${STORAGE_PREFIX}:${username}`;
+function storageKey(userId: number): string {
+  return `${STORAGE_PREFIX}:${userId}`;
 }
 
-function readSeenKeys(username: string): string[] {
+function readSeenKeys(userId: number): string[] {
   try {
-    const raw = window.localStorage.getItem(storageKey(username));
+    const raw = window.localStorage.getItem(storageKey(userId));
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed.filter((k) => typeof k === "string") : [];
@@ -27,16 +27,16 @@ function readSeenKeys(username: string): string[] {
   }
 }
 
-export function hasSeenBriefing(username: string, challengeKey: string): boolean {
-  return readSeenKeys(username).includes(challengeKey);
+export function hasSeenBriefing(userId: number, challengeKey: string): boolean {
+  return readSeenKeys(userId).includes(challengeKey);
 }
 
-export function markBriefingSeen(username: string, challengeKey: string): void {
+export function markBriefingSeen(userId: number, challengeKey: string): void {
   try {
-    const seen = readSeenKeys(username);
+    const seen = readSeenKeys(userId);
     if (!seen.includes(challengeKey)) {
       seen.push(challengeKey);
-      window.localStorage.setItem(storageKey(username), JSON.stringify(seen));
+      window.localStorage.setItem(storageKey(userId), JSON.stringify(seen));
     }
   } catch {
     // Best-effort only - worst case, the briefing just shows again next time.
@@ -44,17 +44,17 @@ export function markBriefingSeen(username: string, challengeKey: string): void {
 }
 
 /**
- * Drops this username's whole seen-briefings mirror. `reset_player` deals the same
+ * Drops this user's whole seen-briefings mirror. `reset_player` deals the same
  * deterministic first challenge to a reset account (`select_first_challenge` is seeded by
- * username, not by run), so without this a reset account looks "already briefed" for a
+ * userId, not by run), so without this a reset account looks "already briefed" for a
  * phase/challenge pair the browser marked seen before the reset - the dialog silently never
  * reopens and a skip/proceed reads as no screen change at all. Call this wherever a reset is
  * confirmed for the current user (`settings:account_reset`), mirroring `clearMirror` in
  * `SettingsProvider.tsx`.
  */
-export function clearSeenBriefings(username: string): void {
+export function clearSeenBriefings(userId: number): void {
   try {
-    window.localStorage.removeItem(storageKey(username));
+    window.localStorage.removeItem(storageKey(userId));
   } catch {
     // Best-effort only - worst case, a stale entry lingers and the briefing stays suppressed.
   }

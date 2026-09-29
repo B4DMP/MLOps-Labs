@@ -82,13 +82,3 @@ def parent_run(session: Session, user_id: int, run_index: int | None = None) -> 
     """
     run = run_index if run_index is not None else current_run_index(session, user_id)
     return _seeded_from(session, user_id).get(run)
-
-
-def chain_for(session: Session, username: str, run_index: int | None = None) -> list[int]:
-    """`run_chain` for call sites that hold a username rather than a `User.id`."""
-    from mlops_serious_game.infrastructure.database.user_lookup import get_user_id
-
-    user_id = get_user_id(session, username)
-    if user_id is None:
-        return [FIRST_RUN]
-    return run_chain(session, user_id, run_index)

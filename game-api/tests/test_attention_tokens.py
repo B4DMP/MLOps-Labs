@@ -9,11 +9,10 @@ from mlops_serious_game.infrastructure.websocket.handlers.game_handler import ha
 
 @pytest.mark.anyio
 async def test_gather_open_updates_attention_tokens_in_session():
-    username = "test_user"
+    user_id = 1
     ws = AsyncMock()
 
     mock_row = GameChallenge(
-        user_name=username,
         user_id=1,
         phase_index=0,
         challenge_index=0,
@@ -27,7 +26,6 @@ async def test_gather_open_updates_attention_tokens_in_session():
     mock_db.scalars.return_value.first.return_value = mock_row
 
     with patch("mlops_serious_game.infrastructure.websocket.handlers.gather_handler.get_session") as mock_get_session, \
-         patch("mlops_serious_game.infrastructure.websocket.handlers.gather_handler.get_user_id", return_value=1), \
          patch("mlops_serious_game.infrastructure.websocket.handlers.gather_handler._held_items", new_callable=AsyncMock, return_value=[]), \
          patch("mlops_serious_game.infrastructure.websocket.handlers.gather_handler.gather_store.save_conversation"), \
          patch("mlops_serious_game.infrastructure.websocket.handlers.gather_handler.send_events", new_callable=AsyncMock), \
@@ -44,7 +42,7 @@ async def test_gather_open_updates_attention_tokens_in_session():
             "stakeholder_ids": ["model_monica"],
             "attention_tokens": 16,
         }
-        await handle_gather_open(ws, username, payload)
+        await handle_gather_open(ws, user_id, payload)
 
         assert mock_row.attention_tokens == 16
         assert mock_db.commit.called
@@ -52,7 +50,7 @@ async def test_gather_open_updates_attention_tokens_in_session():
 
 @pytest.mark.anyio
 async def test_game_init_reloads_attention_tokens_from_latest_session():
-    username = "test_reload_user"
+    user_id = 1
     ws = AsyncMock()
 
     mock_latest_session = SimpleNamespace(
@@ -85,14 +83,13 @@ async def test_game_init_reloads_attention_tokens_from_latest_session():
         sent_events.append((event, payload))
 
     with patch("mlops_serious_game.infrastructure.websocket.handlers.game_handler.get_session") as mock_get_session, \
-         patch("mlops_serious_game.infrastructure.websocket.handlers.game_handler.get_user_id", return_value=1), \
          patch("mlops_serious_game.infrastructure.websocket.handlers.game_handler.get_or_create_game_session"), \
          patch("mlops_serious_game.infrastructure.websocket.handlers.game_handler.manager.send_event", side_effect=mock_send_event), \
          patch("mlops_serious_game.infrastructure.websocket.handlers.game_handler.graph_store.enter_challenge"):
 
         mock_get_session.return_value.__enter__.return_value = mock_db
 
-        await handle_game_init(ws, username, {})
+        await handle_game_init(ws, user_id, {})
 
     state_update = next((p for e, p in sent_events if e == "game:state_update"), None)
     assert state_update is not None

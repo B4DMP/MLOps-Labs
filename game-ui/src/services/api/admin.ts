@@ -277,9 +277,9 @@ export async function saveAdminConfigFile(
   return response.json();
 }
 
-export async function fetchGraphDebug(username: string): Promise<GraphDebugPayload> {
+export async function fetchGraphDebug(email: string): Promise<GraphDebugPayload> {
   const response = await fetch(
-    `${BASE_URL}/api/admin/graph-debug?username=${encodeURIComponent(username)}`,
+    `${BASE_URL}/api/admin/graph-debug?email=${encodeURIComponent(email)}`,
     {
       method: "GET",
       credentials: "include",

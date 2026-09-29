@@ -9,7 +9,7 @@ from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactor
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.requirement import STANCE_TAGS, tag_label, truncate_detail
 from mlops_serious_game.infrastructure.database.run_scope import current_run_index
-from mlops_serious_game.infrastructure.database import get_session, GameChallenge, IntelItem, get_user_id
+from mlops_serious_game.infrastructure.database import get_session, GameChallenge, IntelItem
 from mlops_serious_game.application.online_intel_service.service import (
     run_engagement_card_workflow,
 )
@@ -30,7 +30,7 @@ from ..manager import manager
 from .log_handler import send_events
 
 
-async def handle_get_offline_artifacts(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_get_offline_artifacts(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Handles fetching/generating offline intel artifacts for the current challenge."""
     phase_id = payload.get("phase_id", 0)
     challenge_id = payload.get("challenge_id", 0)
@@ -45,7 +45,7 @@ async def handle_get_offline_artifacts(websocket: WebSocket, username: str, payl
 
     # The dossier is persistent (plan 05): what the player found in earlier phases stays.
     # Load known dispute intel items into DB as verified for the new challenge
-    _, newly_on_record = load_known_intel_items_for_challenge(curr_challenge, username)
+    _, newly_on_record = load_known_intel_items_for_challenge(curr_challenge, user_id)
 
     # The deck/dossier already carries these (they're written above); without this the Event Log
     # has nothing to show for a baseline item that was never actually "found", only auto_card and
@@ -66,9 +66,9 @@ async def handle_get_offline_artifacts(websocket: WebSocket, username: str, payl
                 params={"tag": tag_label(item.categorized_type), "st": subject_name, "detail": truncate_detail(detail)},
                 refs={"item_id": item.id},
             ).stamped(phase_id=phase_id, challenge_id=challenge_id))
-        await send_events(websocket, username, on_record_events)
+        await send_events(websocket, user_id, on_record_events)
 
-    artifacts = await generate_offline_intel_artifacts(curr_challenge, username=username)
+    artifacts = await generate_offline_intel_artifacts(curr_challenge, user_id=user_id)
     await manager.send_event(
         websocket=websocket,
         event="intel:offline_artifacts",
@@ -88,7 +88,7 @@ async def handle_get_offline_artifacts(websocket: WebSocket, username: str, payl
     )
 
 
-async def handle_tag_item(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_tag_item(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Handles tagging an intel artifact and updating user dossier."""
     phase_id = payload.get("phase_id", 0)
     challenge_id = payload.get("challenge_id", 0)
@@ -134,7 +134,7 @@ async def handle_tag_item(websocket: WebSocket, username: str, payload: dict) ->
             st = StakeholderFactory.get_stakeholder(intel_item.stakeholder_id)
             subject_name = personalize(st.name) if st else intel_item.stakeholder_id
         detail = " ".join(part.strip() for part in (item_dict["fact"], item_dict["reading"]) if part and part.strip())
-        await send_events(websocket, username, [GameEvent(
+        await send_events(websocket, user_id, [GameEvent(
             step="offline", kind="intel", direction="none", cause="intel.artifact_filed",
             subject_id=intel_item.stakeholder_id,
             params={"tag": tag_label(intel_item.categorized_type), "st": subject_name, "detail": truncate_detail(detail)},
@@ -152,7 +152,7 @@ async def handle_tag_item(websocket: WebSocket, username: str, payload: dict) ->
     )
 
 
-async def handle_get_dossier(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_get_dossier(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Handles fetching current stakeholder dossier data for the player."""
     phase_id = payload.get("phase_id", 0)
     challenge_id = payload.get("challenge_id", 0)
@@ -169,7 +169,7 @@ async def handle_get_dossier(websocket: WebSocket, username: str, payload: dict)
     engagement_card_targets = {}
     with get_session() as db_session:
         stmt = select(GameChallenge).where(
-            GameChallenge.user_id == get_user_id(db_session, username)
+            GameChallenge.user_id == user_id
         ).order_by(GameChallenge.id.desc())
         existing = db_session.scalars(stmt).first()
         if existing and isinstance(existing.action_card, dict):
@@ -188,12 +188,12 @@ async def handle_get_dossier(websocket: WebSocket, username: str, payload: dict)
     )
 
 
-async def handle_verify_item(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_verify_item(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Handles verifying an intel item during online intel gathering phase."""
     phase_id = payload.get("phase_id", 0)
     challenge_id = payload.get("challenge_id", 0)
     intel_item_id = payload.get("intel_item_id")
-    print(f"[WS Handler] handle_verify_item: user={username}, intel_item_id={intel_item_id}, phase={phase_id}, challenge={challenge_id}")
+    print(f"[WS Handler] handle_verify_item: user={user_id}, intel_item_id={intel_item_id}, phase={phase_id}, challenge={challenge_id}")
 
     curr_challenge = PhaseFactory.translate_challenge_index(
         challenge_index=challenge_id,
@@ -210,7 +210,6 @@ async def handle_verify_item(websocket: WebSocket, username: str, payload: dict)
     engagement_card_targets = {}
     try:
         with get_session() as db_session:
-            user_id = get_user_id(db_session, username)
             stmt = select(GameChallenge).where(
                 GameChallenge.user_id == user_id,
                 GameChallenge.phase_index == phase_id,
@@ -219,7 +218,6 @@ async def handle_verify_item(websocket: WebSocket, username: str, payload: dict)
             existing = db_session.scalars(stmt).first()
             if not existing:
                 existing = GameChallenge(
-                    user_name=username,
                     user_id=user_id,
                     run_index=current_run_index(db_session, user_id),
                     phase_index=phase_id,
@@ -284,7 +282,7 @@ async def handle_verify_item(websocket: WebSocket, username: str, payload: dict)
         confirmed = result.get("old_categorized_type") == result.get("true_categorized_type")
         # Verifying is legitimately allowed to say whether the tag was right - unlike tagging,
         # this is the action that resolves the guess (plan 11).
-        await send_events(websocket, username, [GameEvent(
+        await send_events(websocket, user_id, [GameEvent(
             step="offline", kind="intel", direction="up" if confirmed else "none",
             cause="intel.verified_confirmed" if confirmed else "intel.verified_corrected",
             params={"st": result.get("stakeholder_name") or "Someone"},
@@ -315,7 +313,7 @@ async def _send_dossier(websocket: WebSocket, dossier_data: list) -> None:
     await manager.send_event(websocket=websocket, event="intel:dossier_data", payload={"dossier": dossier_data})
 
 
-async def handle_play_engagement_card(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_play_engagement_card(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Handles playing an engagement card (eng_1 - eng_4) during online intel gathering phase."""
     phase_id = payload.get("phase_id", 0)
     challenge_id = payload.get("challenge_id", 0)
@@ -324,11 +322,7 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
     if payload.get("session_id"):
         session_id = payload["session_id"]
     else:
-        # Keyed by user_id, not username - see D-user-id in
-        # docs/plans/session-persistence-and-url-routing.md.
-        with get_session() as intel_session:
-            intel_user_id = get_user_id(intel_session, username)
-        session_id = f"Online_Intel_{intel_user_id}"
+        session_id = f"Online_Intel_{user_id}"
 
     curr_challenge = PhaseFactory.translate_challenge_index(
         challenge_index=challenge_id,
@@ -357,7 +351,6 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
     if card:
         try:
             with get_session() as db_session:
-                user_id = get_user_id(db_session, username)
                 stmt = select(GameChallenge).where(
                     GameChallenge.user_id == user_id,
                     GameChallenge.phase_index == phase_id,
@@ -399,7 +392,7 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
 
     try:
         player_msg, stakeholder_responses, _ = await run_engagement_card_workflow(
-            username=username,
+            user_id=user_id,
             curr_challenge=curr_challenge,
             card_id=card_id,
             stakeholder_ids=stakeholder_ids,
@@ -438,7 +431,7 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
     try:
         with get_session() as db_session:
             stmt = select(GameChallenge).where(
-                GameChallenge.user_id == get_user_id(db_session, username)
+                GameChallenge.user_id == user_id
             ).order_by(GameChallenge.id.desc())
             existing = db_session.scalars(stmt).first()
             if existing:
@@ -498,7 +491,7 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
     )
 
 
-async def handle_generate_action_card(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_generate_action_card(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Handles generating an Action Card via LLM LangGraph service based on merged intel item IDs."""
     intel_ids = payload.get("intel_ids", [])
     phase_id = payload.get("phase_id", 0)
@@ -553,7 +546,7 @@ async def handle_generate_action_card(websocket: WebSocket, username: str, paylo
             intel_ids=intel_ids,
             phase_id=phase_id,
             challenge_id=challenge_id,
-            session_id=f"ActionCard_{username}",
+            session_id=f"ActionCard_{user_id}",
         )
 
         wrong_intel_ids = []
@@ -561,7 +554,7 @@ async def handle_generate_action_card(websocket: WebSocket, username: str, paylo
             item = collected_map.get(i_id)
             if not item:
                 with get_session() as s:
-                    records = intel_rows(s, get_user_id(s, username))
+                    records = intel_rows(s, user_id)
                     for r in records:
                         if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("id") == i_id:
                             try:
@@ -574,9 +567,8 @@ async def handle_generate_action_card(websocket: WebSocket, username: str, paylo
         action_card["wrong_intel_ids"] = wrong_intel_ids
 
         with get_session() as db_session:
-            action_card_user_id = get_user_id(db_session, username)
             stmt = select(GameChallenge).where(
-                GameChallenge.user_id == action_card_user_id
+                GameChallenge.user_id == user_id
             ).order_by(GameChallenge.id.desc())
             existing = db_session.scalars(stmt).first()
             if existing:
@@ -590,9 +582,8 @@ async def handle_generate_action_card(websocket: WebSocket, username: str, paylo
                 flag_modified(existing, "action_card")
             else:
                 new_record = GameChallenge(
-                    user_name=username,
-                    user_id=action_card_user_id,
-                    run_index=current_run_index(db_session, action_card_user_id),
+                    user_id=user_id,
+                    run_index=current_run_index(db_session, user_id),
                     phase_index=phase_id,
                     challenge_index=challenge_id,
                     challenge_loop_index=1,

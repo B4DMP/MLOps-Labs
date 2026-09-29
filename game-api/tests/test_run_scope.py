@@ -92,7 +92,6 @@ def _seed_user(username: str = "alice", campaign_key: str = "camp-1") -> int:
         session.add(campaign)
         session.flush()
         user = User(
-            user_name=username,
             campaign_key=campaign_key,
             campaign_id=campaign.id,
             email=f"{username}@example.test",
@@ -105,7 +104,16 @@ def _seed_user(username: str = "alice", campaign_key: str = "camp-1") -> int:
         return user.id
 
 
-def _start_run(user_id: int, run_index: int, seeded_from_run: int | None, username: str = "alice") -> None:
+def _uid(username: str = "alice") -> int:
+    """The `User.id` `_seed_user(username)` created."""
+    from mlops_serious_game.infrastructure.database.connection import get_session
+    from mlops_serious_game.infrastructure.database.models import User
+
+    with get_session() as session:
+        return session.scalar(select(User.id).where(User.email == f"{username}@example.test"))
+
+
+def _start_run(user_id: int, run_index: int, seeded_from_run: int | None) -> None:
     """Writes the progression row that opens a run. `seeded_from_run` is the whole difference
     between a fresh start (None) and a next iteration (the run it continues)."""
     from mlops_serious_game.infrastructure.database.connection import get_session
@@ -114,7 +122,6 @@ def _start_run(user_id: int, run_index: int, seeded_from_run: int | None, userna
     with get_session() as session:
         session.add(
             GameProgression(
-                user_name=username,
                 user_id=user_id,
                 run_index=run_index,
                 seeded_from_run=seeded_from_run,
@@ -124,14 +131,13 @@ def _start_run(user_id: int, run_index: int, seeded_from_run: int | None, userna
         )
 
 
-def _add_event(user_id: int, run_index: int, seq: int, username: str = "alice") -> None:
+def _add_event(user_id: int, run_index: int, seq: int) -> None:
     from mlops_serious_game.infrastructure.database.connection import get_session
     from mlops_serious_game.infrastructure.database.models import GameEventRow
 
     with get_session() as session:
         session.add(
             GameEventRow(
-                user_name=username,
                 user_id=user_id,
                 run_index=run_index,
                 seq=seq,
@@ -245,20 +251,20 @@ def test_event_log_is_scoped_to_the_chain(migrated_db):
     _add_event(user_id, run_index=1, seq=1)
     _add_event(user_id, run_index=1, seq=2)
 
-    assert len(load_events("alice")) == 2
+    assert len(load_events(_uid())) == 2
 
     # A fresh start sees none of it...
     _start_run(user_id, 2, None)
     _add_event(user_id, run_index=2, seq=3)
-    assert [e.seq for e in load_events("alice")] == [3]
+    assert [e.seq for e in load_events(_uid())] == [3]
 
     # ...while a next iteration on top of run 2 keeps run 2's history.
     _start_run(user_id, 3, seeded_from_run=2)
     _add_event(user_id, run_index=3, seq=4)
-    assert [e.seq for e in load_events("alice")] == [3, 4]
+    assert [e.seq for e in load_events(_uid())] == [3, 4]
 
     # And run 1's rows were never deleted by any of it.
-    assert [e.seq for e in load_events("alice", run_index=1)] == [1, 2]
+    assert [e.seq for e in load_events(_uid(), run_index=1)] == [1, 2]
 
 
 def test_nothing_is_deleted_by_starting_a_new_run(migrated_db):
@@ -283,15 +289,13 @@ def test_nothing_is_deleted_by_starting_a_new_run(migrated_db):
 # ── The results service end to end ───────────────────────────────────────────
 
 
-def _add_challenge(user_id: int, run_index: int, phase: int, challenge: int, metrics, emotions,
-                   username: str = "alice") -> None:
+def _add_challenge(user_id: int, run_index: int, phase: int, challenge: int, metrics, emotions) -> None:
     from mlops_serious_game.infrastructure.database.connection import get_session
     from mlops_serious_game.infrastructure.database.models import GameChallenge
 
     with get_session() as session:
         session.add(
             GameChallenge(
-                user_name=username,
                 user_id=user_id,
                 run_index=run_index,
                 phase_index=phase,
@@ -306,14 +310,14 @@ def _add_challenge(user_id: int, run_index: int, phase: int, challenge: int, met
         )
 
 
-def _add_outcome(user_id: int, run_index: int, seq: int, cause: str, username: str = "alice") -> None:
+def _add_outcome(user_id: int, run_index: int, seq: int, cause: str) -> None:
     from mlops_serious_game.infrastructure.database.connection import get_session
     from mlops_serious_game.infrastructure.database.models import GameEventRow
 
     with get_session() as session:
         session.add(
             GameEventRow(
-                user_name=username, user_id=user_id, run_index=run_index, seq=seq,
+                user_id=user_id, run_index=run_index, seq=seq,
                 phase_id=1, challenge_id=1, step="commit", kind="outcome",
                 direction="none", cause=cause, params={}, refs={},
             )
@@ -330,7 +334,7 @@ def test_build_results_produces_a_grade_for_a_played_run(migrated_db):
                    emotions={"model_monica": {"trust": 0.7, "respect": 0.6}})
     _add_outcome(user_id, 1, seq=1, cause="outcome.pass")
 
-    results = build_results("alice")
+    results = build_results(_uid())
 
     assert results["run_index"] == 1
     assert results["is_spiral"] is False
@@ -355,7 +359,7 @@ def test_results_for_a_spiral_run_are_marked_relative(migrated_db):
     _start_run(user_id, 2, seeded_from_run=1)
     _add_challenge(user_id, 2, 2, 2, [20, 0, 0, 0, 0, 0, 0, 0], {"model_monica": {"trust": 0.8}})
 
-    results = build_results("alice")
+    results = build_results(_uid())
 
     assert results["run_index"] == 2
     assert results["is_spiral"] is True
@@ -375,7 +379,7 @@ def test_a_fresh_start_reports_only_its_own_run(migrated_db):
     _start_run(user_id, 2, None)
     _add_challenge(user_id, 2, 2, 2, [3, 0, 0, 0, 0, 0, 0, 0], {"model_monica": {"trust": 0.9}})
 
-    results = build_results("alice")
+    results = build_results(_uid())
 
     assert results["is_spiral"] is False
     assert results["metrics"]["challenges"] == 1
@@ -392,7 +396,7 @@ def test_an_earlier_run_can_still_be_read_after_a_new_game(migrated_db):
     _add_challenge(user_id, 1, 1, 1, [42, 0, 0, 0, 0, 0, 0, 0], {"model_monica": {"trust": 0.5}})
     _start_run(user_id, 2, None)
 
-    first = build_results("alice", run_index=1)
+    first = build_results(_uid(), run_index=1)
     model = next(m for m in first["metrics"]["metrics"] if m["id"] == "model")
     assert model["value"] == 42
 
@@ -401,7 +405,7 @@ def test_build_results_rejects_an_unknown_player(migrated_db):
     from mlops_serious_game.application.results_service.service import build_results
 
     with pytest.raises(ValueError):
-        build_results("nobody")
+        build_results(999999)
 
 
 # ── The results cache ────────────────────────────────────────────────────────
@@ -414,16 +418,16 @@ def test_results_are_cached_after_the_first_build(migrated_db):
     _start_run(user_id, 1, None)
     _add_challenge(user_id, 1, 1, 1, [10, 0, 0, 0, 0, 0, 0, 0], {"model_monica": {"trust": 0.5}})
 
-    assert service.load_cached("alice", 1) is None
-    first = service.results_for("alice")
-    assert service.load_cached("alice", 1) is not None
+    assert service.load_cached(_uid(), 1) is None
+    first = service.results_for(_uid())
+    assert service.load_cached(_uid(), 1) is not None
 
     # A second read comes off the cache: new rows since then are not picked up without a refresh.
     _add_challenge(user_id, 1, 2, 2, [40, 0, 0, 0, 0, 0, 0, 0], {"model_monica": {"trust": 0.9}})
-    cached = service.results_for("alice")
+    cached = service.results_for(_uid())
     assert cached["metrics"]["challenges"] == first["metrics"]["challenges"] == 1
 
-    refreshed = service.results_for("alice", refresh=True)
+    refreshed = service.results_for(_uid(), refresh=True)
     assert refreshed["metrics"]["challenges"] == 2
 
 
@@ -438,8 +442,8 @@ def test_refreshing_replaces_the_cached_row_rather_than_duplicating_it(migrated_
     _start_run(user_id, 1, None)
     _add_challenge(user_id, 1, 1, 1, [10, 0, 0, 0, 0, 0, 0, 0], {"model_monica": {"trust": 0.5}})
 
-    service.results_for("alice")
-    service.results_for("alice", refresh=True)
+    service.results_for(_uid())
+    service.results_for(_uid(), refresh=True)
 
     with get_session() as session:
         rows = session.scalar(
@@ -455,13 +459,13 @@ def test_each_run_caches_its_own_results(migrated_db):
     user_id = _seed_user()
     _start_run(user_id, 1, None)
     _add_challenge(user_id, 1, 1, 1, [42, 0, 0, 0, 0, 0, 0, 0], {"model_monica": {"trust": 0.5}})
-    service.results_for("alice")
+    service.results_for(_uid())
 
     _start_run(user_id, 2, None)
     _add_challenge(user_id, 2, 2, 2, [7, 0, 0, 0, 0, 0, 0, 0], {"model_monica": {"trust": 0.5}})
-    service.results_for("alice")
+    service.results_for(_uid())
 
-    run_one = service.load_cached("alice", 1)
-    run_two = service.load_cached("alice", 2)
+    run_one = service.load_cached(_uid(), 1)
+    run_two = service.load_cached(_uid(), 2)
     assert next(m for m in run_one["metrics"]["metrics"] if m["id"] == "model")["value"] == 42
     assert next(m for m in run_two["metrics"]["metrics"] if m["id"] == "model")["value"] == 7

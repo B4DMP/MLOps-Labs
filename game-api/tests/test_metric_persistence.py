@@ -23,21 +23,21 @@ from sqlalchemy import select
 
 from mlops_serious_game.domain.metric_factory import MetricFactory
 
-from test_run_scope import _seed_user, _start_run, migrated_db  # noqa: F401  (fixture used by name)
+from test_run_scope import _seed_user, _start_run, _uid, migrated_db  # noqa: F401  (fixture used by name)
 from test_playtest import _begun_game, _dealt_challenge  # noqa: F401  (helpers reused)
 
 
 # ── set_metric_changes (pure DB unit) ────────────────────────────────────────
 
 
-def _add_row(user_id: int, phase: int, challenge: int, action_card=None, username: str = "alice"):
+def _add_row(user_id: int, phase: int, challenge: int, action_card=None):
     from mlops_serious_game.infrastructure.database.connection import get_session
     from mlops_serious_game.infrastructure.database.models import GameChallenge
 
     with get_session() as session:
         session.add(
             GameChallenge(
-                user_name=username, user_id=user_id, run_index=1, phase_index=phase,
+                user_id=user_id, run_index=1, phase_index=phase,
                 challenge_index=challenge, challenge_loop_index=3,
                 action_card=action_card or {}, metric_values=[10] * 8,
                 messages=[], attention_tokens=20, emotion_values={},
@@ -45,12 +45,12 @@ def _add_row(user_id: int, phase: int, challenge: int, action_card=None, usernam
         )
 
 
-def _action_card(username: str = "alice", phase: int = 1, challenge: int = 110) -> dict:
+def _action_card(user_id: int, phase: int = 1, challenge: int = 110) -> dict:
     from mlops_serious_game.application.pitch_debate_service.store import _latest_challenge_row
     from mlops_serious_game.infrastructure.database.connection import get_session
 
     with get_session() as session:
-        row = _latest_challenge_row(session, username, phase, challenge)
+        row = _latest_challenge_row(session, user_id, phase, challenge)
         return dict(row.action_card) if row and isinstance(row.action_card, dict) else {}
 
 
@@ -61,9 +61,9 @@ async def test_set_metric_changes_writes_onto_the_challenge_row(migrated_db):
     user_id = _seed_user()
     _add_row(user_id, 1, 110)
 
-    set_metric_changes("alice", 1, 110, {"model": 4, "automation": -2})
+    set_metric_changes(_uid(), 1, 110, {"model": 4, "automation": -2})
 
-    assert _action_card()["metric_changes"] == {"model": 4, "automation": -2}
+    assert _action_card(_uid())["metric_changes"] == {"model": 4, "automation": -2}
 
 
 @pytest.mark.anyio
@@ -75,9 +75,9 @@ async def test_set_metric_changes_preserves_the_rest_of_the_action_card(migrated
     user_id = _seed_user()
     _add_row(user_id, 1, 110, action_card={"pitch": {"stage": "DONE"}, "title": "Automate it"})
 
-    set_metric_changes("alice", 1, 110, {"model": 3})
+    set_metric_changes(_uid(), 1, 110, {"model": 3})
 
-    card = _action_card()
+    card = _action_card(_uid())
     assert card["pitch"] == {"stage": "DONE"}
     assert card["title"] == "Automate it"
     assert card["metric_changes"] == {"model": 3}
@@ -92,9 +92,9 @@ async def test_set_metric_changes_is_a_no_op_for_nothing_to_record(migrated_db):
     user_id = _seed_user()
     _add_row(user_id, 1, 110, action_card={"metric_changes": {"model": 7}})
 
-    set_metric_changes("alice", 1, 110, {})
+    set_metric_changes(_uid(), 1, 110, {})
 
-    assert _action_card()["metric_changes"] == {"model": 7}
+    assert _action_card(_uid())["metric_changes"] == {"model": 7}
 
 
 @pytest.mark.anyio
@@ -102,7 +102,7 @@ async def test_set_metric_changes_on_a_missing_row_does_nothing(migrated_db):
     from mlops_serious_game.application.pitch_debate_service.store import set_metric_changes
 
     _seed_user()
-    set_metric_changes("alice", 9, 999, {"model": 1})  # must not raise
+    set_metric_changes(_uid(), 9, 999, {"model": 1})  # must not raise
 
 
 @pytest.mark.anyio
@@ -114,10 +114,10 @@ async def test_set_metric_changes_is_idempotent_on_a_repeat_call(migrated_db):
     user_id = _seed_user()
     _add_row(user_id, 1, 110)
 
-    set_metric_changes("alice", 1, 110, {"model": 5})
-    set_metric_changes("alice", 1, 110, {"model": 5})
+    set_metric_changes(_uid(), 1, 110, {"model": 5})
+    set_metric_changes(_uid(), 1, 110, {"model": 5})
 
-    assert _action_card()["metric_changes"] == {"model": 5}
+    assert _action_card(_uid())["metric_changes"] == {"model": 5}
 
 
 # ── The read side: handle_state_update_request ───────────────────────────────
@@ -141,7 +141,7 @@ async def _advance(username: str = "alice", **payload_overrides):
     with patch("mlops_serious_game.infrastructure.websocket.handlers.game_handler.manager") as manager:
         manager.send_event = AsyncMock()
         manager.send_error = AsyncMock()
-        await handle_state_update_request(MagicMock(), username, payload)
+        await handle_state_update_request(MagicMock(), _uid(username), payload)
 
 
 def _final_metric_values(user_id: int):
@@ -169,7 +169,7 @@ async def test_the_client_never_sending_action_card_no_longer_drops_the_graph_de
 
     user_id = _seed_user()
     _add_row(user_id, 1, 110)
-    set_metric_changes("alice", 1, 110, {"model": 6, "automation": 3})
+    set_metric_changes(_uid(), 1, 110, {"model": 6, "automation": 3})
 
     await _advance()
 
@@ -200,7 +200,7 @@ async def test_an_explicit_payload_value_still_wins_over_the_persisted_one(migra
 
     user_id = _seed_user()
     _add_row(user_id, 1, 110)
-    set_metric_changes("alice", 1, 110, {"model": 6})
+    set_metric_changes(_uid(), 1, 110, {"model": 6})
 
     await _advance(action_card={"metric_changes": {"model": 99}})
 
@@ -227,8 +227,8 @@ async def test_simulation_records_its_own_metric_deltas_on_the_challenge_row(mig
     challenge = PhaseFactory.get_challenge_by_id(challenge_id)
     ids = {"phase_id": challenge.phase_id, "challenge_id": challenge.id}
 
-    service.auto_gather("alice", challenge)
-    ctx = PitchContext("alice", challenge.phase_id, challenge.id)
+    service.auto_gather(_uid(), challenge)
+    ctx = PitchContext(_uid(), challenge.phase_id, challenge.id)
 
     result = auto_card.search_card(
         graph=ctx.graph, state=ctx.state, all_intel=list(ctx.all_intel),
@@ -244,7 +244,7 @@ async def test_simulation_records_its_own_metric_deltas_on_the_challenge_row(mig
         for m in (m1, m2, m3):
             m.send_event = AsyncMock()
             m.send_error = AsyncMock()
-        await handle_pitch_commit(MagicMock(), "alice", {**ids, "atomic_changes": [c.model_dump() for c in result.changes]})
+        await handle_pitch_commit(MagicMock(), _uid(), {**ids, "atomic_changes": [c.model_dump() for c in result.changes]})
         report_payload = None
 
         async def capture(*, websocket, event, payload):
@@ -253,12 +253,12 @@ async def test_simulation_records_its_own_metric_deltas_on_the_challenge_row(mig
                 report_payload = payload
 
         m2.send_event.side_effect = capture
-        await handle_simulation_run(MagicMock(), "alice", ids)
+        await handle_simulation_run(MagicMock(), _uid(), ids)
 
     assert report_payload is not None
     reported_deltas = report_payload["report"]["metric_deltas"]
 
-    card = _action_card("alice", challenge.phase_id, challenge.id)
+    card = _action_card(_uid(), challenge.phase_id, challenge.id)
     assert card.get("metric_changes", {}) == reported_deltas
 
 
@@ -283,8 +283,8 @@ async def test_reopening_the_simulation_screen_does_not_redo_its_one_time_effect
     challenge = PhaseFactory.get_challenge_by_id(challenge_id)
     ids = {"phase_id": challenge.phase_id, "challenge_id": challenge.id}
 
-    service.auto_gather("alice", challenge)
-    ctx = PitchContext("alice", challenge.phase_id, challenge.id)
+    service.auto_gather(_uid(), challenge)
+    ctx = PitchContext(_uid(), challenge.phase_id, challenge.id)
 
     result = auto_card.search_card(
         graph=ctx.graph, state=ctx.state, all_intel=list(ctx.all_intel),
@@ -300,21 +300,21 @@ async def test_reopening_the_simulation_screen_does_not_redo_its_one_time_effect
         for m in (m1, m2, m3):
             m.send_event = AsyncMock()
             m.send_error = AsyncMock()
-        await handle_pitch_commit(MagicMock(), "alice", {**ids, "atomic_changes": [c.model_dump() for c in result.changes]})
+        await handle_pitch_commit(MagicMock(), _uid(), {**ids, "atomic_changes": [c.model_dump() for c in result.changes]})
 
-        await handle_simulation_run(MagicMock(), "alice", ids)
-        emotions_after_first = pitch_store.emotion_values("alice", room_ids := list(ctx.room_ids))
-        events_after_first = load_events("alice")
+        await handle_simulation_run(MagicMock(), _uid(), ids)
+        emotions_after_first = pitch_store.emotion_values(_uid(), room_ids := list(ctx.room_ids))
+        events_after_first = load_events(_uid())
         gate_lines_after_first = [e for e in events_after_first if e.cause in ("outcome.gate_next", "outcome.gate_end")]
         assert len(gate_lines_after_first) == 1
 
         # Simulate the player leaving and reopening the report: same phase/challenge, another
         # `simulation:run` round-trip, nothing new committed in between.
-        await handle_simulation_run(MagicMock(), "alice", ids)
-        await handle_simulation_run(MagicMock(), "alice", ids)
+        await handle_simulation_run(MagicMock(), _uid(), ids)
+        await handle_simulation_run(MagicMock(), _uid(), ids)
 
-    emotions_after_repeats = pitch_store.emotion_values("alice", room_ids)
-    events_after_repeats = load_events("alice")
+    emotions_after_repeats = pitch_store.emotion_values(_uid(), room_ids)
+    events_after_repeats = load_events(_uid())
     gate_lines_after_repeats = [e for e in events_after_repeats if e.cause in ("outcome.gate_next", "outcome.gate_end")]
 
     assert emotions_after_repeats == emotions_after_first, "reopening the report reshifted emotions"

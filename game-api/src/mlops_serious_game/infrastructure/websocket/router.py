@@ -11,7 +11,7 @@ from mlops_serious_game.application.services.auth_service import (
     verify_player_token,
 )
 from mlops_serious_game.config import settings
-from mlops_serious_game.infrastructure.database import get_session, get_user_id
+from mlops_serious_game.infrastructure.database import get_session
 from mlops_serious_game.domain.persona_resolver import bind_personas, personalize
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 
@@ -102,28 +102,24 @@ async def unified_websocket_endpoint(websocket: WebSocket):
         return
 
     # Identity comes only from the signed cookie now - there is nothing left to cross-check a
-    # client-supplied username against (D-ws-cookie), which is what actually closes the "connect
-    # as anyone by guessing their username" gap this replaces. `verify_player_token` also checks
+    # client-supplied user_id against (D-ws-cookie), which is what actually closes the "connect
+    # as anyone by guessing their user_id" gap this replaces. `verify_player_token` also checks
     # that a `User` row still backs the name, so a stale cookie from before a database reset is
     # refused here rather than reaching a handler's DB write.
-    username = verify_player_token(websocket.cookies.get(PLAYER_COOKIE_NAME))
-    if username is None:
+    user_id = verify_player_token(websocket.cookies.get(PLAYER_COOKIE_NAME))
+    if user_id is None:
         await websocket.close(code=4401)
         return
 
-    await manager.connect(websocket, username)
-    # Keyed by user_id, not username, so a username change doesn't orphan conversation history
-    # (docs/plans/session-persistence-and-url-routing.md, D-user-id).
-    with get_session() as db_session:
-        thread_user_id = get_user_id(db_session, username)
-    session_id = f"MLOps_Convo_{thread_user_id}"
+    await manager.connect(websocket, user_id)
+    session_id = f"MLOps_Convo_{user_id}"
     last_gamestate_id = (0,0,0)
     emotion_values_dict={}
 
     # Bind this player's persona draw for the life of the connection. Every
     # handler, and every task they spawn, inherits it, so config prose and
     # avatars come out personalized without threading the player around.
-    bind_personas(personas_or_default(username))
+    bind_personas(personas_or_default(user_id))
 
     try:
         while True:
@@ -141,10 +137,10 @@ async def unified_websocket_endpoint(websocket: WebSocket):
                 if event_name in EVENT_REGISTRY:
                     handler = EVENT_REGISTRY[event_name]
                     if event_name == "game:init":
-                        last_gamestate_id, emotion_values_dict = await handle_game_init(websocket, username, payload)
+                        last_gamestate_id, emotion_values_dict = await handle_game_init(websocket, user_id, payload)
                     elif event_name == "game:state_update_request":
                         await reset_thread(session_id)
-                        last_gamestate_id = list(await handle_state_update_request(websocket, username, payload))
+                        last_gamestate_id = list(await handle_state_update_request(websocket, user_id, payload))
                     elif event_name == "chat:send_message":
                         curr_challenge = PhaseFactory.translate_challenge_index(
                             phase_index=last_gamestate_id[0],
@@ -163,9 +159,9 @@ async def unified_websocket_endpoint(websocket: WebSocket):
                             if "challenge_id" not in payload:
                                 payload["challenge_id"] = curr_challenge.id
                         payload["session_id"] = session_id
-                        asyncio.create_task(handle_chat_message(websocket, username, payload))
+                        asyncio.create_task(handle_chat_message(websocket, user_id, payload))
                     else:
-                        await handler(websocket, username, payload)
+                        await handler(websocket, user_id, payload)
                 else:
                     await manager.send_error(websocket, f"Unknown event name: '{event_name}'")
 
@@ -180,4 +176,4 @@ async def unified_websocket_endpoint(websocket: WebSocket):
                 except:
                     pass
     finally:
-        manager.disconnect(websocket, username)
+        manager.disconnect(websocket, user_id)

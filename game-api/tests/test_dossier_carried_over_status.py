@@ -104,8 +104,8 @@ async def test_dossier_marks_a_previous_challenges_item_done_not_open():
 
     ws = AsyncMock()
     username = f"test_carried_over_status_{uuid.uuid4()}"
-    ensure_test_user(username)
-    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(username)}
+    user_id = ensure_test_user(username)
+    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(user_id)}
 
     with patch.object(RequirementFactory, "requirements", [carried_req, current_req]), \
          patch("mlops_serious_game.application.intel_handler.retrieve_intel_items", new_callable=AsyncMock) as mock_retrieve, \

@@ -27,15 +27,15 @@ async def _send_settings_data(websocket: WebSocket, data: dict) -> None:
     )
 
 
-async def handle_settings_get(websocket: WebSocket, username: str, payload: dict) -> None:
-    await _send_settings_data(websocket, user_settings_service.get_settings(username))
+async def handle_settings_get(websocket: WebSocket, user_id: int, payload: dict) -> None:
+    await _send_settings_data(websocket, user_settings_service.get_settings(user_id))
 
 
-async def handle_settings_update(websocket: WebSocket, username: str, payload: dict) -> None:
-    await _send_settings_data(websocket, user_settings_service.update_settings(username, payload))
+async def handle_settings_update(websocket: WebSocket, user_id: int, payload: dict) -> None:
+    await _send_settings_data(websocket, user_settings_service.update_settings(user_id, payload))
 
 
-async def handle_settings_reset_account(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_settings_reset_account(websocket: WebSocket, user_id: int, payload: dict) -> None:
     if not settings.ENABLE_RESET_USER:
         await manager.send_error(websocket, "Account reset is disabled.", code="RESET_DISABLED")
         return
@@ -43,5 +43,5 @@ async def handle_settings_reset_account(websocket: WebSocket, username: str, pay
         await manager.send_error(websocket, "Account reset requires confirmation.", code="RESET_NOT_CONFIRMED")
         return
 
-    reset_player(username)
+    reset_player(user_id)
     await manager.send_event(websocket=websocket, event="settings:account_reset", payload={})

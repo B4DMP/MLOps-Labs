@@ -30,7 +30,7 @@ from mlops_serious_game.application.pitch_debate_service import session as pitch
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 
-from test_run_scope import _seed_user, _start_run, migrated_db  # noqa: F401  (fixture used by name)
+from test_run_scope import _seed_user, _start_run, _uid, migrated_db  # noqa: F401  (fixture used by name)
 
 # The challenge this mechanic exists for. Automation_alex, high-power, has two Trade-off items
 # whose branches both resolve on `deploy.shadow`: 4 (governed, what Ruth's boundary needs) or 2
@@ -113,26 +113,26 @@ async def _seed_player_on_stuck_challenge(username: str = "alice") -> int:
     from mlops_serious_game.infrastructure.database.models import GameChallenge, GameSession
 
     user_id = _seed_user(username)
-    _start_run(user_id, 1, None, username)
+    _start_run(user_id, 1, None)
     challenge = PhaseFactory.get_challenge_by_id(STUCK_CHALLENGE_ID)
 
     with get_session() as session:
         session.add(
             GameChallenge(
-                user_name=username, user_id=user_id, run_index=1,
+                user_id=user_id, run_index=1,
                 phase_index=challenge.phase_id, challenge_index=challenge.id, challenge_loop_index=1,
                 action_card={}, metric_values=[], messages=[], attention_tokens=20, emotion_values={},
             )
         )
-        session.add(GameSession(player=username, user_id=user_id, run_index=1))
+        session.add(GameSession(user_id=user_id, run_index=1))
 
-    auto_gather(username, challenge)
+    auto_gather(user_id, challenge)
 
     from mlops_serious_game.application.graph_service import store as graph_store
 
     # Seeds the graph if this player has never had one, and fires the challenge's own entry ops -
     # the same thing every real handler does before touching the graph.
-    graph_store.enter_challenge(username, challenge)
+    graph_store.enter_challenge(user_id, challenge)
 
     return user_id
 
@@ -149,7 +149,7 @@ async def _handle(handler_name: str, payload: dict, username: str = "alice"):
         manager.send_event = AsyncMock()
         manager.send_error = AsyncMock()
         log_manager.send_event = AsyncMock()
-        await getattr(pitch_handler, handler_name)(_mock_ws(), username, payload)
+        await getattr(pitch_handler, handler_name)(_mock_ws(), _uid(username), payload)
     sent = [c.kwargs["payload"] for c in manager.send_event.await_args_list]
     return sent[-1] if sent else None
 
@@ -189,7 +189,7 @@ async def test_veto_breaker_is_refused_with_nothing_committed(migrated_db):
     with patch.object(pitch_handler, "manager") as manager:
         manager.send_event = AsyncMock()
         manager.send_error = AsyncMock()
-        await pitch_handler.handle_pitch_veto_breaker(_mock_ws(), "alice", ids)
+        await pitch_handler.handle_pitch_veto_breaker(_mock_ws(), _uid(), ids)
         assert "error" in manager.send_event.await_args.kwargs["payload"]
 
 
@@ -198,9 +198,9 @@ async def test_veto_breaker_is_refused_when_the_commit_was_not_a_veto(migrated_d
     """Only a stood veto can be pushed through; a fine card needs no escalation."""
     await _seed_player_on_stuck_challenge()
     ids = {"phase_id": STUCK_PHASE_ID, "challenge_id": STUCK_CHALLENGE_ID}
-    await _handle("handle_pitch_set_card", {**ids, "atomic_changes": []}, "alice")
+    await _handle("handle_pitch_set_card", {**ids, "atomic_changes": []})
     # No atomic changes committed means "configure a card first", still not a stood veto.
-    result = await _handle("handle_pitch_veto_breaker", ids, "alice")
+    result = await _handle("handle_pitch_veto_breaker", ids)
     assert result["error"] == "no veto standing to push through"
 
 
@@ -210,16 +210,16 @@ async def test_veto_breaker_pushes_the_card_through_and_spends_one_point(migrate
 
     await _seed_player_on_stuck_challenge()
     await _commit_a_veto()
-    assert pitch_store.escalation_points("alice") == 3
+    assert pitch_store.escalation_points(_uid()) == 3
 
     ids = {"phase_id": STUCK_PHASE_ID, "challenge_id": STUCK_CHALLENGE_ID}
-    result = await _handle("handle_pitch_veto_breaker", ids, "alice")
+    result = await _handle("handle_pitch_veto_breaker", ids)
 
     assert result["outcome"] == "PASS"
     assert result["veto_info"] is None
     assert result.get("veto_broken") is True
     assert result["escalation_points"] == 2
-    assert pitch_store.escalation_points("alice") == 2
+    assert pitch_store.escalation_points(_uid()) == 2
 
 
 @pytest.mark.anyio
@@ -228,12 +228,12 @@ async def test_veto_breaker_applies_the_malus_to_the_overridden_stakeholder(migr
 
     await _seed_player_on_stuck_challenge()
     await _commit_a_veto()
-    before = pitch_store.emotion_values("alice", ["automation_alex"])["automation_alex"]
+    before = pitch_store.emotion_values(_uid(), ["automation_alex"])["automation_alex"]
 
     ids = {"phase_id": STUCK_PHASE_ID, "challenge_id": STUCK_CHALLENGE_ID}
-    await _handle("handle_pitch_veto_breaker", ids, "alice")
+    await _handle("handle_pitch_veto_breaker", ids)
 
-    after = pitch_store.emotion_values("alice", ["automation_alex"])["automation_alex"]
+    after = pitch_store.emotion_values(_uid(), ["automation_alex"])["automation_alex"]
     magnitude = EmotionFactory.get_pitch_tuning().emotion_veto_breaker
     for dim, value in before.items():
         assert after[dim] == pytest.approx(max(0.0, min(1.0, value + magnitude)), abs=1e-6)
@@ -245,12 +245,12 @@ async def test_veto_breaker_is_refused_once_escalation_points_run_out(migrated_d
 
     await _seed_player_on_stuck_challenge()
     for _ in range(3):
-        pitch_store.spend_escalation_point("alice")
-    assert pitch_store.escalation_points("alice") == 0
+        pitch_store.spend_escalation_point(_uid())
+    assert pitch_store.escalation_points(_uid()) == 0
 
     await _commit_a_veto()
     ids = {"phase_id": STUCK_PHASE_ID, "challenge_id": STUCK_CHALLENGE_ID}
-    result = await _handle("handle_pitch_veto_breaker", ids, "alice")
+    result = await _handle("handle_pitch_veto_breaker", ids)
 
     assert result["error"] == "no Escalation Points left"
     assert result["outcome"] == "VETO"  # unchanged: the push-through never happened
@@ -266,7 +266,7 @@ async def test_a_broken_veto_reaches_the_pipeline_as_veto_broken_with_a_weight_t
     await _seed_player_on_stuck_challenge()
     await _commit_a_veto()
     ids = {"phase_id": STUCK_PHASE_ID, "challenge_id": STUCK_CHALLENGE_ID}
-    await _handle("handle_pitch_veto_breaker", ids, "alice")
+    await _handle("handle_pitch_veto_breaker", ids)
 
     from mlops_serious_game.infrastructure.websocket.handlers import log_handler
 
@@ -274,7 +274,7 @@ async def test_a_broken_veto_reaches_the_pipeline_as_veto_broken_with_a_weight_t
         manager.send_event = AsyncMock()
         manager.send_error = AsyncMock()
         log_manager.send_event = AsyncMock()
-        await simulation_handler.handle_simulation_run(_mock_ws(), "alice", ids)
+        await simulation_handler.handle_simulation_run(_mock_ws(), _uid(), ids)
         report_payload = next(
             c.kwargs["payload"] for c in manager.send_event.await_args_list
             if c.kwargs["event"] == "graph:delta_report"
@@ -282,7 +282,7 @@ async def test_a_broken_veto_reaches_the_pipeline_as_veto_broken_with_a_weight_t
 
     assert report_payload["report"]["outcome"] == "VETO_BROKEN"
 
-    grudges = pitch_store.load_grudges("alice")
+    grudges = pitch_store.load_grudges(_uid())
     alex_grudge = next(g for g in grudges if g["stakeholder_id"] == "automation_alex")
     assert alex_grudge["weight"] == 2
     assert alex_grudge["reason"] == "overridden by an escalation"
@@ -305,14 +305,14 @@ async def test_a_broken_veto_can_cost_the_overridden_stakeholder_exactly_what_it
     await _seed_player_on_stuck_challenge()
     await _commit_a_veto()
     ids = {"phase_id": STUCK_PHASE_ID, "challenge_id": STUCK_CHALLENGE_ID}
-    await _handle("handle_pitch_veto_breaker", ids, "alice")
+    await _handle("handle_pitch_veto_breaker", ids)
 
     with patch.object(simulation_handler, "manager") as manager, \
          patch.object(log_handler, "manager") as log_manager:
         manager.send_event = AsyncMock()
         manager.send_error = AsyncMock()
         log_manager.send_event = AsyncMock()
-        await simulation_handler.handle_simulation_run(_mock_ws(), "alice", ids)
+        await simulation_handler.handle_simulation_run(_mock_ws(), _uid(), ids)
         report_payload = next(
             c.kwargs["payload"] for c in manager.send_event.await_args_list
             if c.kwargs["event"] == "graph:delta_report"
@@ -321,5 +321,5 @@ async def test_a_broken_veto_can_cost_the_overridden_stakeholder_exactly_what_it
     # The report is honest about it: deploy.shadow shows up as touched, ending where it started.
     target_ids = [t["id"] for t in report_payload["report"]["targets"]]
     assert "deploy.shadow" in target_ids
-    replay_state = graph_store.load_state("alice").state
+    replay_state = graph_store.load_state(_uid()).state
     assert replay_state.value("deploy.shadow", "automation") == 0

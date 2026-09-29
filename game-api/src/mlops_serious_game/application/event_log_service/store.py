@@ -8,16 +8,14 @@ from mlops_serious_game.domain.event import GameEvent
 from mlops_serious_game.infrastructure.database.connection import get_session
 from mlops_serious_game.infrastructure.database.models import GameEventRow
 from mlops_serious_game.infrastructure.database.run_scope import current_run_index, run_chain
-from mlops_serious_game.infrastructure.database.user_lookup import get_user_id
 
 
-def append_events(username: str, events: list[GameEvent]) -> list[GameEvent]:
+def append_events(user_id: int, events: list[GameEvent]) -> list[GameEvent]:
     """Assigns each event the next per-user `seq` and persists it. Returns the stamped events,
     in the same order, ready to send straight back over `log:events`."""
     if not events:
         return []
     with get_session() as session:
-        user_id = get_user_id(session, username)
         run_index = current_run_index(session, user_id)
         # Max over every run: `seq` stays monotonic per player so a spiral run's events sort
         # after the ones it inherited, and the client's `since_seq` never goes backwards.
@@ -29,7 +27,6 @@ def append_events(username: str, events: list[GameEvent]) -> list[GameEvent]:
             stamped_event = event.model_copy(update={"seq": seq})
             stamped.append(stamped_event)
             session.add(GameEventRow(
-                user_name=username,
                 user_id=user_id,
                 run_index=run_index,
                 seq=seq,
@@ -63,7 +60,7 @@ def _from_row(row: GameEventRow) -> GameEvent:
     )
 
 
-def load_events(username: str, since_seq: int = 0, run_index: int | None = None) -> list[GameEvent]:
+def load_events(user_id: int, since_seq: int = 0, run_index: int | None = None) -> list[GameEvent]:
     """Every event this run can see, in order. `since_seq` narrows to what came after it, for a
     client that already has the earlier history.
 
@@ -72,7 +69,6 @@ def load_events(username: str, since_seq: int = 0, run_index: int | None = None)
     is what the results screen does.
     """
     with get_session() as session:
-        user_id = get_user_id(session, username)
         rows = session.scalars(
             select(GameEventRow)
             .where(

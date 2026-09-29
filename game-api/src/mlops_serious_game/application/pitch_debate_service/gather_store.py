@@ -15,7 +15,7 @@ from sqlalchemy import select
 from sqlalchemy.orm.attributes import flag_modified
 
 from mlops_serious_game.application.pitch_debate_service.gather import GatherConversation
-from mlops_serious_game.infrastructure.database import GameChallenge, get_session, get_user_id
+from mlops_serious_game.infrastructure.database import GameChallenge, get_session
 
 GATHER_KEY = "gather"
 
@@ -24,11 +24,11 @@ def _key(card_id: str, stakeholder_id: str) -> str:
     return f"{card_id}:{stakeholder_id}"
 
 
-def _latest_challenge_row(db, username: str, phase_id: int, challenge_id: int):
+def _latest_challenge_row(db, user_id: int, phase_id: int, challenge_id: int):
     stmt = (
         select(GameChallenge)
         .where(
-            GameChallenge.user_id == get_user_id(db, username),
+            GameChallenge.user_id == user_id,
             GameChallenge.phase_index == phase_id,
             GameChallenge.challenge_index == challenge_id,
         )
@@ -38,10 +38,10 @@ def _latest_challenge_row(db, username: str, phase_id: int, challenge_id: int):
 
 
 def load_conversation(
-    username: str, phase_id: int, challenge_id: int, card_id: str, stakeholder_id: str
+    user_id: int, phase_id: int, challenge_id: int, card_id: str, stakeholder_id: str
 ) -> Optional[GatherConversation]:
     with get_session() as db:
-        row = _latest_challenge_row(db, username, phase_id, challenge_id)
+        row = _latest_challenge_row(db, user_id, phase_id, challenge_id)
         if row is None or not isinstance(row.action_card, dict):
             return None
         raw = (row.action_card.get(GATHER_KEY) or {}).get(_key(card_id, stakeholder_id))
@@ -53,9 +53,9 @@ def load_conversation(
             return None
 
 
-def save_conversation(username: str, phase_id: int, challenge_id: int, conversation: GatherConversation) -> None:
+def save_conversation(user_id: int, phase_id: int, challenge_id: int, conversation: GatherConversation) -> None:
     with get_session() as db:
-        row = _latest_challenge_row(db, username, phase_id, challenge_id)
+        row = _latest_challenge_row(db, user_id, phase_id, challenge_id)
         if row is None:
             return
         card = dict(row.action_card) if isinstance(row.action_card, dict) else {}

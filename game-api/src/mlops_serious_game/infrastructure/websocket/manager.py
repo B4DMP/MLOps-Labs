@@ -9,19 +9,19 @@ class ConnectionManager:
         self.active_connections: Set[WebSocket] = set()
         self.user_connections: Dict[str, WebSocket] = {}
 
-    async def connect(self, websocket: WebSocket, username: str | None = None) -> None:
+    async def connect(self, websocket: WebSocket, user_id: int | None = None) -> None:
         await websocket.accept()
         self.active_connections.add(websocket)
-        if username:
-            self.user_connections[username] = websocket
-        print(f"[WS] Client connected: username='{username}' (Total: {len(self.active_connections)})")
+        if user_id:
+            self.user_connections[user_id] = websocket
+        print(f"[WS] Client connected: user_id='{user_id}' (Total: {len(self.active_connections)})")
 
-    def disconnect(self, websocket: WebSocket, username: str | None = None) -> None:
+    def disconnect(self, websocket: WebSocket, user_id: int | None = None) -> None:
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
-        if username and username in self.user_connections:
-            del self.user_connections[username]
-        print(f"[WS] Client disconnected: username='{username}' (Total: {len(self.active_connections)})")
+        if user_id and user_id in self.user_connections:
+            del self.user_connections[user_id]
+        print(f"[WS] Client disconnected: user_id='{user_id}' (Total: {len(self.active_connections)})")
 
     async def send_event(
         self,

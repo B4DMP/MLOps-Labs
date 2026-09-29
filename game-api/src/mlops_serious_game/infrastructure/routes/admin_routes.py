@@ -290,7 +290,7 @@ async def generate_offline_intel(_: str = Depends(check_admin_token)):
 
 @router.get("/graph-debug")
 async def get_graph_debug(
-    username: str = Query(..., description="Player username to inspect"),
+    email: str = Query(..., description="Player email to inspect"),
     _: str = Depends(check_admin_token),
 ):
     if not settings.ENABLE_GRAPH_DEBUG:
@@ -303,23 +303,26 @@ async def get_graph_debug(
         from mlops_serious_game.domain.pattern import PatternFactory
         from mlops_serious_game.domain.phase_factory import PhaseFactory
 
+        from mlops_serious_game.infrastructure.database.connection import get_session
+        from mlops_serious_game.infrastructure.database.models import GraphOpLog, User
+        from sqlalchemy import select
+
+        with get_session() as session:
+            user_id = session.scalar(select(User.id).where(User.email == email))
+        if user_id is None:
+            raise HTTPException(status_code=404, detail=f"Unknown player '{email}'")
+
         graph = GraphFactory.get_graph()
-        replay = graph_store.load_state(username)
-        op_log = graph_store.load_log(username)
+        replay = graph_store.load_state(user_id)
+        op_log = graph_store.load_log(user_id)
         evaluation = evaluate_graph(
             graph, replay.state, PatternFactory.patterns, PatternFactory.order
         )
         phases = PhaseFactory.get_phases()
         # Derive played templates from the op log — any batch tagged with a non-seed source
         # that references a real template.
-        from mlops_serious_game.infrastructure.database.connection import get_session
-        from mlops_serious_game.infrastructure.database.models import GraphOpLog
-        from mlops_serious_game.infrastructure.database.user_lookup import get_user_id
-        from sqlalchemy import select
         with get_session() as session:
-            rows = session.scalars(
-                select(GraphOpLog).where(GraphOpLog.user_id == get_user_id(session, username))
-            ).all()
+            rows = session.scalars(select(GraphOpLog).where(GraphOpLog.user_id == user_id)).all()
             played_templates = {
                 r.challenge_template for r in rows
                 if r.source_kind not in ("challenge_seed",) and r.challenge_template
@@ -336,7 +339,9 @@ async def get_graph_debug(
             phases=phases,
             played_templates=played_templates,
         )
-        return {"username": username, **payload}
+        return {"email": email, **payload}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -367,7 +372,7 @@ async def send_test_email(req: TestEmailRequest, _: str = Depends(check_admin_to
     try:
         if req.template in ("verification", "password_reset"):
             subject, text_body, html_body = build_code_email(
-                req.template, "Test Player", "123456", settings.VERIFICATION_CODE_TTL_MINUTES
+                req.template, "123456", settings.VERIFICATION_CODE_TTL_MINUTES
             )
         else:
             subject = "MLOps Serious Game - SMTP Test Email"

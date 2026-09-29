@@ -55,20 +55,21 @@ def _campaign_key(campaign: str | None) -> str | None:
         return found.campaign_key if found else campaign
 
 
-def finished_runs(usernames: set[str]) -> dict[str, list[int]]:
+def finished_runs(emails: set[str]) -> dict[str, list[int]]:
     """Which runs each player has finished, in order.
 
     A run is finished when it reached the last progression index, whether that came from the outro
     questionnaire or straight from the last challenge on a campaign that skips it.
     """
-    if not usernames:
+    if not emails:
         return {}
     with get_session() as session:
         rows = session.execute(
-            select(GameProgression.user_name, GameProgression.run_index)
+            select(User.email, GameProgression.run_index)
+            .join(GameProgression, GameProgression.user_id == User.id)
             .where(
                 GameProgression.game_progress_index == FINISHED_INDEX,
-                GameProgression.user_name.in_(usernames),
+                User.email.in_(emails),
             )
             .distinct()
         ).all()
@@ -80,7 +81,7 @@ def finished_runs(usernames: set[str]) -> dict[str, list[int]]:
 
 def _tainted_accounts(campaign_key: str | None) -> set[str]:
     with get_session() as session:
-        stmt = select(User.user_name).where(User.playtest_tainted.is_(True))
+        stmt = select(User.email).where(User.playtest_tainted.is_(True))
         if campaign_key:
             stmt = stmt.where(User.campaign_key == campaign_key)
         return set(session.scalars(stmt).all())
@@ -111,9 +112,9 @@ def _intel_item_rates(pairs: set[tuple[str, int]], dealt: Counter) -> dict[str, 
     with get_session() as session:
         users = {name for name, _ in pairs}
         rows = session.execute(
-            select(IntelItem.user_name, IntelItem.run_index, IntelItem.intel_item_data).where(
-                IntelItem.user_name.in_(users)
-            )
+            select(User.email, IntelItem.run_index, IntelItem.intel_item_data)
+            .join(IntelItem, IntelItem.user_id == User.id)
+            .where(User.email.in_(users))
         ).all()
 
     gathered: Counter = Counter()
@@ -169,17 +170,19 @@ def get_results_dashboard(
     key = _campaign_key(campaign)
     with get_session() as session:
         valid = get_valid_players_set(session, campaign_key=key, include_playtest=include_playtest)
-        campaigns = dict(session.execute(select(User.user_name, User.campaign_key)).all())
+        campaigns = dict(session.execute(select(User.email, User.campaign_key)).all())
 
     tainted = _tainted_accounts(key)
     finished = finished_runs(valid)
+    with get_session() as session:
+        user_ids = dict(session.execute(select(User.email, User.id)).all())
 
     payloads: dict[tuple[str, int], dict[str, Any]] = {}
     unreadable = 0
     for player, player_runs in finished.items():
         for run in player_runs:
             try:
-                payloads[(player, run)] = service.results_for(player, run)
+                payloads[(player, run)] = service.results_for(user_ids[player], run)
             except Exception as e:  # one bad run must not take the whole page down
                 print(f"[admin results] could not build {player} run {run}: {e}")
                 unreadable += 1
@@ -238,10 +241,11 @@ def get_player_results(player: str, run_index: int | None = None, *, refresh: bo
     have not finished: the drill-down is for finished games, and a half-played run has no verdict.
     """
     with get_session() as session:
-        user = session.scalar(select(User).where(User.user_name == player))
+        user = session.scalar(select(User).where(User.email == player))
         if user is None:
             raise ValueError(f"unknown player '{player}'")
         tainted = bool(user.playtest_tainted)
+        user_id = user.id
 
     runs = finished_runs({player}).get(player, [])
     if not runs:
@@ -255,5 +259,5 @@ def get_player_results(player: str, run_index: int | None = None, *, refresh: bo
         "playtest_tainted": tainted,
         "runs": runs,
         "run_index": chosen,
-        "results": service.results_for(player, chosen, refresh=refresh),
+        "results": service.results_for(user_id, chosen, refresh=refresh),
     }

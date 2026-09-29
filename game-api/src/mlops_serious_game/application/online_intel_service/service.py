@@ -10,11 +10,11 @@ from mlops_serious_game.application.online_intel_service.state import OnlineInte
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.Challenge import Challenge
 from mlops_serious_game.domain.persona_resolver import personalize
-from mlops_serious_game.infrastructure.database import get_session, get_user_id
+from mlops_serious_game.infrastructure.database import get_session
 
 
 async def run_engagement_card_workflow(
-    username: str,
+    user_id: int,
     curr_challenge: Challenge,
     card_id: str,
     stakeholder_ids: list[str],
@@ -27,7 +27,7 @@ async def run_engagement_card_workflow(
     """Runs the dedicated Online Intel Gathering workflow for a played engagement card.
 
     Args:
-        username (str): Username of the player.
+        user_id (int): ID of the player.
         curr_challenge (Challenge): Current MLOps challenge object.
         card_id (str): ID of the engagement card played (e.g. 'eng_1').
         stakeholder_ids (list[str]): List of target stakeholder IDs.
@@ -43,11 +43,7 @@ async def run_engagement_card_workflow(
     if session_id:
         thread_id = session_id
     else:
-        # Keyed by user_id, not username - see D-user-id in
-        # docs/plans/session-persistence-and-url-routing.md.
-        with get_session() as intel_session:
-            intel_user_id = get_user_id(intel_session, username)
-        thread_id = f"Online_Intel_{intel_user_id}"
+        thread_id = f"Online_Intel_{user_id}"
     challenge_desc = (
         f"{curr_challenge.name}: {curr_challenge.roundIntroduction} "
         f"{personalize(curr_challenge.description, resolve_markers=True)}"

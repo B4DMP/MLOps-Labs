@@ -62,8 +62,8 @@ async def test_dossier_counts_the_whole_intel_pool_found_or_not():
 
     ws = AsyncMock()
     username = f"test_intel_total_{uuid.uuid4()}"
-    ensure_test_user(username)
-    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(username)}
+    user_id = ensure_test_user(username)
+    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(user_id)}
 
     # The session lookup only feeds the convincer fields; stub it so this never touches the database.
     with patch.object(RequirementFactory, "requirements", pool + unrelated), \
@@ -119,8 +119,8 @@ async def test_narrated_facts_never_count_towards_a_stakeholders_total():
 
     ws = AsyncMock()
     username = f"test_narrated_fact_{uuid.uuid4()}"
-    ensure_test_user(username)
-    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(username)}
+    user_id = ensure_test_user(username)
+    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(user_id)}
 
     # Whatever tag it carries, a Fact (true type) is never a stakeholder-page item.
     fact_item = StakeholderIntelItem.from_requirement(fact, categorized_type="driver")

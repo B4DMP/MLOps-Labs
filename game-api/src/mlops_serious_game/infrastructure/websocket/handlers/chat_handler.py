@@ -16,7 +16,7 @@ from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.requirement import StakeholderIntelItem
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
-from mlops_serious_game.infrastructure.database import GameChallenge, GameSession, IntelItem, get_session, get_user_id
+from mlops_serious_game.infrastructure.database import GameChallenge, GameSession, IntelItem, get_session
 from mlops_serious_game.application.intel_handler import (
     intel_rows,
     correct_and_verify_intel_item,
@@ -31,18 +31,14 @@ from ..manager import manager
 
 async def handle_chat_message(
     websocket: WebSocket,
-    username: str,
+    user_id: int,
     payload: dict,
 ) -> None:
     try:
-        # LangGraph checkpoint tables are keyed by user_id, not username, so a username change
-        # doesn't orphan conversation history (docs/plans/session-persistence-and-url-routing.md,
-        # D-user-id).
         with get_session() as db_session:
-            thread_user_id = get_user_id(db_session, username)
             latest_challenge = db_session.scalars(
                 select(GameChallenge)
-                .where(GameChallenge.user_id == thread_user_id)
+                .where(GameChallenge.user_id == user_id)
                 .order_by(GameChallenge.id.desc())
             ).first()
             # phase_id/challenge_id come from the player's own stored progression, never the
@@ -57,7 +53,7 @@ async def handle_chat_message(
             else:
                 phase_id = payload.get("phase_id", 0)
                 challenge_id = payload.get("challenge_id", 0)
-        session_id = payload.get("session_id") or f"MLOps_Convo_{thread_user_id}"
+        session_id = payload.get("session_id") or f"MLOps_Convo_{user_id}"
         challenge_context = payload.get("challenge", "")
 
         option_id = payload.get("option_id")
@@ -115,7 +111,7 @@ async def handle_chat_message(
             try:
                 with get_session() as db_session:
                     stmt = select(GameChallenge).where(
-                        GameChallenge.user_id == get_user_id(db_session, username)
+                        GameChallenge.user_id == user_id
                     ).order_by(GameChallenge.id.desc())
                     existing = db_session.scalars(stmt).first()
                     if existing:
@@ -167,7 +163,7 @@ async def handle_chat_message(
             )
 
         intel_items = (
-            get_discovered_intel_items(username=username, challenge=curr_challenge)
+            get_discovered_intel_items(user_id=user_id, challenge=curr_challenge)
             if curr_challenge
             else []
         )
@@ -176,7 +172,7 @@ async def handle_chat_message(
         if initial_start:
             with get_session() as db_session:
                 stmt = select(GameChallenge).where(
-                    GameChallenge.user_id == get_user_id(db_session, username),
+                    GameChallenge.user_id == user_id,
                     GameChallenge.emotion_values.isnot(None)
                 ).order_by(GameChallenge.id.desc())
                 existing = db_session.scalars(stmt).first()
@@ -194,16 +190,15 @@ async def handle_chat_message(
         action_card = action_card_payload if (isinstance(action_card_payload, dict) and action_card_payload.get("title")) else None
         if not action_card:
             with get_session() as db_session:
-                chat_user_id = get_user_id(db_session, username)
                 stmt_ac = select(GameChallenge).where(
-                    GameChallenge.user_id == chat_user_id,
+                    GameChallenge.user_id == user_id,
                     GameChallenge.phase_index == phase_id,
                     GameChallenge.challenge_index == challenge_id
                 ).order_by(GameChallenge.id.desc())
                 existing_challenge = db_session.scalars(stmt_ac).first()
                 if not existing_challenge:
                     stmt_fallback = select(GameChallenge).where(
-                        GameChallenge.user_id == chat_user_id
+                        GameChallenge.user_id == user_id
                     ).order_by(GameChallenge.id.desc())
                     existing_challenge = db_session.scalars(stmt_fallback).first()
                 if existing_challenge and isinstance(existing_challenge.action_card, dict) and existing_challenge.action_card.get("title"):
@@ -214,7 +209,7 @@ async def handle_chat_message(
             card_intel_ids = action_card.get("intel_ids", [])
             existing_ids = {getattr(it, "id", None) for it in intel_items}
             with get_session() as db_session:
-                records = intel_rows(db_session, get_user_id(db_session, username))
+                records = intel_rows(db_session, user_id)
                 for record in records:
                     if isinstance(record.intel_item_data, dict):
                         data = record.intel_item_data
@@ -243,7 +238,7 @@ async def handle_chat_message(
 
         # Run pitch debate graph
         emotion_deltas, output_state = await get_response(
-            username=username,
+            user_id=user_id,
             challenge=challenge_context,
             _thread_id=session_id,
             phase_id=phase_id,
@@ -271,7 +266,7 @@ async def handle_chat_message(
         if serialized_emotion_values:
             with get_session() as db_session:
                 stmt = select(GameChallenge).where(
-                    GameChallenge.user_id == get_user_id(db_session, username)
+                    GameChallenge.user_id == user_id
                 ).order_by(GameChallenge.id.desc())
                 existing = db_session.scalars(stmt).first()
                 if existing:
@@ -296,7 +291,7 @@ async def handle_chat_message(
         if corrected_req_ids:
             for req_id in corrected_req_ids:
                 correct_and_verify_intel_item(
-                    username=username,
+                    user_id=user_id,
                     requirement_id=req_id,
                     curr_challenge=curr_challenge,
                 )
@@ -312,7 +307,7 @@ async def handle_chat_message(
                         item_conf = matching_item.intel_type.value if hasattr(matching_item.intel_type, "value") else str(matching_item.intel_type)
                         if item_conf.lower() != "verified":
                             correct_and_verify_intel_item(
-                                username=username,
+                                user_id=user_id,
                                 requirement_id=cid,
                                 curr_challenge=curr_challenge,
                             )

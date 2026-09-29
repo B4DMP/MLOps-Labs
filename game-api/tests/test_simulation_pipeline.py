@@ -337,17 +337,17 @@ class _FakeStore:
         self.rows: list[dict] = []
         self.append_calls = 0
 
-    def load_state(self, username):
+    def load_state(self, user_id):
         return SimpleNamespace(state=self._state)
 
-    def has_batch(self, username, source_id):
+    def has_batch(self, user_id, source_id):
         return any(r["source_id"] == source_id for r in self.rows)
 
-    def load_report(self, username, source_id):
+    def load_report(self, user_id, source_id):
         matching = [r for r in self.rows if r["source_id"] == source_id]
         return matching[-1]["report"] if matching else None
 
-    def append_ops(self, username, ops, *, phase_index, challenge_template, challenge_loop_index,
+    def append_ops(self, user_id, ops, *, phase_index, challenge_template, challenge_loop_index,
                     source_kind, source_id=None, report=None):
         self.append_calls += 1
         self.rows.append({"source_id": source_id, "report": report})

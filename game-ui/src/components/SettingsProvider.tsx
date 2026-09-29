@@ -57,15 +57,15 @@ export const useSettings = () => useContext(SettingsContext);
 
 const STORAGE_PREFIX = "mlops_player_settings";
 
-function storageKey(username: string): string {
-  return `${STORAGE_PREFIX}:${username}`;
+function storageKey(userId: number): string {
+  return `${STORAGE_PREFIX}:${userId}`;
 }
 
 /** The websocket stays the source of truth; this only avoids one frame of unmuted audio on
  * reload, so any failure here (private window, cleared storage) just means that one frame. */
-function readMirror(username: string): PlayerSettings | null {
+function readMirror(userId: number): PlayerSettings | null {
   try {
-    const raw = window.localStorage.getItem(storageKey(username));
+    const raw = window.localStorage.getItem(storageKey(userId));
     if (!raw) return null;
     return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
   } catch {
@@ -73,17 +73,17 @@ function readMirror(username: string): PlayerSettings | null {
   }
 }
 
-function writeMirror(username: string, settings: PlayerSettings): void {
+function writeMirror(userId: number, settings: PlayerSettings): void {
   try {
-    window.localStorage.setItem(storageKey(username), JSON.stringify(settings));
+    window.localStorage.setItem(storageKey(userId), JSON.stringify(settings));
   } catch {
     // Best-effort only.
   }
 }
 
-function clearMirror(username: string): void {
+function clearMirror(userId: number): void {
   try {
-    window.localStorage.removeItem(storageKey(username));
+    window.localStorage.removeItem(storageKey(userId));
   } catch {
     // Best-effort only.
   }
@@ -109,7 +109,7 @@ function toPlayerSettings(data: Record<string, unknown> | undefined | null): Pla
 
 interface SettingsProviderProps {
   children: React.ReactNode;
-  username: string;
+  userId: number;
   /** "Start muted" from the login/register form: forces mute_tts on for this login, overriding
    * whatever was last saved, so a player who wants quiet doesn't get a burst of audio before
    * they can reach the settings panel. Persisted server-side once (see below), not re-applied
@@ -130,10 +130,10 @@ interface SettingsProviderProps {
  * and the page reloads into the fresh account rather than trying to reconcile stale in-memory
  * state.
  */
-export default function SettingsProvider({ children, username, startMuted = false }: SettingsProviderProps) {
+export default function SettingsProvider({ children, userId, startMuted = false }: SettingsProviderProps) {
   const { emit, subscribe } = useGameWebSocket();
   const [settings, setSettings] = useState<PlayerSettings>(() => {
-    const initial = readMirror(username) ?? DEFAULT_SETTINGS;
+    const initial = readMirror(userId) ?? DEFAULT_SETTINGS;
     return startMuted ? { ...initial, mute_tts: true } : initial;
   });
   const [canResetAccount, setCanResetAccount] = useState(false);
@@ -152,9 +152,9 @@ export default function SettingsProvider({ children, username, startMuted = fals
       setSettings(next);
       setCanResetAccount(Boolean(data?.can_reset_account));
       setCanPlaytest(Boolean(data?.can_playtest));
-      writeMirror(username, next);
+      writeMirror(userId, next);
     },
-    [username, startMuted],
+    [userId, startMuted],
   );
 
   useEffect(() => {
@@ -163,8 +163,8 @@ export default function SettingsProvider({ children, username, startMuted = fals
       if (data?.settings) applyIncoming(data.settings);
     });
     const unsubReset = subscribe("settings:account_reset", () => {
-      clearMirror(username);
-      clearSeenBriefings(username);
+      clearMirror(userId);
+      clearSeenBriefings(userId);
       window.location.reload();
     });
     return () => {
@@ -172,7 +172,7 @@ export default function SettingsProvider({ children, username, startMuted = fals
       unsubInit();
       unsubReset();
     };
-  }, [subscribe, applyIncoming, username]);
+  }, [subscribe, applyIncoming, userId]);
 
   useEffect(() => {
     if (!startMuted || startMutedAppliedRef.current) return;
@@ -185,12 +185,12 @@ export default function SettingsProvider({ children, username, startMuted = fals
     (partial: Partial<PlayerSettings>) => {
       setSettings((prev) => {
         const next = { ...prev, ...partial };
-        writeMirror(username, next);
+        writeMirror(userId, next);
         return next;
       });
       emit("settings:update", partial);
     },
-    [emit, username],
+    [emit, userId],
   );
 
   const resetAccount = useCallback(() => {

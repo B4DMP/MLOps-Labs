@@ -4,7 +4,7 @@ import aiosmtplib
 
 from mlops_serious_game.config import settings
 
-def render_code_email_html(username: str, code: str, title: str, instruction: str, ttl_minutes: int) -> str:
+def render_code_email_html(code: str, title: str, instruction: str, ttl_minutes: int) -> str:
     """Same content as the plain-text code email, styled to match the game's own light
     dialog/card UI (--dialog-surface white card, --primary-bg teal header bar, left-accented
     info box - see PrePhaseDialog.module.css's .missionCard/.missionCardHeader/.objectivesBox)
@@ -21,7 +21,7 @@ def render_code_email_html(username: str, code: str, title: str, instruction: st
       <td style="background:#ffffff;border:1px solid #e2e8f0;border-top:none;
                  border-radius:0 0 12px 12px;padding:28px;">
         <p style="color:#1e293b;font-size:15px;line-height:1.5;margin:0 0 20px;">
-          Hi {username}, {instruction}
+          Hi, {instruction}
         </p>
         <div style="background:#f1f5f9;border-left:4px solid #266682;border-radius:0 8px 8px 0;
                     padding:16px 20px;margin:0 0 20px;text-align:center;">
@@ -61,19 +61,19 @@ CODE_EMAIL_COPY = {
 }
 
 
-def build_code_email(purpose: str, username: str, code: str, ttl_minutes: int) -> tuple[str, str, str]:
+def build_code_email(purpose: str, code: str, ttl_minutes: int) -> tuple[str, str, str]:
     """Builds the (subject, plain-text body, html body) for a verification/password-reset code
     email. Shared by the real auth flow (auth_service) and the admin panel's test-send tool, so
     a test send exercises the exact same template a player would receive."""
     title, instruction = CODE_EMAIL_COPY[purpose]
     subject = f"{code} is your MLOps Labs {title.lower()}"
     body = (
-        f"Hi {username}, {instruction}\n\n"
+        f"Hi, {instruction}\n\n"
         f"{title}: {code}\n"
         f"This code expires in {ttl_minutes} minutes.\n\n"
         f"If you didn't request it, you can ignore this email."
     )
-    html = render_code_email_html(username, code, title, instruction, ttl_minutes)
+    html = render_code_email_html(code, title, instruction, ttl_minutes)
     return subject, body, html
 
 

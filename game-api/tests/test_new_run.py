@@ -23,6 +23,7 @@ from test_run_scope import (  # noqa: F401  (migrated_db is a fixture, used by n
     _add_challenge,
     _add_event,
     _seed_user,
+    _uid,
     _start_run,
     migrated_db,
 )
@@ -41,7 +42,7 @@ def _allow_replay(campaign_key: str = "camp-1", allowed: bool = True) -> None:
         campaign.allow_replay = allowed
 
 
-def _finish_run(user_id: int, run_index: int, username: str = "alice") -> None:
+def _finish_run(user_id: int, run_index: int) -> None:
     """Writes the progression row a finished game ends on (index 4)."""
     from mlops_serious_game.infrastructure.database.connection import get_session
     from mlops_serious_game.infrastructure.database.models import GameProgression
@@ -49,20 +50,20 @@ def _finish_run(user_id: int, run_index: int, username: str = "alice") -> None:
     with get_session() as session:
         session.add(
             GameProgression(
-                user_name=username, user_id=user_id, run_index=run_index,
+                user_id=user_id, run_index=run_index,
                 game_progress_index=4, additional_data=[],
             )
         )
 
 
-def _add_session(user_id: int, run_index: int, escalation: int, grudges: list, username: str = "alice") -> None:
+def _add_session(user_id: int, run_index: int, escalation: int, grudges: list) -> None:
     from mlops_serious_game.infrastructure.database.connection import get_session
     from mlops_serious_game.infrastructure.database.models import GameSession
 
     with get_session() as session:
         session.add(
             GameSession(
-                player=username, user_id=user_id, run_index=run_index,
+                user_id=user_id, run_index=run_index,
                 stakeholder_personas={"data_dave": "persona_a"},
                 escalation_points=escalation, grudges=grudges,
             )
@@ -96,7 +97,7 @@ async def _new_run(mode, username: str = "alice", gate7_allows_spiral: bool = Tr
     ):
         manager.send_event = AsyncMock()
         manager.send_error = AsyncMock()
-        await game_handler.handle_new_run(MagicMock(), username, {"mode": mode})
+        await game_handler.handle_new_run(MagicMock(), _uid(username), {"mode": mode})
     return manager
 
 
@@ -173,7 +174,7 @@ async def test_gate7_is_not_consulted_for_a_fresh_start(migrated_db):
     ) as gate7:
         manager.send_event = AsyncMock()
         manager.send_error = AsyncMock()
-        await game_handler.handle_new_run(MagicMock(), "alice", {"mode": "fresh"})
+        await game_handler.handle_new_run(MagicMock(), _uid(), {"mode": "fresh"})
     gate7.assert_not_called()
     manager.send_error.assert_not_awaited()
 
@@ -318,7 +319,7 @@ async def test_a_next_iteration_inherits_the_gauges_and_the_room(migrated_db):
     _finished_player()
     await _new_run("spiral")
 
-    metrics, emotions = inherited_state("alice")
+    metrics, emotions = inherited_state(_uid())
     assert metrics[0] == 7
     assert emotions == {"model_monica": {"trust": 0.9}}
 
@@ -330,7 +331,7 @@ async def test_a_fresh_start_inherits_nothing(migrated_db):
     _finished_player()
     await _new_run("fresh")
 
-    assert inherited_state("alice") == ([], {})
+    assert inherited_state(_uid()) == ([], {})
 
 
 # ── The init regression ──────────────────────────────────────────────────────
@@ -342,7 +343,7 @@ async def _init(username: str = "alice"):
     with patch.object(game_handler, "manager") as manager:
         manager.send_event = AsyncMock()
         manager.send_error = AsyncMock()
-        await game_handler.handle_game_init(MagicMock(), username, {})
+        await game_handler.handle_game_init(MagicMock(), _uid(username), {})
     return [(c.kwargs["event"], c.kwargs["payload"]) for c in manager.send_event.await_args_list]
 
 

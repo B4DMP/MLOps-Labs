@@ -1,11 +1,12 @@
 import React, { createContext, useEffect, useRef, useState, useCallback } from "react";
+import type { PlayerIdentity } from "../api/auth";
 import type { WSEvent, EventCallback, WebSocketContextValue } from "./types";
 
 export const WebSocketContext = createContext<WebSocketContextValue | null>(null);
 
 interface WebSocketProviderProps {
   children: React.ReactNode;
-  username?: string;
+  player?: PlayerIdentity;
   /** Called when the handshake is rejected as unauthenticated (close code 4401 - the
    * `mlops_player` cookie is missing or expired, docs/plans/session-persistence-and-url-routing.md
    * D9). The reconnect loop stops rather than retrying forever against a cookie that can't
@@ -15,9 +16,10 @@ interface WebSocketProviderProps {
 }
 
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
-  children, username: initialUsername = "", onAuthFailure,
+  children, player, onAuthFailure,
 }) => {
-  const [username, setUsername] = useState<string>(initialUsername);
+  const userId = player?.id ?? 0;
+  const [email, setEmail] = useState<string>(player?.email ?? "");
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [lastError, setLastError] = useState<string | null>(null);
 
@@ -31,7 +33,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   const WS_PROTO = window.location.protocol === "https:" ? "wss:" : "ws:";
 
   const connect = useCallback(() => {
-    if (!username) return;
+    if (!userId) return;
 
     if (socketRef.current) {
       if (
@@ -47,11 +49,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       reconnectTimeoutRef.current = null;
     }
 
-    // No username in the URL anymore - the browser attaches the httpOnly `mlops_player` cookie
+    // No identity in the URL - the browser attaches the httpOnly `mlops_player` cookie
     // automatically (same-site), and the server derives identity from that alone
-    // (docs/plans/session-persistence-and-url-routing.md, D-ws-cookie). `username` here is only
-    // used locally to decide *whether* to connect and to trigger a reconnect when it changes
-    // (e.g. after a username change - see the Profile section).
+    // (docs/plans/session-persistence-and-url-routing.md, D-ws-cookie). `userId` here is only
+    // used locally to decide *whether* to connect.
     const wsUrl = `${WS_PROTO}//${API_HOST}/ws`;
     console.log(`[WebSocket] Connecting to ${wsUrl}...`);
     const ws = new WebSocket(wsUrl);
@@ -60,7 +61,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
     ws.onopen = () => {
       if ((ws as any).isClosedIntentionally) return;
-      console.log(`[WebSocket] Unified socket connected for user: ${username}`);
+      console.log(`[WebSocket] Unified socket connected for user: ${userId}`);
       setIsConnected(true);
       setLastError(null);
 
@@ -126,16 +127,16 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         return;
       }
 
-      if (username) {
+      if (userId) {
         reconnectTimeoutRef.current = setTimeout(() => {
           connect();
         }, 3000);
       }
     };
-  }, [username, API_HOST, WS_PROTO, onAuthFailure]);
+  }, [userId, API_HOST, WS_PROTO, onAuthFailure]);
 
   useEffect(() => {
-    if (username) {
+    if (userId) {
       connect();
     }
     return () => {
@@ -147,7 +148,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         socketRef.current = null;
       }
     };
-  }, [username, connect]);
+  }, [userId, connect]);
 
   const emit = useCallback(<T = any,>(event: string, payload: T = {} as T) => {
     const messageObj: WSEvent<T> = {
@@ -187,8 +188,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     <WebSocketContext.Provider
       value={{
         isConnected,
-        username,
-        setUsername,
+        userId,
+        email,
+        setEmail,
         emit,
         subscribe,
         lastError,

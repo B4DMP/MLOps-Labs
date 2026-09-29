@@ -102,9 +102,9 @@ async def test_retag_challenge_specific_stance_updates_description():
     from conftest import ensure_test_user
 
     unique_user = f"test_retag_user_{uuid.uuid4()}"
-    ensure_test_user(unique_user)
+    user_id = ensure_test_user(unique_user)
     mock_ws = AsyncMock()
-    mock_ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(unique_user)}
+    mock_ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(user_id)}
 
     # The first wrong tag is the other plain stance, where the dossier shows the item's stored
     # reading for that tag. The second is Trade-off, which goes down the branch inventing path and

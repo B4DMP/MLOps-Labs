@@ -39,7 +39,7 @@ def _clear_cookie_jar(client):
 @pytest.fixture
 def registered_player():
     """A real, verified User row with a known password, so /login can be exercised end to end."""
-    username = f"cookie_test_{uuid.uuid4().hex[:8]}"
+    email = f"cookie_test_{uuid.uuid4().hex[:8]}@example.test"
     password = "correct-horse-battery-staple"
     campaign_key = "cookie-test-campaign"
 
@@ -50,25 +50,25 @@ def registered_player():
             session.add(campaign)
             session.flush()
         session.add(User(
-            user_name=username,
             campaign_key=campaign_key,
             campaign_id=campaign.id,
-            email=f"{username}@example.test",
+            email=email,
             password_hash=hash_password(password),
             users_on_machine=1,
             is_verified=True,
         ))
 
-    return username, password
+    return email, password
 
 
 def test_login_sets_player_cookie_and_omits_token(client, registered_player):
-    username, password = registered_player
-    response = client.post("/api/auth/login", json={"username": username, "password": password})
+    email, password = registered_player
+    response = client.post("/api/auth/login", json={"email": email, "password": password})
 
     assert response.status_code == 200
     body = response.json()
-    assert body == {"type": "login_success", "username": username}
+    assert body["type"] == "login_success"
+    assert body["email"] == email
     assert "token" not in body
     assert PLAYER_COOKIE_NAME in response.cookies
     assert CSRF_COOKIE_NAME in response.cookies
@@ -76,8 +76,8 @@ def test_login_sets_player_cookie_and_omits_token(client, registered_player):
 
 
 def test_login_wrong_password_sets_no_cookies(client, registered_player):
-    username, _ = registered_player
-    response = client.post("/api/auth/login", json={"username": username, "password": "wrong"})
+    email, _ = registered_player
+    response = client.post("/api/auth/login", json={"email": email, "password": "wrong"})
 
     assert response.status_code == 400
     assert PLAYER_COOKIE_NAME not in response.cookies
@@ -85,7 +85,7 @@ def test_login_wrong_password_sets_no_cookies(client, registered_player):
 
 def test_admin_login_sets_admin_cookie_only(client):
     response = client.post(
-        "/api/auth/login", json={"username": settings.ADMIN_USER, "password": settings.ADMIN_KEY}
+        "/api/auth/login", json={"email": settings.ADMIN_USER, "password": settings.ADMIN_KEY}
     )
 
     assert response.status_code == 200
@@ -103,13 +103,15 @@ def test_whoami_reflects_no_session(client):
 
 
 def test_whoami_reflects_player_session(client, registered_player):
-    username, password = registered_player
-    client.post("/api/auth/login", json={"username": username, "password": password})
+    email, password = registered_player
+    client.post("/api/auth/login", json={"email": email, "password": password})
 
     response = client.get("/api/auth/whoami")
 
     assert response.status_code == 200
-    assert response.json() == {"player": {"username": username}, "admin": None, "teacher": None}
+    player = response.json()["player"]
+    assert player["email"] == email
+    assert isinstance(player["id"], int)
 
 
 def _csrf_headers(client) -> dict[str, str]:
@@ -120,8 +122,8 @@ def _csrf_headers(client) -> dict[str, str]:
 
 
 def test_logout_clears_player_cookie(client, registered_player):
-    username, password = registered_player
-    client.post("/api/auth/login", json={"username": username, "password": password})
+    email, password = registered_player
+    client.post("/api/auth/login", json={"email": email, "password": password})
     assert client.get("/api/auth/whoami").json()["player"] is not None
 
     logout_response = client.post("/api/auth/logout", headers=_csrf_headers(client))
@@ -135,13 +137,12 @@ def test_whoami_treats_a_deleted_users_cookie_as_logged_out(client, registered_p
     row is gone (a database reset, an account deletion) - `whoami` must not report the player as
     logged in on a cookie nothing backs, or the frontend sails into gameplay on a phantom identity
     that then crashes the first real DB write (NOT NULL on `user_id`)."""
-    username, password = registered_player
-    client.post("/api/auth/login", json={"username": username, "password": password})
+    email, password = registered_player
+    client.post("/api/auth/login", json={"email": email, "password": password})
     assert client.get("/api/auth/whoami").json()["player"] is not None
 
     with get_session() as session:
-        session.execute(select(User).where(User.user_name == username))  # sanity: exists so far
-        row = session.scalar(select(User).where(User.user_name == username))
+        row = session.scalar(select(User).where(User.email == email))
         session.delete(row)
 
     response = client.get("/api/auth/whoami")
@@ -151,10 +152,10 @@ def test_whoami_treats_a_deleted_users_cookie_as_logged_out(client, registered_p
 
 
 def test_admin_logout_clears_admin_cookie_only(client, registered_player):
-    username, password = registered_player
-    client.post("/api/auth/login", json={"username": username, "password": password})
+    email, password = registered_player
+    client.post("/api/auth/login", json={"email": email, "password": password})
     client.post(
-        "/api/auth/login", json={"username": settings.ADMIN_USER, "password": settings.ADMIN_KEY}
+        "/api/auth/login", json={"email": settings.ADMIN_USER, "password": settings.ADMIN_KEY}
     )
     before = client.get("/api/auth/whoami").json()
     assert before["player"] is not None

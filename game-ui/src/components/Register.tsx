@@ -6,7 +6,6 @@ import styles from "./Register.module.css";
 
 interface RegisterProps {
   onSubmit: (
-    username: string,
     email: string,
     emailConfirm: string,
     password: string,
@@ -31,7 +30,6 @@ export function Register({
   errorMessage,
   onClearError,
 }: RegisterProps) {
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [emailConfirm, setEmailConfirm] = useState("");
   const [password, setPassword] = useState("");
@@ -41,11 +39,10 @@ export function Register({
   const [startMuted, setStartMuted] = useState(false);
   const [playerVoiceGender, setPlayerVoiceGender] = useState<"male" | "female">("female");
 
-  // Whether email is actually required depends on the campaign (test campaigns skip it
-  // entirely), which only the backend knows - so the form doesn't require it client-side, and
   // register_user re-validates everything server-side regardless of what's sent here.
   const isFormFilled =
-    username.trim() &&
+    email.trim() &&
+    emailConfirm.trim() &&
     password &&
     passwordConfirm &&
     usersOnMachine.trim() &&
@@ -55,7 +52,6 @@ export function Register({
     e.preventDefault();
     if (isFormFilled && !isLoading) {
       onSubmit(
-        username.trim(),
         email.trim(),
         emailConfirm.trim(),
         password,
@@ -117,7 +113,7 @@ export function Register({
               style={{ color: "#7dd3fc", fontSize: "1.2rem" }}
             />
             <span>
-              Please choose a <strong>username</strong> and enter the <strong>campaign key</strong> provided with your study invitation.
+              Please sign up with your <strong>email</strong> and enter the <strong>campaign key</strong> provided with your study invitation.
             </span>
           </div>
 
@@ -137,53 +133,20 @@ export function Register({
         <form onSubmit={handleSubmit}>
           <div className={styles.inputGrid}>
             <div className={styles.formGroup}>
-              <label htmlFor="register-username-input" className={styles.formLabel}>
-                <Icon icon="ph:user-bold" style={{ fontSize: "1rem" }} />
-                <span>Username</span>
-                <span className={styles.requiredMark} aria-hidden>*</span>
-              </label>
-              <input
-                id="register-username-input"
-                type="text"
-                className={styles.formInput}
-                placeholder="Choose your username"
-                value={username}
-                autoFocus
-                required
-                disabled={isLoading}
-                onChange={(e) => handleInputChange(setUsername, e.target.value)}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="register-campaign-key-input" className={styles.formLabel}>
-                <Icon icon="ph:key-bold" style={{ fontSize: "1rem" }} />
-                <span>Campaign Key</span>
-                <span className={styles.requiredMark} aria-hidden>*</span>
-              </label>
-              <input
-                id="register-campaign-key-input"
-                type="text"
-                className={styles.formInput}
-                placeholder="Enter invitation campaign key"
-                value={campaignKey}
-                required
-                disabled={isLoading}
-                onChange={(e) => handleInputChange(setCampaignKey, e.target.value)}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
               <label htmlFor="register-email-input" className={styles.formLabel}>
                 <Icon icon="ph:envelope-bold" style={{ fontSize: "1rem" }} />
                 <span>Email</span>
+                <span className={styles.requiredMark} aria-hidden>*</span>
               </label>
               <input
                 id="register-email-input"
                 type="email"
+                autoComplete="username"
                 className={styles.formInput}
                 placeholder="Enter your email"
                 value={email}
+                autoFocus
+                required
                 disabled={isLoading}
                 onChange={(e) => handleInputChange(setEmail, e.target.value)}
               />
@@ -193,6 +156,7 @@ export function Register({
               <label htmlFor="register-email-confirm-input" className={styles.formLabel}>
                 <Icon icon="ph:envelope-bold" style={{ fontSize: "1rem" }} />
                 <span>Confirm Email</span>
+                <span className={styles.requiredMark} aria-hidden>*</span>
               </label>
               <input
                 id="register-email-confirm-input"
@@ -200,6 +164,7 @@ export function Register({
                 className={styles.formInput}
                 placeholder="Re-enter your email"
                 value={emailConfirm}
+                required
                 disabled={isLoading}
                 onChange={(e) => handleInputChange(setEmailConfirm, e.target.value)}
               />
@@ -238,6 +203,24 @@ export function Register({
                 required
                 disabled={isLoading}
                 onChange={(e) => handleInputChange(setPasswordConfirm, e.target.value)}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="register-campaign-key-input" className={styles.formLabel}>
+                <Icon icon="ph:key-bold" style={{ fontSize: "1rem" }} />
+                <span>Campaign Key</span>
+                <span className={styles.requiredMark} aria-hidden>*</span>
+              </label>
+              <input
+                id="register-campaign-key-input"
+                type="text"
+                className={styles.formInput}
+                placeholder="Enter invitation campaign key"
+                value={campaignKey}
+                required
+                disabled={isLoading}
+                onChange={(e) => handleInputChange(setCampaignKey, e.target.value)}
               />
             </div>
 

@@ -152,7 +152,9 @@ def test_rekey_migration_downgrade_restores_usernames(seeded_pre_rekey_db):
     from alembic import command
 
     cfg = _alembic_config()
-    command.upgrade(cfg, "head")
+    # Stops at the rekey itself: a later revision drops `user_name`, so a downgrade through it
+    # could not bring the real usernames back.
+    command.upgrade(cfg, "d7e8f9a0b1c2")
     command.downgrade(cfg, "c5d6e7f8a9b0")
 
     engine = create_engine(settings.POSTGRES_URI)

@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import styles from "./VerifyEmail.module.css";
 
 interface ForgotPasswordProps {
-  onSubmit: (username: string, email: string) => void;
+  onSubmit: (email: string) => void;
   onBack: () => void;
   isLoading?: boolean;
   errorMessage?: string;
@@ -18,13 +18,12 @@ export function ForgotPassword({
   errorMessage,
   onClearError,
 }: ForgotPasswordProps) {
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username.trim() && email.trim() && !isLoading) {
-      onSubmit(username.trim(), email.trim());
+    if (email.trim() && !isLoading) {
+      onSubmit(email.trim());
     }
   };
 
@@ -45,7 +44,7 @@ export function ForgotPassword({
       >
         <h2 className={styles.cardTitle}>Forgot Password</h2>
         <p className={styles.cardSubtitle}>
-          Enter your username and the email address on your account. We'll send you a code to reset your password.
+          Enter the email address of your account. We'll send you a code to reset your password.
         </p>
 
         {errorMessage && (
@@ -60,24 +59,6 @@ export function ForgotPassword({
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label htmlFor="forgot-username-input" className={styles.formLabel}>
-              <Icon icon="ph:user-bold" style={{ fontSize: "1rem" }} />
-              <span>Username</span>
-            </label>
-            <input
-              id="forgot-username-input"
-              type="text"
-              className={styles.formInput}
-              style={{ letterSpacing: "normal", textAlign: "left" }}
-              placeholder="Enter your username"
-              value={username}
-              autoFocus
-              disabled={isLoading}
-              onChange={(e) => handleChange(setUsername, e.target.value)}
-            />
-          </div>
-
           <div className="mb-4">
             <label htmlFor="forgot-email-input" className={styles.formLabel}>
               <Icon icon="ph:envelope-bold" style={{ fontSize: "1rem" }} />
@@ -90,6 +71,7 @@ export function ForgotPassword({
               style={{ letterSpacing: "normal", textAlign: "left" }}
               placeholder="Enter your account email"
               value={email}
+              autoFocus
               disabled={isLoading}
               onChange={(e) => handleChange(setEmail, e.target.value)}
             />
@@ -99,7 +81,7 @@ export function ForgotPassword({
             <button
               type="submit"
               className={`d-flex align-items-center justify-content-center gap-2 ${styles.actionButton}`}
-              disabled={isLoading || !username.trim() || !email.trim()}
+              disabled={isLoading || !email.trim()}
             >
               <span>{isLoading ? "Sending..." : "Send Reset Code"}</span>
               <Icon icon="ph:arrow-right-bold" />

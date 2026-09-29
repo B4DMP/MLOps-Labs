@@ -94,7 +94,6 @@ def _seed_user(username: str = "alice", campaign_key: str = "camp-1") -> None:
             session.add(campaign)
             session.flush()
         session.add(User(
-            user_name=username,
             campaign_key=campaign_key,
             campaign_id=campaign.id,
             email=f"{username}@example.test",
@@ -104,7 +103,15 @@ def _seed_user(username: str = "alice", campaign_key: str = "camp-1") -> None:
         ))
 
 
-def _row_count(username: str) -> int:
+def _uid(username: str = "alice") -> int:
+    from mlops_serious_game.infrastructure.database.connection import get_session
+    from mlops_serious_game.infrastructure.database.models import User
+
+    with get_session() as session:
+        return session.scalar(sqlalchemy.select(User.id).where(User.email == f"{username}@example.test"))
+
+
+def _row_count(user_id: int) -> int:
     from mlops_serious_game.infrastructure.database.connection import get_session
     from mlops_serious_game.infrastructure.database.models import UserSettings
 
@@ -112,7 +119,7 @@ def _row_count(username: str) -> int:
         return session.scalar(
             sqlalchemy.select(sqlalchemy.func.count())
             .select_from(UserSettings)
-            .where(UserSettings.user_name == username)
+            .where(UserSettings.user_id == user_id)
         )
 
 
@@ -123,15 +130,15 @@ def test_get_settings_returns_defaults_and_writes_nothing(migrated_db):
 
     _seed_user()
 
-    assert svc.get_settings("alice") == svc.DEFAULT_SETTINGS
+    assert svc.get_settings(_uid()) == svc.DEFAULT_SETTINGS
     # A player who never opened the panel must not get a row just for being asked about.
-    assert _row_count("alice") == 0
+    assert _row_count(_uid()) == 0
 
 
 def test_get_settings_for_an_unknown_user_returns_defaults(migrated_db):
     from mlops_serious_game.application.services import user_settings_service as svc
 
-    assert svc.get_settings("nobody") == svc.DEFAULT_SETTINGS
+    assert svc.get_settings(999999) == svc.DEFAULT_SETTINGS
 
 
 # ---------- writes ----------
@@ -141,12 +148,12 @@ def test_update_creates_the_row_and_round_trips(migrated_db):
 
     _seed_user()
 
-    result = svc.update_settings("alice", {"mute_tts": True, "voice_female": "Microsoft Zira"})
+    result = svc.update_settings(_uid(), {"mute_tts": True, "voice_female": "Microsoft Zira"})
 
     assert result["mute_tts"] is True
     assert result["voice_female"] == "Microsoft Zira"
-    assert _row_count("alice") == 1
-    assert svc.get_settings("alice") == result
+    assert _row_count(_uid()) == 1
+    assert svc.get_settings(_uid()) == result
 
 
 def test_partial_update_leaves_other_fields_alone(migrated_db):
@@ -154,11 +161,11 @@ def test_partial_update_leaves_other_fields_alone(migrated_db):
 
     _seed_user()
     svc.update_settings(
-        "alice",
+        _uid(),
         {"mute_tts": True, "auto_skip_conversations": True, "voice_male": "Microsoft David"},
     )
 
-    result = svc.update_settings("alice", {"mute_tts": False})
+    result = svc.update_settings(_uid(), {"mute_tts": False})
 
     assert result["mute_tts"] is False
     assert result["auto_skip_conversations"] is True
@@ -170,8 +177,8 @@ def test_update_for_an_unknown_user_is_a_no_op(migrated_db):
     what is only a preference."""
     from mlops_serious_game.application.services import user_settings_service as svc
 
-    assert svc.update_settings("nobody", {"mute_tts": True}) == svc.DEFAULT_SETTINGS
-    assert _row_count("nobody") == 0
+    assert svc.update_settings(999999, {"mute_tts": True}) == svc.DEFAULT_SETTINGS
+    assert _row_count(999999) == 0
 
 
 def test_all_four_voice_slots_persist(migrated_db):
@@ -180,7 +187,7 @@ def test_all_four_voice_slots_persist(migrated_db):
     _seed_user()
 
     result = svc.update_settings(
-        "alice",
+        _uid(),
         {
             "voice_male": "Microsoft David",
             "voice_female": "Samantha",
@@ -200,9 +207,9 @@ def test_a_null_voice_clears_the_stored_choice(migrated_db):
     from mlops_serious_game.application.services import user_settings_service as svc
 
     _seed_user()
-    svc.update_settings("alice", {"voice_male": "Microsoft David"})
+    svc.update_settings(_uid(), {"voice_male": "Microsoft David"})
 
-    assert svc.update_settings("alice", {"voice_male": None})["voice_male"] is None
+    assert svc.update_settings(_uid(), {"voice_male": None})["voice_male"] is None
 
 
 def test_tts_backend_round_trips(migrated_db):
@@ -210,19 +217,19 @@ def test_tts_backend_round_trips(migrated_db):
 
     _seed_user()
 
-    result = svc.update_settings("alice", {"tts_backend": "webspeech"})
+    result = svc.update_settings(_uid(), {"tts_backend": "webspeech"})
 
     assert result["tts_backend"] == "webspeech"
-    assert svc.get_settings("alice")["tts_backend"] == "webspeech"
+    assert svc.get_settings(_uid())["tts_backend"] == "webspeech"
 
 
 def test_an_unknown_tts_backend_value_is_dropped(migrated_db):
     from mlops_serious_game.application.services import user_settings_service as svc
 
     _seed_user()
-    svc.update_settings("alice", {"tts_backend": "webspeech"})
+    svc.update_settings(_uid(), {"tts_backend": "webspeech"})
 
-    result = svc.update_settings("alice", {"tts_backend": "carrier-pigeon"})
+    result = svc.update_settings(_uid(), {"tts_backend": "carrier-pigeon"})
 
     assert result["tts_backend"] == "webspeech"  # unchanged, the bad value was dropped
 
@@ -232,7 +239,7 @@ def test_tts_backend_defaults_to_auto(migrated_db):
 
     _seed_user()
 
-    assert svc.get_settings("alice")["tts_backend"] == "auto"
+    assert svc.get_settings(_uid())["tts_backend"] == "auto"
 
 
 def test_player_voice_gender_defaults_to_male(migrated_db):
@@ -240,7 +247,7 @@ def test_player_voice_gender_defaults_to_male(migrated_db):
 
     _seed_user()
 
-    assert svc.get_settings("alice")["player_voice_gender"] == "male"
+    assert svc.get_settings(_uid())["player_voice_gender"] == "male"
 
 
 def test_player_voice_gender_round_trips(migrated_db):
@@ -248,19 +255,19 @@ def test_player_voice_gender_round_trips(migrated_db):
 
     _seed_user()
 
-    result = svc.update_settings("alice", {"player_voice_gender": "female"})
+    result = svc.update_settings(_uid(), {"player_voice_gender": "female"})
 
     assert result["player_voice_gender"] == "female"
-    assert svc.get_settings("alice")["player_voice_gender"] == "female"
+    assert svc.get_settings(_uid())["player_voice_gender"] == "female"
 
 
 def test_an_unknown_player_voice_gender_value_is_dropped(migrated_db):
     from mlops_serious_game.application.services import user_settings_service as svc
 
     _seed_user()
-    svc.update_settings("alice", {"player_voice_gender": "female"})
+    svc.update_settings(_uid(), {"player_voice_gender": "female"})
 
-    result = svc.update_settings("alice", {"player_voice_gender": "carrier-pigeon"})
+    result = svc.update_settings(_uid(), {"player_voice_gender": "carrier-pigeon"})
 
     assert result["player_voice_gender"] == "female"  # unchanged, the bad value was dropped
 
@@ -270,7 +277,7 @@ def test_speech_rate_defaults_to_one(migrated_db):
 
     _seed_user()
 
-    assert svc.get_settings("alice")["speech_rate"] == 1.0
+    assert svc.get_settings(_uid())["speech_rate"] == 1.0
 
 
 def test_speech_rate_round_trips(migrated_db):
@@ -278,19 +285,19 @@ def test_speech_rate_round_trips(migrated_db):
 
     _seed_user()
 
-    result = svc.update_settings("alice", {"speech_rate": 1.25})
+    result = svc.update_settings(_uid(), {"speech_rate": 1.25})
 
     assert result["speech_rate"] == 1.25
-    assert svc.get_settings("alice")["speech_rate"] == 1.25
+    assert svc.get_settings(_uid())["speech_rate"] == 1.25
 
 
 def test_an_out_of_range_speech_rate_is_dropped(migrated_db):
     from mlops_serious_game.application.services import user_settings_service as svc
 
     _seed_user()
-    svc.update_settings("alice", {"speech_rate": 1.25})
+    svc.update_settings(_uid(), {"speech_rate": 1.25})
 
-    result = svc.update_settings("alice", {"speech_rate": 5.0})
+    result = svc.update_settings(_uid(), {"speech_rate": 5.0})
 
     assert result["speech_rate"] == 1.25  # unchanged, the out-of-range value was dropped
 
@@ -301,10 +308,10 @@ def test_unknown_and_wrongly_typed_fields_are_dropped(migrated_db):
     from mlops_serious_game.application.services import user_settings_service as svc
 
     _seed_user()
-    svc.update_settings("alice", {"mute_tts": True})
+    svc.update_settings(_uid(), {"mute_tts": True})
 
     result = svc.update_settings(
-        "alice",
+        _uid(),
         {
             "is_admin": True,                 # not ours to set
             "user_id": 99,                    # not ours to set
@@ -326,7 +333,7 @@ def test_an_overlong_voice_name_is_dropped(migrated_db):
 
     _seed_user()
 
-    result = svc.update_settings("alice", {"voice_narrator": "x" * 256})
+    result = svc.update_settings(_uid(), {"voice_narrator": "x" * 256})
 
     assert result["voice_narrator"] is None
 
@@ -345,19 +352,19 @@ def test_delete_settings_removes_the_row(migrated_db):
     from mlops_serious_game.application.services import user_settings_service as svc
 
     _seed_user()
-    svc.update_settings("alice", {"mute_tts": True})
+    svc.update_settings(_uid(), {"mute_tts": True})
 
-    svc.delete_settings("alice")
+    svc.delete_settings(_uid())
 
-    assert _row_count("alice") == 0
-    assert svc.get_settings("alice") == svc.DEFAULT_SETTINGS
+    assert _row_count(_uid()) == 0
+    assert svc.get_settings(_uid()) == svc.DEFAULT_SETTINGS
 
 
 def test_delete_settings_for_a_player_without_a_row_is_a_no_op(migrated_db):
     from mlops_serious_game.application.services import user_settings_service as svc
 
     _seed_user()
-    svc.delete_settings("alice")  # must not raise
+    svc.delete_settings(_uid())  # must not raise
 
 
 def test_settings_go_with_the_user_on_delete(migrated_db):
@@ -367,12 +374,12 @@ def test_settings_go_with_the_user_on_delete(migrated_db):
     from mlops_serious_game.infrastructure.database.models import User
 
     _seed_user()
-    svc.update_settings("alice", {"mute_tts": True})
+    svc.update_settings(_uid(), {"mute_tts": True})
 
     with get_session() as session:
-        session.delete(session.scalar(sqlalchemy.select(User).where(User.user_name == "alice")))
+        session.delete(session.scalar(sqlalchemy.select(User).where(User.email == "alice@example.test")))
 
-    assert _row_count("alice") == 0
+    assert _row_count(_uid()) == 0
 
 
 # ---------- websocket handler ----------
@@ -395,7 +402,7 @@ async def test_handle_settings_get_sends_defaults_plus_can_reset_account(migrate
          patch.object(settings, "ENABLE_RESET_USER", True), \
          patch.object(settings, "ENABLE_PLAYTEST_TOOLS", False):
         mock_manager.send_event = AsyncMock()
-        await settings_handler.handle_settings_get(ws, "alice", {})
+        await settings_handler.handle_settings_get(ws, _uid(), {})
 
     mock_manager.send_event.assert_awaited_once_with(
         websocket=ws,
@@ -427,12 +434,12 @@ async def test_handle_settings_update_persists_and_echoes(migrated_db):
     with patch.object(settings_handler, "manager") as mock_manager, \
          patch.object(settings, "ENABLE_RESET_USER", False):
         mock_manager.send_event = AsyncMock()
-        await settings_handler.handle_settings_update(ws, "alice", {"mute_tts": True})
+        await settings_handler.handle_settings_update(ws, _uid(), {"mute_tts": True})
 
     payload = mock_manager.send_event.await_args.kwargs["payload"]
     assert payload["mute_tts"] is True
     assert payload["can_reset_account"] is False
-    assert svc.get_settings("alice")["mute_tts"] is True
+    assert svc.get_settings(_uid())["mute_tts"] is True
 
 
 @pytest.mark.anyio
@@ -445,7 +452,7 @@ async def test_handle_settings_reset_account_refused_when_flag_is_off(migrated_d
     with patch.object(settings_handler, "manager") as mock_manager, \
          patch.object(settings, "ENABLE_RESET_USER", False):
         mock_manager.send_error = AsyncMock()
-        await settings_handler.handle_settings_reset_account(ws, "alice", {"confirm": True})
+        await settings_handler.handle_settings_reset_account(ws, _uid(), {"confirm": True})
 
     mock_manager.send_error.assert_awaited_once()
     assert mock_manager.send_error.await_args.kwargs["code"] == "RESET_DISABLED"
@@ -461,7 +468,7 @@ async def test_handle_settings_reset_account_refused_without_confirm(migrated_db
     with patch.object(settings_handler, "manager") as mock_manager, \
          patch.object(settings, "ENABLE_RESET_USER", True):
         mock_manager.send_error = AsyncMock()
-        await settings_handler.handle_settings_reset_account(ws, "alice", {})
+        await settings_handler.handle_settings_reset_account(ws, _uid(), {})
 
     mock_manager.send_error.assert_awaited_once()
     assert mock_manager.send_error.await_args.kwargs["code"] == "RESET_NOT_CONFIRMED"
@@ -475,17 +482,17 @@ async def test_handle_settings_reset_account_resets_and_notifies(migrated_db):
     from mlops_serious_game.infrastructure.websocket.handlers import settings_handler
 
     _seed_user()
-    svc.update_settings("alice", {"mute_tts": True})
+    svc.update_settings(_uid(), {"mute_tts": True})
     ws = _mock_ws()
 
     with patch.object(settings_handler, "manager") as mock_manager, \
          patch.object(settings, "ENABLE_RESET_USER", True):
         mock_manager.send_event = AsyncMock()
-        await settings_handler.handle_settings_reset_account(ws, "alice", {"confirm": True})
+        await settings_handler.handle_settings_reset_account(ws, _uid(), {"confirm": True})
 
     mock_manager.send_event.assert_awaited_once_with(
         websocket=ws, event="settings:account_reset", payload={}
     )
     with get_session() as session:
-        assert session.scalar(sqlalchemy.select(User).where(User.user_name == "alice")) is not None
-    assert svc.get_settings("alice") == svc.DEFAULT_SETTINGS
+        assert session.scalar(sqlalchemy.select(User).where(User.email == "alice@example.test")) is not None
+    assert svc.get_settings(_uid()) == svc.DEFAULT_SETTINGS

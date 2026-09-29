@@ -7,7 +7,6 @@ import styles from "./BugReportModal.module.css";
 interface BugReportModalProps {
   isOpen: boolean;
   onClose: () => void;
-  username?: string;
   currentPhase?: number;
   currentChallenge?: number;
   challengeTitle?: string;
@@ -18,7 +17,6 @@ const MAX_MESSAGE_LENGTH = 4000;
 export default function BugReportModal({
   isOpen,
   onClose,
-  username,
   currentPhase,
   currentChallenge,
   challengeTitle,
@@ -67,7 +65,6 @@ export default function BugReportModal({
         message: message.trim(),
         debugInfo: {
           timestamp: new Date().toISOString(),
-          username,
           currentPhase,
           currentChallenge,
           challengeTitle,
@@ -128,7 +125,7 @@ export default function BugReportModal({
                 onChange={(e) => setMessage(e.target.value)}
               />
               <div className={styles.debugSummary}>
-                <span>Sent along automatically: timestamp, username, current phase/challenge, page URL.</span>
+                <span>Sent along automatically: timestamp, your account email, current phase/challenge, page URL.</span>
               </div>
               {status === "error" && <p className={styles.errorText}>{error}</p>}
             </>

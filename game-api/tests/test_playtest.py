@@ -28,7 +28,7 @@ from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 
-from test_run_scope import _seed_user, _start_run, migrated_db  # noqa: F401  (fixture used by name)
+from test_run_scope import _seed_user, _start_run, _uid, migrated_db  # noqa: F401  (fixture used by name)
 
 
 # ── The card search (pure) ───────────────────────────────────────────────────
@@ -199,7 +199,7 @@ def _tainted(username: str = "alice") -> bool:
     from mlops_serious_game.infrastructure.database.models import User
 
     with get_session() as session:
-        return bool(session.scalar(select(User.playtest_tainted).where(User.user_name == username)))
+        return bool(session.scalar(select(User.playtest_tainted).where(User.email == f"{username}@example.test")))
 
 
 async def _begun_game(username: str = "alice"):
@@ -208,9 +208,9 @@ async def _begun_game(username: str = "alice"):
     from mlops_serious_game.infrastructure.websocket.manager import manager
 
     user_id = _seed_user(username)
-    _start_run(user_id, 1, None, username)
+    _start_run(user_id, 1, None)
     with patch.object(manager, "send_event", new=AsyncMock()), patch.object(manager, "send_error", new=AsyncMock()):
-        await game_handler.handle_game_init(MagicMock(), username, {})
+        await game_handler.handle_game_init(MagicMock(), user_id, {})
     return user_id
 
 
@@ -222,7 +222,7 @@ async def _call(handler_name: str, username: str = "alice", flag: bool = True):
     with patch.object(manager, "send_event", new=AsyncMock()) as send_event, \
          patch.object(manager, "send_error", new=AsyncMock()) as send_error, \
          patch.object(settings, "ENABLE_PLAYTEST_TOOLS", flag):
-        await getattr(playtest_handler, handler_name)(MagicMock(), username, {})
+        await getattr(playtest_handler, handler_name)(MagicMock(), _uid(username), {})
     events = {c.kwargs["event"]: c.kwargs["payload"] for c in send_event.await_args_list}
     errors = [c.kwargs.get("code") for c in send_error.await_args_list]
     return events, errors
@@ -254,7 +254,7 @@ async def test_the_settings_payload_only_offers_the_tools_when_the_flag_is_on(mi
     for flag in (True, False):
         with patch.object(manager, "send_event", new=AsyncMock()) as send_event, \
              patch.object(settings, "ENABLE_PLAYTEST_TOOLS", flag):
-            await settings_handler.handle_settings_get(MagicMock(), "alice", {})
+            await settings_handler.handle_settings_get(MagicMock(), _uid(), {})
         assert send_event.await_args.kwargs["payload"]["can_playtest"] is flag
 
 
@@ -281,7 +281,7 @@ async def test_auto_card_taints_the_account_fills_the_dossier_and_slots_a_card(m
     assert stored == len(RequirementFactory.get_requirements_for_challenge(dealt))
 
     # And the card went through the normal set_card path, so it is in the pitch state.
-    state = pitch_store.load_pitch("alice", PhaseFactory.get_challenge_by_id(dealt).phase_id, dealt)
+    state = pitch_store.load_pitch(_uid(), PhaseFactory.get_challenge_by_id(dealt).phase_id, dealt)
     assert [c.target for c in state.atomic_changes] == [c["target"] for c in result["changes"]]
 
 
@@ -294,9 +294,9 @@ async def test_auto_gather_tags_every_note_correctly_and_is_idempotent(migrated_
     user_id = await _begun_game()
     challenge = PhaseFactory.get_challenge_by_id(_dealt_challenge(user_id))
 
-    added = service.auto_gather("alice", challenge)
+    added = service.auto_gather(_uid(), challenge)
     assert added == len(RequirementFactory.get_requirements_for_challenge(challenge.id))
-    assert service.auto_gather("alice", challenge) == 0, "a second call must not duplicate or re-change"
+    assert service.auto_gather(_uid(), challenge) == 0, "a second call must not duplicate or re-change"
 
     with get_session() as session:
         rows = session.scalars(select(IntelItem).where(IntelItem.user_id == user_id)).all()
@@ -312,7 +312,7 @@ async def test_auto_gather_upgrades_a_wrongly_tagged_note_rather_than_duplicatin
 
     user_id = await _begun_game()
     challenge = PhaseFactory.get_challenge_by_id(_dealt_challenge(user_id))
-    service.auto_gather("alice", challenge)
+    service.auto_gather(_uid(), challenge)
 
     with get_session() as session:
         row = session.scalars(select(IntelItem).where(IntelItem.user_id == user_id)).first()
@@ -322,7 +322,7 @@ async def test_auto_gather_upgrades_a_wrongly_tagged_note_rather_than_duplicatin
         row.intel_item_data = data
         total = session.scalar(select(func.count(IntelItem.id)).where(IntelItem.user_id == user_id))
 
-    assert service.auto_gather("alice", challenge) == 1
+    assert service.auto_gather(_uid(), challenge) == 1
     with get_session() as session:
         assert session.scalar(select(func.count(IntelItem.id)).where(IntelItem.user_id == user_id)) == total
 
@@ -370,8 +370,8 @@ async def test_the_taint_survives_a_second_use_and_is_reported_only_the_first_ti
     from mlops_serious_game.application.playtest_service import service
 
     _seed_user()
-    assert service.taint_user("alice") is True
-    assert service.taint_user("alice") is False
+    assert service.taint_user(_uid()) is True
+    assert service.taint_user(_uid()) is False
     assert _tainted()
 
 
@@ -381,10 +381,10 @@ async def test_a_tainted_account_drops_out_of_the_admin_aggregates(migrated_db):
     from mlops_serious_game.application.services.admin_service import get_valid_players_set
 
     await _begun_game()
-    assert get_valid_players_set() == {"alice"}
+    assert get_valid_players_set() == {"alice@example.test"}
     await _call("handle_playtest_auto_card")
     assert get_valid_players_set() == set()
-    assert get_valid_players_set(include_playtest=True) == {"alice"}
+    assert get_valid_players_set(include_playtest=True) == {"alice@example.test"}
 
 
 def _dealt_challenge(user_id: int) -> int:

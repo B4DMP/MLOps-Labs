@@ -86,38 +86,41 @@ def make_concession(loss: Optional[int] = None, target: Optional[str] = None, ax
 
 
 
-def ensure_test_user(username: str, campaign_key: str = "test-campaign") -> None:
+def ensure_test_user(name: str, campaign_key: str = "test-campaign") -> int | None:
     """Registers a real `User` row (and its `Campaign`, if missing) against the shared dev
-    Postgres, for domain/handler tests that exercise a made-up username directly against the DB
-    without going through `register_user`.
+    Postgres, for tests that exercise a made-up player directly against the DB without going
+    through `register_user`. Returns its `User.id`, or None if postgres isn't reachable (callers
+    already skip via their own `_postgres_reachable`).
 
-    Needed since docs/plans/pk-migration.md: every per-player table now has a NOT NULL `user_id`
-    FK, so inserting a GameSession/IntelItem/etc. row for a username with no `User` row fails
-    with a NotNullViolation - this used to silently succeed when tables only had a bare
-    `user_name` string column. Skips silently if postgres isn't reachable, so it stays a no-op
-    (not a hard dependency) for callers that already skip via their own `_postgres_reachable`.
+    Every per-player table has a NOT NULL `user_id` FK, so inserting a GameSession/IntelItem/etc.
+    row for a player with no `User` row fails with a NotNullViolation. `name` only seeds the
+    (unique) email, `{name}@example.test`.
     """
     from mlops_serious_game.infrastructure.database.connection import get_session
     from mlops_serious_game.infrastructure.database.models import Campaign, User
     from sqlalchemy import select
 
+    email = f"{name}@example.test"
     try:
         with get_session() as session:
-            if session.scalar(select(User).where(User.user_name == username)) is not None:
-                return
+            existing = session.scalar(select(User.id).where(User.email == email))
+            if existing is not None:
+                return existing
             campaign = session.scalar(select(Campaign).where(Campaign.campaign_key == campaign_key))
             if campaign is None:
                 campaign = Campaign(campaign_name=campaign_key, campaign_key=campaign_key)
                 session.add(campaign)
                 session.flush()
-            session.add(User(
-                user_name=username,
+            user = User(
                 campaign_key=campaign_key,
                 campaign_id=campaign.id,
-                email=f"{username}@example.test",
+                email=email,
                 password_hash="$2b$12$test.hash.not.a.real.bcrypt.digest..............",
                 users_on_machine=1,
                 is_verified=True,
-            ))
+            )
+            session.add(user)
+            session.flush()
+            return user.id
     except Exception:
-        pass
+        return None

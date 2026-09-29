@@ -23,6 +23,7 @@ import {
   adminLogout as adminLogoutApi,
   teacherLogout as teacherLogoutApi,
 } from "./services/api/auth";
+import type { PlayerIdentity } from "./services/api/auth";
 import {
   fetchAdminDashboard,
   addAdminCampaign,
@@ -71,7 +72,9 @@ function App() {
   const [isInForgotPasswordUi, setIsInForgotPasswordUi] = useState(false);
   const [isInResetPasswordUi, setIsInResetPasswordUi] = useState(false);
   const [isInGame, setIsInGame] = useState(false);
-  const [username, setUsername] = useState("");
+  const [player, setPlayer] = useState<PlayerIdentity | null>(null);
+  // The address a verification / reset code was sent to - only lives between those screens.
+  const [pendingEmail, setPendingEmail] = useState("");
   const [startMuted, setStartMuted] = useState(false);
   const [isInErrorUi, setIsInErrorUi] = useState(false);
   const [lastError, setLastError] = useState("");
@@ -107,8 +110,8 @@ function App() {
   const [outroQuestionaireAverage, setOutroQuestionaireAverage] = useState(0);
   const [questionaireResults, setQuestionaireResults] = useState<any>([]);
 
-  const enterGameAsPlayer = (loggedInUsername: string, muted: boolean) => {
-    setUsername(loggedInUsername);
+  const enterGameAsPlayer = (loggedInPlayer: PlayerIdentity, muted: boolean) => {
+    setPlayer(loggedInPlayer);
     setStartMuted(muted);
     setIsInLoginUi(false);
     setIsInRegisterUi(false);
@@ -184,7 +187,7 @@ function App() {
     // path lands on Home exactly like "/" does once no player session is found.
     const result = await whoami();
     if (result.player) {
-      enterGameAsPlayer(result.player.username, false);
+      enterGameAsPlayer(result.player, false);
     } else if (path === "/game") {
       setIsInLoginUi(true);
       pushScreen("/login");
@@ -215,7 +218,7 @@ function App() {
     setIsInGame(false);
     setIsInAdminUi(false);
     setIsInTeacherUi(false);
-    setUsername("");
+    setPlayer(null);
     setAdminToken("");
     setTeacherUserName("");
     setIsInLoginUi(true);
@@ -228,7 +231,7 @@ function App() {
       await logoutApi();
     } finally {
       setIsInGame(false);
-      setUsername("");
+      setPlayer(null);
       setIsInLoginUi(true);
       pushScreen("/login");
     }
@@ -256,19 +259,19 @@ function App() {
     }
   };
 
-  const handleLoginSubmit = async (inputUsername: string, password: string, loginStartMuted: boolean) => {
+  const handleLoginSubmit = async (inputLogin: string, password: string, loginStartMuted: boolean) => {
     setIsAuthenticating(true);
     setLoginError("");
     try {
-      const data = await loginUser(inputUsername, password);
+      const data = await loginUser(inputLogin, password);
       if (data.type === "login_success") {
-        enterGameAsPlayer(inputUsername, loginStartMuted);
+        enterGameAsPlayer({ id: data.user_id!, email: data.email! }, loginStartMuted);
       } else if (data.type === "admin_login_success") {
         await enterAdminUi();
       } else if (data.type === "teacher_login_success") {
         await enterTeacherUi(data.username);
       } else if (data.type === "verification_required") {
-        setUsername(inputUsername);
+        setPendingEmail(data.email ?? inputLogin);
         setPendingPassword(password);
         setPendingStartMuted(loginStartMuted);
         setVerifyError("");
@@ -287,7 +290,6 @@ function App() {
   };
 
   const handleRegisterSubmit = async (
-    inputUsername: string,
     email: string,
     emailConfirm: string,
     password: string,
@@ -301,7 +303,6 @@ function App() {
     setRegisterError("");
     try {
       const data = await registerUser({
-        username: inputUsername,
         email,
         emailConfirm,
         password,
@@ -310,10 +311,8 @@ function App() {
         campaignKey,
         playerVoiceGender,
       });
-      if (data.type === "admin_login_success") {
-        await enterAdminUi();
-      } else if (data.type === "register_pending_verification") {
-        setUsername(inputUsername);
+      if (data.type === "register_pending_verification") {
+        setPendingEmail(data.email);
         setPendingPassword(password);
         setPendingStartMuted(registerStartMuted);
         setVerifyError("");
@@ -322,7 +321,7 @@ function App() {
         pushScreen("/verify");
       } else if (data.type === "login_success") {
         // Test campaigns skip verification entirely - registration logs straight into the game.
-        enterGameAsPlayer(inputUsername, registerStartMuted);
+        enterGameAsPlayer({ id: data.user_id!, email: data.email }, registerStartMuted);
       }
     } catch (err: any) {
       const msg = err.message || "An unknown error occurred during registration.";
@@ -338,8 +337,8 @@ function App() {
     setIsAuthenticating(true);
     setVerifyError("");
     try {
-      await verifyEmailCode(username, code);
-      enterGameAsPlayer(username, pendingStartMuted);
+      const data = await verifyEmailCode(pendingEmail, code);
+      enterGameAsPlayer({ id: data.user_id, email: data.email }, pendingStartMuted);
     } catch (err: any) {
       setVerifyError(err.message || "Verification failed.");
     } finally {
@@ -351,12 +350,12 @@ function App() {
     setIsResendingCode(true);
     setVerifyError("");
     try {
-      const data = await loginUser(username, pendingPassword);
+      const data = await loginUser(pendingEmail, pendingPassword);
       if (data.type === "verification_required") {
         // A fresh code has been emailed - nothing else to do here.
       } else if (data.type === "login_success") {
         // Already got verified in the meantime (e.g. via another tab) - just log in.
-        enterGameAsPlayer(username, pendingStartMuted);
+        enterGameAsPlayer({ id: data.user_id!, email: data.email! }, pendingStartMuted);
       }
     } catch (err: any) {
       setVerifyError(err.message || "Could not resend the code.");
@@ -365,12 +364,12 @@ function App() {
     }
   };
 
-  const handleForgotPasswordSubmit = async (forgotUsername: string, email: string) => {
+  const handleForgotPasswordSubmit = async (email: string) => {
     setIsAuthenticating(true);
     setForgotPasswordError("");
     try {
-      await forgotPassword(forgotUsername, email);
-      setUsername(forgotUsername);
+      const data = await forgotPassword(email);
+      setPendingEmail(data.email);
       setResetPasswordError("");
       setIsInForgotPasswordUi(false);
       setIsInResetPasswordUi(true);
@@ -386,8 +385,8 @@ function App() {
     setIsAuthenticating(true);
     setResetPasswordError("");
     try {
-      await resetPassword(username, code, newPassword, newPasswordConfirm);
-      enterGameAsPlayer(username, false);
+      const data = await resetPassword(pendingEmail, code, newPassword, newPasswordConfirm);
+      enterGameAsPlayer({ id: data.user_id, email: data.email }, false);
     } catch (err: any) {
       setResetPasswordError(err.message || "Could not reset your password.");
     } finally {
@@ -582,7 +581,7 @@ function App() {
             return (
               <div key="verify" style={screenStyle}>
                 <VerifyEmail
-                  username={username}
+                  email={pendingEmail}
                   onSubmit={handleVerifySubmit}
                   onResend={handleResendCode}
                   onBack={() => {
@@ -619,7 +618,7 @@ function App() {
             return (
               <div key="reset-password" style={screenStyle}>
                 <ResetPassword
-                  username={username}
+                  email={pendingEmail}
                   onSubmit={handleResetPasswordSubmit}
                   onBack={() => {
                     setResetPasswordError("");
@@ -641,10 +640,10 @@ function App() {
           } else if (isInGame) {
             return (
               <motion.div {...FADE_TRANSITION} key="game" style={screenStyle}>
-                <WebSocketProvider username={username} onAuthFailure={handleSessionExpired}>
+                <WebSocketProvider player={player ?? undefined} onAuthFailure={handleSessionExpired}>
                   <GlossaryProvider>
-                    <SettingsProvider username={username} startMuted={startMuted}>
-                      <Game username={username} onLogout={handleLogout} />
+                    <SettingsProvider userId={player?.id ?? 0} startMuted={startMuted}>
+                      <Game onLogout={handleLogout} />
                     </SettingsProvider>
                   </GlossaryProvider>
                 </WebSocketProvider>

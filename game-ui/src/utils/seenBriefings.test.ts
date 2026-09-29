@@ -1,34 +1,37 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { clearSeenBriefings, hasSeenBriefing, markBriefingSeen } from "./seenBriefings";
 
+const ALICE = 1;
+const BOB = 2;
+
 afterEach(() => {
   window.localStorage.clear();
 });
 
 describe("seenBriefings", () => {
   it("reports unseen for a challenge that was never marked", () => {
-    expect(hasSeenBriefing("alice", "0:0")).toBe(false);
+    expect(hasSeenBriefing(ALICE, "0:0")).toBe(false);
   });
 
   it("reports seen after marking, and survives being read again (simulating a reload)", () => {
-    markBriefingSeen("alice", "0:0");
-    expect(hasSeenBriefing("alice", "0:0")).toBe(true);
+    markBriefingSeen(ALICE, "0:0");
+    expect(hasSeenBriefing(ALICE, "0:0")).toBe(true);
   });
 
   it("does not mark other challenges as seen", () => {
-    markBriefingSeen("alice", "0:0");
-    expect(hasSeenBriefing("alice", "1:0")).toBe(false);
+    markBriefingSeen(ALICE, "0:0");
+    expect(hasSeenBriefing(ALICE, "1:0")).toBe(false);
   });
 
-  it("scopes seen state per username", () => {
-    markBriefingSeen("alice", "0:0");
-    expect(hasSeenBriefing("bob", "0:0")).toBe(false);
+  it("scopes seen state per user", () => {
+    markBriefingSeen(ALICE, "0:0");
+    expect(hasSeenBriefing(BOB, "0:0")).toBe(false);
   });
 
   it("is idempotent when marking the same challenge twice", () => {
-    markBriefingSeen("alice", "0:0");
-    markBriefingSeen("alice", "0:0");
-    expect(hasSeenBriefing("alice", "0:0")).toBe(true);
+    markBriefingSeen(ALICE, "0:0");
+    markBriefingSeen(ALICE, "0:0");
+    expect(hasSeenBriefing(ALICE, "0:0")).toBe(true);
   });
 
   it("does not throw when localStorage is unavailable", () => {
@@ -37,29 +40,29 @@ describe("seenBriefings", () => {
       throw new Error("storage disabled");
     };
     try {
-      expect(() => markBriefingSeen("alice", "0:0")).not.toThrow();
+      expect(() => markBriefingSeen(ALICE, "0:0")).not.toThrow();
     } finally {
       window.localStorage.setItem = original;
     }
   });
 
-  it("forgets every seen challenge for that username once cleared", () => {
-    markBriefingSeen("alice", "0:0");
-    markBriefingSeen("alice", "1:0");
-    clearSeenBriefings("alice");
-    expect(hasSeenBriefing("alice", "0:0")).toBe(false);
-    expect(hasSeenBriefing("alice", "1:0")).toBe(false);
+  it("forgets every seen challenge for that user once cleared", () => {
+    markBriefingSeen(ALICE, "0:0");
+    markBriefingSeen(ALICE, "1:0");
+    clearSeenBriefings(ALICE);
+    expect(hasSeenBriefing(ALICE, "0:0")).toBe(false);
+    expect(hasSeenBriefing(ALICE, "1:0")).toBe(false);
   });
 
-  it("clearing one username's mirror leaves another's untouched", () => {
-    markBriefingSeen("alice", "0:0");
-    markBriefingSeen("bob", "0:0");
-    clearSeenBriefings("alice");
-    expect(hasSeenBriefing("bob", "0:0")).toBe(true);
+  it("clearing one user's mirror leaves another's untouched", () => {
+    markBriefingSeen(ALICE, "0:0");
+    markBriefingSeen(BOB, "0:0");
+    clearSeenBriefings(ALICE);
+    expect(hasSeenBriefing(BOB, "0:0")).toBe(true);
   });
 
-  it("does not throw when clearing a username with nothing stored", () => {
-    expect(() => clearSeenBriefings("nobody")).not.toThrow();
+  it("does not throw when clearing a user with nothing stored", () => {
+    expect(() => clearSeenBriefings(99)).not.toThrow();
   });
 
   it("does not throw when localStorage is unavailable during clear", () => {
@@ -68,7 +71,7 @@ describe("seenBriefings", () => {
       throw new Error("storage disabled");
     };
     try {
-      expect(() => clearSeenBriefings("alice")).not.toThrow();
+      expect(() => clearSeenBriefings(ALICE)).not.toThrow();
     } finally {
       window.localStorage.removeItem = original;
     }
