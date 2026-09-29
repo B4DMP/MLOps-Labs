@@ -26,14 +26,20 @@ import hashlib
 # unfamiliar jargon stacked on unfamiliar jargon, obscuring the fact instead of sharpening it
 # (guardrail: no device may require outside professional/cultural literacy the player can't be
 # assumed to have).
+# "Undetectable falsehood in a plausible dataset" was retired too, for a different reason: unlike
+# every other device here, its own concept supplies no comic mechanism - "there's an error and
+# you'll never find it" is unease, not a joke, until something else genuinely funny gets bolted
+# on. That made it structurally prone to landing as an accurate, dry risk statement rather than
+# a joke (guardrail: a device must supply its own irony/absurdity/anthropomorphism, not just
+# describe an epistemic problem accurately). Replaced with "A reviewer who is also the author".
 ARTIFACT_ARCHETYPES = [
     "Retroactively-satisfiable criterion",
     "Silence mistaken for testimony",
-    "Undetectable falsehood in a plausible dataset",
     "Recursive bureaucracy",
     "Personification",
     "A health check that asks the wrong question",
     "A gap left idling with a pet's patience",
+    "A reviewer who is also the author",
 ]
 
 

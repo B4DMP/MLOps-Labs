@@ -30,13 +30,14 @@ DEVICE_DESCRIPTIONS = {
         "(the target gets hit by redefining what counts, not by anything actually improving).",
     "Silence mistaken for testimony": "an absence gets treated as a deliberate, on-purpose data point - land it with one concrete instance "
         "of a specific number, record or event that the silence let through undetected.",
-    "Undetectable falsehood in a plausible dataset": "almost everything checks out, and not knowing which one thing doesn't is the joke - "
-        "land it with one concrete, specific, plausible-sounding detail (an exact number or record) that nobody would think to double-check.",
     "Recursive bureaucracy": "a process needs its own meta-process (a form to approve the form).",
     "Personification": "an inanimate process or object is described as having its own attitude toward the rule it's bound by.",
     "A health check that asks the wrong question": "a shallow check (did it run) stands in for the real one (is it correct) - land it with one concrete, absurd, still-plausible example of what the shallow check would wave through.",
     "A gap left idling with a pet's patience": "an automation gap, anthropomorphized as waiting patiently for a human to notice - land it "
         "with one concrete instance of how long it's been waiting or exactly what it's still waiting on.",
+    "A reviewer who is also the author": "a process meant to have independent review turns out to be the same person checking their own "
+        "work under a different hat - land it with one concrete instance of exactly how the two roles collapse into one (the same login, "
+        "the same afternoon, the same desk).",
 }
 assert set(DEVICE_DESCRIPTIONS) == set(ARTIFACT_ARCHETYPES), "humor.py device list drifted from humor_selection.py"
 
