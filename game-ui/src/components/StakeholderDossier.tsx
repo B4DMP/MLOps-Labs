@@ -908,7 +908,7 @@ export default function StakeholderDossier({
   // keeps following the challenge's focus stages as those change.
   const [phaseFilter, setPhaseFilter] = useState<Set<number>>(new Set());
   const [search, setSearch] = useState("");
-  const [collapseAddressed, setCollapseAddressed] = useState(false);
+  const [collapseAddressed, setCollapseAddressed] = useState(true);
   const [confFilter, setConfFilter] = useState<
     "all" | "on_record" | "verified" | "unconfirmed"
   >("all");
