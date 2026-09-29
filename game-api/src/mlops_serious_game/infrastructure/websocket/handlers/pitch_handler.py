@@ -281,6 +281,7 @@ def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView,
         "emotion_deltas": state.emotion_deltas,
         "outcome": state.outcome,
         "presentation_count": getattr(state, "presentation_count", 0),
+        "last_pitched_changes": [c.model_dump() for c in state.last_pitched_changes],
         "escalation_points": pitch_store.escalation_points(ctx.user_id),
     }
     payload.update(extra)
@@ -359,6 +360,10 @@ async def handle_pitch_evaluate(websocket: WebSocket, user_id: int, payload: dic
         await _send(websocket, ctx, state, ctx.view(state), error="Configure at least one atomic graph change first")
         return
 
+    if state.last_pitched_changes and pitch.same_card(state.atomic_changes, state.last_pitched_changes):
+        await _send(websocket, ctx, state, ctx.view(state), error="Change the proposal before pitching it again")
+        return
+
     existing_messages = []
     with get_session() as db:
         row = db.scalars(
@@ -425,8 +430,12 @@ async def handle_pitch_evaluate(websocket: WebSocket, user_id: int, payload: dic
     held_map = {i.id: i for i in ctx.held_items()}
     newly_verified_or_stored = False
 
+    silent_ids = pitch.silent_stakeholders(state, new_state.reaction_signatures)
+
     for room_entry in ctx.room:
         st_id = room_entry[0]
+        if st_id in silent_ids:
+            continue
         power = room_entry[1]
         st = StakeholderFactory.get_stakeholder(st_id)
         st_name = ctx.names.get(st_id, st.name if st else st_id)

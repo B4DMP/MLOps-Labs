@@ -181,6 +181,8 @@ export interface ComposeActionProposalModalProps {
   currentPhase: number;
   currentChallenge: number;
   initialAtomicChanges?: AtomicChange[];
+  /** The card as last pitched; confirming is blocked until the proposal differs from it. */
+  lastPitchedChanges?: AtomicChange[];
   /** Opens the composer with this target already selected in the inspector - e.g. the player
    *  clicked a specific change row on the pitch deck's card rather than the card generally. */
   initialSelectedTargetId?: string;
@@ -487,6 +489,7 @@ export default function ComposeActionProposalModal({
   currentPhase,
   currentChallenge: _currentChallenge,
   initialAtomicChanges = [],
+  lastPitchedChanges = [],
   initialSelectedTargetId,
   onConfirmProposal,
   allowedTargets = [],
@@ -541,6 +544,14 @@ export default function ComposeActionProposalModal({
     () => JSON.stringify(atomicChanges) !== JSON.stringify(initialAtomicChangesResolved),
     [atomicChanges, initialAtomicChangesResolved]
   );
+
+  const unchangedSinceLastPitch = useMemo(() => {
+    const key = (c: AtomicChange) =>
+      JSON.stringify([c.target, c.kind ?? "raise_to", c.axis ?? null, String(c.value ?? ""), c.trigger ?? null]);
+    const a = atomicChanges.map(key).sort();
+    const b = lastPitchedChanges.map(key).sort();
+    return b.length > 0 && a.length === b.length && a.every((k, i) => k === b[i]);
+  }, [atomicChanges, lastPitchedChanges]);
 
   const requestClose = useCallback(() => {
     if (isDirty) setConfirmingLeave("close");
@@ -2069,11 +2080,13 @@ export default function ComposeActionProposalModal({
           <button
             type="button"
             className={`${styles.actionButton} ${styles.footerConfirm}`}
-            disabled={atomicChanges.length === 0}
+            disabled={atomicChanges.length === 0 || unchangedSinceLastPitch}
             onClick={handleConfirm}
             {...tagProps(
               "Confirm Proposal",
-              "Sends this straight to the stakeholders for their reaction - a weak proposal can upset them. You can still revise it before the final decision."
+              unchangedSinceLastPitch
+                ? "This is the card you already pitched - change at least one thing to pitch again."
+                : "Sends this straight to the stakeholders for their reaction - a weak proposal can upset them. You can still revise it before the final decision."
             )}
           >
             <Icon icon="ph:check-bold" />
