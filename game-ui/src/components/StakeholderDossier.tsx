@@ -846,9 +846,10 @@ export default function StakeholderDossier({
   };
   const activeEmotionColors = propEmotionColors || contextEmotionColors || {};
   const { metrics } = useContext(MetricsContext) || { metrics: {} };
-  const { currentPhase: contextPhase, phases } = useContext(PhasesContext) || {
+  const { currentPhase: contextPhase, phases, introPhaseEnabled } = useContext(PhasesContext) || {
     currentPhase: 0,
     phases: [],
+    introPhaseEnabled: false,
   };
   const currentPhase = propPhase ?? contextPhase ?? 0;
   const currentChallenge = propChallenge;
@@ -1027,7 +1028,7 @@ export default function StakeholderDossier({
     if (!showPhaseChangeBadges || !phases || phases.length === 0) return changes;
 
     const current = phases[currentPhase]?.stakeholder_power_interest || [];
-    const previous = isFirstPlayablePhase(phases, currentPhase)
+    const previous = isFirstPlayablePhase(phases, currentPhase, introPhaseEnabled)
       ? []
       : phases[currentPhase - 1]?.stakeholder_power_interest || [];
     const previousById = new Map(previous.map((ps) => [ps.stakeholder_id, ps]));

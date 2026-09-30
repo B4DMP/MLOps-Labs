@@ -83,6 +83,7 @@ function App({ username: _username, onLogout }: AppProps) {
   const [metrics, setMetrics] = useState<Record<string, Metric>>({});
   const [challengeAmount, setChallengeAmount] = useState(0);
   const [_challengeMetricChanges, setChallengeMetricChanges] = useState<
+  const [introPhaseEnabled, setIntroPhaseEnabled] = useState(false);
     Record<string, number>
   >({});
   const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder>>({});
@@ -275,6 +276,7 @@ function App({ username: _username, onLogout }: AppProps) {
     Array(questions.length).fill(null),
   );
   const [isPerformanceOpen, setIsPerformanceOpen] = useState(false);
+      setIntroPhaseEnabled(Boolean(data["intro_phase_enabled"]));
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
@@ -885,7 +887,7 @@ function App({ username: _username, onLogout }: AppProps) {
             />
             <div style={{ position: "relative", zIndex: 1, width: "100%", height: "100%" }}>
             <PhasesContext.Provider
-              value={{ currentPhase, setCurrentPhase, phases, setPhases }}
+              value={{ currentPhase, setCurrentPhase, phases, setPhases, introPhaseEnabled }}
             >
               <MetricsContext.Provider value={{ metrics, setMetrics }}>
                 <StakeholderContext.Provider

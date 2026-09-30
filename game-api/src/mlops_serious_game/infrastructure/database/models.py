@@ -60,10 +60,17 @@ class Campaign(Base):
     # Players registering with this campaign's key skip email entirely and are auto-verified -
     # see auth_service.register_user. Never enable this on a real campaign.
     is_test_campaign: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Set by automated suites (pytest, load/bot runs), never by a human at the keyboard - lets the
+    # admin panel hide bot-generated campaigns by default without touching is_test_campaign, which
+    # is about registration behavior, not who created the campaign.
+    is_bot_campaign: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     # On by default. Set false to let players register with an email but skip the code-verification
     # step (auto-verified on registration) - a lighter opt-out than is_test_campaign, which also
     # drops the email requirement and the password-length policy. See auth_service.register_user.
     require_email_verification: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # Off by default: phase 0 ("Introduction") is otherwise skipped and the game starts at
+    # phase 1 - see game_handler.select_first_challenge.
+    intro_phase_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
 
 class Teacher(Base):

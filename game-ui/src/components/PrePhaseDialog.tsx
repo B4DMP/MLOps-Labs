@@ -56,7 +56,7 @@ export default function PrePhaseDialog({
   onSettingsToggle,
   isSettingsOpen = false,
 }: PrePhaseDialogProps) {
-  const { currentPhase, phases } = useContext(PhasesContext);
+  const { currentPhase, phases, introPhaseEnabled } = useContext(PhasesContext);
   const { settings } = useSettings();
   const { speak: speakTts } = useSpeech();
   // Overlay layer the radar portals its bubbles and tooltips into. The page
@@ -213,14 +213,15 @@ export default function PrePhaseDialog({
     phases.length > 0 &&
     phases[0]?.id === 0 &&
     phases[0]?.phase_name?.toLowerCase() === "introduction";
-  const isFirstPhase = isFirstPlayablePhase(phases, currentPhase);
+  const isFirstPhase = isFirstPlayablePhase(phases, currentPhase, introPhaseEnabled);
   const previousPhaseData = isFirstPhase ? null : (currentPhase > 0 ? phases[currentPhase - 1] : null);
 
   const currentStakeholders = currentPhaseData?.stakeholder_power_interest || [];
   const previousStakeholders = previousPhaseData?.stakeholder_power_interest || [];
 
-  const displayPhaseNumber = hasIntroPhase ? Math.max(1, currentPhase) : currentPhase + 1;
-  const totalPlayablePhases = hasIntroPhase ? Math.max(1, phases.length - 1) : phases.length;
+  const skipsIntroNumbering = hasIntroPhase && !introPhaseEnabled;
+  const displayPhaseNumber = skipsIntroNumbering ? Math.max(1, currentPhase) : currentPhase + 1;
+  const totalPlayablePhases = skipsIntroNumbering ? Math.max(1, phases.length - 1) : phases.length;
 
   const panelContent = (
       <div className={wasReviewRef.current ? styles.dashboardPanel : styles.panel}>

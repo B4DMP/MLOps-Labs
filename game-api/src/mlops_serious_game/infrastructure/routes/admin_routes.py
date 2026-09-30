@@ -44,7 +44,9 @@ class CampaignAddRequest(BaseModel):
     use_questionnaire: bool = True
     allow_replay: bool = False
     is_test_campaign: bool = False
+    is_bot_campaign: bool = False
     require_email_verification: bool = True
+    intro_phase_enabled: bool = False
 
 
 class CampaignUpdateRequest(BaseModel):
@@ -53,7 +55,9 @@ class CampaignUpdateRequest(BaseModel):
     allow_replay: bool | None = None
     campaign_name: str | None = None
     is_test_campaign: bool | None = None
+    is_bot_campaign: bool | None = None
     require_email_verification: bool | None = None
+    intro_phase_enabled: bool | None = None
 
 
 class ConfigUpdateRequest(BaseModel):
@@ -121,7 +125,9 @@ async def create_campaign(req: CampaignAddRequest, _: str = Depends(check_admin_
         use_questionnaire=req.use_questionnaire,
         allow_replay=req.allow_replay,
         is_test_campaign=req.is_test_campaign,
+        is_bot_campaign=req.is_bot_campaign,
         require_email_verification=req.require_email_verification,
+        intro_phase_enabled=req.intro_phase_enabled,
     )
     data = get_admin_dashboard_data()
     return {"type": "admin_data_update", **data}
@@ -137,7 +143,9 @@ async def patch_campaign(campaign_key: str, req: CampaignUpdateRequest, _: str =
             allow_replay=req.allow_replay,
             campaign_name=req.campaign_name,
             is_test_campaign=req.is_test_campaign,
+            is_bot_campaign=req.is_bot_campaign,
             require_email_verification=req.require_email_verification,
+            intro_phase_enabled=req.intro_phase_enabled,
         )
         data = get_admin_dashboard_data()
         return {"type": "admin_data_update", **data}

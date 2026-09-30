@@ -35,11 +35,19 @@ TEST_CAMPAIGN_KEY = "tts-test-campaign"
 def _get_or_create_tts_test_campaign(session) -> Campaign:
     campaign = session.scalar(select(Campaign).where(Campaign.campaign_key == TEST_CAMPAIGN_KEY))
     if campaign is None:
-        campaign = Campaign(campaign_name=TEST_CAMPAIGN_KEY, campaign_key=TEST_CAMPAIGN_KEY, is_test_campaign=True)
+        campaign = Campaign(
+            campaign_name=TEST_CAMPAIGN_KEY,
+            campaign_key=TEST_CAMPAIGN_KEY,
+            is_test_campaign=True,
+            is_bot_campaign=True,
+        )
         session.add(campaign)
         session.flush()
-    elif not campaign.is_test_campaign:
-        campaign.is_test_campaign = True
+    else:
+        if not campaign.is_test_campaign:
+            campaign.is_test_campaign = True
+        if not campaign.is_bot_campaign:
+            campaign.is_bot_campaign = True
     return campaign
 
 

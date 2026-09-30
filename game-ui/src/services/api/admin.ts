@@ -53,7 +53,8 @@ export async function addAdminCampaign(
   isActive: boolean = true,
   useQuestionnaire: boolean = true,
   isTestCampaign: boolean = false,
-  requireEmailVerification: boolean = true
+  requireEmailVerification: boolean = true,
+  isBotCampaign: boolean = false
 ): Promise<AdminDashboardData> {
   const response = await fetch(`${BASE_URL}/api/admin/campaigns`, {
     method: "POST",
@@ -65,6 +66,7 @@ export async function addAdminCampaign(
       is_active: isActive,
       use_questionnaire: useQuestionnaire,
       is_test_campaign: isTestCampaign,
+      is_bot_campaign: isBotCampaign,
       require_email_verification: requireEmailVerification,
     }),
   });
@@ -85,7 +87,9 @@ export async function updateAdminCampaign(
     allow_replay?: boolean;
     campaign_name?: string;
     is_test_campaign?: boolean;
+    is_bot_campaign?: boolean;
     require_email_verification?: boolean;
+    intro_phase_enabled?: boolean;
   }
 ): Promise<AdminDashboardData> {
   const response = await fetch(`${BASE_URL}/api/admin/campaigns/${encodeURIComponent(campaignKey)}`, {

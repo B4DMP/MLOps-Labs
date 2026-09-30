@@ -39,7 +39,7 @@ def registered_player():
     with get_session() as session:
         campaign = session.scalar(select(Campaign).where(Campaign.campaign_key == campaign_key))
         if campaign is None:
-            campaign = Campaign(campaign_name=campaign_key, campaign_key=campaign_key)
+            campaign = Campaign(campaign_name=campaign_key, campaign_key=campaign_key, is_bot_campaign=True)
             session.add(campaign)
             session.flush()
         session.add(User(

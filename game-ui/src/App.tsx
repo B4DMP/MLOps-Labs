@@ -45,6 +45,7 @@ interface Campaign {
   is_active: boolean;
   use_questionnaire: boolean;
   is_test_campaign: boolean;
+  is_bot_campaign: boolean;
   require_email_verification: boolean;
   users: string[];
 }
@@ -412,11 +413,12 @@ function App() {
     isActive: boolean = true,
     useQuestionnaire: boolean = true,
     isTestCampaign: boolean = false,
-    requireEmailVerification: boolean = true
+    requireEmailVerification: boolean = true,
+    isBotCampaign: boolean = false
   ) => {
     try {
       const updated = await addAdminCampaign(
-        newCampaignName, newCampaignKey, isActive, useQuestionnaire, isTestCampaign, requireEmailVerification
+        newCampaignName, newCampaignKey, isActive, useQuestionnaire, isTestCampaign, requireEmailVerification, isBotCampaign
       );
       updateAdminState(updated);
     } catch (err: any) {
@@ -433,7 +435,9 @@ function App() {
       allow_replay?: boolean;
       campaign_name?: string;
       is_test_campaign?: boolean;
+      is_bot_campaign?: boolean;
       require_email_verification?: boolean;
+      intro_phase_enabled?: boolean;
     }
   ) => {
     try {

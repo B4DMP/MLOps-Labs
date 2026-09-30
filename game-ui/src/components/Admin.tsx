@@ -46,7 +46,9 @@ export interface Campaign {
   use_questionnaire?: boolean;
   allow_replay?: boolean;
   is_test_campaign?: boolean;
+  is_bot_campaign?: boolean;
   require_email_verification?: boolean;
+  intro_phase_enabled?: boolean;
 }
 
 export interface Player {
@@ -75,7 +77,8 @@ interface AdminProps {
     isActive?: boolean,
     useQuestionnaire?: boolean,
     isTestCampaign?: boolean,
-    requireEmailVerification?: boolean
+    requireEmailVerification?: boolean,
+    isBotCampaign?: boolean
   ) => void;
   updateCampaign?: (
     campaignKey: string,
@@ -85,7 +88,9 @@ interface AdminProps {
       allow_replay?: boolean;
       campaign_name?: string;
       is_test_campaign?: boolean;
+      is_bot_campaign?: boolean;
       require_email_verification?: boolean;
+      intro_phase_enabled?: boolean;
     }
   ) => void;
   removeCampaign: (campaignKey: string) => void;
@@ -235,7 +240,9 @@ export function Admin({
   const [campaignIsActive, setCampaignIsActive] = useState(true);
   const [campaignUseQuestionnaire, setCampaignUseQuestionnaire] = useState(true);
   const [campaignIsTestCampaign, setCampaignIsTestCampaign] = useState(false);
+  const [campaignIsBotCampaign, setCampaignIsBotCampaign] = useState(false);
   const [campaignRequireEmailVerification, setCampaignRequireEmailVerification] = useState(true);
+  const [showTestAndBotCampaigns, setShowTestAndBotCampaigns] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
   const [confirmDeletePlayer, setConfirmDeletePlayer] = useState<string | null>(null);
@@ -292,16 +299,25 @@ export function Admin({
     if (campaignName.trim() && campaignKey.trim()) {
       addCampaign(
         campaignName.trim(), campaignKey.trim(), campaignIsActive, campaignUseQuestionnaire,
-        campaignIsTestCampaign, campaignRequireEmailVerification
+        campaignIsTestCampaign, campaignRequireEmailVerification, campaignIsBotCampaign
       );
       setCampaignName("");
       setCampaignKey("");
       setCampaignIsActive(true);
       setCampaignUseQuestionnaire(true);
       setCampaignIsTestCampaign(false);
+      setCampaignIsBotCampaign(false);
       setCampaignRequireEmailVerification(true);
     }
   };
+
+  // Test/bot campaigns are noise in day-to-day admin use (pytest suites and dev debugging both
+  // spin up throwaway campaigns) - hidden by default, one toggle away.
+  const visibleCampaigns = useMemo(() => {
+    if (showTestAndBotCampaigns) return campaigns;
+    return campaigns.filter((c) => !c.is_test_campaign && !c.is_bot_campaign);
+  }, [campaigns, showTestAndBotCampaigns]);
+  const hiddenCampaignCount = campaigns.length - visibleCampaigns.length;
 
   // Filter and sort players
   const filteredPlayers = useMemo(() => {
@@ -724,8 +740,29 @@ export function Admin({
                   </div>
                   <div className="d-flex align-items-center gap-2">
                     <span className={`${styles.pillBadge} ${styles.badgePrimary}`}>
-                      {campaigns.length} Active {campaigns.length === 1 ? "Campaign" : "Campaigns"}
+                      {visibleCampaigns.length} {visibleCampaigns.length === 1 ? "Campaign" : "Campaigns"}
                     </span>
+                    <div className="form-check form-switch d-flex align-items-center gap-2 m-0">
+                      <input
+                        className="form-check-input mt-0"
+                        type="checkbox"
+                        role="switch"
+                        id="showTestAndBotCampaignsSwitch"
+                        checked={showTestAndBotCampaigns}
+                        onChange={(e) => setShowTestAndBotCampaigns(e.target.checked)}
+                        style={{ cursor: "pointer" }}
+                      />
+                      <label
+                        className="form-check-label small fw-semibold text-secondary"
+                        htmlFor="showTestAndBotCampaignsSwitch"
+                        style={{ cursor: "pointer" }}
+                      >
+                        Show test/bot campaigns
+                        {hiddenCampaignCount > 0 && !showTestAndBotCampaigns && (
+                          <span className="text-muted fw-normal"> ({hiddenCampaignCount} hidden)</span>
+                        )}
+                      </label>
+                    </div>
                     {removeAllCampaigns && (
                       <button
                         type="button"
@@ -750,17 +787,14 @@ export function Admin({
                         <th>Campaign Name</th>
                         <th>Access Key</th>
                         <th>Status</th>
-                        <th>Questionnaire</th>
-                        <th>Replay</th>
-                        <th>Test Campaign</th>
-                        <th>Email Verification</th>
+                        <th>Flags</th>
                         <th>Enrolled Players</th>
                         <th className="text-end">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {campaigns.length > 0 ? (
-                        campaigns.map((c) => (
+                      {visibleCampaigns.length > 0 ? (
+                        visibleCampaigns.map((c) => (
                           <tr key={c.name}>
                             <td className="fw-bold">{c.name}</td>
                             <td>
@@ -804,105 +838,94 @@ export function Admin({
                               </button>
                             </td>
                             <td>
-                              <button
-                                type="button"
-                                onClick={() => updateCampaign && updateCampaign(c.key, { use_questionnaire: c.use_questionnaire === false ? true : false })}
-                                className="btn btn-sm p-0 border-0"
-                                style={{ background: "none", cursor: updateCampaign ? "pointer" : "default" }}
-                                title={c.use_questionnaire !== false ? "Questionnaire Enabled: Click to disable intro/outro surveys" : "Questionnaire Disabled: Click to enable"}
-                                disabled={!updateCampaign}
-                              >
-                                {c.use_questionnaire !== false ? (
-                                  <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
+                              <div className="d-flex flex-wrap align-items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => updateCampaign && updateCampaign(c.key, { use_questionnaire: c.use_questionnaire === false ? true : false })}
+                                  className="btn btn-sm p-0 border-0"
+                                  style={{ background: "none", cursor: updateCampaign ? "pointer" : "default" }}
+                                  title={c.use_questionnaire !== false ? "Questionnaire: enabled. Click to disable intro/outro surveys" : "Questionnaire: disabled. Click to enable"}
+                                  disabled={!updateCampaign}
+                                >
+                                  <span className={`badge ${c.use_questionnaire !== false ? "bg-primary-subtle text-primary border-primary-subtle" : "bg-secondary-subtle text-secondary border-secondary-subtle"} border px-2 py-1 d-inline-flex align-items-center`}>
                                     <Icon icon="ph:clipboard-text-bold" />
-                                    <span>Enabled</span>
                                   </span>
-                                ) : (
-                                  <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
-                                    <Icon icon="ph:prohibit-bold" />
-                                    <span>Disabled</span>
-                                  </span>
-                                )}
-                              </button>
-                            </td>
-                            <td>
-                              <button
-                                type="button"
-                                onClick={() => updateCampaign && updateCampaign(c.key, { allow_replay: !c.allow_replay })}
-                                className="btn btn-sm p-0 border-0"
-                                style={{ background: "none", cursor: updateCampaign ? "pointer" : "default" }}
-                                title={
-                                  c.allow_replay
-                                    ? "Replay allowed: players can start another game from the results screen. Click to disallow."
-                                    : "Replay off: one run per player, as a research campaign wants. Click to allow."
-                                }
-                                disabled={!updateCampaign}
-                              >
-                                {c.allow_replay ? (
-                                  <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => updateCampaign && updateCampaign(c.key, { allow_replay: !c.allow_replay })}
+                                  className="btn btn-sm p-0 border-0"
+                                  style={{ background: "none", cursor: updateCampaign ? "pointer" : "default" }}
+                                  title={
+                                    c.allow_replay
+                                      ? "Replay: allowed. Players can start another game from the results screen. Click to disallow."
+                                      : "Replay: off. One run per player, as a research campaign wants. Click to allow."
+                                  }
+                                  disabled={!updateCampaign}
+                                >
+                                  <span className={`badge ${c.allow_replay ? "bg-primary-subtle text-primary border-primary-subtle" : "bg-secondary-subtle text-secondary border-secondary-subtle"} border px-2 py-1 d-inline-flex align-items-center`}>
                                     <Icon icon="ph:arrows-clockwise-bold" />
-                                    <span>Allowed</span>
                                   </span>
-                                ) : (
-                                  <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
-                                    <Icon icon="ph:prohibit-bold" />
-                                    <span>Off</span>
-                                  </span>
-                                )}
-                              </button>
-                            </td>
-                            <td>
-                              <button
-                                type="button"
-                                onClick={() => updateCampaign && updateCampaign(c.key, { is_test_campaign: !c.is_test_campaign })}
-                                className="btn btn-sm p-0 border-0"
-                                style={{ background: "none", cursor: updateCampaign ? "pointer" : "default" }}
-                                title={c.is_test_campaign ? "Test campaign: players skip email & verification. Click to make it a real campaign" : "Real campaign: click to make it a test campaign (players skip email & verification)"}
-                                disabled={!updateCampaign}
-                              >
-                                {c.is_test_campaign ? (
-                                  <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => updateCampaign && updateCampaign(c.key, { is_test_campaign: !c.is_test_campaign })}
+                                  className="btn btn-sm p-0 border-0"
+                                  style={{ background: "none", cursor: updateCampaign ? "pointer" : "default" }}
+                                  title={c.is_test_campaign ? "Test campaign: players skip email & verification. Click to make it a real campaign" : "Real campaign: click to make it a test campaign (players skip email & verification)"}
+                                  disabled={!updateCampaign}
+                                >
+                                  <span className={`badge ${c.is_test_campaign ? "bg-warning-subtle text-warning-emphasis border-warning-subtle" : "bg-secondary-subtle text-secondary border-secondary-subtle"} border px-2 py-1 d-inline-flex align-items-center`}>
                                     <Icon icon="ph:flask-bold" />
-                                    <span>Test</span>
                                   </span>
-                                ) : (
-                                  <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
-                                    <Icon icon="ph:minus-circle-bold" />
-                                    <span>No</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => updateCampaign && updateCampaign(c.key, { is_bot_campaign: !c.is_bot_campaign })}
+                                  className="btn btn-sm p-0 border-0"
+                                  style={{ background: "none", cursor: updateCampaign ? "pointer" : "default" }}
+                                  title={c.is_bot_campaign ? "Bot campaign: created by an automated suite (pytest, load/bot runs). Hidden by default. Click to unmark." : "Not a bot campaign. Click to mark as created by an automated suite (hidden by default)."}
+                                  disabled={!updateCampaign}
+                                >
+                                  <span className={`badge ${c.is_bot_campaign ? "bg-warning-subtle text-warning-emphasis border-warning-subtle" : "bg-secondary-subtle text-secondary border-secondary-subtle"} border px-2 py-1 d-inline-flex align-items-center`}>
+                                    <Icon icon="ph:robot-bold" />
                                   </span>
-                                )}
-                              </button>
-                            </td>
-                            <td>
-                              <button
-                                type="button"
-                                onClick={() => updateCampaign && updateCampaign(c.key, { require_email_verification: c.require_email_verification === false ? true : false })}
-                                className="btn btn-sm p-0 border-0"
-                                style={{ background: "none", cursor: updateCampaign ? "pointer" : "default" }}
-                                title={
-                                  c.require_email_verification !== false
-                                    ? "Verification required: players confirm a code sent to their email. Click to auto-verify instead."
-                                    : "Verification skipped: players are auto-verified on registration (still requires a real email). Click to require a code."
-                                }
-                                disabled={!updateCampaign || c.is_test_campaign}
-                              >
-                                {c.is_test_campaign ? (
-                                  <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
-                                    <Icon icon="ph:minus-circle-bold" />
-                                    <span>N/A</span>
-                                  </span>
-                                ) : c.require_email_verification !== false ? (
-                                  <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => updateCampaign && updateCampaign(c.key, { require_email_verification: c.require_email_verification === false ? true : false })}
+                                  className="btn btn-sm p-0 border-0"
+                                  style={{ background: "none", cursor: updateCampaign ? "pointer" : "default" }}
+                                  title={
+                                    c.is_test_campaign
+                                      ? "Email verification: N/A (test campaign skips email entirely)"
+                                      : c.require_email_verification !== false
+                                      ? "Email verification: required. Players confirm a code sent to their email. Click to auto-verify instead."
+                                      : "Email verification: skipped. Players are auto-verified on registration (still requires a real email). Click to require a code."
+                                  }
+                                  disabled={!updateCampaign || c.is_test_campaign}
+                                >
+                                  <span className={`badge ${c.is_test_campaign ? "bg-secondary-subtle text-secondary border-secondary-subtle" : c.require_email_verification !== false ? "bg-primary-subtle text-primary border-primary-subtle" : "bg-secondary-subtle text-secondary border-secondary-subtle"} border px-2 py-1 d-inline-flex align-items-center`}>
                                     <Icon icon="ph:shield-check-bold" />
-                                    <span>Required</span>
                                   </span>
-                                ) : (
-                                  <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
-                                    <Icon icon="ph:prohibit-bold" />
-                                    <span>Skipped</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => updateCampaign && updateCampaign(c.key, { intro_phase_enabled: !c.intro_phase_enabled })}
+                                  className="btn btn-sm p-0 border-0"
+                                  style={{ background: "none", cursor: updateCampaign ? "pointer" : "default" }}
+                                  title={
+                                    c.intro_phase_enabled
+                                      ? "Intro phase: plays before phase 1. Click to skip it again."
+                                      : "Intro phase: skipped, game starts at phase 1. Click to play it first."
+                                  }
+                                  disabled={!updateCampaign}
+                                >
+                                  <span className={`badge ${c.intro_phase_enabled ? "bg-primary-subtle text-primary border-primary-subtle" : "bg-secondary-subtle text-secondary border-secondary-subtle"} border px-2 py-1 d-inline-flex align-items-center`}>
+                                    <Icon icon="ph:play-circle-bold" />
                                   </span>
-                                )}
-                              </button>
+                                </button>
+                              </div>
                             </td>
                             <td>
                               <span className={`${styles.pillBadge} ${styles.badgeNeutral}`}>
@@ -947,7 +970,9 @@ export function Admin({
                       ) : (
                         <tr>
                           <td colSpan={6} className="text-center py-4 text-muted">
-                            No campaigns created yet. Use the form below to add a campaign.
+                            {campaigns.length === 0
+                              ? "No campaigns created yet. Use the form below to add a campaign."
+                              : "All campaigns are test/bot campaigns, hidden by default. Toggle \"Show test/bot campaigns\" above to see them."}
                           </td>
                         </tr>
                       )}
@@ -1048,6 +1073,20 @@ export function Admin({
                         />
                         <label className="form-check-label small fw-semibold text-secondary" htmlFor="campaignIsTestCampaignSwitch" style={{ cursor: "pointer" }}>
                           Test campaign <span className="text-muted fw-normal">(players skip email & verification entirely)</span>
+                        </label>
+                      </div>
+                      <div className="form-check form-switch d-flex align-items-center gap-2 m-0">
+                        <input
+                          className="form-check-input mt-0"
+                          type="checkbox"
+                          role="switch"
+                          id="campaignIsBotCampaignSwitch"
+                          checked={campaignIsBotCampaign}
+                          onChange={(e) => setCampaignIsBotCampaign(e.target.checked)}
+                          style={{ cursor: "pointer" }}
+                        />
+                        <label className="form-check-label small fw-semibold text-secondary" htmlFor="campaignIsBotCampaignSwitch" style={{ cursor: "pointer" }}>
+                          Bot campaign <span className="text-muted fw-normal">(created by an automated suite, hidden by default)</span>
                         </label>
                       </div>
                       <div className="form-check form-switch d-flex align-items-center gap-2 m-0">
