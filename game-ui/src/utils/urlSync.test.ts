@@ -37,7 +37,15 @@ describe("replaceProgress", () => {
   afterEach(() => setPath("/"));
 
   it("writes the named phase under /game", () => {
-    for (const phase of ["briefing", "offline-intel", "pitch", "simulation", "report"] as const) {
+    for (const phase of [
+      "intro-questionnaire",
+      "briefing",
+      "offline-intel",
+      "pitch",
+      "simulation",
+      "report",
+      "outro-questionnaire",
+    ] as const) {
       setPath("/game");
       replaceProgress(phase);
       expect(window.location.pathname).toBe(`/game/${phase}`);

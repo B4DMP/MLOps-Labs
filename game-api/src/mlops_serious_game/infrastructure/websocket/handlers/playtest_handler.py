@@ -20,6 +20,7 @@ exactly as in a human play, which is what keeps the resulting statistics calcula
 """
 
 import asyncio
+import datetime
 from typing import Optional
 
 from fastapi import WebSocket
@@ -37,7 +38,7 @@ from mlops_serious_game.infrastructure.database.run_scope import current_run_ind
 from mlops_serious_game.infrastructure.database.user_lookup import get_user_id
 
 from ..manager import manager
-from .game_handler import handle_state_update_request, select_first_challenge
+from .game_handler import handle_state_update_request, select_first_challenge, send_progress_index_payload
 from .pitch_handler import (
     PitchContext,
     get_allowed_targets,
@@ -270,3 +271,39 @@ async def handle_playtest_skip_challenge(websocket: WebSocket, username: str, pa
     # The client's screens were left mid-challenge; reloading re-runs the normal game init and lands
     # it wherever that led, next challenge or end of game alike.
     await manager.send_event(websocket=websocket, event="playtest:skipped", payload={"ok": True, **ids})
+
+
+_QUESTIONNAIRE_TARGETS = {"intro": 0, "outro": 3}
+
+
+async def handle_playtest_jump_to_questionnaire(websocket: WebSocket, username: str, payload: dict) -> None:
+    """Jumps straight to the intro or outro questionnaire, to eyeball its content/UI without
+    playing through a whole session to reach it. Writes a real `GameProgression` row (the same
+    thing `handle_progress_update` does for a normal transition), so it taints the account the
+    same as the other playtest tools rather than being a client-only view change.
+    """
+    if not await _allowed(websocket):
+        return
+    service.taint_user(username)
+
+    target = payload.get("target")
+    index = _QUESTIONNAIRE_TARGETS.get(target)
+    if index is None:
+        await manager.send_error(websocket, "Unknown questionnaire target.", code="INVALID_TARGET")
+        return
+
+    with get_session() as session:
+        user_id = get_user_id(session, username)
+        session.add(
+            GameProgression(
+                user_name=username,
+                user_id=user_id,
+                run_index=current_run_index(session, user_id),
+                game_progress_index=index,
+                time_stamp=datetime.datetime.utcnow(),
+                additional_data=[],
+            )
+        )
+
+    await send_progress_index_payload(websocket, index)
+    await manager.send_event(websocket=websocket, event="playtest:jumped", payload={"ok": True, "target": target})

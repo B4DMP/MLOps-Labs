@@ -32,13 +32,19 @@ export function pushScreen(path: ScreenPath): void {
 
 /** The player-facing name of whatever gameplay phase is currently on screen - deliberately not
  * the raw phase/challenge/loop indices, which are meaningless to look at in an address bar. */
-export type GamePhaseLabel = "briefing" | "offline-intel" | "pitch" | "simulation" | "report";
+export type GamePhaseLabel =
+  | "intro-questionnaire"
+  | "briefing"
+  | "offline-intel"
+  | "pitch"
+  | "simulation"
+  | "report"
+  | "outro-questionnaire";
 
 /**
  * Reflects the current gameplay phase in the URL without creating history entries or ever being
  * read back - purely so the address bar is informative (and shareable/copyable for support
- * purposes), not a source of truth for anything. `null` (e.g. during the intro/outro
- * questionnaires, which aren't part of the five named phases) just shows plain `/game`.
+ * purposes), not a source of truth for anything. `null` just shows plain `/game`.
  */
 export function replaceProgress(phase: GamePhaseLabel | null): void {
   const path = phase ? `/game/${phase}` : "/game";

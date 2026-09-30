@@ -297,6 +297,57 @@ def calculate_outro_percentage(player_name: str) -> int:
         return 0
 
 
+def _calculate_percentage_by_construct(
+    player_name: str, progress_index: int, questions: list
+) -> dict[str, int]:
+    """Per-construct percent-correct, mirroring calculate_{intro,outro}_percentage's scoring
+    (answer id 0 is always the correct option, per QuestionFactory's loading convention) but
+    broken down by each knowledge question's `construct` tag instead of pooled into one number -
+    needed for the declarative-vs-perspective-taking differential-gain check in
+    docs/plans/eval-methodology-improvements.md."""
+    totals: dict[str, int] = {}
+    corrects: dict[str, int] = {}
+    try:
+        with get_session() as session:
+            prog = session.scalar(
+                select(GameProgression).where(
+                    GameProgression.run_index == FIRST_RUN,
+                    GameProgression.user_id == get_user_id(session, player_name),
+                    GameProgression.game_progress_index == progress_index,
+                )
+            )
+            if not prog or not prog.additional_data:
+                return {}
+            additional_data = prog.additional_data
+            for i, q in enumerate(questions):
+                if not q.knowledge_question:
+                    continue
+                construct = q.construct or "unspecified"
+                totals[construct] = totals.get(construct, 0) + 1
+                if (
+                    i < len(additional_data)
+                    and additional_data[i]
+                    and isinstance(additional_data[i], dict)
+                    and additional_data[i].get("id") == 0
+                ):
+                    corrects[construct] = corrects.get(construct, 0) + 1
+    except Exception:
+        return {}
+
+    return {
+        construct: round((corrects.get(construct, 0) / total) * 100)
+        for construct, total in totals.items()
+    }
+
+
+def calculate_intro_percentage_by_construct(player_name: str) -> dict[str, int]:
+    return _calculate_percentage_by_construct(player_name, 1, QuestionFactory.intro_questions)
+
+
+def calculate_outro_percentage_by_construct(player_name: str) -> dict[str, int]:
+    return _calculate_percentage_by_construct(player_name, 4, QuestionFactory.outro_questions)
+
+
 def calculate_intro_questionaire_average(campaign_key: str | None = None) -> int:
     try:
         with get_session() as session:

@@ -214,13 +214,37 @@ describe("PlaytestSection", () => {
     expect(screen.getByRole("button", { name: "Auto-pitch a card" })).toBeEnabled();
   });
 
+  it.each([
+    ["Jump to intro questionnaire", "playtest:jump_to_questionnaire", { target: "intro" }],
+    ["Jump to outro questionnaire", "playtest:jump_to_questionnaire", { target: "outro" }],
+  ])("sends %s with its target payload only on the second press", async (label, event, payload) => {
+    const { value } = fakeSocket();
+    renderSection(value);
+
+    await userEvent.click(screen.getByRole("button", { name: label }));
+    await userEvent.click(screen.getByRole("button", { name: "Click again to confirm" }));
+
+    expect(value.emit).toHaveBeenCalledTimes(1);
+    expect(value.emit).toHaveBeenCalledWith(event, payload);
+  });
+
+  it("closes the settings panel once a questionnaire jump has gone through", () => {
+    const onSkipped = vi.fn();
+    const { value, push } = fakeSocket();
+    renderSection(value, onSkipped);
+
+    push("playtest:jumped", { ok: true, target: "outro" });
+
+    expect(onSkipped).toHaveBeenCalledTimes(1);
+  });
+
   it("stops listening when it unmounts", () => {
     const off = vi.fn();
     const socket = fakeSocket({ subscribe: vi.fn(() => off) as unknown as WebSocketContextValue["subscribe"] });
     const { unmount } = renderSection(socket.value);
 
     unmount();
-    expect(off).toHaveBeenCalledTimes(3);
+    expect(off).toHaveBeenCalledTimes(4);
   });
 });
 

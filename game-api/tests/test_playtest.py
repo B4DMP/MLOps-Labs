@@ -229,7 +229,10 @@ async def _call(handler_name: str, username: str = "alice", flag: bool = True):
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize("handler", ["handle_playtest_auto_card", "handle_playtest_skip_challenge"])
+@pytest.mark.parametrize(
+    "handler",
+    ["handle_playtest_auto_card", "handle_playtest_skip_challenge", "handle_playtest_jump_to_questionnaire"],
+)
 async def test_the_flag_is_checked_server_side_and_a_refusal_changes_nothing(migrated_db, handler):
     """A crafted frame must not be able to fabricate a run, and a refused one must not taint."""
     from mlops_serious_game.infrastructure.database.connection import get_session
@@ -256,6 +259,57 @@ async def test_the_settings_payload_only_offers_the_tools_when_the_flag_is_on(mi
              patch.object(settings, "ENABLE_PLAYTEST_TOOLS", flag):
             await settings_handler.handle_settings_get(MagicMock(), "alice", {})
         assert send_event.await_args.kwargs["payload"]["can_playtest"] is flag
+
+
+async def _call_jump(target: str, username: str = "alice", flag: bool = True):
+    from mlops_serious_game.infrastructure.websocket.handlers import playtest_handler
+    from mlops_serious_game.infrastructure.websocket.manager import manager
+
+    with patch.object(manager, "send_event", new=AsyncMock()) as send_event, \
+         patch.object(manager, "send_error", new=AsyncMock()) as send_error, \
+         patch.object(settings, "ENABLE_PLAYTEST_TOOLS", flag):
+        await playtest_handler.handle_playtest_jump_to_questionnaire(MagicMock(), username, {"target": target})
+    events = {c.kwargs["event"]: c.kwargs["payload"] for c in send_event.await_args_list}
+    errors = [c.kwargs.get("code") for c in send_error.await_args_list]
+    return events, errors
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("target,expected_index", [("intro", 0), ("outro", 3)])
+async def test_jump_to_questionnaire_taints_and_writes_the_progression_row(migrated_db, target, expected_index):
+    from mlops_serious_game.infrastructure.database.connection import get_session
+    from mlops_serious_game.infrastructure.database.models import GameProgression
+    from mlops_serious_game.infrastructure.database.user_lookup import get_user_id
+
+    user_id = await _begun_game()
+    events, errors = await _call_jump(target)
+
+    assert errors == []
+    assert _tainted()
+    assert events["playtest:jumped"] == {"ok": True, "target": target}
+    assert events["game:progress_change"]["progressionIndex"] == expected_index
+
+    with get_session() as session:
+        latest = session.scalars(
+            select(GameProgression)
+            .where(GameProgression.user_id == get_user_id(session, "alice"))
+            .order_by(GameProgression.id.desc())
+        ).first()
+        assert latest.game_progress_index == expected_index
+
+
+@pytest.mark.anyio
+async def test_jump_to_questionnaire_refuses_an_unknown_target_but_still_taints(migrated_db):
+    """Matches the other playtest tools: tainted before anything is attempted, permanently, even
+    when what follows turns out to be a no-op - see the module docstring's "before doing anything"
+    rule and `handle_playtest_skip_challenge`'s identical ordering against its own NO_CHALLENGE
+    refusal."""
+    await _begun_game()
+    events, errors = await _call_jump("nonsense")
+
+    assert errors == ["INVALID_TARGET"]
+    assert events == {}
+    assert _tainted()
 
 
 @pytest.mark.anyio

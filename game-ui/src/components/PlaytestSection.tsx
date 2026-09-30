@@ -2,11 +2,23 @@ import { useEffect, useRef, useState } from "react";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import styles from "./SettingsPanel.module.css";
 
-type ActionId = "card" | "skip";
+type ActionId = "card" | "skip" | "jump_intro" | "jump_outro";
 
-const ACTIONS: Array<{ id: ActionId; label: string; event: string }> = [
+const ACTIONS: Array<{ id: ActionId; label: string; event: string; payload?: Record<string, unknown> }> = [
   { id: "card", label: "Auto-pitch a card", event: "playtest:auto_card" },
   { id: "skip", label: "Skip this challenge", event: "playtest:skip_challenge" },
+  {
+    id: "jump_intro",
+    label: "Jump to intro questionnaire",
+    event: "playtest:jump_to_questionnaire",
+    payload: { target: "intro" },
+  },
+  {
+    id: "jump_outro",
+    label: "Jump to outro questionnaire",
+    event: "playtest:jump_to_questionnaire",
+    payload: { target: "outro" },
+  },
 ];
 
 interface PlaytestResult {
@@ -84,14 +96,20 @@ export default function PlaytestSection({ onSkipped }: PlaytestSectionProps) {
       setPending(null);
       onSkippedRef.current?.();
     });
+    // A questionnaire jump also changes what's showing underneath the panel, same as a skip.
+    const offJumped = subscribe("playtest:jumped", () => {
+      setPending(null);
+      onSkippedRef.current?.();
+    });
     return () => {
       offCard();
       offSkip();
       offDone();
+      offJumped();
     };
   }, [subscribe]);
 
-  const press = (id: ActionId, event: string) => {
+  const press = (id: ActionId, event: string, payload?: Record<string, unknown>) => {
     if (busy) return;
     if (armed !== id) {
       setArmed(id);
@@ -100,7 +118,7 @@ export default function PlaytestSection({ onSkipped }: PlaytestSectionProps) {
     }
     setArmed(null);
     setPending({ id, errorAtPress: lastError });
-    emit(event, {});
+    emit(event, payload ?? {});
   };
 
   return (
@@ -117,7 +135,7 @@ export default function PlaytestSection({ onSkipped }: PlaytestSectionProps) {
             type="button"
             className={armed === action.id ? styles.dangerButton : styles.cancelButton}
             disabled={busy}
-            onClick={() => press(action.id, action.event)}
+            onClick={() => press(action.id, action.event, action.payload)}
           >
             {busy && pending?.id === action.id
               ? "Working"

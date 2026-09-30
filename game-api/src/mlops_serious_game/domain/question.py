@@ -11,6 +11,8 @@ class Question(BaseModel):
     title: str|None = Field(default=None, description="title of the question")
     description: str|None = Field(default=None, description="description of the question")
     taxonomy: str|None = Field(default=None, description="taxonomy of the question")
+    construct: str|None = Field(default=None, description="evaluation construct this question belongs to (e.g. declarative, perspective_taking)")
+    layout: str|None = Field(default=None, description="answer-layout hint for the frontend (e.g. icons, scale); omitted means the default vertical list")
 
     def __str__(self) -> str:
         return f"Question:{self.question}\n" 

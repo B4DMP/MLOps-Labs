@@ -27,10 +27,12 @@ class QuestionFactory:
                 inputField=q["inputField"],
                 title=q.get("title"),
                 description=q.get("description"),
-                taxonomy=q.get("taxonomy")
+                taxonomy=q.get("taxonomy"),
+                construct=q.get("construct"),
+                layout=q.get("layout")
             )
             cls.intro_questions.append(question)
-        
+
         for q in data["outro_questions"]:
             question = Question(
                 question=q["question"],
@@ -40,7 +42,9 @@ class QuestionFactory:
                 inputField=q["inputField"],
                 title=q.get("title"),
                 description=q.get("description"),
-                taxonomy=q.get("taxonomy")
+                taxonomy=q.get("taxonomy"),
+                construct=q.get("construct"),
+                layout=q.get("layout")
             )
             cls.outro_questions.append(question)
 

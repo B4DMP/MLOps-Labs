@@ -41,7 +41,11 @@ from .handlers.pitch_handler import (
     handle_pitch_state,
     handle_pitch_veto_breaker,
 )
-from .handlers.playtest_handler import handle_playtest_auto_card, handle_playtest_skip_challenge
+from .handlers.playtest_handler import (
+    handle_playtest_auto_card,
+    handle_playtest_jump_to_questionnaire,
+    handle_playtest_skip_challenge,
+)
 from .handlers.results_handler import handle_results_get
 from .handlers.settings_handler import (
     handle_settings_get,
@@ -84,6 +88,7 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "gather:close": handle_gather_close,
     "playtest:auto_card": handle_playtest_auto_card,
     "playtest:skip_challenge": handle_playtest_skip_challenge,
+    "playtest:jump_to_questionnaire": handle_playtest_jump_to_questionnaire,
     "results:get": handle_results_get,
     "settings:get": handle_settings_get,
     "settings:update": handle_settings_update,

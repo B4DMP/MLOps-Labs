@@ -30,8 +30,10 @@
 }
 
 .headerTitle {
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-family: 'Delius', cursive;
+    font-size: 1.55rem;
+    font-weight: 400;
+    letter-spacing: 0.01em;
     display: flex;
     align-items: center;
     gap: 0.6rem;
@@ -50,25 +52,131 @@
 
 .body {
     padding: 1.75rem;
+    animation: sectionFadeIn 0.25s ease;
 }
 
+@keyframes sectionFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stepper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    padding: 1.25rem;
+    background: #f8f9fa;
+    overflow-x: auto;
+}
+
+.stepperTrack {
+    position: absolute;
+    left: 1.75rem;
+    right: 1.75rem;
+    top: calc(1rem + 1.1rem);
+    height: 3px;
+    background: var(--border-subtle, #cbd5e1);
+    z-index: 0;
+    border-radius: 2px;
+}
+
+.stepperProgress {
+    height: 100%;
+    background: var(--secondary-bg);
+    border-radius: 2px;
+    transition: width 0.25s ease;
+}
+
+.stepDot {
+    position: relative;
+    z-index: 1;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-subtle, #cbd5e1);
+    background: #ffffff;
+    color: var(--text-muted, #94a3b8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all var(--transition);
+}
+
+.stepDot:hover {
+    border-color: var(--secondary-bg);
+    color: var(--secondary-bg);
+}
+
+.stepDotDone {
+    background: var(--secondary-bg);
+    border-color: var(--secondary-bg);
+    color: white;
+}
+
+.stepDotActive {
+    background: var(--primary-bg);
+    border-color: var(--primary-bg);
+    color: white;
+    box-shadow: 0 0 0 4px rgba(38, 102, 130, 0.18);
+}
 
 .sectionHeader {
-    margin: 1.75rem 0 1rem;
-    padding-bottom: 0.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin: 0 0 1.5rem;
+    padding-bottom: 1rem;
     border-bottom: 2px solid var(--border-subtle, #cbd5e1);
 }
 
-.sectionTitle {
-    font-size: 1.15rem;
-    font-weight: 700;
+.sectionIconBadge {
+    flex-shrink: 0;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.85rem;
+    background: rgba(38, 102, 130, 0.1);
     color: var(--primary-bg);
-    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.sectionEyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--secondary-bg);
+    margin-bottom: 0.2rem;
+    font-family: "Helvetica Neue", Inter, ui-sans-serif, sans-serif;
+}
+
+.sectionTitle {
+    font-family: 'Delius', cursive;
+    font-size: 1.6rem;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    color: var(--primary-bg);
+    margin-bottom: 0.3rem;
 }
 
 .sectionDescription {
     color: var(--text-muted, #64748b);
-    font-size: 0.9rem;
+    font-size: 0.92rem;
+    font-style: italic;
+    line-height: 1.5;
     margin-bottom: 0;
 }
 
@@ -93,19 +201,23 @@
     background: var(--bg-subtle, #f1f5f9);
     color: var(--primary-bg);
     font-weight: 700;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
     padding: 0.25rem 0.6rem;
     border-radius: 0.5rem;
     border: 1px solid var(--border-subtle, #cbd5e1);
     flex-shrink: 0;
+    font-family: "Helvetica Neue", Inter, ui-sans-serif, sans-serif;
 }
 
 .questionText {
+    font-family: "Helvetica Neue", Inter, ui-sans-serif, sans-serif;
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 1.05rem;
     color: var(--text-primary, #1e293b);
     margin: 0;
-    line-height: 1.4;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
 }
 
 .optionsList {
@@ -131,6 +243,7 @@
 .optionItem:hover {
     border-color: rgba(38, 102, 130, 0.5);
     background: #f8fafc;
+    transform: scale(1.02);
 }
 
 .optionItemSelected {
@@ -148,9 +261,195 @@
 }
 
 .optionText {
-    font-size: 0.925rem;
+    font-family: "Helvetica Neue", Inter, ui-sans-serif, sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.4;
     color: var(--text-primary, #1e293b);
     flex: 1;
+}
+
+.optionText strong,
+.questionText strong,
+.iconChipLabel strong {
+    color: var(--primary-bg);
+    font-weight: 700;
+}
+
+/* Likert scale - horizontal, for the SUS/self-efficacy 5-point items */
+.likertScale {
+    position: relative;
+    padding: 0.5rem 0.5rem 0;
+}
+
+.likertTrack {
+    position: absolute;
+    left: 2.5rem;
+    right: 2.5rem;
+    top: calc(0.5rem + 1.15rem);
+    height: 2px;
+    background: var(--border-subtle, #cbd5e1);
+    z-index: 0;
+}
+
+.likertOptions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.25rem;
+}
+
+.likertOption {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    cursor: pointer;
+    user-select: none;
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+    transition: background var(--transition), transform var(--transition);
+}
+
+.likertOption:hover {
+    background: rgba(38, 102, 130, 0.05);
+    transform: scale(1.02);
+}
+
+.likertRadioHidden {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.likertBubble {
+    width: 2.3rem;
+    height: 2.3rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-subtle, #cbd5e1);
+    background: #ffffff;
+    color: var(--text-secondary, #475569);
+    font-weight: 700;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+    flex-shrink: 0;
+}
+
+.likertOption:hover .likertBubble {
+    border-color: var(--primary-bg);
+    color: var(--primary-bg);
+}
+
+.likertBubbleSelected {
+    background: var(--primary-bg);
+    border-color: var(--primary-bg);
+    color: white;
+    transform: scale(1.12);
+    box-shadow: 0 4px 10px rgba(38, 102, 130, 0.3);
+}
+
+.likertCaption {
+    font-size: 0.72rem;
+    line-height: 1.25;
+    text-align: center;
+    color: var(--text-muted, #64748b);
+    max-width: 6rem;
+}
+
+/* Icon-chip grid - nominal categories with a small option count (employment, background, gender,
+   stakeholder roles) */
+.iconGrid {
+    display: grid;
+    grid-template-columns: repeat(var(--icon-cols, 3), minmax(0, 1fr));
+    gap: 0.6rem;
+}
+
+.iconChip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 0;
+    padding: 1rem 0.5rem;
+    border-radius: 0.85rem;
+    border: 1.5px solid var(--border-subtle, #e2e8f0);
+    background: #ffffff;
+    cursor: pointer;
+    user-select: none;
+    text-align: center;
+    transition: all var(--transition);
+}
+
+.iconChip:hover {
+    border-color: var(--chip-accent, rgba(38, 102, 130, 0.5));
+    background: #f8fafc;
+    transform: scale(1.02);
+}
+
+.iconChipSelected {
+    border-color: var(--chip-accent, var(--primary-bg));
+    background-color: color-mix(in srgb, var(--chip-accent, var(--primary-bg)) 10%, white);
+    box-shadow: 0 4px 10px color-mix(in srgb, var(--chip-accent, var(--primary-bg)) 25%, transparent);
+}
+
+.iconChipGlyph {
+    font-size: 1.5rem;
+    color: var(--chip-accent, var(--primary-bg));
+}
+
+.iconChipLabel {
+    font-family: "Helvetica Neue", Inter, ui-sans-serif, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--text-primary, #1e293b);
+}
+
+/* Escape-hatch pills (Other / Prefer not to say / Prefer to self-describe) - secondary to the
+   primary scale/icon group, never the same visual weight */
+.escapeHatchRow {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.escapeHatchPill {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 2rem;
+    border: 1.5px dashed var(--border-subtle, #cbd5e1);
+    background: transparent;
+    color: var(--text-muted, #64748b);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    transition: all var(--transition);
+}
+
+.escapeHatchPill:hover {
+    border-color: var(--secondary-bg);
+    color: var(--secondary-bg);
+    transform: scale(1.02);
+}
+
+.escapeHatchPillSelected {
+    border-style: solid;
+    border-color: var(--secondary-bg);
+    background: rgba(17, 48, 62, 0.06);
+    color: var(--secondary-bg);
 }
 
 .notesWrapper {
@@ -186,7 +485,9 @@
 
 .actionArea {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
     margin-top: 1.75rem;
     padding-top: 1.25rem;
     border-top: 1px solid var(--border-subtle, #cbd5e1);
@@ -203,11 +504,66 @@
     cursor: pointer;
     text-align: center;
     width: auto;
-    min-width: 15rem;
+    min-width: 12rem;
+    margin-left: auto;
 }
 
-.actionButton:hover {
+.actionButton:hover:not(:disabled) {
     background: var(--secondary-bg);
+}
+
+.actionButton:disabled {
+    background: var(--border-subtle, #cbd5e1);
+    border-color: var(--border-subtle, #cbd5e1);
+    color: var(--text-muted, #64748b);
+    cursor: not-allowed;
+}
+
+.validationHint {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1rem 0 0;
+    padding: 0.65rem 0.9rem;
+    border-radius: 0.6rem;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.linkButton {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    color: inherit;
+    cursor: pointer;
+}
+
+.navButton {
+    padding: 0.8rem 1.25rem;
+    border-radius: 0.75rem;
+    border: 1.5px solid var(--border-subtle, #cbd5e1);
+    background: #ffffff;
+    color: var(--text-primary, #1e293b);
+    font-weight: 600;
+    transition: all var(--transition);
+    cursor: pointer;
+    text-align: center;
+}
+
+.navButton:hover:not(:disabled) {
+    border-color: var(--primary-bg);
+    color: var(--primary-bg);
+}
+
+.navButton:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 .loadingPanel {

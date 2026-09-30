@@ -665,11 +665,17 @@ Tracks progress against Order of work above; check off as steps land and are ver
 numbered steps):
 
 - `replaceProgress` (`utils/urlSync.ts`) changed from raw `p{progressionIndex}/c{challenge}/{phase}
-  ?stakeholder={id}` segments to five named phases - `/game/briefing`, `/game/offline-intel`,
-  `/game/pitch`, `/game/simulation`, `/game/report` - or plain `/game` outside those (the intro/
-  outro questionnaires, `progressionIndex` 0/1/3). `Game.tsx` derives the label from
+  ?stakeholder={id}` segments to named phases - `/game/briefing`, `/game/offline-intel`,
+  `/game/pitch`, `/game/simulation`, `/game/report`. `Game.tsx` derives the label from
   `progressionIndex`/`isPhaseDialogueOpen`/`challengeLoopId` rather than passing indices straight
   through. `urlSync.test.ts` updated to match.
+- **Later addition** (per the questionnaire UI/UX pass in
+  [eval-instrument-spec.md](eval-instrument-spec.md)'s wake): the intro and outro questionnaires
+  (`progressionIndex` 0 and 3) gained their own named phases too - `/game/intro-questionnaire` and
+  `/game/outro-questionnaire` - rather than falling through to plain `/game` as originally shipped.
+  Still write-only telemetry per D-url-tiers/D-no-client-cache: loading either URL cold does not
+  jump a player into the questionnaire, since the server's own stored progression remains the only
+  thing that decides what actually renders.
 - New `utils/seenBriefings.ts` (+ `seenBriefings.test.ts`): a reload mid-challenge was forcing the
   PrePhaseDialog ("briefing") back open even if the player had already dismissed it, because the
   "already shown" tracking (`prevShownChallengeKeyRef`) lived only in a ref that resets on every

@@ -4,26 +4,32 @@
       "title": "Demographic Questions",
       "description": "These questions help us understand your background and how it relates to your experience with MLOps.",
       "question": "What is your current employment or professional status?",
+      "layout": "icons",
       "answers": [
         {
           "id": 0,
-          "text": "Student"
+          "text": "Student",
+          "icon": "ph:student-duotone"
         },
         {
           "id": 1,
-          "text": "Entry-level professional"
+          "text": "Entry-level professional",
+          "icon": "ph:airplane-takeoff-duotone"
         },
         {
           "id": 2,
-          "text": "Mid-level professional"
+          "text": "Mid-level professional",
+          "icon": "ph:rocket-launch-duotone"
         },
         {
           "id": 3,
-          "text": "Senior or lead professional"
+          "text": "Senior or lead professional",
+          "icon": "ph:star-duotone"
         },
         {
           "id": 4,
-          "text": "Manager or decision-maker"
+          "text": "Manager or decision-maker",
+          "icon": "ph:briefcase-duotone"
         },
         {
           "id": 5,
@@ -36,18 +42,22 @@
     },
     {
       "question": "What is your background?",
+      "layout": "icons",
       "answers": [
         {
           "id": 0,
-          "text": "Student"
+          "text": "Student",
+          "icon": "ph:student-duotone"
         },
         {
           "id": 1,
-          "text": "Academia"
+          "text": "Academia",
+          "icon": "ph:bank-duotone"
         },
         {
           "id": 2,
-          "text": "Industry"
+          "text": "Industry",
+          "icon": "ph:factory-duotone"
         },
         {
           "id": 3,
@@ -59,7 +69,8 @@
       "inputField": false
     },
     {
-      "question": "What is your age range? (optional)",
+      "question": "What is your age range?",
+      "layout": "scale",
       "answers": [
         {
           "id": 0,
@@ -91,23 +102,28 @@
       "inputField": false
     },
     {
-      "question": "What is your gender? (optional)",
+      "question": "What is your gender?",
+      "layout": "icons",
       "answers": [
         {
           "id": 0,
-          "text": "Male"
+          "text": "Male",
+          "icon": "ph:gender-male-duotone"
         },
         {
           "id": 1,
-          "text": "Female"
+          "text": "Female",
+          "icon": "ph:gender-female-duotone"
         },
         {
           "id": 2,
-          "text": "Non-binary"
+          "text": "Non-binary",
+          "icon": "ph:gender-intersex-duotone"
         },
         {
           "id": 3,
-          "text": "Prefer not to say"
+          "text": "Prefer not to say",
+          "icon": "ph:eye-slash-duotone"
         },
         {
           "id": 4,
@@ -120,6 +136,7 @@
     },
     {
       "question": "What best describes your connection to AI/ML?",
+      "layout": "scale",
       "answers": [
         {
           "id": 0,
@@ -152,6 +169,7 @@
     },
     {
       "question": "To what degree are you familiar with Machine Learning Operations (MLOps)? ",
+      "layout": "scale",
       "answers": [
         {
           "id": 0,
@@ -171,12 +189,34 @@
         },
         {
           "id": 4,
-          "text": "Advanced (regularly work using MLOps)"
-        },
-        {
-          "id": 5,
-          "text": "Expert (deep experience, production systems, and architecture design)"
+          "text": "Advanced or expert (regularly work using MLOps in production)"
         }
+      ],
+      "notes": false,
+      "knowledge_question": false,
+      "inputField": false
+    },
+    {
+      "question": "I could explain the difference between ML and MLOps to a colleague.",
+      "answers": [
+        { "id": 0, "text": "1 (Strongly Disagree)" },
+        { "id": 1, "text": "2" },
+        { "id": 2, "text": "3" },
+        { "id": 3, "text": "4" },
+        { "id": 4, "text": "5 (Strongly Agree)" }
+      ],
+      "notes": false,
+      "knowledge_question": false,
+      "inputField": false
+    },
+    {
+      "question": "I have hands-on experience with at least one MLOps tool or workflow (e.g. CI/CD for ML, a model registry, production monitoring).",
+      "answers": [
+        { "id": 0, "text": "1 (Strongly Disagree)" },
+        { "id": 1, "text": "2" },
+        { "id": 2, "text": "3" },
+        { "id": 3, "text": "4" },
+        { "id": 4, "text": "5 (Strongly Agree)" }
       ],
       "notes": false,
       "knowledge_question": false,
@@ -189,24 +229,25 @@
       "answers": [
         {
           "id": 0,
-          "text": "The decline in model accuracy over time due to gradual trends or seasonal changes in real-world data."
+          "text": "**Model accuracy declines over time** as real-world data gradually shifts or trends change."
         },
         {
           "id": 1,
-          "text": "The process of a model's underlying code gradually becoming incompatible with updated software libraries."
+          "text": "The model's **code becomes incompatible** with updated software libraries over time."
         },
         {
           "id": 2,
-          "text": "The intentional shifting of model parameters during training to prevent the gradient from vanishing."
+          "text": "**Intentionally shifting parameters** during training to prevent vanishing gradients."
         },
         {
           "id": 3,
-          "text": "A security vulnerability where an attacker introduces subtle biases into the training set to trigger specific model failures."
+          "text": "A **security attack** that plants subtle biases in training data to trigger specific failures."
         }
       ],
       "notes": false,
       "knowledge_question": true,
       "taxonomy": "-",
+      "construct": "declarative",
       "inputField": false
     },
     {
@@ -214,24 +255,25 @@
       "answers": [
         {
           "id": 0,
-          "text": "ML focuses on model creation and evaluation, while MLOps focuses on the practices and automation of deployment, monitoring, and production maintenance."
+          "text": "ML covers **model creation and evaluation**; MLOps covers **deployment, monitoring, and production maintenance**."
         },
         {
           "id": 1,
-          "text": "ML focuses on the theoretical design and mathematical proofs of algorithms, while MLOps is exclusively concerned with the empirical testing and hyperparameter tuning of those algorithms."
+          "text": "ML is **theoretical algorithm design**; MLOps is only **empirical testing and tuning**."
         },
         {
           "id": 2,
-          "text": "ML handles the initial data exploration and model training, while MLOps manages the one-time transition of the finalized model code to the operations team for permanent deployment."
+          "text": "ML handles **data exploration and training**; MLOps is a **one-time handoff** to operations."
         },
         {
           "id": 3,
-          "text": "ML aims to maximize predictive accuracy using isolated datasets, while MLOps prioritizes feature engineering and data augmentation to synthetically improve those datasets."
+          "text": "ML **maximizes accuracy** on isolated datasets; MLOps focuses on **feature engineering and data augmentation**."
         }
       ],
       "notes": false,
       "knowledge_question": true,
       "taxonomy": "-",
+      "construct": "declarative",
       "inputField": false
     },
     {
@@ -239,49 +281,25 @@
       "answers": [
         {
           "id": 0,
-          "text": "That an ML experiment yields identical results whenever it is repeated with the same data and environment."
+          "text": "An experiment gives **identical results** when repeated with the same data and environment."
         },
         {
           "id": 1,
-          "text": "The ability to trace the lineage of a specific model prediction back to the exact version of the source data and training code."
+          "text": "**Tracing a prediction back** to the exact data and code version that produced it."
         },
         {
           "id": 2,
-          "text": "Ensuring that the model training pipeline can be automatically re-executed whenever there is a significant change in the statistical distribution of input data."
+          "text": "**Automatically re-running training** whenever input data shifts significantly."
         },
         {
           "id": 3,
-          "text": "That the model's performance metrics remain consistent across multiple validation datasets."
+          "text": "**Consistent performance metrics** across multiple validation datasets."
         }
       ],
       "notes": false,
       "knowledge_question": true,
       "taxonomy": "-",
-      "inputField": false
-    },
-    {
-      "question": "How do the data, training, and deployment pipelines depend on each other in the MLOps lifecycle?",
-      "answers": [
-        {
-          "id": 0,
-          "text": "They form a feedback loop where monitoring in deployment triggers data re-collection and model retraining."
-        },
-        {
-          "id": 1,
-          "text": "They execute independently, as the model containerization principle ensures that data engineering, training, and deployment are strictly isolated and do not influence one another."
-        },
-        {
-          "id": 2,
-          "text": "They are linked through a one-way continuous integration process where the data pipeline feeds the training pipeline."
-        },
-        {
-          "id": 3,
-          "text": "They operate in parallel and are only synchronized during scheduled batch intervals to ensure that the deployment pipeline serving infrastructure is not disrupted by ongoing training."
-        }
-      ],
-      "notes": false,
-      "knowledge_question": true,
-      "taxonomy": "Understand",
+      "construct": "declarative",
       "inputField": false
     },
     {
@@ -289,74 +307,173 @@
       "answers": [
         {
           "id": 0,
-          "text": "It becomes difficult to trace which data version was used to train a deployed model, making it hard to reproduce results or investigate performance drops."
+          "text": "**Hard to trace which data version** trained a deployed model, making results difficult to reproduce or debug."
         },
         {
           "id": 1,
-          "text": "Model finetuning becomes more difficult as hyperparameter search spaces grow with each additional pipeline, ultimately degrading model performance."
+          "text": "**Hyperparameter search grows harder** with each added pipeline, degrading performance."
         },
         {
           "id": 2,
-          "text": "The deployment process slows down because each new pipeline step requires approval before it can be connected to the serving layer."
+          "text": "**Deployment slows down** as each new step needs approval before serving."
         },
         {
           "id": 3,
-          "text": "Monitoring becomes harder because alerts are spread across many pipelines, so issues take longer to detect and fix."
+          "text": "**Monitoring gets harder** as alerts spread across many pipelines, delaying fixes."
         }
       ],
       "notes": false,
       "knowledge_question": true,
       "taxonomy": "Analyze",
+      "construct": "declarative",
       "inputField": false
     },
     {
-      "question": "Based on the descriptions of their roles, which example best illustrates a conflict of interest between an Operational Engineer and a Business Manager?",
+      "title": "Stakeholder Perspective",
+      "description": "These questions describe how someone in a project might act or think, without naming their job. Pick which role fits best.",
+      "question": "When last Tuesday's numbers don't line up with the week before, they want to know exactly why the input changed, not just whether the forecast at the end still looks reasonable.",
+      "layout": "icons",
       "answers": [
-        {
-          "id": 0,
-          "text": "The Operational Engineer wants to delay deployment to add redundancy and improve observability, while the Business Manager pushes to launch immediately to capture a time-sensitive market opportunity"
-        },
-        {
-          "id": 1,
-          "text": "The Operational Engineer wants to reduce operational overhead, while the Business Manager prefers to quickly support different product variants."
-        },
-        {
-          "id": 2,
-          "text": "The Operational Engineer advocates for stricter data validation checks that may occasionally block data ingestion, while the Business Manager wants uninterrupted data flow to ensure dashboards are always up to date"
-        },
-        {
-          "id": 3,
-          "text": "The Operational Engineer wants to optimize infrastructure costs by reducing overprovisioning, while the Business Manager wants predictable performance during peak demand periods"
-        }
+        { "id": 0, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 1, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
+        { "id": 2, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
+        { "id": 3, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
+        { "id": 4, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
+        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+      ],
+      "notes": false,
+      "knowledge_question": true,
+      "taxonomy": "Apply",
+      "construct": "perspective_taking",
+      "inputField": false
+    },
+    {
+      "question": "When someone proposes a new project, they want to know which number on the weekly report would actually move, and by how much, before agreeing to spend a cent on it.",
+      "layout": "icons",
+      "answers": [
+        { "id": 0, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
+        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 2, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
+        { "id": 3, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
+        { "id": 4, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
+        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+      ],
+      "notes": false,
+      "knowledge_question": true,
+      "taxonomy": "Apply",
+      "construct": "perspective_taking",
+      "inputField": false
+    },
+    {
+      "question": "After doing the same release steps by hand for the second time, they start quietly scripting it away, even though nothing has broken yet and nobody asked them to.",
+      "layout": "icons",
+      "answers": [
+        { "id": 0, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
+        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 2, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
+        { "id": 3, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
+        { "id": 4, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
+        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+      ],
+      "notes": false,
+      "knowledge_question": true,
+      "taxonomy": "Apply",
+      "construct": "perspective_taking",
+      "inputField": false
+    },
+    {
+      "question": "Even after everyone agrees the results look good, they still want to see it walked through every rule that was written down months ago before anyone calls it done.",
+      "layout": "icons",
+      "answers": [
+        { "id": 0, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
+        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 2, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
+        { "id": 3, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
+        { "id": 4, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
+        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+      ],
+      "notes": false,
+      "knowledge_question": true,
+      "taxonomy": "Apply",
+      "construct": "perspective_taking",
+      "inputField": false
+    },
+    {
+      "question": "Even when the input hasn't changed at all, they'll keep adjusting the model's settings until its mistakes stop looking so avoidable.",
+      "layout": "icons",
+      "answers": [
+        { "id": 0, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
+        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 2, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
+        { "id": 3, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
+        { "id": 4, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
+        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+      ],
+      "notes": false,
+      "knowledge_question": true,
+      "taxonomy": "Apply",
+      "construct": "perspective_taking",
+      "inputField": false
+    },
+    {
+      "question": "They're the one who finds out, mid-afternoon, that the thing which was fine this morning has quietly stopped working for actual users right now.",
+      "layout": "icons",
+      "answers": [
+        { "id": 0, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" },
+        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 2, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
+        { "id": 3, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
+        { "id": 4, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
+        { "id": 5, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" }
+      ],
+      "notes": false,
+      "knowledge_question": true,
+      "taxonomy": "Apply",
+      "construct": "perspective_taking",
+      "inputField": false
+    },
+    {
+      "title": "Trade-off Scenarios",
+      "description": "These describe a disagreement between two roles on a project similar to yours. Pick the best answer for each.",
+      "question": "A regional distributor needs a restocking feature shipped before a two-day cold-chain audit deadline. The production engineer wants to ship now with a manual sign-off instead of the full automated acceptance-test suite. The compliance architect insists every release passes the automated suite first, even if it slips the deadline. Which resolution best matches how such trade-offs are usually handled?",
+      "answers": [
+        { "id": 0, "text": "They agree on an **interim check** now, with the **fuller process** following shortly after." },
+        { "id": 1, "text": "They wait for the **full process** to finish, even past the agreed date." },
+        { "id": 2, "text": "They go ahead **without raising it** with the other side at all." },
+        { "id": 3, "text": "They **leave the call** to someone who wasn't part of the original disagreement." }
       ],
       "notes": false,
       "knowledge_question": true,
       "taxonomy": "Evaluate",
+      "construct": "perspective_taking",
       "inputField": false
     },
     {
-      "question": "In the context of MLOps stakeholder roles, what is the primary distinction between the responsibilities of a Data Scientist and an MLOps Engineer?",
+      "question": "A cold snap threatens frozen-goods demand forecasts. The business analyst needs a stock decision within the hour. The data engineer wants to pause integrating a new weather feed into the pipeline until it's validated, worried a rushed integration corrupts the pipeline. What is the underlying tension here?",
       "answers": [
-        {
-          "id": 0,
-          "text": "Data Scientists focus on algorithm selection, model development, and evaluation, while MLOps Engineers focus on integrating and optimizing the pipelines designed by Data Scientists and Data Engineers."
-        },
-        {
-          "id": 1,
-          "text": "Data Scientists ensure the scalability of data operations and manage feature storage, while MLOps Engineers handle the classical CI/CD automation and workflow orchestration."
-        },
-        {
-          "id": 2,
-          "text": "Data Scientists focus on the initial data collection and filtering processes, while MLOps Engineers are primarily responsible for designing the overall system architecture and monitoring paradigms."
-        },
-        {
-          "id": 3,
-          "text": "Data Scientists assess the feasibility of machine learning solutions alongside domain experts, while MLOps Engineers manage the storage infrastructure and acquire new data sources for model retraining."
-        }
+        { "id": 0, "text": "**Needing to act** before all the facts are confirmed, against **wanting to confirm** them first." },
+        { "id": 1, "text": "Doing more **by hand** against doing more **automatically**." },
+        { "id": 2, "text": "Whether the newer feed can be **trusted** at all, regardless of timing." },
+        { "id": 3, "text": "Spending **more now** against spending **less later**." }
       ],
       "notes": false,
       "knowledge_question": true,
-      "taxonomy": "Remember",
+      "taxonomy": "Analyze",
+      "construct": "perspective_taking",
+      "inputField": false
+    },
+    {
+      "question": "Marketing wants a personalized-discount model live before a big promotion week, built on customer loyalty-card data. The DevOps engineer could deploy today by skipping the staged rollout. The compliance architect wants the standard review done first, since loyalty data is personal data under consent rules. Which role is most likely to treat this as non-negotiable regardless of the deadline, and why?",
+      "answers": [
+        { "id": 0, "text": "The one responsible for **data-handling rules**, not something traded for speed." },
+        { "id": 1, "text": "The one who could **ship it today**, since once something's built, finishing it becomes the priority." },
+        { "id": 2, "text": "The one pushing for the **promotion deadline**, since marketing timing rarely moves." },
+        { "id": 3, "text": "None of them; there's a **workable middle ground** here too." }
+      ],
+      "notes": false,
+      "knowledge_question": true,
+      "taxonomy": "Evaluate",
+      "construct": "perspective_taking",
       "inputField": false
     }
   ],
@@ -365,14 +482,17 @@
       "title": "Reflection",
       "description": "Thank you for playing through the serious game. In order to help us evaluate the game, we ask you to answer the following questionaire. In this first part we ask you to reflect on your experience.",
       "question": "Do you believe the serious game succeded in familiarizing you with the stakeholder dynamics of MLOps?",
+      "layout": "icons",
       "answers": [
         {
           "id": 0,
-          "text": "Yes. (Please describe what you learned in the input field below)"
+          "text": "Yes",
+          "icon": "ph:thumbs-up-duotone"
         },
         {
           "id": 1,
-          "text": "No. (Please give your reason in the input field below)."
+          "text": "No",
+          "icon": "ph:thumbs-down-duotone"
         }
       ],
       "notes": false,
@@ -382,112 +502,52 @@
     {
       "title": "Stakeholder Persona and Game Evaluation",
       "description": "In this section we would like you to give feedback on the Stakeholder Personas and the gerneral Serious Game.",
-      "question": "How would you rate the productivity of stakeholder responses? (The clarity, precision, and reliability of the responses given by the stakeholder personas to your queries)",
+      "question": "The stakeholder personas' responses were productive: clear, precise, and reliable.",
       "answers": [
-        {
-          "id": 0,
-          "text": "Very High"
-        },
-        {
-          "id": 1,
-          "text": "High"
-        },
-        {
-          "id": 2,
-          "text": "Mediocre"
-        },
-        {
-          "id": 3,
-          "text": "Low"
-        },
-        {
-          "id": 4,
-          "text": "Very Low"
-        }
+        { "id": 0, "text": "1 (Strongly Disagree)" },
+        { "id": 1, "text": "2" },
+        { "id": 2, "text": "3" },
+        { "id": 3, "text": "4" },
+        { "id": 4, "text": "5 (Strongly Agree)" }
       ],
       "notes": false,
       "knowledge_question": false,
       "inputField": false
     },
     {
-      "question": "How would you rate the trustworthiness of stakeholder responses? (Were the stakeholder persona's responses transparent, tracable, and verifiable?)",
+      "question": "The stakeholder personas' responses felt trustworthy: transparent, traceable, and verifiable.",
       "answers": [
-        {
-          "id": 0,
-          "text": "Very High"
-        },
-        {
-          "id": 1,
-          "text": "High"
-        },
-        {
-          "id": 2,
-          "text": "Mediocre"
-        },
-        {
-          "id": 3,
-          "text": "Low"
-        },
-        {
-          "id": 4,
-          "text": "Very Low"
-        }
+        { "id": 0, "text": "1 (Strongly Disagree)" },
+        { "id": 1, "text": "2" },
+        { "id": 2, "text": "3" },
+        { "id": 3, "text": "4" },
+        { "id": 4, "text": "5 (Strongly Agree)" }
       ],
       "notes": false,
       "knowledge_question": false,
       "inputField": false
     },
     {
-      "question": "How would you rate the stakeholder's ability to adapt to changing contexts during the discussions?",
+      "question": "The stakeholder personas adapted well to changing contexts during discussions.",
       "answers": [
-        {
-          "id": 0,
-          "text": "Very High"
-        },
-        {
-          "id": 1,
-          "text": "High"
-        },
-        {
-          "id": 2,
-          "text": "Mediocre"
-        },
-        {
-          "id": 3,
-          "text": "Low"
-        },
-        {
-          "id": 4,
-          "text": "Very Low"
-        }
+        { "id": 0, "text": "1 (Strongly Disagree)" },
+        { "id": 1, "text": "2" },
+        { "id": 2, "text": "3" },
+        { "id": 3, "text": "4" },
+        { "id": 4, "text": "5 (Strongly Agree)" }
       ],
       "notes": false,
       "knowledge_question": false,
       "inputField": false
     },
     {
-      "question": "How would you rate the stakeholder's ability to accurately apply domain-specific knowledge?",
+      "question": "The stakeholder personas applied domain-specific knowledge accurately.",
       "answers": [
-        {
-          "id": 0,
-          "text": "Very High"
-        },
-        {
-          "id": 1,
-          "text": "High"
-        },
-        {
-          "id": 2,
-          "text": "Mediocre"
-        },
-        {
-          "id": 3,
-          "text": "Low"
-        },
-        {
-          "id": 4,
-          "text": "Very Low"
-        }
+        { "id": 0, "text": "1 (Strongly Disagree)" },
+        { "id": 1, "text": "2" },
+        { "id": 2, "text": "3" },
+        { "id": 3, "text": "4" },
+        { "id": 4, "text": "5 (Strongly Agree)" }
       ],
       "notes": false,
       "knowledge_question": false,
@@ -626,38 +686,31 @@
       "inputField": false
     },
     {
-      "title": "General Feedback",
-      "question": "If you have any general feedback concerning the stakeholder personas or the general serious game, please enter it in the input field below.",
-      "answers": [],
-      "notes": false,
-      "knowledge_question": false,
-      "inputField": true
-    },
-    {
       "title": "Learning Evaluation",
       "description": "In this section we ask you to answer the same questions as before the game started to be best of your knowledge. This helps us to evaluate the learning effects of the game.",
       "question": "What is 'concept drift' in the context of Machine Learning?",
       "answers": [
         {
           "id": 0,
-          "text": "The decline in model accuracy over time due to gradual trends or seasonal changes in real-world data."
+          "text": "**Model accuracy declines over time** as real-world data gradually shifts or trends change."
         },
         {
           "id": 1,
-          "text": "The process of a model's underlying code gradually becoming incompatible with updated software libraries."
+          "text": "The model's **code becomes incompatible** with updated software libraries over time."
         },
         {
           "id": 2,
-          "text": "The intentional shifting of model parameters during training to prevent the gradient from vanishing."
+          "text": "**Intentionally shifting parameters** during training to prevent vanishing gradients."
         },
         {
           "id": 3,
-          "text": "A security vulnerability where an attacker introduces subtle biases into the training set to trigger specific model failures."
+          "text": "A **security attack** that plants subtle biases in training data to trigger specific failures."
         }
       ],
       "notes": false,
       "knowledge_question": true,
       "taxonomy": "-",
+      "construct": "declarative",
       "inputField": false
     },
     {
@@ -665,24 +718,25 @@
       "answers": [
         {
           "id": 0,
-          "text": "ML focuses on model creation and evaluation, while MLOps focuses on the practices and automation of deployment, monitoring, and production maintenance."
+          "text": "ML covers **model creation and evaluation**; MLOps covers **deployment, monitoring, and production maintenance**."
         },
         {
           "id": 1,
-          "text": "ML focuses on the theoretical design and mathematical proofs of algorithms, while MLOps is exclusively concerned with the empirical testing and hyperparameter tuning of those algorithms."
+          "text": "ML is **theoretical algorithm design**; MLOps is only **empirical testing and tuning**."
         },
         {
           "id": 2,
-          "text": "ML handles the initial data exploration and model training, while MLOps manages the one-time transition of the finalized model code to the operations team for permanent deployment."
+          "text": "ML handles **data exploration and training**; MLOps is a **one-time handoff** to operations."
         },
         {
           "id": 3,
-          "text": "ML aims to maximize predictive accuracy using isolated datasets, while MLOps prioritizes feature engineering and data augmentation to synthetically improve those datasets."
+          "text": "ML **maximizes accuracy** on isolated datasets; MLOps focuses on **feature engineering and data augmentation**."
         }
       ],
       "notes": false,
       "knowledge_question": true,
       "taxonomy": "-",
+      "construct": "declarative",
       "inputField": false
     },
     {
@@ -690,49 +744,25 @@
       "answers": [
         {
           "id": 0,
-          "text": "That an ML experiment yields identical results whenever it is repeated with the same data and environment."
+          "text": "An experiment gives **identical results** when repeated with the same data and environment."
         },
         {
           "id": 1,
-          "text": "The ability to trace the lineage of a specific model prediction back to the exact version of the source data and training code."
+          "text": "**Tracing a prediction back** to the exact data and code version that produced it."
         },
         {
           "id": 2,
-          "text": "Ensuring that the model training pipeline can be automatically re-executed whenever there is a significant change in the statistical distribution of input data."
+          "text": "**Automatically re-running training** whenever input data shifts significantly."
         },
         {
           "id": 3,
-          "text": "That the model's performance metrics remain consistent across multiple validation datasets."
+          "text": "**Consistent performance metrics** across multiple validation datasets."
         }
       ],
       "notes": false,
       "knowledge_question": true,
       "taxonomy": "-",
-      "inputField": false
-    },
-    {
-      "question": "How do the data, training, and deployment pipelines depend on each other in the MLOps lifecycle?",
-      "answers": [
-        {
-          "id": 0,
-          "text": "They form a feedback loop where monitoring in deployment triggers data re-collection and model retraining."
-        },
-        {
-          "id": 1,
-          "text": "They execute independently, as the model containerization paradigm ensures that data engineering, training, and deployment are strictly isolated and do not influence one another."
-        },
-        {
-          "id": 2,
-          "text": "They are linked through a one-way continuous integration process, meaning the data pipeline feeds the training pipeline, but the deployment pipeline has no mechanism to influence earlier stages."
-        },
-        {
-          "id": 3,
-          "text": "They operate in parallel and are only synchronized during scheduled batch intervals to ensure that the deployment pipeline serving infrastructure is not disrupted by ongoing training."
-        }
-      ],
-      "notes": false,
-      "knowledge_question": true,
-      "taxonomy": "Understand",
+      "construct": "declarative",
       "inputField": false
     },
     {
@@ -740,75 +770,182 @@
       "answers": [
         {
           "id": 0,
-          "text": "It becomes difficult to trace which data version was used to train a deployed model, making it hard to reproduce results or investigate performance drops."
+          "text": "**Hard to trace which data version** trained a deployed model, making results difficult to reproduce or debug."
         },
         {
           "id": 1,
-          "text": "Model finetuning becomes more difficult as hyperparameter search spaces grow with each additional pipeline, ultimately degrading model performance."
+          "text": "**Hyperparameter search grows harder** with each added pipeline, degrading performance."
         },
         {
           "id": 2,
-          "text": "The deployment process slows down because each new pipeline step requires approval before it can be connected to the serving layer."
+          "text": "**Deployment slows down** as each new step needs approval before serving."
         },
         {
           "id": 3,
-          "text": "Monitoring becomes harder because alerts are spread across many pipelines, so issues take longer to detect and fix."
+          "text": "**Monitoring gets harder** as alerts spread across many pipelines, delaying fixes."
         }
       ],
       "notes": false,
       "knowledge_question": true,
       "taxonomy": "Analyze",
+      "construct": "declarative",
       "inputField": false
     },
     {
-      "question": "Based on the descriptions of their roles, which example best illustrates a conflict of interest between an Operational Engineer and a Business Manager?",
+      "title": "Stakeholder Perspective",
+      "description": "These questions describe how someone in a project might act or think, without naming their job. Pick which role fits best.",
+      "question": "When last Tuesday's numbers don't line up with the week before, they want to know exactly why the input changed, not just whether the forecast at the end still looks reasonable.",
+      "layout": "icons",
       "answers": [
-        {
-          "id": 0,
-          "text": "The Operational Engineer wants to delay deployment to add redundancy and improve observability, while the Business Manager pushes to launch immediately to capture a time-sensitive market opportunity"
-        },
-        {
-          "id": 1,
-          "text": "The Operational Engineer wants to reduce operational overhead, while the Business Manager prefers to quickly support different product variants."
-        },
-        {
-          "id": 2,
-          "text": "The Operational Engineer advocates for stricter data validation checks that may occasionally block data ingestion, while the Business Manager wants uninterrupted data flow to ensure dashboards are always up to date"
-        },
-        {
-          "id": 3,
-          "text": "The Operational Engineer wants to optimize infrastructure costs by reducing overprovisioning, while the Business Manager wants predictable performance during peak demand periods"
-        }
+        { "id": 0, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 1, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
+        { "id": 2, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
+        { "id": 3, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
+        { "id": 4, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
+        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+      ],
+      "notes": false,
+      "knowledge_question": true,
+      "taxonomy": "Apply",
+      "construct": "perspective_taking",
+      "inputField": false
+    },
+    {
+      "question": "When someone proposes a new project, they want to know which number on the weekly report would actually move, and by how much, before agreeing to spend a cent on it.",
+      "layout": "icons",
+      "answers": [
+        { "id": 0, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
+        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 2, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
+        { "id": 3, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
+        { "id": 4, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
+        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+      ],
+      "notes": false,
+      "knowledge_question": true,
+      "taxonomy": "Apply",
+      "construct": "perspective_taking",
+      "inputField": false
+    },
+    {
+      "question": "After doing the same release steps by hand for the second time, they start quietly scripting it away, even though nothing has broken yet and nobody asked them to.",
+      "layout": "icons",
+      "answers": [
+        { "id": 0, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
+        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 2, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
+        { "id": 3, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
+        { "id": 4, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
+        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+      ],
+      "notes": false,
+      "knowledge_question": true,
+      "taxonomy": "Apply",
+      "construct": "perspective_taking",
+      "inputField": false
+    },
+    {
+      "question": "Even after everyone agrees the results look good, they still want to see it walked through every rule that was written down months ago before anyone calls it done.",
+      "layout": "icons",
+      "answers": [
+        { "id": 0, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
+        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 2, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
+        { "id": 3, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
+        { "id": 4, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
+        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+      ],
+      "notes": false,
+      "knowledge_question": true,
+      "taxonomy": "Apply",
+      "construct": "perspective_taking",
+      "inputField": false
+    },
+    {
+      "question": "Even when the input hasn't changed at all, they'll keep adjusting the model's settings until its mistakes stop looking so avoidable.",
+      "layout": "icons",
+      "answers": [
+        { "id": 0, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
+        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 2, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
+        { "id": 3, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
+        { "id": 4, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
+        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+      ],
+      "notes": false,
+      "knowledge_question": true,
+      "taxonomy": "Apply",
+      "construct": "perspective_taking",
+      "inputField": false
+    },
+    {
+      "question": "They're the one who finds out, mid-afternoon, that the thing which was fine this morning has quietly stopped working for actual users right now.",
+      "layout": "icons",
+      "answers": [
+        { "id": 0, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" },
+        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 2, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
+        { "id": 3, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
+        { "id": 4, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
+        { "id": 5, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" }
+      ],
+      "notes": false,
+      "knowledge_question": true,
+      "taxonomy": "Apply",
+      "construct": "perspective_taking",
+      "inputField": false
+    },
+    {
+      "title": "Trade-off Scenarios",
+      "description": "These describe a disagreement between two roles on a project similar to yours. Pick the best answer for each.",
+      "question": "A regional distributor needs a restocking feature shipped before a two-day cold-chain audit deadline. The production engineer wants to ship now with a manual sign-off instead of the full automated acceptance-test suite. The compliance architect insists every release passes the automated suite first, even if it slips the deadline. Which resolution best matches how such trade-offs are usually handled?",
+      "answers": [
+        { "id": 0, "text": "They agree on an **interim check** now, with the **fuller process** following shortly after." },
+        { "id": 1, "text": "They wait for the **full process** to finish, even past the agreed date." },
+        { "id": 2, "text": "They go ahead **without raising it** with the other side at all." },
+        { "id": 3, "text": "They **leave the call** to someone who wasn't part of the original disagreement." }
       ],
       "notes": false,
       "knowledge_question": true,
       "taxonomy": "Evaluate",
+      "construct": "perspective_taking",
       "inputField": false
     },
     {
-      "question": "In the context of MLOps stakeholder roles, what is the primary distinction between the responsibilities of a Data Scientist and an MLOps Engineer?",
+      "question": "A cold snap threatens frozen-goods demand forecasts. The business analyst needs a stock decision within the hour. The data engineer wants to pause integrating a new weather feed into the pipeline until it's validated, worried a rushed integration corrupts the pipeline. What is the underlying tension here?",
       "answers": [
-        {
-          "id": 0,
-          "text": "Data Scientists focus on algorithm selection, model development, and evaluation, while MLOps Engineers focus on integrating and optimizing the pipelines designed by Data Scientists and Data Engineers."
-        },
-        {
-          "id": 1,
-          "text": "Data Scientists ensure the scalability of data operations and manage feature storage, while MLOps Engineers handle the classical CI/CD automation and workflow orchestration."
-        },
-        {
-          "id": 2,
-          "text": "Data Scientists focus on the initial data collection and filtering processes, while MLOps Engineers are primarily responsible for designing the overall system architecture and monitoring paradigms."
-        },
-        {
-          "id": 3,
-          "text": "Data Scientists assess the feasibility of machine learning solutions alongside domain experts, while MLOps Engineers manage the storage infrastructure and acquire new data sources for model retraining."
-        }
+        { "id": 0, "text": "**Needing to act** before all the facts are confirmed, against **wanting to confirm** them first." },
+        { "id": 1, "text": "Doing more **by hand** against doing more **automatically**." },
+        { "id": 2, "text": "Whether the newer feed can be **trusted** at all, regardless of timing." },
+        { "id": 3, "text": "Spending **more now** against spending **less later**." }
       ],
       "notes": false,
       "knowledge_question": true,
-      "taxonomy": "Remember",
+      "taxonomy": "Analyze",
+      "construct": "perspective_taking",
       "inputField": false
+    },
+    {
+      "question": "Marketing wants a personalized-discount model live before a big promotion week, built on customer loyalty-card data. The DevOps engineer could deploy today by skipping the staged rollout. The compliance architect wants the standard review done first, since loyalty data is personal data under consent rules. Which role is most likely to treat this as non-negotiable regardless of the deadline, and why?",
+      "answers": [
+        { "id": 0, "text": "The one responsible for **data-handling rules**, not something traded for speed." },
+        { "id": 1, "text": "The one who could **ship it today**, since once something's built, finishing it becomes the priority." },
+        { "id": 2, "text": "The one pushing for the **promotion deadline**, since marketing timing rarely moves." },
+        { "id": 3, "text": "None of them; there's a **workable middle ground** here too." }
+      ],
+      "notes": false,
+      "knowledge_question": true,
+      "taxonomy": "Evaluate",
+      "construct": "perspective_taking",
+      "inputField": false
+    },
+    {
+      "title": "General Feedback",
+      "question": "If you have any general feedback concerning the stakeholder personas or the general serious game, please enter it in the input field below.",
+      "answers": [],
+      "notes": false,
+      "knowledge_question": false,
+      "inputField": true
     }
   ]
 }

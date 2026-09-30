@@ -25,6 +25,16 @@
             "type": "string",
             "title": "Taxonomy Level"
           },
+          "construct": {
+            "type": "string",
+            "title": "Construct",
+            "enum": ["declarative", "perspective_taking"]
+          },
+          "layout": {
+            "type": "string",
+            "title": "Answer Layout",
+            "enum": ["icons", "scale"]
+          },
           "knowledge_question": {
             "type": "boolean",
             "title": "Knowledge Question?"
@@ -44,6 +54,7 @@
               "properties": {
                 "id": { "type": "integer" },
                 "text": { "type": "string" },
+                "icon": { "type": "string", "title": "Iconify Icon Name" },
                 "expert": { "type": "boolean" }
               }
             }
@@ -73,6 +84,16 @@
             "type": "string",
             "title": "Taxonomy Level"
           },
+          "construct": {
+            "type": "string",
+            "title": "Construct",
+            "enum": ["declarative", "perspective_taking"]
+          },
+          "layout": {
+            "type": "string",
+            "title": "Answer Layout",
+            "enum": ["icons", "scale"]
+          },
           "knowledge_question": {
             "type": "boolean",
             "title": "Knowledge Question?"
@@ -92,6 +113,7 @@
               "properties": {
                 "id": { "type": "integer" },
                 "text": { "type": "string" },
+                "icon": { "type": "string", "title": "Iconify Icon Name" },
                 "expert": { "type": "boolean" }
               }
             }

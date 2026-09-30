@@ -141,7 +141,11 @@ function App({ username: _username, onLogout }: AppProps) {
   // "/game/p2/c110/1?stakeholder=__challenge_intel__".
   useEffect(() => {
     let phase: GamePhaseLabel | null = null;
-    if (progressionIndex === 4) {
+    if (progressionIndex === 0) {
+      phase = "intro-questionnaire";
+    } else if (progressionIndex === 3) {
+      phase = "outro-questionnaire";
+    } else if (progressionIndex === 4) {
       phase = "report";
     } else if (progressionIndex === 1) {
       phase = "briefing";
