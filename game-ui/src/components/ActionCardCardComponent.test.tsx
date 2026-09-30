@@ -4,7 +4,7 @@ import ActionCardCardComponent from "./ActionCardCardComponent";
 import type { ActionCard } from "../types/ActionCard";
 
 /**
- * Regression: a target chained through several steps on one axis ("Implement It" then
+ * Regression: a target chained through several steps on one axis ("Implement It Manually" then
  * "Automate It", one authored option/one slot each) shares a single backend prediction across
  * every row (predictions_for keys on (target, axis), not on which step asked) - so `predicted`
  * on it is always the chain's final settled level, never any one row's own step. The minimized

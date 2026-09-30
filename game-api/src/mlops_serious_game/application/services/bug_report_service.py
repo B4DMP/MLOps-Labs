@@ -1,4 +1,4 @@
-"""Storing "Report a Bug" submissions from the cheat sheet (see BugReportModal.tsx) and emailing
+"""Storing "Report a Bug" submissions from the cheat sheet (see CheatSheetModal.tsx) and emailing
 the configured recipients (bug_report_settings_service) about them."""
 
 from typing import Any

@@ -93,7 +93,7 @@ export type { GraphOption } from "../utils/graphOptions";
 /** A change touching both axes of the same target is two legitimate slots, not a duplicate - so
  *  the dedup key carries the axis. */
 /** Everything that makes two changes the same slot - deliberately including `value`: a target
- *  can carry several genuinely different steps chained on the same axis ("Implement It" then
+ *  can carry several genuinely different steps chained on the same axis ("Implement It Manually" then
  *  "Automate It", one slot each), and those must never collapse into each other. Only a change
  *  indistinguishable in every field from another is the stale duplicate this guards against. */
 function dedupeKey(c: AtomicChange): string {
@@ -401,7 +401,7 @@ function OptionLadder({
 
       {governanceLocked ? (
         <span className={styles.axisEmpty}>
-          <Icon icon="ph:lock-simple-bold" /> Implement it on automation first - you can't govern something that
+          <Icon icon="ph:lock-simple-bold" /> Implement It Manually on automation first - you can't govern something that
           doesn't exist yet.
         </span>
       ) : options.length === 0 ? (
@@ -1407,7 +1407,7 @@ export default function ComposeActionProposalModal({
                     const previewAutomation = projectedOn(c, "automation", atomicChanges);
                     const previewGovernance = projectedOn(c, "governance", atomicChanges);
                     // A target can carry several chained steps on the same axis (one slot each,
-                    // "Implement It" then "Automate It") - the settled rung each would land on is
+                    // "Implement It Manually" then "Automate It") - the settled rung each would land on is
                     // `previewAutomation`/`previewGovernance` above, never any single change's own
                     // value, which might just be one link in that chain.
                     const automationQueued = previewAutomation !== nominalOn(c, "automation");

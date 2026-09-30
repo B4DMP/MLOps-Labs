@@ -6,7 +6,7 @@ from mlops_serious_game.infrastructure.websocket.handlers.pitch_handler import _
 
 
 def test_a_chained_target_gets_one_line_naming_its_final_rung(real):
-    """Two raise_to ops on the same (target, axis) - "Implement It" then "Automate It", one slot
+    """Two raise_to ops on the same (target, axis) - "Implement It Manually" then "Automate It", one slot
     each - must not turn into two separate lines: the LLM narrating a stakeholder's reaction
     around "manual" when the card actually settles the target at "automated" is exactly the bug
     this guards against."""

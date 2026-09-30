@@ -102,7 +102,7 @@ export function projectedOn(t: OptionTarget, axis: Axis, changes: AtomicChange[]
 const IMPLEMENTED_AT = 2; // AutomationState.MANUAL
 
 /** Whether a target is built enough for governance to apply to it, counting whatever automation
- *  step is already slotted in the same proposal (so "implement it" and "sign off" can land in
+ *  step is already slotted in the same proposal (so "Implement It Manually" and "sign off" can land in
  *  one card, implement first). */
 export function isImplemented(t: OptionTarget, changes: AtomicChange[]): boolean {
   return projectedOn(t, "automation", changes) >= IMPLEMENTED_AT;
