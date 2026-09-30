@@ -509,8 +509,8 @@ export default function ComposeActionProposalModal({
   intelVerified = 0,
 }: ComposeActionProposalModalProps) {
   const { emit, subscribe } = useGameWebSocket();
-  const highlight = useGlossaryHighlighter("action_proposal");
   const { speak: speakTts } = useSpeech();
+  const highlight = useGlossaryHighlighter("action_proposal");
 
   const [localGraphState, setLocalGraphState] = useState<GraphStatePayload | null>(propGraphState);
   // A saved proposal can carry a stale duplicate slot for the same (target, axis) (see
@@ -731,7 +731,6 @@ export default function ComposeActionProposalModal({
     }
   }, [isOpen, phaseStageId]);
 
-  // Map of all components by ID across stages
   const introComposeTourStartedRef = useRef(false);
   useEffect(() => {
     // Phase 0 has exactly one challenge, so checking the phase alone is sufficient -
@@ -742,6 +741,7 @@ export default function ComposeActionProposalModal({
     startTour("introCompose", { narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
   }, [isOpen, currentPhase]);
 
+  // Map of all components by ID across stages
   const allComponentsMap = useMemo(() => {
     const map = new Map<string, ComponentData>();
     if (!graphState?.technical) return map;
