@@ -83,7 +83,6 @@ function App({ username: _username, onLogout }: AppProps) {
   const [currentPhase, setCurrentPhase] = useState(0);
   const [currentChallenge, setCurrentChallenge] = useState(0);
   const [phases, setPhases] = useState<any[]>([]);
-  const [introPhaseEnabled, setIntroPhaseEnabled] = useState(false);
   const [metrics, setMetrics] = useState<Record<string, Metric>>({});
   const [challengeAmount, setChallengeAmount] = useState(0);
   const [_challengeMetricChanges, setChallengeMetricChanges] = useState<
@@ -276,7 +275,6 @@ function App({ username: _username, onLogout }: AppProps) {
       setStakeholders(enrichedStakeholders);
       setMetrics(rawMetrics);
       setPhases(data["phases"]);
-      setIntroPhaseEnabled(Boolean(data["intro_phase_enabled"]));
       if (data["phases"] && data["phases"].length > 0) {
         setChallengeAmount(data["phases"].length);
       }
@@ -860,7 +858,7 @@ function App({ username: _username, onLogout }: AppProps) {
             />
             <div style={{ position: "relative", zIndex: 1, width: "100%", height: "100%" }}>
             <PhasesContext.Provider
-              value={{ currentPhase, setCurrentPhase, phases, setPhases, introPhaseEnabled }}
+              value={{ currentPhase, setCurrentPhase, phases, setPhases }}
             >
               <MetricsContext.Provider value={{ metrics, setMetrics }}>
                 <StakeholderContext.Provider

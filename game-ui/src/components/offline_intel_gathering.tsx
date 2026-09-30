@@ -192,11 +192,10 @@ export default function OfflineIntelGathering({
   // Artifact auto-narration and the tour's own narration both go through the same shared speech
   // arbiter (speakTts) - starting one preempts the other mid-sentence, and that preemption never
   // fires the preempted call's onEnd, which left isNarrating stuck true (an endless spinner) and
-  // the artifact permanently unmarked/unread. Lazy-init skips the wait entirely in every case the
-  // tour wouldn't run anyway (phase !== 0, or the single-artifact review view).
-  const [introDossierTourDone, setIntroDossierTourDone] = useState(
-    () => currentPhase !== 0 || Boolean(singleArtifact)
-  );
+  // the artifact permanently unmarked/unread. Only phase 0's tour is waited on, read from the live
+  // phase rather than seeded at mount, so phase 1 never inherits a gate that was never released.
+  const [introDossierTourDone, setIntroDossierTourDone] = useState(false);
+  const introDossierTourPending = currentPhase === 0 && !singleArtifact && !introDossierTourDone;
   const resetConfirmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [infoTag, setInfoTag] = useState<{
@@ -495,7 +494,7 @@ export default function OfflineIntelGathering({
     // re-runs (isPhaseBriefingOpen is a dep) and narrates the artifact that's on screen then.
     // Same reasoning for the tour: it also narrates through that arbiter, so this waits for
     // introDossierTourDone too, rather than racing it (see where that state is declared).
-    if (isPhaseBriefingOpen || !introDossierTourDone) return;
+    if (isPhaseBriefingOpen || introDossierTourPending) return;
     if (!currentArtifactKey || !currentArtifact?.content) return;
     if (narratedArtifactKeysRef.current.has(currentArtifactKey)) return;
     narrateArtifact(currentArtifact, currentArtifactKey);
@@ -506,7 +505,7 @@ export default function OfflineIntelGathering({
       setActiveSentenceIndex(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentArtifactKey, currentArtifact?.content, currentArtifact?.stakeholder_id, isPhaseBriefingOpen, introDossierTourDone]);
+  }, [currentArtifactKey, currentArtifact?.content, currentArtifact?.stakeholder_id, isPhaseBriefingOpen, introDossierTourPending]);
 
   // Same "wait for the briefing to finish first" rule as artifact narration above - the tour
   // and the briefing/artifact narration all go through the same shared speech arbiter.

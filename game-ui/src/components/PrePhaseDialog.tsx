@@ -58,7 +58,7 @@ export default function PrePhaseDialog({
   onSettingsToggle,
   isSettingsOpen = false,
 }: PrePhaseDialogProps) {
-  const { currentPhase, phases, introPhaseEnabled } = useContext(PhasesContext);
+  const { currentPhase, phases } = useContext(PhasesContext);
   const { settings } = useSettings();
   const { speak: speakTts } = useSpeech();
   // Overlay layer the radar portals its bubbles and tooltips into. The page
@@ -82,10 +82,11 @@ export default function PrePhaseDialog({
   const [isNarratingBriefing, setIsNarratingBriefing] = useState(false);
   const [introsUnlocked, setIntrosUnlocked] = useState(false);
   // Phase 0's guided tour (intro2) walks the phase bar/description/challenge/radar chrome before
-  // any of it is narrated - seeded false only for phase 0 (lazy init: true for every other phase,
-  // which has no tour and must not wait on one). Flips true once intro2 finishes or is skipped,
-  // which is what actually unblocks the briefing narration effect below.
-  const [introTourDone, setIntroTourDone] = useState(() => currentPhase !== 0);
+  // any of it is narrated. Flips true once intro2 finishes or is skipped. Only phase 0 waits on
+  // it, read from the live phase: this dialog can mount or stay mounted across the switch to
+  // phase 1, and a gate seeded once at mount left phase 1's briefing silent.
+  const [introTourDone, setIntroTourDone] = useState(false);
+  const introTourPending = currentPhase === 0 && !introTourDone;
   const briefingCancelRef = useRef<() => void>(() => {});
   // Which sentence of the briefing narration is playing right now, for SpokenText below. Only
   // `phase_introduction`'s own sentences are rendered here (the challenge title/intro read in the
@@ -119,7 +120,7 @@ export default function PrePhaseDialog({
       .join(" ");
 
   useEffect(() => {
-    if (!isOpen || isReview || !introTourDone) return;
+    if (!isOpen || isReview || introTourPending) return;
     const text = buildBriefingNarration();
     if (!text || settings.auto_skip_conversations) {
       setIntrosUnlocked(true);
@@ -156,7 +157,7 @@ export default function PrePhaseDialog({
   }, [
     isOpen,
     isReview,
-    introTourDone,
+    introTourPending,
     currentPhaseData?.phase_introduction,
     challengeTitle,
     challengeIntro,
@@ -246,15 +247,14 @@ export default function PrePhaseDialog({
     phases.length > 0 &&
     phases[0]?.id === 0 &&
     phases[0]?.phase_name?.toLowerCase() === "introduction";
-  const isFirstPhase = isFirstPlayablePhase(phases, currentPhase, introPhaseEnabled);
+  const isFirstPhase = isFirstPlayablePhase(phases, currentPhase);
   const previousPhaseData = isFirstPhase ? null : (currentPhase > 0 ? phases[currentPhase - 1] : null);
 
   const currentStakeholders = currentPhaseData?.stakeholder_power_interest || [];
   const previousStakeholders = previousPhaseData?.stakeholder_power_interest || [];
 
-  const skipsIntroNumbering = hasIntroPhase && !introPhaseEnabled;
-  const displayPhaseNumber = skipsIntroNumbering ? Math.max(1, currentPhase) : currentPhase + 1;
-  const totalPlayablePhases = skipsIntroNumbering ? Math.max(1, phases.length - 1) : phases.length;
+  const displayPhaseNumber = hasIntroPhase ? Math.max(1, currentPhase) : currentPhase + 1;
+  const totalPlayablePhases = hasIntroPhase ? Math.max(1, phases.length - 1) : phases.length;
 
   const panelContent = (
       <div className={wasReviewRef.current ? styles.dashboardPanel : styles.panel}>
