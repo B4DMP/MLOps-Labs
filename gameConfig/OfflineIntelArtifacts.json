@@ -22,8 +22,8 @@
       "requirement_id": "gen_honey_vault_mark_ingestion_manual",
       "challenge_id": 113,
       "stakeholder_id": "mohawk_mark",
-      "artifact_type": "slack_message",
-      "content": "Bruce wants to automate the vault feed. Sure, automate it. But it doesn't go live until I've personally spent an afternoon spot checking what it pulls in, and Bruce getting bored of copying numbers into a spreadsheet doesn't count as it passing. Until then I keep doing it by hand, the slow way, the way where I get to argue with the numbers before anyone believes them. Beat my afternoon and the robot can have the job. Lose to me and I'm back to copying.",
+      "artifact_type": "email",
+      "content": "Hello,\n\nBruce wants to automate the vault feed. Sure, automate it. But it doesn't go live until I've personally spent an afternoon spot checking what it pulls in, and Bruce getting bored of copying numbers into a spreadsheet doesn't count as it passing.\n\nUntil then I keep doing it by hand, the slow way, the way where I get to argue with the numbers before anyone believes them. Beat my afternoon and the robot can have the job. Lose to me and I'm back to copying.\n\nRegards,\nMark",
       "wrong_descriptions": {
         "driver": "He wants more manual checks added on top of the feed.",
         "boundary": "He will not accept an automated feed without a formal committee review.",
