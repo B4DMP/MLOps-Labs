@@ -57,8 +57,8 @@ const DASHBOARD: AdminResultsData = {
     },
   },
   metric_info: {
-    model: { name: "Model", metric_color: "#3b82f6", metric_icon: "lucide:brain-circuit" },
-    automation: { name: "Automation", metric_color: "#f97316", metric_icon: "lucide:settings" },
+    model: { name: "Model", metric_color: "#3b82f6", metric_icon: "ph:brain-duotone" },
+    automation: { name: "Automation", metric_color: "#f97316", metric_icon: "ph:gear-six-duotone" },
   },
   stakeholder_order: ["data_dave", "model_monica", "requirements_reuben", "efficiency_emilia", "automation_alex", "reliability_ruth"],
   stakeholders: {

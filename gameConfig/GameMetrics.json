@@ -4,7 +4,7 @@
       "id": "model",
       "metric_color": "#3b82f6",
       "metric_name": "Model",
-      "metric_icon": "lucide:brain-circuit",
+      "metric_icon": "ph:brain-duotone",
       "metric_value": 10,
       "max_value": 50,
       "active": [
@@ -33,7 +33,7 @@
       "id": "automation",
       "metric_color": "#f97316",
       "metric_name": "Automation",
-      "metric_icon": "lucide:settings",
+      "metric_icon": "ph:gear-six-duotone",
       "metric_value": 10,
       "max_value": 50,
       "active": [
@@ -61,7 +61,7 @@
       "id": "reliability",
       "metric_color": "#e11d48",
       "metric_name": "Reliability",
-      "metric_icon": "lucide:battery-full",
+      "metric_icon": "ph:battery-full-duotone",
       "metric_value": 10,
       "active": [
         false,
@@ -90,7 +90,7 @@
       "id": "data",
       "metric_color": "#10b981",
       "metric_name": "Data",
-      "metric_icon": "lucide:database",
+      "metric_icon": "ph:database-duotone",
       "metric_value": 10,
       "max_value": 50,
       "active": [
@@ -119,7 +119,7 @@
       "id": "requirements",
       "metric_color": "#8b5cf6",
       "metric_name": "Requirements",
-      "metric_icon": "lucide:file-text",
+      "metric_icon": "ph:file-text-duotone",
       "metric_value": 10,
       "max_value": 50,
       "active": [
@@ -144,7 +144,7 @@
       "id": "efficiency",
       "metric_color": "#06b6d4",
       "metric_name": "Efficiency",
-      "metric_icon": "lucide:trending-up",
+      "metric_icon": "ph:trend-up-duotone",
       "metric_value": 10,
       "max_value": 50,
       "active": [

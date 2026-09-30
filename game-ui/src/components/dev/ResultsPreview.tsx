@@ -15,12 +15,12 @@ import fixtures from "./resultsFixtures.json";
  * hand, so the text lengths this lays out are the ones a player will really see.
  */
 const METRIC_INFO: Record<string, MetricInfo> = {
-  model: { name: "Model", metric_color: "#3b82f6", metric_icon: "lucide:brain-circuit" },
-  automation: { name: "Automation", metric_color: "#f97316", metric_icon: "lucide:settings" },
-  reliability: { name: "Reliability", metric_color: "#e11d48", metric_icon: "lucide:battery-full" },
-  data: { name: "Data", metric_color: "#10b981", metric_icon: "lucide:database" },
-  requirements: { name: "Requirements", metric_color: "#8b5cf6", metric_icon: "lucide:file-text" },
-  efficiency: { name: "Efficiency", metric_color: "#06b6d4", metric_icon: "lucide:trending-up" },
+  model: { name: "Model", metric_color: "#3b82f6", metric_icon: "ph:brain-duotone" },
+  automation: { name: "Automation", metric_color: "#f97316", metric_icon: "ph:gear-six-duotone" },
+  reliability: { name: "Reliability", metric_color: "#e11d48", metric_icon: "ph:battery-full-duotone" },
+  data: { name: "Data", metric_color: "#10b981", metric_icon: "ph:database-duotone" },
+  requirements: { name: "Requirements", metric_color: "#8b5cf6", metric_icon: "ph:file-text-duotone" },
+  efficiency: { name: "Efficiency", metric_color: "#06b6d4", metric_icon: "ph:trend-up-duotone" },
 };
 
 export default function ResultsPreview() {
