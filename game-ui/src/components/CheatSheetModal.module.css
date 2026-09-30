@@ -198,6 +198,29 @@
   color: var(--text-primary, #0f172a);
 }
 
+.replayDemoButton {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--accent, #475569);
+  background: transparent;
+  color: var(--accent, #475569);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.replayDemoButton:hover,
+.replayDemoButton:focus {
+  background: var(--accent, #475569);
+  color: white;
+  outline: 0;
+}
+
 .cardIcon {
   font-size: 1.15rem;
   color: var(--accent, #64748b);

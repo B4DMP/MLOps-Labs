@@ -23,8 +23,9 @@ import GlossaryText from "./glossary/GlossaryText";
 import SpokenText from "./SpokenText";
 import OnceIcon from "./Results/OnceIcon";
 import { useSpeech } from "./useSpeech";
+import { startTour } from "../utils/tour";
 import { useSettings } from "./SettingsProvider";
-import { splitSentences } from "../utils/speech";
+import { splitSentences, TOUR_GUIDE_SEED } from "../utils/speech";
 import { MetricsContext } from "./MetricProvider";
 import { StakeholderContext, type Stakeholder } from "./StakeholderProvider";
 import type { ActionCard } from "../types/ActionCard";
@@ -391,6 +392,15 @@ export default function AcSimulation({
   // description joined into one pass and split back out below (see headlineSentenceCount) so the
   // headline gets its own caret and the description gets full SpokenText treatment.
   const [isNarratingDirective, setIsNarratingDirective] = useState(false);
+  // Separate from isNarratingDirective on purpose: the tour-trigger effect below and this
+  // narration's own effect both fire in the same commit the moment `report` first arrives, so the
+  // tour effect would otherwise read isNarratingDirective from before this effect's own
+  // setIsNarratingDirective(true) had taken effect - a stale `false` that let the tour start
+  // immediately anyway, racing this narration on the shared speech arbiter and losing (a
+  // preemption never fires onEnd, so isNarratingDirective got stuck true and the debrief was
+  // never actually read). Set only from onEnd/onFailure paths, never read mid-render, so the tour
+  // effect always sees this narration's real, settled state instead of a same-commit snapshot.
+  const [directiveNarrationDone, setDirectiveNarrationDone] = useState(false);
   const [directiveSentenceIndex, setDirectiveSentenceIndex] = useState<number | null>(null);
   const directiveCancelRef = useRef<() => void>(() => {});
   const headlineSentenceCount = splitSentences(outcomeInfo.headline)
@@ -411,6 +421,7 @@ export default function AcSimulation({
       onEnd: () => {
         setIsNarratingDirective(false);
         setDirectiveSentenceIndex(null);
+        setDirectiveNarrationDone(true);
       },
     });
   };
@@ -419,10 +430,14 @@ export default function AcSimulation({
     directiveCancelRef.current();
     setIsNarratingDirective(false);
     setDirectiveSentenceIndex(null);
+    // A manual stop is still "done" as far as the tour is concerned - the player has moved on
+    // from listening, so there's nothing left to race against.
+    setDirectiveNarrationDone(true);
   };
 
   useEffect(() => {
     if (!report) return;
+    setDirectiveNarrationDone(false);
     playDirectiveNarration();
     return () => {
       directiveCancelRef.current();
@@ -431,6 +446,21 @@ export default function AcSimulation({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [payload]);
+
+  // Waits for the directive banner's own auto-narration to finish (or resolve instantly, if
+  // muted/nothing to say) before starting the tour - both go through the same speech arbiter,
+  // so starting any earlier would cut the debrief's headline off mid-sentence. Gated on
+  // directiveNarrationDone rather than isNarratingDirective - see where that state is declared.
+  const introSimulateTourStartedRef = useRef(false);
+  useEffect(() => {
+    if (!report || !directiveNarrationDone) return;
+    // Phase 0 has exactly one challenge, so checking the phase alone is sufficient -
+    // `currentChallenge` is the challenge's *global* id (e.g. 113), not a phase-relative index.
+    if (currentPhase !== 0) return;
+    if (introSimulateTourStartedRef.current) return;
+    introSimulateTourStartedRef.current = true;
+    startTour("introSimulate", { narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
+  }, [report, directiveNarrationDone, currentPhase]);
 
   // Same 10-notch scale MetricTab uses in the Performance Dashboard header - these are that
   // exact metric, not a separate "project health" abstraction, so this card has to look like
@@ -543,7 +573,13 @@ export default function AcSimulation({
         {report && (
           <>
             {/* 1. Executive Directive Banner */}
-            <div className={styles.directiveBanner}>
+            <div
+              className={styles.directiveBanner}
+              data-intro-group="introSimulate"
+              data-title="Rollout Outcome"
+              data-intro="This is the rollout outcome: how your pitched proposal actually landed, in one headline. Below it, a full breakdown of what happened and why - read it closely, it's the closest thing to feedback the simulation ever gives you."
+              data-step="1"
+            >
               <div className={styles.directiveBannerRow}>
                 {heroIcon && <OnceIcon icon={heroIcon} className={styles.directiveHeroIcon} />}
                 <div className={styles.directiveBannerContent}>
@@ -634,7 +670,13 @@ export default function AcSimulation({
               {/* Main Column: Component Implementation Log & Human Sentiments */}
               <div className={styles.mainCol}>
                 {/* ── Component Implementation Log (Core Focus) ── */}
-                <div className={styles.surfaceCard}>
+                <div
+                  className={styles.surfaceCard}
+                  data-intro-group="introSimulate"
+                  data-title="What Actually Happened"
+                  data-intro="A row per component your proposal touched: flawless, capped by an upstream bottleneck, degraded by stakeholder pushback, or delayed. This is where you learn what your pitch actually cost - a bill the simulation writes up whether or not you asked for it."
+                  data-step="2"
+                >
                   <div className={styles.cardHeader}>
                     <h3 className={styles.cardTitle}>
                       <Icon icon="ph:list-checks-bold" />

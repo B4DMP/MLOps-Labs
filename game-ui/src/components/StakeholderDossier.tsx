@@ -1540,7 +1540,13 @@ export default function StakeholderDossier({
     const nowLabel = phaseLabel(currentPhase, phases);
     const hasNowNotes = pagePhases.includes(currentPhase);
     return (
-      <div className={styles.filterBar}>
+      <div
+        className={styles.filterBar}
+        data-intro-group="introDossier"
+        data-title="Search & Filter"
+        data-intro="This is the dossier footer: search your notes, or filter down to one phase at a time. The <mark>Now</mark>-button jumps straight to whatever you found in the phase you're currently in. On the right, you can filter by intel state: <mark>unconfirmed</mark>, <mark>verified</mark>, or <mark>on record</mark>. That's handy before a pitch, so you don't accidentally quote gossip or something two phases stale."
+        data-step="5"
+      >
         {pagePhases.length > 0 && (
           <div className={styles.phaseRow}>
             <button
@@ -1679,7 +1685,13 @@ export default function StakeholderDossier({
         ) : (
           <>
         {/* Header: Polaroid Snapshot Frame with Caption + Main Info */}
-        <div className={styles.sketchbookHeader}>
+        <div
+          className={styles.sketchbookHeader}
+          data-intro-group="introDossier"
+          data-title="Stakeholder Snapshot"
+          data-intro="This is the stakeholder heading: their avatar, and the face badge showing how they currently feel about you and your plan. A sour face isn't final - the right intel and the right pitch can still turn it around, though it will not apologize first."
+          data-step="3"
+        >
           <div
             className={styles.polaroidFrame}
             onMouseEnter={() => setHoveredPolaroidStId(st.stakeholder_id)}
@@ -1945,7 +1957,13 @@ export default function StakeholderDossier({
 
         {/* One card per refinement chain: the newest link is the headline (D24) */}
         {pageChains.length > 0 ? (
-          <div className={styles.stickyNoteGrid}>
+          <div
+            className={styles.stickyNoteGrid}
+            data-intro-group="introDossier"
+            data-title="Intel Notes"
+            data-intro="This is the dossier body: one note per piece of <note>intel</note> you've found, with its tag, a confidence stamp, and where it came from. Click a note to reread the source artifact if you're not fully sure you tagged it right the first time - nothing here judges you for checking twice."
+            data-step="4"
+          >
             {pageChains.map((chain, idx) => {
               const item = chain.newest;
               // The first resolved chain in the (now sorted) list opens its own category, below
@@ -2394,7 +2412,20 @@ export default function StakeholderDossier({
           <Icon icon="ph:address-book-tabs-duotone" className={styles.binderTitleIcon} />
           STAKEHOLDER DOSSIER
         </div>
-        <div className={styles.headerControls}>
+        <div
+          className={styles.headerControls}
+          data-intro-group="introDossier"
+          data-title="Dossier Toolbar"
+          data-intro="This is the game's main menu. <ul>
+                    <li><mark><iconify-icon icon='ph:projector-screen-chart-bold'></iconify-icon> Phase Briefing</mark> and <mark><iconify-icon icon='ph:certificate-duotone'></iconify-icon> Challenge-Intel</mark> give you info what you're actually solving for.</li>
+                    <li><mark><iconify-icon icon='ph:gauge-bold'></iconify-icon> Performance</mark> shows how the pipeline is holding up right now.</li>
+                    <li><mark><iconify-icon icon='ph:scroll-bold'></iconify-icon> Log</mark> is your paper trail if you forget what you've already found.</li>
+                    <li><mark><iconify-icon icon='ph:gear-six-bold'></iconify-icon> Settings</mark> gives access to the user profile and voiceover options.</li>
+                    <li><mark><iconify-icon icon='ph:question-bold'></iconify-icon> Cheat Sheet</mark> gives you a brief reminder on what to do next. This is also where you can replay the demo.</li>
+                    </ul>
+                    All of it is one click away in the dossier, so don't worry about remembering it."
+          data-step="1"
+        >
           {hasHeaderTools && (
             <div className={styles.headerHint} aria-hidden="true">
               More info <Icon icon="ph:arrow-right-bold" className={styles.headerHintArrow} />
@@ -2408,6 +2439,23 @@ export default function StakeholderDossier({
                 detail={"Objectives & current challenge\nStakeholder power & interest radar"}
                 ariaLabel="Briefing: reopen the phase briefing — objectives, current challenge, and the stakeholder power & interest radar"
                 onClick={onOpenPhaseBriefing}
+              />
+            )}
+            {challengeIntelIndex >= 0 && (
+              <HeaderIconButton
+                icon={intelTagMeta("fact").icon}
+                label="Challenge-Intel"
+                detail={systemPips.length > 0 ? describeIntelPips(systemPips) : undefined}
+                ariaLabel={`Challenge-Intel: facts about the system already on record at the start of the challenge — ${describeIntelPips(systemPips)}`}
+                active={currentPageIndex === challengeIntelIndex}
+                onClick={() => requestPageChange(currentPageIndex === challengeIntelIndex ? lastPersonPage.current : challengeIntelIndex)}
+                badge={
+                  systemPips.length > 0 ? (
+                    <span className={styles.headerBadgeCount}>
+                      {systemFoundCount}/{systemPips.length}
+                    </span>
+                  ) : undefined
+                }
               />
             )}
             {onPerformanceToggle && (
@@ -2428,23 +2476,6 @@ export default function StakeholderDossier({
                       className={styles.headerBadgeDot}
                       style={{ background: healthBucketColor(systemHealthBucket) }}
                     />
-                  ) : undefined
-                }
-              />
-            )}
-            {challengeIntelIndex >= 0 && (
-              <HeaderIconButton
-                icon={intelTagMeta("fact").icon}
-                label="Challenge-Intel"
-                detail={systemPips.length > 0 ? describeIntelPips(systemPips) : undefined}
-                ariaLabel={`Challenge-Intel: facts about the system already on record at the start of the challenge — ${describeIntelPips(systemPips)}`}
-                active={currentPageIndex === challengeIntelIndex}
-                onClick={() => requestPageChange(currentPageIndex === challengeIntelIndex ? lastPersonPage.current : challengeIntelIndex)}
-                badge={
-                  systemPips.length > 0 ? (
-                    <span className={styles.headerBadgeCount}>
-                      {systemFoundCount}/{systemPips.length}
-                    </span>
                   ) : undefined
                 }
               />
@@ -2523,7 +2554,13 @@ export default function StakeholderDossier({
 
       {/* Physical Bookmark Tabs (Top Bar) */}
       {effectiveDossierData.length > 0 && (
-        <div className={styles.tabsContainer}>
+        <div
+          className={styles.tabsContainer}
+          data-intro-group="introDossier"
+          data-title="Stakeholder Tabs"
+          data-intro="One tab per stakeholder. Each tab shows their current mood and how much of their intel you've found so far - a low progress bar is your cue that you're missing something before you can pitch to them convincingly. Stakeholders can tell."
+          data-step="2"
+        >
           {effectiveDossierData.map((st, idx) => {
             // The environment is not a person, so it is not in the tab strip (D45).
             if (st.is_challenge_intel) return null;

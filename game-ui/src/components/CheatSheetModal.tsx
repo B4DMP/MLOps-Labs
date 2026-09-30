@@ -5,6 +5,20 @@ import { EmojiIcon } from "../utils/emojiIcons";
 import { submitBugReport } from "../services/api/bugReports";
 import styles from "./CheatSheetModal.module.css";
 import { INTEL_TAGS } from "../types/IntelTag";
+import { useSpeech } from "./useSpeech";
+import { startTour } from "../utils/tour";
+import { TOUR_GUIDE_SEED } from "../utils/speech";
+
+/** Which intro.js tour group each section's "Replay Demo" button reopens. Only sections that
+ * were actually covered by the phase-0 walkthrough get the button - sections without an entry
+ * here (e.g. "Report Bug") simply don't show one. */
+const SECTION_TOUR_GROUP: Record<string, string> = {
+  Briefing: "intro2",
+  "This Dossier": "introDossier",
+  "Digging for Intel": "introDossier",
+  "Pitch & Debate": "introPitch",
+  Simulate: "introSimulate",
+};
 
 const MAX_BUG_MESSAGE_LENGTH = 4000;
 
@@ -165,6 +179,7 @@ export default function CheatSheetModal({
   const [isClosing, setIsClosing] = useState(false);
   const [poppingTitle, setPoppingTitle] = useState<string | null>(null);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const { speak: speakTts } = useSpeech();
 
   const [activeTab, setActiveTab] = useState<"guide" | "bug">("guide");
   const [bugMessage, setBugMessage] = useState("");
@@ -203,6 +218,17 @@ export default function CheatSheetModal({
     setTimeout(() => {
       setIsClosing(false);
       onClose();
+    }, 200);
+  };
+
+  /** Closes the sheet, then replays `group`'s tour. */
+  const handleReplayDemo = (group: string) => {
+    if (isClosing) return;
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsClosing(false);
+      onClose();
+      startTour(group, { narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
     }, 200);
   };
 
@@ -330,6 +356,17 @@ export default function CheatSheetModal({
               <div className={styles.cardHeader}>
                 <Icon icon={section.icon} className={styles.cardIcon} />
                 <span>{section.title}</span>
+                {section.title === activeSectionTitle && SECTION_TOUR_GROUP[section.title] && (
+                  <button
+                    type="button"
+                    className={styles.replayDemoButton}
+                    onClick={() => handleReplayDemo(SECTION_TOUR_GROUP[section.title])}
+                    title="Replay the guided walkthrough for this screen"
+                  >
+                    <Icon icon="ph:play-circle-bold" />
+                    <span>Replay Demo</span>
+                  </button>
+                )}
               </div>
               {section.title === "Briefing" ? (
                 <div className={styles.glyphLine}>

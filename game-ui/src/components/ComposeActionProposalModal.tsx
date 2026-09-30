@@ -4,6 +4,9 @@ import { Icon } from "@iconify/react";
 import { EMOJI_ICON } from "../utils/emojiIcons";
 import styles from "./ComposeActionProposalModal.module.css";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
+import { useSpeech } from "./useSpeech";
+import { startTour } from "../utils/tour";
+import { TOUR_GUIDE_SEED } from "../utils/speech";
 import type { Stakeholder } from "./StakeholderProvider";
 import type { StakeholderDossierEntry, IntelEntry } from "./StakeholderDossier";
 import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
@@ -485,7 +488,7 @@ export default function ComposeActionProposalModal({
   isOpen,
   onClose,
   currentPhase,
-  currentChallenge: _currentChallenge,
+  currentChallenge,
   initialAtomicChanges = [],
   initialSelectedTargetId,
   onConfirmProposal,
@@ -506,6 +509,7 @@ export default function ComposeActionProposalModal({
 }: ComposeActionProposalModalProps) {
   const { emit, subscribe } = useGameWebSocket();
   const highlight = useGlossaryHighlighter("action_proposal");
+  const { speak: speakTts } = useSpeech();
 
   const [localGraphState, setLocalGraphState] = useState<GraphStatePayload | null>(propGraphState);
   // A saved proposal can carry a stale duplicate slot for the same (target, axis) (see
@@ -727,6 +731,16 @@ export default function ComposeActionProposalModal({
   }, [isOpen, phaseStageId]);
 
   // Map of all components by ID across stages
+  const introComposeTourStartedRef = useRef(false);
+  useEffect(() => {
+    // Phase 0 has exactly one challenge, so checking the phase alone is sufficient -
+    // `currentChallenge` is the challenge's *global* id (e.g. 113), not a phase-relative index.
+    if (!isOpen || currentPhase !== 0) return;
+    if (introComposeTourStartedRef.current) return;
+    introComposeTourStartedRef.current = true;
+    startTour("introCompose", { narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
+  }, [isOpen, currentPhase]);
+
   const allComponentsMap = useMemo(() => {
     const map = new Map<string, ComponentData>();
     if (!graphState?.technical) return map;
@@ -1023,7 +1037,13 @@ export default function ComposeActionProposalModal({
       </div>
 
       {/* ── Stage Tabs Bar ── */}
-      <div className={styles.stageTabsBar}>
+      <div
+        className={styles.stageTabsBar}
+        data-intro-group="introCompose"
+        data-title="Pipeline Stages"
+        data-intro="This is the pipeline stage switcher. Only the stage for your current phase is editable here (the dot marks it); the others are view-only, so you can check how a change here would ripple downstream before it's actually rippled anywhere."
+        data-step="1"
+      >
         {(graphState?.stages || []).map((stage) => {
           const isActivePhase = stage.id === phaseStageId;
           const isSelected = activeStageId === stage.id;
@@ -1063,7 +1083,13 @@ export default function ComposeActionProposalModal({
       {/* ── Split Body ── */}
       <div className={styles.modalBody}>
         {/* Left: Graph Canvas Viewport */}
-        <div className={styles.canvasArea}>
+        <div
+          className={styles.canvasArea}
+          data-intro-group="introCompose"
+          data-title="Pipeline Nodes"
+          data-intro="These nodes are the pipeline's components. Click one to add a change to your proposal - up to 3 per pitch. Each change is a promise: raise this component's automation or governance to a specific level, a promise the simulation will absolutely check on."
+          data-step="2"
+        >
           <div className={styles.canvasToolbar}>
             <span className={styles.canvasStageName}>
               {graphState?.stages?.find((st) => st.id === activeStageId)?.name ?? "Stage"} architecture
@@ -1578,7 +1604,13 @@ export default function ComposeActionProposalModal({
         </div>
 
         {/* Right: Inspector & Slots Panel */}
-        <div className={styles.sidebarArea}>
+        <div
+          className={styles.sidebarArea}
+          data-intro-group="introCompose"
+          data-title="Proposal Slot"
+          data-intro="Once you select a node, its details show up here: what level to raise it to, and why. Add it to a slot, and it becomes part of the proposal you'll pitch to the room - and shortly after, part of what the room remembers you promising."
+          data-step="3"
+        >
           <div className={styles.sidebarContent}>
             {selectedCrossStub ? (
               /* ── Cross-Phase Dependency: purely informational, nothing to build here ── */

@@ -11,7 +11,8 @@ import type { GameEventPayload } from "../types/GameEvent";
 import styles from "./offline_intel_gathering.module.css";
 import { CHALLENGE_INTEL_META, INTEL_TAGS, intelTagMeta } from "../types/IntelTag";
 import { useSpeech } from "./useSpeech";
-import { slotForStakeholderVoice } from "../utils/speech";
+import { slotForStakeholderVoice, TOUR_GUIDE_SEED } from "../utils/speech";
+import { startTour } from "../utils/tour";
 import { StakeholderContext } from "./StakeholderProvider";
 import { useSettings } from "./SettingsProvider";
 import OnceIcon from "./Results/OnceIcon";
@@ -187,6 +188,15 @@ export default function OfflineIntelGathering({
   const [isConfirmingReset, setIsConfirmingReset] = useState(false);
 
   const hasRequestedRef = useRef(false);
+  const introDossierTourStartedRef = useRef(false);
+  // Artifact auto-narration and the tour's own narration both go through the same shared speech
+  // arbiter (speakTts) - starting one preempts the other mid-sentence, and that preemption never
+  // fires the preempted call's onEnd, which left isNarrating stuck true (an endless spinner) and
+  // the artifact permanently unmarked/unread. Lazy-init skips the wait entirely in every case the
+  // tour wouldn't run anyway (phase !== 0, or the single-artifact review view).
+  const [introDossierTourDone, setIntroDossierTourDone] = useState(
+    () => currentPhase !== 0 || Boolean(singleArtifact)
+  );
   const resetConfirmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [infoTag, setInfoTag] = useState<{
@@ -483,7 +493,9 @@ export default function OfflineIntelGathering({
     // The phase/challenge briefing narrates first and uses the same shared speech arbiter -
     // starting an artifact reading here would cut it off. Once the briefing closes, this effect
     // re-runs (isPhaseBriefingOpen is a dep) and narrates the artifact that's on screen then.
-    if (isPhaseBriefingOpen) return;
+    // Same reasoning for the tour: it also narrates through that arbiter, so this waits for
+    // introDossierTourDone too, rather than racing it (see where that state is declared).
+    if (isPhaseBriefingOpen || !introDossierTourDone) return;
     if (!currentArtifactKey || !currentArtifact?.content) return;
     if (narratedArtifactKeysRef.current.has(currentArtifactKey)) return;
     narrateArtifact(currentArtifact, currentArtifactKey);
@@ -494,7 +506,25 @@ export default function OfflineIntelGathering({
       setActiveSentenceIndex(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentArtifactKey, currentArtifact?.content, currentArtifact?.stakeholder_id, isPhaseBriefingOpen]);
+  }, [currentArtifactKey, currentArtifact?.content, currentArtifact?.stakeholder_id, isPhaseBriefingOpen, introDossierTourDone]);
+
+  // Same "wait for the briefing to finish first" rule as artifact narration above - the tour
+  // and the briefing/artifact narration all go through the same shared speech arbiter.
+  useEffect(() => {
+    if (isPhaseBriefingOpen || singleArtifact) return;
+    // Phase 0 has exactly one challenge (challenges_per_phase: 1), so checking the phase alone
+    // is sufficient - `currentChallenge` is the challenge's *global* id (e.g. 113), not a
+    // phase-relative index, and comparing it to 0 never matched, which silently kept this tour
+    // from ever starting.
+    if (currentPhase !== 0) return;
+    if (artifacts.length === 0) return;
+    if (introDossierTourStartedRef.current) return;
+    introDossierTourStartedRef.current = true;
+    startTour("introDossier", {
+      narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }),
+      onFinish: () => setIntroDossierTourDone(true),
+    });
+  }, [isPhaseBriefingOpen, singleArtifact, currentPhase, artifacts.length]);
 
   // Known artifacts arrive pre-tagged and locked, so they stay out of every progress count:
   // the player should see how many calls are theirs to make, not a number they cannot move.
@@ -604,7 +634,13 @@ export default function OfflineIntelGathering({
                   singleArtifact mode: that's the Pitch & Debate "review this artifact" popup,
                   not the offline intel gathering phase, so "where am I in the project" doesn't apply. */}
               {!singleArtifact && (
-                <div className={styles.headerPhaseRail}>
+                <div
+                  className={styles.headerPhaseRail}
+                  data-intro-group="introDossier"
+                  data-title="Where You Are"
+                  data-intro="Same phase rail as everywhere else, just compact - it always shows where you are in the project, in case the dossier itself has made you lose track."
+                  data-step="6"
+                >
                   <PhaseOverview compact />
                 </div>
               )}
@@ -698,7 +734,13 @@ export default function OfflineIntelGathering({
 
                 {/* Quick direct item navigation pills */}
                 {artifacts.length > 0 && !singleArtifact && (
-                  <div className={styles.navPillsContainer}>
+                  <div
+                    className={styles.navPillsContainer}
+                    data-intro-group="introDossier"
+                    data-title="On the Record vs. Yours to Call"
+                    data-intro="Three of these items are already on the record: <mark class='mlops-mark-purple'><iconify-icon icon='ph:certificate-duotone'></iconify-icon> the challenge itself</mark>, and the conflicting opinions of the two main <mark class='mlops-mark-blue'><iconify-icon icon='ph:user-sound-duotone'></iconify-icon> stakeholders</mark> - look for the <iconify-icon icon='ph:lightning-fill' class='mlops-icon-yellow'></iconify-icon> bolt between their pills, that's exactly where the disagreement sits. Nothing to tag there - just read them, they've made up their minds without asking you. Every other numbered pill is yours to categorize, and getting it right is what actually earns you usable intel, not just a completion checkmark."
+                    data-step="7"
+                  >
                     <button
                       type="button"
                       onClick={() => {
@@ -1074,7 +1116,13 @@ export default function OfflineIntelGathering({
                       )}
 
                       {/* Artifact Viewer with Slide Transition - fills all remaining space, no chrome around it */}
-                      <div className={styles.viewerWrapper}>
+                      <div
+                        className={styles.viewerWrapper}
+                        data-intro-group="introDossier"
+                        data-title="The Artifact"
+                        data-intro="This is the artifact body: an email, a chat message, meeting notes, or a document, giving you insight into the stakeholder's perspective. Read it for what it actually says, not just who sent it - the categorization below only works if you catch what they're really asking for, which is rarely the same as the subject line."
+                        data-step="8"
+                      >
                         <AnimatePresence mode="wait" custom={direction}>
                           <motion.div
                             key={`${currentIndex}-${currentArtifactKey}`}
@@ -1102,6 +1150,10 @@ export default function OfflineIntelGathering({
                     {/* Compact Tagging Prompt & Buttons Panel - flush against the card's own edges, no nested box */}
                     <div
                       className={`${styles.taggingPanel} ${styles.taggingPanelStance}`}
+                      data-intro-group="introDossier"
+                      data-title="Categorize It"
+                      data-intro="This is the categorization footer: first decide who or what the artifact is about, then whether they want it (<mark><iconify-icon icon='ph:target-duotone'></iconify-icon> driver</mark>), refuse it (<mark><iconify-icon icon='ph:prohibit-duotone'></iconify-icon> boundary</mark>), or would accept it under conditions (<mark><iconify-icon icon='ph:scales-duotone'></iconify-icon> trade-off</mark>). Get it wrong and you'll misjudge what a stakeholder actually needs later - but nothing here is final yet, it's saved as unconfirmed intel until you ask the stakeholders about it."
+                      data-step="9"
                     >
                       <div className={styles.taggingPanelHeader}>
                         {!singleArtifact && (

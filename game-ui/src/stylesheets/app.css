@@ -103,8 +103,218 @@ a {
     font-weight: 700;
 }
 
+/* ── Guided tour skin (utils/tour.ts) ──────────────────────────────────────────────────
+   Re-themes intro.js's default plain-white tooltip to match the app's own dark/teal
+   surfaces (see stylesheets/variables.css: --primary-bg is the same teal as the phase
+   pill, --secondary-bg the same dark navy CheatSheetModal/PrePhaseDialog headers use),
+   instead of leaving the library's out-of-the-box look in a game that never looks like
+   that anywhere else. */
+
+.introjs-overlay {
+    background: rgba(6, 14, 20, 0.72) !important;
+}
+
+.introjs-helperLayer {
+    box-shadow:
+        0 0 0 4px rgba(38, 102, 130, 0.55),
+        0 0 24px 4px rgba(38, 102, 130, 0.45),
+        rgba(0, 0, 0, 0.8) 0px 0px 1px 2px,
+        rgba(33, 33, 33, 0.5) 0px 0px 0px 5000px !important;
+}
+
+.introjs-tooltip {
+    background: linear-gradient(160deg, rgb(23, 60, 77) 0%, rgb(13, 34, 44) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(38, 102, 130, 0.35);
+    min-width: 450px;
+    max-width: 600px;
+    color: #e7eef2;
+    font-family: "Helvetica Neue", Inter, ui-sans-serif, sans-serif;
+}
+
+.introjs-tooltip-header {
+    padding-top: 18px;
+}
+
+.introjs-tooltip-title {
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+/* A small "GUIDED TOUR" eyebrow above the step title, so the tooltip reads as a deliberate
+   feature rather than a stray browser popup. */
+.introjs-tooltip-header::before {
+    content: "Guided Tour";
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(120, 200, 225);
+    margin-bottom: 0.3rem;
+}
+
+.introjs-tooltiptext {
+    padding: 4px 20px 16px;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: #dbe6ec;
+}
+
+/* intro.js renders `data-intro` as real HTML (via createContextualFragment), not escaped text -
+   so a step's copy can wrap the one phrase that's actually actionable in <mark> to call it out
+   visually, same idea as SpokenText's sentence-highlight but author-placed instead of following
+   playback. Stripped back out to plain text before narration (see stripForSpeech in speech.ts),
+   so the tour guide's voice reads the words, never the markup. */
+.introjs-tooltiptext mark {
+    background: rgba(120, 200, 225, 0.22);
+    color: #bdeeff;
+    border-radius: 4px;
+    padding: 0 3px;
+    font-weight: 600;
+}
+
+/* Color variants for when a step's own copy is calling out something that already has an
+   established color elsewhere in the UI (e.g. the Challenge-Intel/on-record pills in
+   offline_intel_gathering.module.css: navPillOnRecordFact is #7c3aed, navPillOnRecord is #1d4ed8)
+   - matching it here instead of the default teal makes the tooltip text and the pill it's
+   pointing at read as the same thing, not two unrelated highlights. */
+.introjs-tooltiptext mark.mlops-mark-purple {
+    background: rgba(124, 58, 237, 0.28);
+    color: #d8b4fe;
+}
+
+.introjs-tooltiptext mark.mlops-mark-blue {
+    background: rgba(29, 78, 216, 0.28);
+    color: #93c5fd;
+}
+
+/* Same idea for an icon: matches .conflictSeamBolt's own color exactly, so the bolt drawn in the
+   tooltip text is recognizably the same bolt the player sees sitting between two pills. */
+.introjs-tooltiptext iconify-icon.mlops-icon-yellow {
+    color: #f59e0b;
+}
+
+/* Same idea, for icons: `iconify-icon` (registered globally in main.tsx) is a real custom
+   element, so a step's copy can drop the exact `ph:*` icon a button already uses right next to
+   its name (e.g. <iconify-icon icon="ph:gear-six-bold">), instead of describing it in words.
+   Also stripped before narration - it has no text content to read anyway. */
+.introjs-tooltiptext iconify-icon {
+    font-size: 1.05em;
+    vertical-align: -0.15em;
+    color: rgb(120, 200, 225);
+}
+
+/* A step that enumerates several UI controls (e.g. the dossier toolbar) reads better as a list
+   than a wall of prose - default UA list spacing is too loose for a 340px-wide tooltip though. */
+.introjs-tooltiptext ul {
+    margin: 4px 0 0;
+    padding-left: 1.1em;
+}
+
+.introjs-tooltiptext li {
+    margin-bottom: 6px;
+}
+
+.introjs-tooltiptext li:last-child {
+    margin-bottom: 0;
+}
+
+.introjs-arrow.top,
+.introjs-arrow.top-right,
+.introjs-arrow.top-middle {
+    border-bottom-color: rgb(23, 60, 77);
+}
+
+.introjs-arrow.bottom,
+.introjs-arrow.bottom-right,
+.introjs-arrow.bottom-middle {
+    border-top-color: rgb(13, 34, 44);
+}
+
+.introjs-arrow.left,
+.introjs-arrow.left-bottom {
+    border-right-color: rgb(23, 60, 77);
+}
+
+.introjs-arrow.right,
+.introjs-arrow.right-bottom {
+    border-left-color: rgb(13, 34, 44);
+}
+
+.introjs-tooltipbuttons {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px 16px;
+}
+
+.introjs-button {
+    background: rgb(38, 102, 130);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    text-shadow: none;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 0.4rem 1.1rem;
+}
+
+.introjs-button:hover,
+.introjs-button:focus {
+    background: rgb(48, 128, 162);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+.introjs-button:active {
+    background: rgb(30, 82, 105);
+}
+
+.introjs-disabled,
+.introjs-disabled:hover,
+.introjs-disabled:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.35);
+}
+
+/* The native "x" in a tour tooltip's corner: exits this page's demo, same as our own
+   "Skip this page's demo" control below (see utils/tour.ts). */
 .introjs-skipbutton {
-    display: none !important;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.introjs-skipbutton:hover,
+.introjs-skipbutton:focus {
+    color: #ffffff;
+}
+
+/* Our own skip tier, injected per-step by utils/tour.ts: "skip this message" advances past the
+   current tooltip, "skip this page's demo" exits the whole tour. Sits between the tooltip body
+   and intro.js's own prev/next/done row rather than fighting that row's float layout. */
+.mlops-tour-controls {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0 20px 10px;
+}
+
+.mlops-tour-control-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: rgba(219, 230, 236, 0.65);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
+.mlops-tour-control-btn:hover,
+.mlops-tour-control-btn:focus {
+    color: rgb(140, 210, 232);
+    outline: 0;
 }
 
 /* CoreUI Carousel Full-Height Flex Styling */

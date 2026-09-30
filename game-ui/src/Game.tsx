@@ -7,8 +7,10 @@ import Questionaire from "./Questionaire";
 import type { Briefing } from "./types/Briefing";
 import type { Question } from "./types/Question";
 import BriefingPage from "./BriefingPage";
-import introJs from "intro.js";
 import "intro.js/introjs.css";
+import { startTour } from "./utils/tour";
+import { TOUR_GUIDE_SEED } from "./utils/speech";
+import { useSpeech } from "./components/useSpeech";
 import ResultsScreen from "./components/Results/ResultsScreen";
 import OfflineIntelGathering from "./components/offline_intel_gathering";
 import { type IntelItem } from "./components/ActionCardCardComponent";
@@ -72,6 +74,7 @@ interface AppProps {
 function App({ username: _username, onLogout }: AppProps) {
   const debug: boolean = false;
   const { emit, subscribe, isConnected, username } = useGameWebSocket();
+  const { speak: speakTour } = useSpeech();
 
   const sendJsonMessage = (data: any) => {
     emit(data.type, data);
@@ -80,10 +83,10 @@ function App({ username: _username, onLogout }: AppProps) {
   const [currentPhase, setCurrentPhase] = useState(0);
   const [currentChallenge, setCurrentChallenge] = useState(0);
   const [phases, setPhases] = useState<any[]>([]);
+  const [introPhaseEnabled, setIntroPhaseEnabled] = useState(false);
   const [metrics, setMetrics] = useState<Record<string, Metric>>({});
   const [challengeAmount, setChallengeAmount] = useState(0);
   const [_challengeMetricChanges, setChallengeMetricChanges] = useState<
-  const [introPhaseEnabled, setIntroPhaseEnabled] = useState(false);
     Record<string, number>
   >({});
   const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder>>({});
@@ -113,7 +116,6 @@ function App({ username: _username, onLogout }: AppProps) {
   // of this flag were removed with the merged pitch phase (D37/D46).
   const [, setIsChatEnabled] = useState(true);
   const [isintro5Done, setIsintro5Done] = useState(false);
-  const [isIntro1Started, setIsIntro1Started] = useState(false);
   const [isInErrorUi, setIsInErrorUi] = useState(false);
   const [lastError, setLastError] = useState("");
   const [challengeLoopId, setChallengeLoopId] = useState<number>(0);
@@ -163,7 +165,6 @@ function App({ username: _username, onLogout }: AppProps) {
   const currentPhaseRef = useRef<number>(0);
   const currentChallengeRef = useRef<number>(0);
   const isintro5DoneRef = useRef<boolean>(false);
-  const isIntro1StartedRef = useRef<boolean>(false);
   const hasPitchDebateStartedRef = useRef<boolean>(false);
   const hasReceivedInitialStateRef = useRef<boolean>(false);
 
@@ -186,10 +187,6 @@ function App({ username: _username, onLogout }: AppProps) {
   useEffect(() => {
     isintro5DoneRef.current = isintro5Done;
   }, [isintro5Done]);
-
-  useEffect(() => {
-    isIntro1StartedRef.current = isIntro1Started;
-  }, [isIntro1Started]);
 
   useEffect(() => {
     hasPitchDebateStartedRef.current = hasPitchDebateStarted;
@@ -220,25 +217,7 @@ function App({ username: _username, onLogout }: AppProps) {
             setIsNewChallenge(false);
           } else {
             setIsNewChallenge(true);
-
-            // If phase 0 and intro1 hasn't run yet, run intro1 then open PrePhaseDialog
-            if (currentPhase === 0 && !isIntro1StartedRef.current) {
-              isIntro1StartedRef.current = true;
-              setIsIntro1Started(true);
-              setTimeout(() => {
-                introJs()
-                  .setOptions({
-                    group: "intro1",
-                    exitOnEsc: false,
-                    exitOnOverlayClick: false,
-                  })
-                  .oncomplete(() => setIsPhaseDialogueOpen(true))
-                  .onexit(() => setIsPhaseDialogueOpen(true))
-                  .start();
-              }, 100);
-            } else {
-              setIsPhaseDialogueOpen(true);
-            }
+            setIsPhaseDialogueOpen(true);
           }
         }
       }
@@ -276,7 +255,6 @@ function App({ username: _username, onLogout }: AppProps) {
     Array(questions.length).fill(null),
   );
   const [isPerformanceOpen, setIsPerformanceOpen] = useState(false);
-      setIntroPhaseEnabled(Boolean(data["intro_phase_enabled"]));
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
@@ -298,6 +276,7 @@ function App({ username: _username, onLogout }: AppProps) {
       setStakeholders(enrichedStakeholders);
       setMetrics(rawMetrics);
       setPhases(data["phases"]);
+      setIntroPhaseEnabled(Boolean(data["intro_phase_enabled"]));
       if (data["phases"] && data["phases"].length > 0) {
         setChallengeAmount(data["phases"].length);
       }
@@ -649,13 +628,7 @@ function App({ username: _username, onLogout }: AppProps) {
 
       if (currentPhaseRef.current === 0 && currentChallengeRef.current === 0 && !isintro5DoneRef.current) {
         setTimeout(() => {
-          introJs()
-            .setOptions({
-              group: "intro5",
-              exitOnEsc: false,
-              exitOnOverlayClick: false,
-            })
-            .start();
+          startTour("intro5", { narrate: (text) => speakTour(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
         }, 100);
         setIsintro5Done(true);
       }

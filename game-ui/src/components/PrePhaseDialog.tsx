@@ -3,7 +3,7 @@ import styles from "./PrePhaseDialog.module.css";
 import { PhasesContext, isFirstPlayablePhase } from "./PhaseProvider";
 import { useSettings } from "./SettingsProvider";
 import { useSpeech } from "./useSpeech";
-import { cancelSpeech, splitSentences } from "../utils/speech";
+import { cancelSpeech, splitSentences, TOUR_GUIDE_SEED } from "../utils/speech";
 import { useContext, useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { FADE_TRANSITION } from "../utils/transitions";
@@ -13,6 +13,8 @@ import HoverTooltip from "./HoverToolTip";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
 import CheatSheetModal from "./CheatSheetModal";
 import SpokenText from "./SpokenText";
+import GlossaryText from "./glossary/GlossaryText";
+import { startTour } from "../utils/tour";
 
 interface PrePhaseDialogProps {
   isOpen: boolean;
@@ -65,6 +67,7 @@ export default function PrePhaseDialog({
   const [bubbleLayer, setBubbleLayer] = useState<HTMLDivElement | null>(null);
   const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
   const wasReviewRef = useRef(false);
+  const introTourStartedRef = useRef(false);
   if (isOpen) {
     wasReviewRef.current = isReview;
   }
@@ -78,6 +81,11 @@ export default function PrePhaseDialog({
   // speak() then calls onEnd synchronously.
   const [isNarratingBriefing, setIsNarratingBriefing] = useState(false);
   const [introsUnlocked, setIntrosUnlocked] = useState(false);
+  // Phase 0's guided tour (intro2) walks the phase bar/description/challenge/radar chrome before
+  // any of it is narrated - seeded false only for phase 0 (lazy init: true for every other phase,
+  // which has no tour and must not wait on one). Flips true once intro2 finishes or is skipped,
+  // which is what actually unblocks the briefing narration effect below.
+  const [introTourDone, setIntroTourDone] = useState(() => currentPhase !== 0);
   const briefingCancelRef = useRef<() => void>(() => {});
   // Which sentence of the briefing narration is playing right now, for SpokenText below. Only
   // `phase_introduction`'s own sentences are rendered here (the challenge title/intro read in the
@@ -111,7 +119,7 @@ export default function PrePhaseDialog({
       .join(" ");
 
   useEffect(() => {
-    if (!isOpen || isReview) return;
+    if (!isOpen || isReview || !introTourDone) return;
     const text = buildBriefingNarration();
     if (!text || settings.auto_skip_conversations) {
       setIntrosUnlocked(true);
@@ -148,11 +156,36 @@ export default function PrePhaseDialog({
   }, [
     isOpen,
     isReview,
+    introTourDone,
     currentPhaseData?.phase_introduction,
     challengeTitle,
     challengeIntro,
     settings.auto_skip_conversations,
   ]);
+
+  // The intro2 tour walks the phase bar/description/challenge/radar chrome *before* any of it is
+  // narrated - it runs first, then unblocks the briefing narration effect above (introTourDone),
+  // which in turn unblocks the stakeholders' own self-introductions (introsUnlocked). All three
+  // stay strictly sequential because they share one speech arbiter; running any two at once means
+  // the second one silently cuts the first off.
+  useEffect(() => {
+    // Also waits for real phase data (`phases.length`): on a cold load this dialog can open
+    // before `game:init_data` arrives, and starting against an empty phase bar is exactly the
+    // "phase rail wasn't fully loaded" layout mismatch intro.js can't self-correct for later.
+    if (!isOpen || isReview || currentPhase !== 0 || phases.length === 0) return;
+    if (introTourStartedRef.current) return;
+    // A beat past this dialog's own fade-in (FADE_TRANSITION, 0.18s) so intro.js measures the
+    // phase bar once it has actually settled, not mid-transition. Only marked started once the
+    // timer actually fires, so a cleared timer (isOpen flipping again first) can still retry.
+    const timer = setTimeout(() => {
+      introTourStartedRef.current = true;
+      startTour("intro2", {
+        narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }),
+        onFinish: () => setIntroTourDone(true),
+      });
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [isOpen, isReview, currentPhase, phases.length]);
 
   const replayBriefingNarration = () => {
     const text = buildBriefingNarration();
@@ -238,7 +271,14 @@ export default function PrePhaseDialog({
             </div>
             {/* Same lifecycle breadcrumb as the Performance Dashboard header, so "where am I
                 in the project" looks identical wherever the player reads it. */}
-            <div className={styles.headerPhases}>
+            <div
+              className={styles.headerPhases}
+              data-intro-group="intro2"
+              data-title="Phase Bar"
+              data-intro="This is the phase bar - the same lifecycle breadcrumb you'll see in every header. It shows which of the five MLOps phases you're in, and that the game is a spiral: after the last one, it loops back to the first, forever, undefeated by closure. You don't act on it directly, but it's worth a glance whenever you're deciding how much time to sink into this round versus moving on - there's always another phase coming, ready or not."
+              data-step="1"
+              data-position="bottom-middle-aligned"
+            >
               <PhaseOverview />
             </div>
             <div className="d-flex align-items-center gap-2">
@@ -319,7 +359,13 @@ export default function PrePhaseDialog({
             <div className={styles.dossierGrid}>
               {/* Left Column: Mission Directive & Objectives */}
               <div className={styles.missionColumn}>
-                <div className={styles.missionCard}>
+                <div
+                  className={styles.missionCard}
+                  data-intro-group="intro2"
+                  data-title="Phase Objectives"
+                  data-intro="This is the phase description: what this phase is about, and the objectives you're expected to deliver on before moving to the next one. Keep them in mind while you dig through intel and pitch - they're what your proposal actually gets judged against; being well-liked is a nice bonus, not a substitute."
+                  data-step="2"
+                >
                   <div className={styles.missionCardHeader}>
                     <Icon icon="ph:target-bold" />
                     <span>{currentPhaseData?.phase_name || `Phase ${displayPhaseNumber}`}</span>
@@ -365,6 +411,9 @@ export default function PrePhaseDialog({
                         <SpokenText
                           text={currentPhaseData.phase_introduction}
                           activeSentenceIndex={isNarratingBriefing ? activeSentenceIndex : null}
+                          renderSentence={(sentence) => (
+                            <GlossaryText text={sentence} surface="challenge_briefing" />
+                          )}
                         />
                       </p>
                     )}
@@ -373,31 +422,49 @@ export default function PrePhaseDialog({
                         <Icon icon="ph:flag-checkered-bold" />
                         Phase Objectives
                       </span>
-                      <p className={styles.objectivesText}>
-                        {currentPhaseData?.phase_desc ||
-                          "Enter this phase to address new project requirements and align with key stakeholders."}
-                      </p>
+                      <GlossaryText
+                        as="p"
+                        className={styles.objectivesText}
+                        text={
+                          currentPhaseData?.phase_desc ||
+                          "Enter this phase to address new project requirements and align with key stakeholders."
+                        }
+                        surface="challenge_briefing"
+                      />
                     </div>
                   </div>
                 </div>
 
                 {/* Minimized Challenge Briefing: the current challenge's story, excluding the stakeholder-specific breakdown */}
                 {challengeTitle && (
-                  <ChallengeDescriptionCard
-                    challengeTitle={challengeTitle}
-                    challengeDescription={challengeDescription}
-                    challengeIntro={challengeIntro}
-                    currentChallenge={currentChallenge}
-                    challengeAmount={challengeAmount}
-                    is_minimized={true}
-                    isNew={isNewChallenge}
-                    activeSentenceIndex={isNarratingBriefing ? challengeSentenceIndex : null}
-                  />
+                  <div
+                    data-intro-group="intro2"
+                    data-title="This Round's Challenge"
+                    data-intro="This is the challenge description: the specific situation you're dropped into this round, and why the stakeholders don't agree about it. Whatever you pitch later has to actually resolve that disagreement, not just please one side of it - reread it if you have to, nobody's timing you."
+                    data-step="3"
+                  >
+                    <ChallengeDescriptionCard
+                      challengeTitle={challengeTitle}
+                      challengeDescription={challengeDescription}
+                      challengeIntro={challengeIntro}
+                      currentChallenge={currentChallenge}
+                      challengeAmount={challengeAmount}
+                      is_minimized={true}
+                      isNew={isNewChallenge}
+                      activeSentenceIndex={isNarratingBriefing ? challengeSentenceIndex : null}
+                    />
+                  </div>
                 )}
               </div>
 
               {/* Right Column: Stakeholder Matrix */}
-              <div className={styles.matrixColumn}>
+              <div
+                className={styles.matrixColumn}
+                data-intro-group="intro2"
+                data-title="Power & Interest Radar"
+                data-intro="This is the power/interest radar. High power, high interest stakeholders go in 'Manage Closely' - track them down first once you start gathering intel. The others still matter, they just won't sink your pitch if you get to them second, a fact they have made their peace with."
+                data-step="4"
+              >
                 <div className={styles.sectionHeader}>
                   <h6 className={styles.sectionTitle}>
                     <Icon icon="ph:users-three-bold" className={styles.sectionIcon} />
@@ -479,11 +546,7 @@ export default function PrePhaseDialog({
         <motion.div
           {...FADE_TRANSITION}
           key="prephase-dialog-page"
-          className={`${styles.pageWrapper} intro2`}
-          data-intro-group="intro2"
-          data-intro="This phase overview appears when a new phase begins. Here you can see the phase objectives and how stakeholders' power and interest dynamics evolve."
-          data-step="1"
-          data-position="middle-aligned"
+          className={styles.pageWrapper}
         >
           {panelContent}
         </motion.div>

@@ -25,28 +25,14 @@ function iconForPhase(phaseName: string): string {
 }
 
 export interface PhaseOverviewProps {
-  /**
-   * Carries the intro1 tour anchor. The rail is rendered in more than one header, and the
-   * tour must find exactly one of them, so only the Performance Dashboard sets this.
-   */
-  isTourAnchor?: boolean;
   /** Tiny variant for headers too narrow for six full-width segments: every phase except the
    *  current one collapses to just its marker icon (name still reachable via the hover tip),
    *  so only the active phase claims a share of the leftover width. */
   compact?: boolean;
 }
 
-export default function PhaseOverview({ isTourAnchor = false, compact = false }: PhaseOverviewProps) {
+export default function PhaseOverview({ compact = false }: PhaseOverviewProps) {
   const { currentPhase, phases } = useContext(PhasesContext);
-
-  const tourProps = isTourAnchor
-    ? {
-        "data-intro-group": "intro1",
-        "data-intro":
-          "The serious game consists of five MLOps phases illustrated by this phase overview. The phases cover the whole development process of ML projects from defining business objectives and architecture, over deployment, to monitoring and maintenance.",
-        "data-step": "2",
-      }
-    : {};
 
   // Equal columns for every phase, one content-sized column for the tail. Set here rather
   // than in CSS because only this component knows how many phases there are. In compact mode
@@ -66,9 +52,8 @@ export default function PhaseOverview({ isTourAnchor = false, compact = false }:
 
   return (
     <ol
-      className={`${styles.rail} ${compact ? styles.compact : ""} ${isTourAnchor ? "intro1" : ""}`}
+      className={`${styles.rail} ${compact ? styles.compact : ""}`}
       style={{ gridTemplateColumns: `${phaseColumns} ${tailColumn}` }}
-      {...tourProps}
       aria-label="MLOps lifecycle phases"
     >
       {phases.map((phase, index) => {

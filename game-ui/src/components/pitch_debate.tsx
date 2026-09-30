@@ -8,7 +8,8 @@ import { MetricsContext } from "./MetricProvider";
 import { PhasesContext } from "./PhaseProvider";
 import { useSettings } from "./SettingsProvider";
 import { useSpeech } from "./useSpeech";
-import { slotForStakeholderVoice } from "../utils/speech";
+import { slotForStakeholderVoice, TOUR_GUIDE_SEED } from "../utils/speech";
+import { startTour } from "../utils/tour";
 import styles from "./pitch_debate.module.css";
 import StakeholderDossier, { type StakeholderDossierEntry, type StakeholderBuyInInfo, type IntelEntry } from "./StakeholderDossier";
 import OfflineIntelGathering, { type IntelArtifact } from "./offline_intel_gathering";
@@ -671,6 +672,16 @@ export default function PitchDebate({
   useEffect(() => {
     emit("graph:state_request", { phase_id: currentPhase === 0 ? 1 : currentPhase });
   }, [emit, currentPhase]);
+
+  const introPitchTourStartedRef = useRef(false);
+  useEffect(() => {
+    // Phase 0 has exactly one challenge, so checking the phase alone is sufficient -
+    // `currentChallenge` is the challenge's *global* id (e.g. 113), not a phase-relative index.
+    if (currentPhase !== 0) return;
+    if (introPitchTourStartedRef.current) return;
+    introPitchTourStartedRef.current = true;
+    startTour("introPitch", { narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
+  }, [currentPhase]);
 
   useWebSocketEvent<PitchStatePayload>("pitch:state", (payload) => {
     setPitchState(payload);
@@ -1481,7 +1492,13 @@ export default function PitchDebate({
                         style={{ minHeight: 0, zIndex: isChatMaximized ? 0 : (isAnySpeechActive ? 3200 : 1) }}
                       >
                         {/* 1. Challenge Description Card above the Table */}
-                        <div className="w-100 flex-shrink-0 mb-1">
+                        <div
+                          className="w-100 flex-shrink-0 mb-1"
+                          data-intro-group="introPitch"
+                          data-title="The Challenge"
+                          data-intro="This is the challenge, same as in the briefing - it stays visible while you work the room, so you can check your pitch against it without leaving to go find it again."
+                          data-step="1"
+                        >
                           <ChallengeDescriptionCard
                             challengeTitle={challengeTitle}
                             challengeDescription={challengeDescription}
@@ -1508,6 +1525,10 @@ export default function PitchDebate({
                             className={`${styles.pitchDeckTable} ${isAnySpeechActive ? styles.pitchDeckTableSpeaking : ""} ${
                               isDraggingCard ? styles.pitchDeckTableDragging : ""
                             }`}
+                            data-intro-group="introPitch"
+                            data-title="The Boardroom"
+                            data-intro="The stakeholder table: play an Engagement Card on someone to talk to them, verify intel you're unsure about, or inspect a component before you commit to changing it. When you're ready to actually propose something, drag a card onto the plaque in the middle instead - talking is free, but only the plaque counts as a pitch."
+                            data-step="2"
                             onDragOver={(e) => {
                               e.preventDefault();
                               e.dataTransfer.dropEffect = "copy";
@@ -1935,6 +1956,10 @@ export default function PitchDebate({
                           isChatMaximized ? styles.chatColMaximized : ""
                         } d-flex flex-column h-100 position-relative`}
                         style={{ minHeight: 0, zIndex: isChatMaximized ? 2000 : 1 }}
+                        data-intro-group="introPitch"
+                        data-title="Conversation History"
+                        data-intro="Chat history: every conversation you've had this round, so you can scroll back and check exactly what someone said before you pitch - useful the moment two stakeholders start contradicting each other, which is often."
+                        data-step="3"
                       >
                         {/* Maximized Challenge Card Wrapper */}
                         <div
@@ -2034,6 +2059,10 @@ export default function PitchDebate({
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 12, scale: 0.985 }}
                             transition={{ duration: 0.2, ease: "easeOut" }}
+                            data-intro-group="introPitch"
+                            data-title="Engagement Cards"
+                            data-intro="Your Engagement Cards, spent by dragging one onto a stakeholder or the pitch plaque. You get a limited supply per round, so spend them on what actually moves the needle, not on whoever's currently loudest."
+                            data-step="4"
                           >
                             <EngagementCards
                               cards={cards}

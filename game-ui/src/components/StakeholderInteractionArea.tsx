@@ -19,7 +19,9 @@ import type { AvatarEmotion } from "../types/StakeholderAvatar";
 import { colorForStakeholderId } from "../types/StakeholderAvatar";
 import type { DialogueOption } from "../types/DialogueOption";
 import type { ActionCard } from "../types/ActionCard";
-import introJs from "intro.js";
+import { startTour } from "../utils/tour";
+import { TOUR_GUIDE_SEED } from "../utils/speech";
+import { useSpeech } from "./useSpeech";
 
 import styles from "./StakeholderInteractionArea.module.css";
 import { useGlossaryHighlighter } from "./glossary/GlossaryText";
@@ -294,19 +296,14 @@ export default function StakeholderInteractionArea({
   const highlightMessage = useGlossaryHighlighter("stakeholder_messages");
   const { isSurfaceEnabled } = useGlossary();
   const highlightMessages = isSurfaceEnabled("stakeholder_messages");
+  const { speak: speakTour } = useSpeech();
 
   useEffect(() => {
     if (!isEnabled && current_challenge === 0 && current_phase === 0 && !isintro4DoneRef.current) {
       isintro4DoneRef.current = true;
       setIsintro4Done(true);
       setTimeout(() => {
-        introJs()
-          .setOptions({
-            group: "intro4",
-            exitOnEsc: false,
-            exitOnOverlayClick: false,
-          })
-          .start();
+        startTour("intro4", { narrate: (text) => speakTour(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
       }, 10);
     }
   }, [isEnabled, current_challenge, current_phase]);
@@ -315,7 +312,7 @@ export default function StakeholderInteractionArea({
     <div
       className={`${className} ${showDialogueOptions ? "p-3" : "p-2"} h-100 d-flex flex-column rounded transparent-div ${styles.ChatContainer}`}
       data-intro-group="intro5"
-      data-intro="This is the chat area where you can communicate with the previously selected stakeholders in order to find a solution for the current challenge."
+      data-intro="This is the chat area, where you actually talk to the stakeholders you picked. Nothing gets resolved by silence - the more you dig into what they want here, the more dossier intel and dialogue options open up, and yes, they can tell if you're stalling."
       data-step="1"
       data-position="bottom"
     >
@@ -394,7 +391,7 @@ export default function StakeholderInteractionArea({
                   (isTyping || !isEnabled) && (
                     <TypingIndicator
                       data-intro-group="intro4"
-                      data-intro="This tells you that a stakeholder is currently typing a response."
+                      data-intro="This tells you a stakeholder is typing a response - nothing to do here but wait a moment; your own next move only unlocks once they've actually finished."
                       data-position="bottom"
                       content={typingText || "A stakeholder is typing..."}
                     />
@@ -636,7 +633,7 @@ export default function StakeholderInteractionArea({
                           className={`d-flex justify-content-center align-items-center ${styles.revealedIntelContainer} ${item.ac_id === 0 && "intro5"}`}
                           {...(item.ac_id === 0 ? {
                             "data-intro-group": "intro5",
-                            "data-intro": "If one or multiple stakeholders propose a concrete action plan to mitigate the challenge, the game automatically generates an action card that reflects the stakeholders' proposals.",
+                            "data-intro": "If a stakeholder proposes something concrete, the game turns it into an action card automatically - click it any time to see exactly what they're now on record asking for, whether they remember saying it or not.",
                             "data-step": "2",
                             "data-position": "bottom"
                           } : {})}
@@ -671,7 +668,7 @@ export default function StakeholderInteractionArea({
           <div
             className={`card border-secondary shadow-sm ${styles.journalDialogueCard}`}
             data-intro-group="intro5"
-            data-intro="Choose a dialogue option to respond to the stakeholders. Options are based on discovered intel items."
+            data-intro="Choose a dialogue option to respond. The options on offer are built from the intel you've actually found - so if a stakeholder isn't budging, the dossier is probably where the missing leverage is, not this list."
             data-step="5"
             data-position="top"
           >
