@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_heatwave_forecast_gap_monica_trade_off_tracking",
+  "stage": "objections",
+  "input_hash": "127aeac142e9bb70bd5f51804b593006fc0b65004d16166d9badaf3d49f86f68",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_monica_trade_off_tracking",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} noted that experiment tracking is manual. She would give up automated tracking if evaluation is fast.",
+      "fact": "{model_monica} noted that experiment tracking is manual.",
+      "reading": "She would give up automated tracking if evaluation is fast.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.experiment_tracking",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "You are framing my manual experiment tracking as a flaw I need fixing, but I am explicitly trading it for faster evaluation cycles. I will not accept a proposal that automates my logs without acknowledging that I am choosing to skip that step to ship models sooner.",
+    "correction": "You filed this as a governance gap, but I am talking about automation trade offs. I am willing to accept manual tracking to gain speed, so do not misread my preference for manual tools as a lack of process."
+  }
+}

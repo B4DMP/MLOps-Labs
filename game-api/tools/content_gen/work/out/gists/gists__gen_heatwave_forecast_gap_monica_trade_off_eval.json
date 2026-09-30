@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_monica_trade_off_eval",
+  "stage": "gists",
+  "input_hash": "ebb9ed1493b1f03e040ecb5a8dde5cfcde6c4bfcc9367cb194d2005359167e78",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_monica_trade_off_eval",
+    "fact": "{model_monica} mentioned that the model evaluation harness is manual.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "The state of the model evaluation harness keeps coming up in conversations with {model_monica}.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies 'model evaluation harness' as a recurring topic but does not specify whether it is desired, refused, traded off, or simply a factual observation."
+  }
+}

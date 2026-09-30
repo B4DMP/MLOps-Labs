@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_forecast_failure_emilia_drift_tradeoff",
+  "stage": "gists",
+  "input_hash": "43cd82291095934a97dbcf22c00452cd23e4aefafa1cc294b6e14a663ec7ed12",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_silent_forecast_failure_emilia_drift_tradeoff",
+    "fact": "{efficiency_emilia} mentioned that the drift monitoring hand-over can remain manual to save on budget.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Warehouse Flood"
+  },
+  "output": {
+    "gist": "The manual hand-over of drift monitoring keeps coming up whenever you talk to {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states a recurring topic of conversation regarding manual processes but does not explicitly state whether the stakeholder wants to automate it (driver), refuses to change it (boundary), or accepts the inefficiency (trade_off)."
+  }
+}

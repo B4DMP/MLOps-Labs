@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_dave_drift_gov",
+  "stage": "gists",
+  "input_hash": "26bc96394b335d2011f9d509502c1b827442958c7a74d26ce4f8ce941f4ac493",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_dave_drift_gov",
+    "fact": "{data_dave} mentioned the lack of governance in the training drift check.",
+    "metric_id": "data",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The training drift check and its current governance status have been mentioned by {data_dave}.",
+    "verdict_metric_id": "data",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist merely notes that a specific data governance topic has been mentioned, without expressing a stance, preference, or commitment to any direction."
+  }
+}

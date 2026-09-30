@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_silent_ingestion_failure_ruth_edge_gov_boundary",
+  "stage": "objections",
+  "input_hash": "4382ce222acaae20323cbb94f730b61f41434f240b13180b64c6c7b8e42891dd",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_silent_ingestion_failure_ruth_edge_gov_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} asked for a formal sign-off on the hand-over from ingestion to validation. She will not accept a forecast that runs on data that was never checked by a human or a strict tool.",
+      "fact": "{reliability_ruth} asked for a formal sign-off on the hand-over from ingestion to validation.",
+      "reading": "She will not accept a forecast that runs on data that was never checked by a human or a strict tool.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "edge": "e.ingest_validate",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.ingest_validate",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "I am not approving a forecast pipeline that skips the validation handover. You need a formal sign-off before any data moves from ingestion to the model.",
+    "correction": "I am talking about the technical gate between ingestion and validation, not the commercial review of the promotion. Do not confuse my operational boundary with the buyer's margin check."
+  }
+}

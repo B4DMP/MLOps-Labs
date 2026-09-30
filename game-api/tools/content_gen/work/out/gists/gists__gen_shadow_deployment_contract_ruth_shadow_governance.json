@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_ruth_shadow_governance",
+  "stage": "gists",
+  "input_hash": "74c8755e3931f81e6daa204674ce81dd547f7b78e83d6bd44bc8e21cdc85c7ac",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_ruth_shadow_governance",
+    "fact": "{reliability_ruth} asked for the shadow deployment to be fully governed.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The reliability of the shadow deployment has been raised as a concern by {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies reliability as a concern but does not specify whether it is a driver, boundary, trade-off, or mere fact."
+  }
+}

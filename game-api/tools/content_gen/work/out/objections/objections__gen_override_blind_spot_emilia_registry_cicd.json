@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_override_blind_spot_emilia_registry_cicd",
+  "stage": "objections",
+  "input_hash": "128ca0890c86eea73d64d4192a9847d1e5956c127274355e300f1418b2fa88ac",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_override_blind_spot_emilia_registry_cicd",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} brought up the manual nature of the registry to CI/CD hand-over. She would accept a less frequent deployment if the registry to CI/CD hand-over is automated.",
+      "fact": "{efficiency_emilia} brought up the manual nature of the registry to CI/CD hand-over.",
+      "reading": "She would accept a less frequent deployment if the registry to CI/CD hand-over is automated.",
+      "metric_id": "efficiency",
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "e.registry_cicd",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are treating my comment about deployment frequency as a minor preference, but it is a hard constraint on our operational budget. I need you to acknowledge that automating the registry hand-over is the only way I can justify the reduced release cadence to the finance team.",
+    "correction": "I am not asking for a slower system, I am asking you to stop conflating tooling gaps with business risk. The trade-off is explicit: if you automate the registry to CI/CD hand-over, I accept less frequent deployments, but you cannot present that as a delay in capability."
+  }
+}

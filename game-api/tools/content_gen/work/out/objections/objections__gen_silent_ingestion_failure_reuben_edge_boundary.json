@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_silent_ingestion_failure_reuben_edge_boundary",
+  "stage": "objections",
+  "input_hash": "0267a837948c862eee741da8693b5ea89efad7ed84a284db09d149022eb200cf",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_silent_ingestion_failure_reuben_edge_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} mentioned that the hand-over from versioning to the feature store must be fully governed. He will not accept a data version moving to the feature store without a formal sign-off.",
+      "fact": "{requirements_reuben} mentioned that the hand-over from versioning to the feature store must be fully governed.",
+      "reading": "He will not accept a data version moving to the feature store without a formal sign-off.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "edge": "e.version_fs",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.version_fs",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "No, we are not moving that data version to the feature store yet. I will not sign off on a hand-over that lacks the required formal governance checks.",
+    "correction": "I was talking about the approval process for the data pipeline, not the model code itself. Do not confuse the security review of the feature store ingestion with the deployment of the forecasting model."
+  }
+}

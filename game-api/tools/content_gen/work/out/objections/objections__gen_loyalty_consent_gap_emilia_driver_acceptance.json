@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_loyalty_consent_gap_emilia_driver_acceptance",
+  "stage": "objections",
+  "input_hash": "cf4af5ae90a34335257313ec74cb65590c0e6e17c705a2c547b3a07200d5731b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_loyalty_consent_gap_emilia_driver_acceptance",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} proposed automating the acceptance criteria to speed up the promotion cycle. She wants the acceptance criteria to be automated so the promotion planning cycle is not delayed by manual checks.",
+      "fact": "{efficiency_emilia} proposed automating the acceptance criteria to speed up the promotion cycle.",
+      "reading": "She wants the acceptance criteria to be automated so the promotion planning cycle is not delayed by manual checks.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "req.acceptance_criteria",
+        "axis": "automation",
+        "level": 2
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "I did not just want a faster tick box, I need the acceptance criteria to actively validate that the allocation respects the legal duty of availability. You cannot automate a process that still allows us to ship pallets of unsold garden furniture to the distribution centre.",
+    "correction": "You filed this as a simple speed request, but I am defining the KPI for residual stock and compliance risk. The automation must enforce the minimum order quantity and lead time constraints so the system does not generate impossible orders for the buyers."
+  }
+}

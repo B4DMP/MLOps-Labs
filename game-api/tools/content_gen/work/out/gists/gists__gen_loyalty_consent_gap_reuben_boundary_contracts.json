@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_consent_gap_reuben_boundary_contracts",
+  "stage": "gists",
+  "input_hash": "654f2523da0699ab86fe4407c8059beab48928cd93a95e13e5bba224cf621766",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_loyalty_consent_gap_reuben_boundary_contracts",
+    "fact": "{requirements_reuben} proposed that the data contracts must be fully governed before any data is accepted.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Loyalty Data Audit"
+  },
+  "output": {
+    "gist": "Requirements for loyalty data contracts are on the agenda, alongside the question of who signs off on intake.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies that requirements and sign-off processes are topics on the agenda, but it does not express a stance, demand, refusal, or acceptance regarding them."
+  }
+}

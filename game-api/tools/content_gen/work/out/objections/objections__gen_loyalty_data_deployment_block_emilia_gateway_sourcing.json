@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_loyalty_data_deployment_block_emilia_gateway_sourcing",
+  "stage": "objections",
+  "input_hash": "68ea40b793c6bd56f60e49fb04afc7ab802ce61d761a6965d14d0f0e04af8716",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_loyalty_data_deployment_block_emilia_gateway_sourcing",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} suggested that the API gateway can be handled by a custom internal service if it reduces the license cost. She is willing to switch to a custom internal service if it saves money and meets the security requirements.",
+      "fact": "{efficiency_emilia} suggested that the API gateway can be handled by a custom internal service if it reduces the license cost.",
+      "reading": "She is willing to switch to a custom internal service if it saves money and meets the security requirements.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": "efficiency",
+        "loss": 2,
+        "target": null,
+        "axis": null,
+        "accepts_max_level": null
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You framed my cost proposal as a simple infrastructure swap, but you ignored the operational overhead I am absorbing by taking this on. I need you to acknowledge that my team is stepping up to build and maintain this service, which is a direct hit to my capacity for the next two quarters.",
+    "correction": "I am not volunteering to build a new platform, I am saying the current vendor license is a waste of money that we can avoid if we scope the requirements correctly. Do not record this as a free feature request."
+  }
+}

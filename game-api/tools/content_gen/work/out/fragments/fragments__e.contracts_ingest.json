@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:e.contracts_ingest",
   "stage": "fragments",
-  "input_hash": "498738f85475b05101b754bc36324e1b0d6714e19b59bf7006921996057aa581",
+  "input_hash": "69a17e556b8096004439a0354cab78d7c2125ed561ce24699cfe998c14afb589",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -11,16 +11,15 @@
       0,
       1,
       2,
-      3,
       4
     ],
     "name": "hand over from Data Contracts to Data Ingestion Pipeline"
   },
   "output": {
-    "level_0": "Till data arrives in wrong formats, so the nightly forecast job crashes before it starts.",
-    "level_1": "No pipeline exists, so analysts copy raw scan lines into spreadsheets by hand every night.",
-    "level_2": "A script moves data nightly, but buyers must email fixes when store formats change unexpectedly.",
-    "level_3": "The pipeline ingests all store data automatically, flagging schema mismatches without human intervention.",
-    "level_4": "Ingestion validates data against contracts, blocking bad feeds and alerting data owners immediately."
+    "level_0": "The hand over is broken because the ingestion pipeline rejects the contract schema entirely.",
+    "level_1": "No hand over exists, so data contracts and ingestion operate as completely separate, disconnected systems.",
+    "level_2": "A human manually copies the data contract definition into the ingestion pipeline configuration every week.",
+    "level_3": null,
+    "level_4": "A formal sign off verifies the hand over, ensuring the contract matches the ingestion pipeline exactly."
   }
 }

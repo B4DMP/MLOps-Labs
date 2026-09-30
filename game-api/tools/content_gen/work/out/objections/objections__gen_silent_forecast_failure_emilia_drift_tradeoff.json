@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_silent_forecast_failure_emilia_drift_tradeoff",
+  "stage": "objections",
+  "input_hash": "298bfcf088dfb44ded415c85da269c6d691b16727ba003ff43056e1f451a2545",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_silent_forecast_failure_emilia_drift_tradeoff",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} mentioned that the drift monitoring hand-over can remain manual to save on budget. She would accept keeping the drift hand-over manual if it avoids additional tooling costs.",
+      "fact": "{efficiency_emilia} mentioned that the drift monitoring hand-over can remain manual to save on budget.",
+      "reading": "She would accept keeping the drift hand-over manual if it avoids additional tooling costs.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "e.observe_drift",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are treating my budget constraint as a blanket approval for manual processes, which is not what I said. I am asking you to acknowledge that we are deliberately choosing a cost saving that leaves a gap in our drift detection.",
+    "correction": "I did not say we should skip monitoring drift entirely, only that the hand over to the team can stay manual for now. You filed this as a technical preference when it is actually a business decision about where we spend our money."
+  }
+}

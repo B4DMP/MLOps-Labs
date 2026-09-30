@@ -1,0 +1,52 @@
+{
+  "item_id": "artifacts:gen_committed_pallets_fact_acceptance_broken",
+  "stage": "artifacts",
+  "input_hash": "17d196864b397c1c7cbff9b8cd00753159ad163defae660758e28c468453e319",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_committed_pallets_fact_acceptance_broken",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The acceptance criteria for the allocation module are broken. The criteria exist but stopped working before this promotion week.",
+      "fact": "The acceptance criteria for the allocation module are broken.",
+      "reading": "The criteria exist but stopped working before this promotion week.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "req.acceptance_criteria",
+        "axis": "automation",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "slack_message",
+    "narrator": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    },
+    "challenge": {
+      "name": "The Committed Pallets",
+      "description": ""
+    },
+    "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "I checked the allocation module during the morning order window. The acceptance criteria for the middle aisle allocation are broken. They exist in the configuration file but stopped working before this promotion week. The system no longer validates the suggested quantities against the supplier minimum order quantities. The team is currently running a manual spreadsheet check to catch impossible orders before they reach the distribution centre. This workaround happens every time a buyer locks a promotion. The criteria file has not been updated since the last retraining cycle. The validation step simply fails silently and the suggested orders proceed without any automated check.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The artifact describes the current state of the allocation module, the nature of the bug, and the manual workaround in use, without expressing any wishes, refusals, or stated trade-offs."
+  }
+}

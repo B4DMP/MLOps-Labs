@@ -12,14 +12,10 @@ Two halves, matching that split:
 - The pure half (`session.veto_breaker`, `simulation_handler._outcome_for`/`_overridden`) is
   tested directly on hand-built state, no database.
 - The handler half is driven end to end against a real throwaway Postgres and the real
-  `ch_shadow_deployment_contract` (118) challenge, the concrete case this exists for.
-  Automation_alex's two stance items there used to carry no graph atoms or targets at all
-  (`RequirementObjects.json`), pinning his alignment at -1.0 and, being high-power, making the
-  challenge an unconditional veto - no card the room would ever accept. That content gap is now
-  authored (both items resolve against `deploy.shadow`, the same target Ruth's boundary and the
-  challenge's own conflict block already use), so the fixture card below is deliberately a weak
-  one - it still gets vetoed, exercising the override on a real, ordinary veto rather than a
-  structural dead end.
+  `ch_silent_ingestion_failure` (120) challenge. Its boundaries are violated by any card that does
+  not satisfy them, and two high-power stakeholders hold them, so a weak card is an ordinary, real
+  veto. (It used to be `ch_shadow_deployment_contract` (118); the regenerated content there gives
+  stakeholders enough Trade-offs that hardly any card is vetoed, see `plans/graph-redesign/04`.)
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -32,13 +28,15 @@ from mlops_serious_game.domain.phase_factory import PhaseFactory
 
 from test_run_scope import _seed_user, _start_run, _uid, migrated_db  # noqa: F401  (fixture used by name)
 
-# The challenge this mechanic exists for. Automation_alex, high-power, has two Trade-off items
-# whose branches both resolve on `deploy.shadow`: 4 (governed, what Ruth's boundary needs) or 2
-# (manual, his own stated position in the challenge's conflict block) either satisfies him. A card
-# that raises `deploy.shadow` far enough clears him with no override needed; the fixture below
-# deliberately does not, to still exercise a real veto.
-STUCK_CHALLENGE_ID = 118
-STUCK_PHASE_ID = 4
+# The challenge this mechanic exists for: a weak card is vetoed by a high-power stakeholder whose
+# Boundary it leaves unmet. Content is regenerated now and then, so if this stops vetoing, repoint
+# the three constants below to another challenge that still does (the room's high-power stakeholders
+# and a card that leaves their Boundaries unmet).
+STUCK_CHALLENGE_ID = 120
+STUCK_PHASE_ID = 2
+# The two high-power stakeholders whose Boundaries the fixture card leaves unmet. Which of them the
+# room treats as "the" veto can flip with their emotions, so tests read it back instead of assuming.
+VETOERS = {"reliability_ruth", "requirements_reuben"}
 
 
 # ── The pure half ─────────────────────────────────────────────────────────────
@@ -91,21 +89,15 @@ def test_outcome_for_reads_the_override_field_not_the_removed_patience_field():
 
 
 def _a_veto_worthy_card():
-    """A card weak enough to still lose the room: `deploy.shadow` only reaches 1, short of both
-    the governed level Ruth's boundary and Alex's trade-offs accept (4) and the manual level
-    Alex's trade-offs would also accept on their own (2). Alex, high-power, stays vetoed.
-
-    `e.cicd_shadow` is deliberately not on this card: its endpoints are not both in this
-    challenge's allowed-target set (`deploy.cicd` is not), so it is not a legal target here at
-    all - `handle_pitch_set_card` would reject the whole card for naming it.
-    """
+    """A card that leaves the high-power stakeholders' Boundaries unmet: it raises `data.ingestion`
+    only to 2, which neither Ruth's nor Reuben's Boundary accepts, so the room vetoes it."""
     return [
-        {"target": "deploy.shadow", "kind": "raise_to", "axis": "automation", "value": 1},
+        {"target": "data.ingestion", "kind": "raise_to", "axis": "automation", "value": 2},
     ]
 
 
 async def _seed_player_on_stuck_challenge(username: str = "alice") -> int:
-    """A player mid-game, dropped directly onto ch118 with its intel gathered and its targets
+    """A player mid-game, dropped directly onto the stuck challenge with its intel gathered and its targets
     observed - what `playtest_service.service.auto_gather` and `_observe_everything` do for the
     playtest tools, reused here so the pitch itself is the only thing under test."""
     from mlops_serious_game.application.playtest_service.service import auto_gather
@@ -166,18 +158,7 @@ async def test_the_fixture_card_still_gets_vetoed(migrated_db):
     await _seed_player_on_stuck_challenge()
     result = await _commit_a_veto()
     assert result["outcome"] == "VETO"
-    assert result["veto_info"]["stakeholder_id"] == "automation_alex"
-
-
-# The content fix this restoration was paired with (docs/plans/results-screen.md): ch118 used to
-# be an unconditional veto because automation_alex's two Trade-off items carried no graph atoms or
-# targets at all. Both now resolve against `deploy.shadow`, so a real search-built card that
-# clears Ruth's boundary satisfies Alex too, with no Escalation Point spent -
-# `test_skip_no_longer_needs_the_fallback_on_ch118` in test_playtest_veto_breaker.py confirms this
-# end to end. A hand-built card that only sets `deploy.shadow` directly is deliberately not used
-# here as its own test: `deploy.shadow`'s actual reachable level also depends on its upstream
-# pipeline chain (`e.cicd_shadow` and beyond), and that slack computation has a pre-existing,
-# unrelated flakiness (hash-order dependent) that a single-target card can trip.
+    assert result["veto_info"]["stakeholder_id"] in VETOERS
 
 
 @pytest.mark.anyio
@@ -228,14 +209,15 @@ async def test_veto_breaker_applies_the_malus_to_the_overridden_stakeholder(migr
 
     await _seed_player_on_stuck_challenge()
     await _commit_a_veto()
-    before = pitch_store.emotion_values(_uid(), ["automation_alex"])["automation_alex"]
-
     ids = {"phase_id": STUCK_PHASE_ID, "challenge_id": STUCK_CHALLENGE_ID}
+    before = pitch_store.emotion_values(_uid(), sorted(VETOERS))
     await _handle("handle_pitch_veto_breaker", ids)
 
-    after = pitch_store.emotion_values(_uid(), ["automation_alex"])["automation_alex"]
+    overridden = pitch_store.load_pitch(_uid(), STUCK_PHASE_ID, STUCK_CHALLENGE_ID).overridden_stakeholder_id
+    assert overridden in VETOERS
+    after = pitch_store.emotion_values(_uid(), [overridden])[overridden]
     magnitude = EmotionFactory.get_pitch_tuning().emotion_veto_breaker
-    for dim, value in before.items():
+    for dim, value in before[overridden].items():
         assert after[dim] == pytest.approx(max(0.0, min(1.0, value + magnitude)), abs=1e-6)
 
 
@@ -283,32 +265,32 @@ async def test_a_broken_veto_reaches_the_pipeline_as_veto_broken_with_a_weight_t
     assert report_payload["report"]["outcome"] == "VETO_BROKEN"
 
     grudges = pitch_store.load_grudges(_uid())
-    alex_grudge = next(g for g in grudges if g["stakeholder_id"] == "automation_alex")
-    assert alex_grudge["weight"] == 2
-    assert alex_grudge["reason"] == "overridden by an escalation"
+    grudge = next(g for g in grudges if g["stakeholder_id"] in VETOERS)
+    assert grudge["weight"] == 2
+    assert grudge["reason"] == "overridden by an escalation"
 
 
 @pytest.mark.anyio
-async def test_a_broken_veto_can_cost_the_overridden_stakeholder_exactly_what_it_won(migrated_db):
+async def test_a_broken_veto_costs_the_overridden_stakeholder_only_what_they_own(migrated_db):
     """`pipeline.veto_degradation_ops` costs the overridden stakeholder one level on whatever the
     card touched *that they own* (D-question 2) - deliberate, not something this mechanic changed.
 
-    ch118 makes this visible in full: `deploy.shadow` starts at 0, the fixture card raises it to
-    1, and Alex owns it, so the same low buy-in that caused the veto in the first place also caps
-    how much of the raise actually sticks (`apply_ops`' owner-buyin mechanic). The card is not
-    silently dropped (the report says so); Alex's own component is just the one place overriding
-    them costs something visible.
+    Here the fixture card touches `data.ingestion`, which Dave owns, and neither Ruth nor Reuben
+    does, so whoever is overridden loses nothing: the whole raise sticks. The cost itself is covered
+    where `veto_degradation_ops` is tested, against a stakeholder who owns the target.
     """
     from mlops_serious_game.application.graph_service import store as graph_store
+    from mlops_serious_game.application.pitch_debate_service import store as pitch_store
+    from mlops_serious_game.domain.graph_factory import GraphFactory
     from mlops_serious_game.infrastructure.websocket.handlers import log_handler, simulation_handler
 
     await _seed_player_on_stuck_challenge()
     await _commit_a_veto()
     ids = {"phase_id": STUCK_PHASE_ID, "challenge_id": STUCK_CHALLENGE_ID}
     await _handle("handle_pitch_veto_breaker", ids)
+    overridden = pitch_store.load_pitch(_uid(), STUCK_PHASE_ID, STUCK_CHALLENGE_ID).overridden_stakeholder_id
 
-    with patch.object(simulation_handler, "manager") as manager, \
-         patch.object(log_handler, "manager") as log_manager:
+    with patch.object(simulation_handler, "manager") as manager,          patch.object(log_handler, "manager") as log_manager:
         manager.send_event = AsyncMock()
         manager.send_error = AsyncMock()
         log_manager.send_event = AsyncMock()
@@ -318,8 +300,8 @@ async def test_a_broken_veto_can_cost_the_overridden_stakeholder_exactly_what_it
             if c.kwargs["event"] == "graph:delta_report"
         )
 
-    # The report is honest about it: deploy.shadow shows up as touched, ending where it started.
+    loaded = graph_store.load_state(_uid())
+    assert GraphFactory.get_graph().owner_of("data.ingestion") != overridden
     target_ids = [t["id"] for t in report_payload["report"]["targets"]]
-    assert "deploy.shadow" in target_ids
-    replay_state = graph_store.load_state(_uid()).state
-    assert replay_state.value("deploy.shadow", "automation") == 0
+    assert "data.ingestion" in target_ids
+    assert loaded.state.value("data.ingestion", "automation") == 2

@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_override_blind_spot_monica_eval_auto",
+  "stage": "objections",
+  "input_hash": "03da68e9a4069bdfc9d419fe4d1e22fd5465dfb2713d5f57fd2b9620806ae767",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_override_blind_spot_monica_eval_auto",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} proposed automating the hand-over from model evaluation to the registry. She wants the evaluation results to flow into the registry without manual intervention to speed up model iteration.",
+      "fact": "{model_monica} proposed automating the hand-over from model evaluation to the registry.",
+      "reading": "She wants the evaluation results to flow into the registry without manual intervention to speed up model iteration.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "e.eval_registry",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "You are missing the point of the registry handover. I need the evaluation metrics to trigger the promotion automatically so we can iterate on the model without waiting for a human to check the dashboard.",
+    "correction": "I am not talking about the data pipeline from the till to the feature store. I am specifically referring to the step where the evaluation score determines if the new model version is ready to be served."
+  }
+}

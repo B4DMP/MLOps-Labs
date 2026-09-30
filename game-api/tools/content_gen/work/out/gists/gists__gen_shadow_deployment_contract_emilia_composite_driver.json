@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_emilia_composite_driver",
+  "stage": "gists",
+  "input_hash": "2d31aee69e8d083b3e8a568fd27189b171b826e318fffac23a66a06a2bcf156e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_emilia_composite_driver",
+    "fact": "{efficiency_emilia} asked for the entire deployment pipeline from the registry to the serving endpoint to be automated and governed.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The deployment pipeline from the model registry to the serving endpoint keeps coming up in talks with {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the deployment pipeline is a frequent topic in discussions with the efficiency stakeholder, but it does not specify whether the stakeholder wants to improve it, limit it, accept a trade-off, or is merely describing a fact."
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_shadow_deployment_contract_ruth_shadow_automation",
+  "stage": "objections",
+  "input_hash": "caa563ebfcafb68bc9c7ccb56d14ddcb857655517ce87e344e5af366be8a71b8",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_ruth_shadow_automation",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "trade_off",
+      "description": "{reliability_ruth} noted that the shadow deployment is currently broken. She would accept the shadow environment remaining broken if it is fully governed and the team can manually verify the results.",
+      "fact": "{reliability_ruth} noted that the shadow deployment is currently broken.",
+      "reading": "She would accept the shadow environment remaining broken if it is fully governed and the team can manually verify the results.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "deploy.shadow",
+        "axis": "automation",
+        "accepts_max_level": 0
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "You are treating the broken shadow deployment as a technical failure, but I am telling you it is a governance gap. If you do not acknowledge that we need manual verification to cover the holes, you are asking me to ship blind.",
+    "correction": "I did not say the tooling is fine, I said the process is missing. You cannot fix the automation axis by ignoring the fact that nobody is reviewing the output right now."
+  }
+}

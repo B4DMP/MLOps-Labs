@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_cost_crisis_drift_gap_emilia_drift_cut",
+  "stage": "objections",
+  "input_hash": "3f97676616cf464ad076a3d895ec5d7949830538b1c0f2ab35769c2c20f02bb9",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_emilia_drift_cut",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "boundary",
+      "description": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero. She will not fund any automation for drift monitoring as long as the infrastructure cost remains above the current baseline.",
+      "fact": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero.",
+      "reading": "She will not fund any automation for drift monitoring as long as the infrastructure cost remains above the current baseline.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "ops.production_drift_monitoring",
+        "axis": "automation",
+        "op": "lte",
+        "level": 1
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.production_drift_monitoring",
+          "axis": "automation",
+          "value": 1
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "I am not funding automated drift monitoring while our infrastructure spend sits above the agreed baseline. We will stick to manual checks until that cost structure changes.",
+    "correction": "I did not say we are abandoning drift detection entirely, I said we are not paying for new tools right now. Do not confuse a budget pause with a strategic retreat from quality control."
+  }
+}

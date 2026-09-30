@@ -1,9 +1,9 @@
 {
   "item_id": "items:ch_shadow_deployment_contract",
   "stage": "items",
-  "input_hash": "5c9bc23d65bffa3733082ce9a86ead4c156980efa1f75a5d6db1eb823217fb52",
+  "input_hash": "a9182efe3fcacb63bccf8cfdee8c7863e2c60f30926d316c8103d68d48c9eae3",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 1,
+  "attempts": 2,
   "inputs": {
     "challenge": {
       "phase_id": 4,
@@ -14,18 +14,15 @@
       "metric_changes": {},
       "attention_tokens": 20,
       "priority": 75,
-      "preconditions": {
-        "component": "deploy.shadow",
-        "op": "eq",
-        "level": 1
-      },
+      "preconditions": true,
       "fallback": false,
       "on_enter_ops": [
         {
           "kind": "set_to",
           "target": "deploy.shadow",
           "value": 0,
-          "reason": "The shadow environment was taken offline to free up compute for the promotion allocation run"
+          "reason": "The shadow environment was taken offline to free up compute for the promotion allocation run",
+          "axis": "automation"
         }
       ],
       "stalemate_ops": [
@@ -33,7 +30,8 @@
           "kind": "set_to",
           "target": "e.cicd_shadow",
           "value": 0,
-          "reason": "The pipeline step to trigger shadow runs was disabled to prevent further compute costs"
+          "reason": "The pipeline step to trigger shadow runs was disabled to prevent further compute costs",
+          "axis": "automation"
         }
       ],
       "conflict": {
@@ -42,11 +40,13 @@
         "positions": [
           {
             "stakeholder_id": "reliability_ruth",
-            "wants": 4
+            "wants": 3,
+            "axis": "governance"
           },
           {
             "stakeholder_id": "automation_alex",
-            "wants": 2
+            "wants": 2,
+            "axis": "automation"
           }
         ]
       },
@@ -88,7 +88,7 @@
         "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
         "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
         "metric_id": "efficiency",
-        "power": "low",
+        "power": "high",
         "interest": "low"
       }
     ],
@@ -98,13 +98,17 @@
         {
           "id": "deploy.cicd",
           "name": "CI/CD Pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "automation_alex",
           "attributes": {
@@ -119,13 +123,17 @@
         {
           "id": "deploy.serving",
           "name": "Model Serving Endpoint",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "automation_alex",
           "attributes": {
@@ -147,13 +155,17 @@
         {
           "id": "deploy.canary_ab",
           "name": "Canary and A/B Testing",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "automation_alex",
           "attributes": {}
@@ -161,13 +173,17 @@
         {
           "id": "deploy.shadow",
           "name": "Shadow Deployment",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "automation_alex",
           "attributes": {}
@@ -175,13 +191,17 @@
         {
           "id": "deploy.containerization",
           "name": "Containerization",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "automation_alex",
           "attributes": {
@@ -195,13 +215,17 @@
         {
           "id": "deploy.orchestration",
           "name": "Orchestration",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "automation_alex",
           "attributes": {
@@ -216,13 +240,17 @@
         {
           "id": "deploy.api_gateway",
           "name": "API Gateway",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "automation_alex",
           "attributes": {
@@ -241,20 +269,24 @@
           "from": "model.registry",
           "to": "deploy.cicd",
           "kind": "pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "start_trigger": "manual_request",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
             "manual_request",
             "on_commit",
-            "on_new_version",
-            "on_approval"
+            "on_new_version"
           ]
         },
         {
@@ -262,20 +294,24 @@
           "from": "deploy.cicd",
           "to": "deploy.containerization",
           "kind": "pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "start_trigger": "manual_request",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
             "manual_request",
             "on_commit",
-            "on_new_version",
-            "on_approval"
+            "on_new_version"
           ]
         },
         {
@@ -283,20 +319,24 @@
           "from": "deploy.containerization",
           "to": "deploy.orchestration",
           "kind": "pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "start_trigger": "manual_request",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
             "manual_request",
             "on_commit",
-            "on_new_version",
-            "on_approval"
+            "on_new_version"
           ]
         },
         {
@@ -304,20 +344,24 @@
           "from": "deploy.orchestration",
           "to": "deploy.serving",
           "kind": "pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "start_trigger": "manual_request",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
             "manual_request",
             "on_commit",
-            "on_new_version",
-            "on_approval"
+            "on_new_version"
           ]
         },
         {
@@ -325,20 +369,24 @@
           "from": "deploy.serving",
           "to": "deploy.api_gateway",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
             "manual_request",
             "on_commit",
-            "on_new_version",
-            "on_approval"
+            "on_new_version"
           ]
         },
         {
@@ -346,20 +394,24 @@
           "from": "deploy.cicd",
           "to": "deploy.canary_ab",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
             "manual_request",
             "on_commit",
-            "on_new_version",
-            "on_approval"
+            "on_new_version"
           ]
         },
         {
@@ -367,20 +419,24 @@
           "from": "deploy.canary_ab",
           "to": "deploy.serving",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
             "manual_request",
             "on_commit",
-            "on_new_version",
-            "on_approval"
+            "on_new_version"
           ]
         },
         {
@@ -388,20 +444,24 @@
           "from": "deploy.cicd",
           "to": "deploy.shadow",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
             "manual_request",
             "on_commit",
-            "on_new_version",
-            "on_approval"
+            "on_new_version"
           ]
         },
         {
@@ -409,13 +469,18 @@
           "from": "deploy.serving",
           "to": "ops.observability",
           "kind": "pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "start_trigger": "manual_request",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -430,13 +495,18 @@
           "from": "ops.rollback",
           "to": "deploy.serving",
           "kind": "feedback",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -479,60 +549,76 @@
     },
     "current": {
       "deploy.cicd": {
-        "level": 2
+        "automation": 2,
+        "governance": 0
       },
       "deploy.serving": {
-        "level": 2
+        "automation": 2,
+        "governance": 0
       },
       "deploy.canary_ab": {
-        "level": 1
+        "automation": 1,
+        "governance": 0
       },
       "deploy.shadow": {
-        "level": 0
+        "automation": 0,
+        "governance": 0
       },
       "deploy.containerization": {
-        "level": 2
+        "automation": 2,
+        "governance": 0
       },
       "deploy.orchestration": {
-        "level": 1
+        "automation": 1,
+        "governance": 0
       },
       "deploy.api_gateway": {
-        "level": 1
+        "automation": 1,
+        "governance": 0
       },
       "e.registry_cicd": {
-        "level": 2,
+        "automation": 2,
+        "governance": 0,
         "trigger": "manual_request"
       },
       "e.cicd_container": {
-        "level": 2,
+        "automation": 2,
+        "governance": 0,
         "trigger": "manual_request"
       },
       "e.container_orch": {
-        "level": 2,
+        "automation": 2,
+        "governance": 0,
         "trigger": "manual_request"
       },
       "e.orch_serving": {
-        "level": 2,
+        "automation": 2,
+        "governance": 0,
         "trigger": "manual_request"
       },
       "e.serving_gateway": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       },
       "e.cicd_canary": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       },
       "e.canary_serving": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       },
       "e.cicd_shadow": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       },
       "e.rollback_serving": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       }
     },
@@ -544,10 +630,16 @@
       "reliability",
       "requirements"
     ],
+    "quotas": {
+      "automation_alex": 4,
+      "requirements_reuben": 2,
+      "reliability_ruth": 2,
+      "efficiency_emilia": 3
+    },
     "counts": {
       "stances": [
-        6,
-        10
+        11,
+        11
       ],
       "facts": [
         3,
@@ -555,54 +647,64 @@
       ]
     },
     "stance_mix": {
-      "trade_off_min_share": 0.4,
-      "trade_off_max_share": 0.55,
+      "trade_off_min_share": 0.2,
+      "trade_off_max_share": 0.4,
       "driver_min_share": 0.25,
       "boundary_max_share": 0.34,
       "driver_min": 1,
       "boundary_min": 1
+    },
+    "stance_shape": {
+      "edge_min_share": 0.25,
+      "composite_min": 1,
+      "composite_atoms": [
+        2,
+        4
+      ],
+      "boundary_per_stakeholder_max": 1
     }
   },
   "output": {
     "items": [
       {
-        "key": "ruth_shadow_boundary",
+        "key": "alex_shadow_boundary",
         "tag": "boundary",
-        "stakeholder_id": "reliability_ruth",
-        "fact": "{reliability_ruth} proposed that the shadow deployment environment must be governed before any new model version is released to the live forecast service.",
+        "stakeholder_id": "automation_alex",
+        "fact": "{automation_alex} proposed keeping the shadow deployment process done by hand.",
         "readings": {
-          "driver": "She wants the shadow environment to run automatically so that every nightly forecast is verified against the new model without manual intervention.",
-          "boundary": "She will not sign off on the new model deployment if the shadow environment is not governed.",
-          "trade_off": "She would accept a manual shadow run if it guarantees that the live forecast service remains stable during the promotion week.",
-          "fact": "That is simply how the current deployment process is structured, with no automatic verification step before release."
+          "driver": "He wants the shadow run to be fully automated to catch errors faster.",
+          "boundary": "He will not allow the shadow environment to run automatically because it risks breaking the live pipeline stability.",
+          "trade_off": "He would accept an automated shadow run if the team promises a rollback plan.",
+          "fact": "That is simply how the shadow deployment is set up today."
         },
         "metric_id": null,
         "suggested_target": null,
+        "suggested_axis": null,
         "suggested_level": null,
         "holds": {
           "component": "deploy.shadow",
-          "op": "gte",
-          "level": 3,
-          "axis": "governance"
+          "axis": "automation",
+          "op": "lte",
+          "level": 2
         },
         "ops": [
           {
             "kind": "raise_to",
             "target": "deploy.shadow",
-            "value": 3,
-            "axis": "governance"
+            "axis": "automation",
+            "value": 2,
+            "attr": null
           }
         ],
         "concedes_metric": null,
         "concedes_loss": null,
         "concedes_target": null,
+        "concedes_axis": null,
         "concedes_max_level": null,
         "asserts_target": null,
+        "asserts_axis": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": null,
-        "concedes_axis": null,
-        "asserts_axis": null,
         "branch_x_description": null,
         "branch_x_target": null,
         "branch_x_axis": null,
@@ -615,71 +717,31 @@
         "branch_y_ops": []
       },
       {
-        "key": "alex_shadow_tradeoff",
+        "key": "alex_cicd_trade",
         "tag": "trade_off",
         "stakeholder_id": "automation_alex",
-        "fact": "{automation_alex} suggested keeping the shadow deployment setup done by hand to avoid adding complexity to the existing CI/CD pipeline.",
+        "fact": "{automation_alex} mentioned the nightly forecast job failure for the northern stores.",
         "readings": {
-          "driver": "He wants the shadow environment to be automated so that it runs in parallel with the live pipeline without any manual steps.",
-          "boundary": "He will not allow any changes to the shadow environment that might introduce instability into the current deployment infrastructure.",
-          "trade_off": "He would accept a governed shadow environment if it does not require changes to the existing CI/CD pipeline configuration.",
-          "fact": "That is simply how the team currently handles shadow testing, with manual scripts run outside the main pipeline."
+          "driver": "He wants the CI/CD pipeline to be fully automated to prevent future failures.",
+          "boundary": "He will not change the CI/CD pipeline without a full review.",
+          "trade_off": "He would give up the manual trigger for the CI/CD pipeline if the shadow environment is kept stable.",
+          "fact": "That is simply how the CI/CD pipeline works today."
         },
         "metric_id": null,
         "suggested_target": null,
+        "suggested_axis": null,
         "suggested_level": null,
         "holds": null,
         "ops": [],
-        "concedes_metric": "automation",
-        "concedes_loss": 3,
-        "asserts_target": null,
-        "asserts_level": null,
-        "asserts_trigger": null,
-        "branch_x_description": "governing the shadow environment on its own",
-        "branch_x_target": "deploy.shadow",
-        "branch_x_level": 3,
-        "branch_y_description": "leaving the shadow deployment a manual step",
-        "branch_y_target": "deploy.shadow",
-        "branch_y_level": 2,
-        "suggested_axis": null,
-        "asserts_axis": null,
-        "branch_x_axis": "governance",
-        "branch_x_ops": [],
-        "branch_y_axis": "automation",
-        "branch_y_ops": []
-      },
-      {
-        "key": "ruth_cicd_driver",
-        "tag": "driver",
-        "stakeholder_id": "reliability_ruth",
-        "fact": "{reliability_ruth} asked for the CI/CD pipeline to automatically trigger the shadow deployment whenever a new model version is committed.",
-        "readings": {
-          "driver": "She wants the shadow run to trigger automatically on every new model commit for real time validation.",
-          "boundary": "She will not accept a manual trigger for the shadow deployment due to human error risk.",
-          "trade_off": "She would accept a manual trigger if the automated pipeline is not yet stable enough for nightly forecasts.",
-          "fact": "That is simply what the current CI/CD configuration does, with no automatic link to the shadow environment."
-        },
-        "metric_id": "reliability",
-        "suggested_target": "e.cicd_shadow",
-        "suggested_level": 3,
-        "holds": null,
-        "ops": [
-          {
-            "kind": "set_trigger",
-            "target": "e.cicd_shadow",
-            "value": "on_new_version"
-          }
-        ],
         "concedes_metric": null,
         "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
+        "concedes_target": "e.registry_cicd",
+        "concedes_axis": "automation",
+        "concedes_max_level": 3,
         "asserts_target": null,
+        "asserts_axis": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "governance",
-        "concedes_axis": null,
-        "asserts_axis": null,
         "branch_x_description": null,
         "branch_x_target": null,
         "branch_x_axis": null,
@@ -692,38 +754,237 @@
         "branch_y_ops": []
       },
       {
-        "key": "reuben_gov_driver",
+        "key": "alex_canary_driver",
+        "tag": "driver",
+        "stakeholder_id": "automation_alex",
+        "fact": "{automation_alex} asked for the canary testing to be reviewed before it goes live.",
+        "readings": {
+          "driver": "He wants the canary testing to be fully governed to ensure the deployment is safe.",
+          "boundary": "He will not allow canary testing without a manual check.",
+          "trade_off": "He would give up the canary testing if the shadow environment is automated.",
+          "fact": "That is simply how the canary testing works today."
+        },
+        "metric_id": "automation",
+        "suggested_target": "deploy.canary_ab",
+        "suggested_axis": "governance",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "alex_rollback_driver",
+        "tag": "driver",
+        "stakeholder_id": "automation_alex",
+        "fact": "{automation_alex} suggested the rollback process should be automated.",
+        "readings": {
+          "driver": "He wants the rollback to be fully automated to reduce downtime.",
+          "boundary": "He will not allow the rollback to be automated without a review.",
+          "trade_off": "He would accept an automated rollback if the serving endpoint is stable.",
+          "fact": "That is simply how the rollback process works today."
+        },
+        "metric_id": "automation",
+        "suggested_target": "e.rollback_serving",
+        "suggested_axis": "automation",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "reuben_shadow_driver",
         "tag": "driver",
         "stakeholder_id": "requirements_reuben",
-        "fact": "{requirements_reuben} proposed adding governance controls to the shadow deployment environment to ensure compliance with data protection standards.",
+        "fact": "{requirements_reuben} proposed that the shadow deployment must have a formal sign off.",
         "readings": {
-          "driver": "He wants the shadow environment to be governed so that all data flows are auditable and compliant with internal security policies.",
-          "boundary": "He will not allow any data to flow into the shadow environment without explicit governance controls in place.",
-          "trade_off": "He would accept a manual governance review if the automated controls are not yet available.",
-          "fact": "That is simply how the current governance framework is applied, with no specific controls for the shadow environment."
+          "driver": "He wants the shadow deployment to be fully governed to ensure compliance and data integrity.",
+          "boundary": "He will not allow the shadow deployment to run without a review.",
+          "trade_off": "He would give up the formal sign off if the shadow environment is automated.",
+          "fact": "That is simply how the shadow deployment works today."
         },
         "metric_id": "requirements",
         "suggested_target": "deploy.shadow",
+        "suggested_axis": "governance",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "reuben_cicd_trade",
+        "tag": "trade_off",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} noted the lack of review in the CI/CD pipeline.",
+        "readings": {
+          "driver": "He wants the CI/CD pipeline to be fully governed to ensure security.",
+          "boundary": "He will not allow the CI/CD pipeline to run without a review.",
+          "trade_off": "He would accept a lack of review in the CI/CD pipeline if the shadow environment is governed.",
+          "fact": "That is simply how the CI/CD pipeline works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "deploy.cicd",
+        "concedes_axis": "governance",
+        "concedes_max_level": 0,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "ruth_shadow_boundary",
+        "tag": "boundary",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} demanded a fully governed shadow environment to protect the live forecast.",
+        "readings": {
+          "driver": "She wants the shadow environment to be fully governed to ensure reliability.",
+          "boundary": "She will not accept a shadow environment without full governance because it risks the live forecast.",
+          "trade_off": "She would give up the full governance if the shadow environment is automated.",
+          "fact": "That is simply how the shadow environment works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": {
+          "component": "deploy.shadow",
+          "axis": "governance",
+          "op": "gte",
+          "level": 3
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "deploy.shadow",
+            "axis": "governance",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "ruth_shadow_driver",
+        "tag": "driver",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} asked for the shadow environment to run automatically.",
+        "readings": {
+          "driver": "She wants the shadow environment to be fully automated to catch issues before they hit production.",
+          "boundary": "She will not allow the shadow environment to be manual.",
+          "trade_off": "She would give up the automation if the shadow environment is governed.",
+          "fact": "That is simply how the shadow environment works today."
+        },
+        "metric_id": "reliability",
+        "suggested_target": "deploy.shadow",
+        "suggested_axis": "automation",
         "suggested_level": 3,
         "holds": null,
         "ops": [
           {
             "kind": "raise_to",
-            "target": "deploy.shadow",
+            "target": "e.cicd_shadow",
+            "axis": "automation",
             "value": 3,
-            "axis": "governance"
+            "attr": null
           }
         ],
         "concedes_metric": null,
         "concedes_loss": null,
         "concedes_target": null,
+        "concedes_axis": null,
         "concedes_max_level": null,
         "asserts_target": null,
+        "asserts_axis": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "governance",
-        "concedes_axis": null,
-        "asserts_axis": null,
         "branch_x_description": null,
         "branch_x_target": null,
         "branch_x_axis": null,
@@ -736,98 +997,290 @@
         "branch_y_ops": []
       },
       {
-        "key": "emilia_eff_tradeoff",
+        "key": "emilia_shadow_trade",
         "tag": "trade_off",
         "stakeholder_id": "efficiency_emilia",
-        "fact": "{efficiency_emilia} mentioned that the cost of running an automated shadow environment should be weighed against the risk of a stockout during the promotion week.",
+        "fact": "{efficiency_emilia} mentioned the cost of the shadow environment.",
         "readings": {
-          "driver": "She wants the shadow environment to be automated to reduce the operational cost of manual validation during the promotion period.",
-          "boundary": "She will not approve any additional infrastructure costs for the shadow environment without a clear return on investment.",
-          "trade_off": "She would accept a manual shadow run if the automated setup exceeds the budget allocated for the promotion week.",
-          "fact": "That is simply how the current cost model is structured, with no separate line item for shadow environment infrastructure."
+          "driver": "She wants the shadow environment to be fully automated to save costs.",
+          "boundary": "She will not allow the shadow environment to be expensive.",
+          "trade_off": "She would give up the shadow environment if the cost is too high.",
+          "fact": "That is simply how the shadow environment works today."
         },
         "metric_id": null,
         "suggested_target": null,
+        "suggested_axis": null,
         "suggested_level": null,
         "holds": null,
         "ops": [],
         "concedes_metric": "efficiency",
-        "concedes_loss": 2,
+        "concedes_loss": 5,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
         "asserts_target": null,
+        "asserts_axis": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "branch_x_description": "running an automated shadow environment",
-        "branch_x_target": "deploy.shadow",
-        "branch_x_level": 3,
-        "branch_y_description": "accepting a manual shadow run instead",
-        "branch_y_target": "deploy.shadow",
-        "branch_y_level": 2,
-        "suggested_axis": null,
-        "asserts_axis": null,
-        "branch_x_axis": "governance",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
         "branch_x_ops": [],
-        "branch_y_axis": "automation",
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
         "branch_y_ops": []
       },
       {
-        "key": "alex_orch_tradeoff",
-        "tag": "trade_off",
-        "stakeholder_id": "automation_alex",
-        "fact": "{automation_alex} noted that the orchestration layer for the shadow environment is currently done by hand and requires manual configuration for each new model version.",
+        "key": "emilia_serving_driver",
+        "tag": "driver",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} proposed that the serving endpoint should be reviewed.",
         "readings": {
-          "driver": "He wants the orchestration to be automated so that the shadow environment can be spun up and down without manual intervention.",
-          "boundary": "He will not change the orchestration setup if it risks disrupting the current deployment pipeline stability.",
-          "trade_off": "He would accept a manual orchestration step if the automated setup requires a new tool that is not yet approved.",
-          "fact": "That is simply how the current orchestration works, with manual steps for each deployment."
+          "driver": "She wants the serving endpoint to be fully governed to ensure business alignment.",
+          "boundary": "She will not allow the serving endpoint to run without a review.",
+          "trade_off": "She would give up the review if the serving endpoint is stable.",
+          "fact": "That is simply how the serving endpoint works today."
+        },
+        "metric_id": "efficiency",
+        "suggested_target": "deploy.serving",
+        "suggested_axis": "governance",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "emilia_cicd_trade",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} suggested the CI/CD pipeline should be optimized.",
+        "readings": {
+          "driver": "She wants the CI/CD pipeline to be fully automated to improve efficiency.",
+          "boundary": "She will not allow the CI/CD pipeline to be slow.",
+          "trade_off": "She would accept a slower CI/CD pipeline if the shadow environment is stable.",
+          "fact": "That is simply how the CI/CD pipeline works today."
         },
         "metric_id": null,
         "suggested_target": null,
+        "suggested_axis": null,
         "suggested_level": null,
         "holds": null,
         "ops": [],
-        "concedes_metric": "automation",
-        "concedes_loss": 4,
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "deploy.cicd",
+        "concedes_axis": "automation",
+        "concedes_max_level": 2,
         "asserts_target": null,
+        "asserts_axis": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "branch_x_description": "automating the shadow environment's orchestration",
-        "branch_x_target": "deploy.shadow",
-        "branch_x_level": 3,
-        "branch_y_description": "keeping the shadow orchestration a manual step",
-        "branch_y_target": "deploy.shadow",
-        "branch_y_level": 2,
-        "suggested_axis": null,
-        "asserts_axis": null,
-        "branch_x_axis": "governance",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
         "branch_x_ops": [],
-        "branch_y_axis": "automation",
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
         "branch_y_ops": []
       },
       {
-        "key": "fact_shadow_missing",
+        "key": "fact_shadow_broken",
         "tag": "fact",
         "stakeholder_id": null,
-        "fact": "The shadow deployment environment is broken, so no new model version can be verified against live traffic.",
+        "fact": "The shadow deployment environment is broken and not running.",
         "readings": {
-          "driver": "The team wants the shadow environment to be built and integrated into the CI/CD pipeline to enable automated validation of new models.",
-          "boundary": "The stakeholder will not allow any new model to be deployed without a functioning shadow environment to verify its performance.",
-          "trade_off": "The stakeholder would accept a temporary manual workaround if the shadow environment cannot be built in time for the promotion week.",
-          "fact": "That is simply the current state of the system, with the shadow deployment setup in a broken state."
+          "driver": "The team wants to fix the shadow environment.",
+          "boundary": "The team will not deploy without fixing the shadow environment.",
+          "trade_off": "The team would give up the shadow environment if it is too broken.",
+          "fact": "That is simply how the shadow environment works today."
         },
         "metric_id": null,
         "suggested_target": null,
+        "suggested_axis": null,
         "suggested_level": null,
         "holds": null,
         "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
         "concedes_target": null,
+        "concedes_axis": null,
         "concedes_max_level": null,
         "asserts_target": "deploy.shadow",
-        "asserts_level": 0,
-        "suggested_axis": null,
-        "concedes_axis": null,
         "asserts_axis": "automation",
+        "asserts_level": 0,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_cicd_shadow_edge",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The hand-over from the CI/CD pipeline to the shadow deployment is not triggered automatically.",
+        "readings": {
+          "driver": "The team wants to automate the hand-over.",
+          "boundary": "The team will not allow the hand-over to be manual.",
+          "trade_off": "The team would give up the hand-over if it is not working.",
+          "fact": "That is simply how the hand-over works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "e.cicd_shadow",
+        "asserts_axis": "automation",
+        "asserts_level": 1,
+        "asserts_trigger": "none",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_serving_gov",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The model serving endpoint has no governance in place.",
+        "readings": {
+          "driver": "The team wants to add governance to the serving endpoint.",
+          "boundary": "The team will not allow the serving endpoint to run without governance.",
+          "trade_off": "The team would give up the serving endpoint if it is not governed.",
+          "fact": "That is simply how the serving endpoint works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "deploy.serving",
+        "asserts_axis": "governance",
+        "asserts_level": 0,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_cicd_gov",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The CI/CD pipeline has no governance in place.",
+        "readings": {
+          "driver": "The team wants to add governance to the CI/CD pipeline.",
+          "boundary": "The team will not allow the CI/CD pipeline to run without governance.",
+          "trade_off": "The team would give up the CI/CD pipeline if it is not governed.",
+          "fact": "That is simply how the CI/CD pipeline works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "deploy.cicd",
+        "asserts_axis": "governance",
+        "asserts_level": 0,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_canary_auto",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The canary and A/B testing is done by hand.",
+        "readings": {
+          "driver": "The team wants to automate the canary testing.",
+          "boundary": "The team will not allow the canary testing to be manual.",
+          "trade_off": "The team would give up the canary testing if it is not automated.",
+          "fact": "That is simply how the canary testing works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "deploy.canary_ab",
+        "asserts_axis": "automation",
+        "asserts_level": 1,
+        "asserts_trigger": null,
         "branch_x_description": null,
         "branch_x_target": null,
         "branch_x_axis": null,

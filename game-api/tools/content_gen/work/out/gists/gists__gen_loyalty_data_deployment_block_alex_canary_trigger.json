@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_data_deployment_block_alex_canary_trigger",
+  "stage": "gists",
+  "input_hash": "1ce42a745e86862e5e95ff02eac7458bb89fd18bef083d34bf7677767a7936cb",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_loyalty_data_deployment_block_alex_canary_trigger",
+    "fact": "{automation_alex} suggested that the canary test should start as soon as a new model version is registered.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Gap"
+  },
+  "output": {
+    "gist": "When canary tests start relative to model version registration keeps coming up in team discussions.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes that the timing of canary tests relative to registration is a recurring topic of discussion, but it does not express a preference for change, a refusal, an accepted loss, or a definitive statement of how things currently work."
+  }
+}

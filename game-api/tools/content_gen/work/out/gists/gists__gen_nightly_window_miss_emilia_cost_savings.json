@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_emilia_cost_savings",
+  "stage": "gists",
+  "input_hash": "bac004c20f8e39f36c7d5ac0ec4c40f6b79f4991ee73eed8686957817e162a9f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_emilia_cost_savings",
+    "fact": "{efficiency_emilia} noted that the infrastructure costs are a concern for the business.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "Infrastructure costs keep coming up whenever the team discusses the Shelfcast platform's operational footprint.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that infrastructure costs are a recurring topic of discussion but does not explicitly state a desire to reduce them, a refusal to accept them, or a specific trade-off, making the direction ambiguous."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_emilia_trade_off_registry",
+  "stage": "gists",
+  "input_hash": "c7e9b9ede21a181ff42bf64e6055f7b1321c7ae88f51d5067c32e234fbc1431e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_emilia_trade_off_registry",
+    "fact": "{efficiency_emilia} suggested that the model registry is missing.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "The missing model registry keeps coming up whenever the team discusses the Shelfcast platform's operational efficiency.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the lack of a model registry is a recurring topic in discussions about operational efficiency, but it does not explicitly commit to a stance on whether this is a driver, boundary, trade-off, or fact."
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "item_id": "artifacts:gen_heatwave_forecast_gap_fact_registry_absent",
+  "stage": "artifacts",
+  "input_hash": "0af75d72222f4bac2450594c5bf4be6c34635f331b4f4b1150caa7f3b4fa5940",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_fact_registry_absent",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The model registry is missing. Model versions are tracked in a shared spreadsheet.",
+      "fact": "The model registry is missing.",
+      "reading": "Model versions are tracked in a shared spreadsheet.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "model.registry",
+        "axis": "automation",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "narrator": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Heatwave Blind Spot",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "When we need to compare the current weekly retrain against the previous iteration, I open the shared spreadsheet in the team drive. It lists the training run identifier, the date, and the root mean squared error for the fourteen day horizon. I manually copy the relevant row into the notebook to load the archived weights from the object storage bucket. There is no central service that maps a store or article to the specific model version currently serving its forecast. If a discrepancy appears in the morning order window, I check the spreadsheet to see which build was deployed the night before. The file is updated by hand after each successful retrain cycle, and I keep a local backup of the last three versions on my workstation.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the current manual workflow and existing gaps in the MLOps process without expressing a wish, refusal, or explicit trade-off."
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "item_id": "artifacts:gen_nightly_window_miss_emilia_forecast_speed",
+  "stage": "artifacts",
+  "input_hash": "f7145cd7a04cbb258a6433edcd0189f738cd69a72a3f485f801fca2f7c2a8caa",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_nightly_window_miss_emilia_forecast_speed",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} proposed that the forecast job should run faster to meet the morning window. She wants the forecast job to run faster so that the store managers have the order suggestions in time.",
+      "fact": "{efficiency_emilia} proposed that the forecast job should run faster to meet the morning window.",
+      "reading": "She wants the forecast job to run faster so that the store managers have the order suggestions in time.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "data.ingestion",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.validation",
+          "axis": "automation",
+          "value": 1
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.ingest_validate",
+          "axis": "automation",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(data.ingestion, 3)",
+        "raise_to(data.validation, 1)",
+        "raise_to(e.ingest_validate, 3)"
+      ],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "author": {
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    },
+    "challenge": {
+      "name": "The Midnight Deadline",
+      "description": "The nightly data job is failing to finish before the store managers open the ordering app. #reliability_ruth# demands an automated validation layer to catch bad data instantly so the morning window is never missed again. #data_dave# insists on keeping the process manual for now, arguing that the infrastructure costs are too high and the current manual checks are sufficient to manage the risk."
+    }
+  },
+  "output": {
+    "content": "{efficiency_emilia} reviewed the current nightly pipeline and noted that the forecast job consistently finishes too late for the morning order window. She wants the job to run faster so store managers see fresh order suggestions before they open the app. The more speed we add, the more reliable the morning becomes, and the less likely we are to fall back on stale numbers. Faster execution is always better here because it directly protects availability and reduces the risk of stores ordering blind. There is no upper limit to how much we want to shave off that runtime. Every minute saved is a minute of confidence for the buyers and the planners who depend on that data to hit their targets.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The text explicitly states that there is no upper limit to the desired speed improvement and that every additional minute saved increases stakeholder confidence, indicating that doing more than the minimum requested would make them happier."
+  }
+}

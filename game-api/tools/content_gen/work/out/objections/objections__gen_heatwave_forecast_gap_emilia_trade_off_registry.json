@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_heatwave_forecast_gap_emilia_trade_off_registry",
+  "stage": "objections",
+  "input_hash": "9d3352cf18becb9da6901d4b048702f8f35913979ba284befd77ba56219441f8",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_emilia_trade_off_registry",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} suggested that the model registry is missing. She would give up the registry if retraining is automated.",
+      "fact": "{efficiency_emilia} suggested that the model registry is missing.",
+      "reading": "She would give up the registry if retraining is automated.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.registry",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are treating my suggestion to drop the model registry as a free concession, but I only offered that trade to unlock automated retraining. If you file this as a simple cost saving, you miss the operational risk I was trying to avoid.",
+    "correction": "I did not say the registry is unimportant, I said I would accept its absence only if the retraining pipeline becomes fully automated and auditable. You have misread a conditional trade off as a blanket dismissal of version control."
+  }
+}

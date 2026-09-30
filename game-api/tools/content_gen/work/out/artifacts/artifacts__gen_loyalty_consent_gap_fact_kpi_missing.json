@@ -1,0 +1,52 @@
+{
+  "item_id": "artifacts:gen_loyalty_consent_gap_fact_kpi_missing",
+  "stage": "artifacts",
+  "input_hash": "e626c89ce58523c1f65e35c7df0de5f83113a36554944d9df795149c0c14de93",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement": {
+      "id": "gen_loyalty_consent_gap_fact_kpi_missing",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The KPI definitions for the next promotion cycle are missing. The KPI definitions were never created for the current promotion cycle.",
+      "fact": "The KPI definitions for the next promotion cycle are missing.",
+      "reading": "The KPI definitions were never created for the current promotion cycle.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "req.kpi_definition",
+        "axis": "automation",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "narrator": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    },
+    "challenge": {
+      "name": "The Loyalty Data Audit",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "{requirements_reuben} observed that the KPI definitions for the next promotion cycle are missing. The middle aisle category team tracks residual stock and availability using ad hoc spreadsheet columns that vary by region. The supply chain planners at the distribution centres rely on verbal agreements with regional buyers to interpret what constitutes a successful promotion week. During the last cycle, the team manually reconciled discrepancies between store level sales and warehouse receipts without a shared baseline. The architects team has not received any documented criteria for validating forecast accuracy against these undefined targets. The current process involves weekly email threads where stakeholders debate the numbers after the fact, rather than measuring against pre agreed standards during the week.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the current operational state and missing documentation without expressing a specific wish, refusal, or acceptance by any stakeholder."
+  }
+}

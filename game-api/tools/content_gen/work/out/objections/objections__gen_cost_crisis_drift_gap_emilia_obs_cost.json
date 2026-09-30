@@ -1,0 +1,54 @@
+{
+  "item_id": "objections:gen_cost_crisis_drift_gap_emilia_obs_cost",
+  "stage": "objections",
+  "input_hash": "ac8b021b1ac595214a04530f881ac00d083ae52d21ba16a96243d9da9e2f0bba",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_emilia_obs_cost",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted that the observability pipeline cost is spiking due to scan line volume. She would accept a reduction in the automation level of the logging pipeline if it cuts the cost significantly.",
+      "fact": "{efficiency_emilia} noted that the observability pipeline cost is spiking due to scan line volume.",
+      "reading": "She would accept a reduction in the automation level of the logging pipeline if it cuts the cost significantly.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.observability",
+          "axis": "automation",
+          "value": 1
+        }
+      ],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "ops.observability",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are proposing we degrade the logging pipeline to save money, but you did not flag that as a cost trade off. I need that risk explicitly on the table before we vote.",
+    "correction": "I am not asking you to delete the logs, I am asking you to acknowledge that we are trading observability depth for budget. Do not file this as a technical preference, it is a business decision on acceptable blind spots."
+  }
+}

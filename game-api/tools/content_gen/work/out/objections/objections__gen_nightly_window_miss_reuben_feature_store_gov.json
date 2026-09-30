@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_nightly_window_miss_reuben_feature_store_gov",
+  "stage": "objections",
+  "input_hash": "e8a2953612080b7fca8968eee47508aa405c34730ff1af80c3f14f2dd7408829",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_nightly_window_miss_reuben_feature_store_gov",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "trade_off",
+      "description": "{requirements_reuben} brought up the need to review the feature store access controls. He would accept a lack of formal sign-off on the feature store if the data is encrypted and access is restricted.",
+      "fact": "{requirements_reuben} brought up the need to review the feature store access controls.",
+      "reading": "He would accept a lack of formal sign-off on the feature store if the data is encrypted and access is restricted.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "data.feature_store",
+        "axis": "governance",
+        "accepts_max_level": 0
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "I did not waive the governance requirement, I simply traded it for stronger encryption and strict access controls on the feature store. You cannot file that as a lack of sign-off without acknowledging the security posture I demanded in return.",
+    "correction": "Stop treating my statement as a blanket approval of zero governance. I explicitly conditioned my acceptance of the manual review gap on the presence of end to end encryption and role based access, so do not misread that as a green light to skip the controls."
+  }
+}

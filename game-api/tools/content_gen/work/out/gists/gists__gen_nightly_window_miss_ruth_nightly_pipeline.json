@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_ruth_nightly_pipeline",
+  "stage": "gists",
+  "input_hash": "c99d834120f61028b588582a6dacb6cfbfc91dac5ca36a147502fc5a7d7760af",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_ruth_nightly_pipeline",
+    "fact": "{reliability_ruth} asked for the nightly data pipeline to run on its own.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "The nightly data pipeline reliability has been raised as a standing concern in recent planning discussions.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies reliability as a topic of concern but does not specify a direction, such as a demand for improvement, a refusal, or an acceptance of trade-offs."
+  }
+}

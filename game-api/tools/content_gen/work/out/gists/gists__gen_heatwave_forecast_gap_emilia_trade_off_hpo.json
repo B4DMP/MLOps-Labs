@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_emilia_trade_off_hpo",
+  "stage": "gists",
+  "input_hash": "27730c860e3cc0f888018d4382d26c37abf33ac1b571ddbb758e15a57872799a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_emilia_trade_off_hpo",
+    "fact": "{efficiency_emilia} noted that hyperparameter tuning is manual.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "The question of how hyperparameter tuning is handled for Shelfcast models keeps coming up in discussions with {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist merely notes that hyperparameter tuning for Shelfcast models is a recurring topic in discussions with an efficiency stakeholder, without expressing a stance, refusal, trade-off, or factual claim about the metric itself."
+  }
+}

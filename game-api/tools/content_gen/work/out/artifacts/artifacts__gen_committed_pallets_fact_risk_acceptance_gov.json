@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_committed_pallets_fact_risk_acceptance_gov",
+  "stage": "artifacts",
+  "input_hash": "c4829ffb88fff6dafa2e8ceca4d366b0d3b0a14af2db7b3ab5c90a50eae3c068",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_committed_pallets_fact_risk_acceptance_gov",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The hand-over from risk assessment to acceptance criteria has no governance. No one reviews the movement of data between these two steps.",
+      "fact": "The hand-over from risk assessment to acceptance criteria has no governance.",
+      "reading": "No one reviews the movement of data between these two steps.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.risk_acceptance",
+        "axis": "governance",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "narrator": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    },
+    "challenge": {
+      "name": "The Committed Pallets",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "I walked through the audit trail for the loyalty basket data pipeline last night. The risk assessment document for the new consent flag sits in the shared drive, timestamped three weeks ago. The acceptance criteria for the same feature were finalized in the sprint board two days later. There is no review log, sign off, or approval record connecting those two artifacts. The data moved from the risk assessment phase to the acceptance criteria phase without any documented governance step. I checked the change management system and found no ticket linking the two. The transition happened silently, with no one reviewing the movement of data between these two steps.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text is a descriptive report of a specific incident and the absence of governance records, containing no explicit wishes, refusals, or stated needs that would classify it as a driver, boundary, or trade-off."
+  }
+}

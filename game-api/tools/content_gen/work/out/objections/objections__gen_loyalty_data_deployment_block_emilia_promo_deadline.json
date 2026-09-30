@@ -1,0 +1,76 @@
+{
+  "item_id": "objections:gen_loyalty_data_deployment_block_emilia_promo_deadline",
+  "stage": "objections",
+  "input_hash": "fe578b5c9c1233b7e1abc9b25190a8ecd710b6765545b0a2499404425bc1b38e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_loyalty_data_deployment_block_emilia_promo_deadline",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} proposed that the entire deployment chain should run without human intervention to meet the promotion deadline. Every hour of manual work is an hour the promotion allocation is not optimized.",
+      "fact": "{efficiency_emilia} proposed that the entire deployment chain should run without human intervention to meet the promotion deadline.",
+      "reading": "Every hour of manual work is an hour the promotion allocation is not optimized.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "deploy.cicd",
+        "axis": "automation",
+        "level": 2
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.registry_cicd",
+          "axis": "automation",
+          "value": 3
+        },
+        {
+          "kind": "raise_to",
+          "target": "deploy.containerization",
+          "axis": "automation",
+          "value": 3
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.cicd_container",
+          "axis": "automation",
+          "value": 3
+        },
+        {
+          "kind": "raise_to",
+          "target": "deploy.orchestration",
+          "axis": "automation",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(deploy.cicd, 2)",
+        "raise_to(e.registry_cicd, 3)",
+        "raise_to(deploy.containerization, 3)",
+        "raise_to(e.cicd_container, 3)",
+        "raise_to(deploy.orchestration, 3)"
+      ],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "I am not asking you to ignore the risk, I am asking you to stop treating the manual sign off as the bottleneck. If we keep waiting for a human to approve every pallet allocation, we will miss the leaflet deadline and the margin target.",
+    "correction": "I did not say we should remove all controls, I said the current manual review steps are too slow for the promotion cycle. You are misreading my focus on speed as a demand to strip out governance."
+  }
+}

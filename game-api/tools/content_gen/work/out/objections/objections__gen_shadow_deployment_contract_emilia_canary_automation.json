@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_shadow_deployment_contract_emilia_canary_automation",
+  "stage": "objections",
+  "input_hash": "cb43db06966543f2c1d4ad724626eb279753f1d3d19ecee07b98355431cde0f4",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_emilia_canary_automation",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted that the canary testing setup is currently absent. She would accept the canary testing setup remaining absent if the serving endpoint is fully automated.",
+      "fact": "{efficiency_emilia} noted that the canary testing setup is currently absent.",
+      "reading": "She would accept the canary testing setup remaining absent if the serving endpoint is fully automated.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "deploy.canary_ab",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are treating the missing canary setup as a free concession, but it is a deliberate trade for full automation on the serving endpoint. I need that dependency acknowledged in the plan so we do not lose both safeguards at once.",
+    "correction": "I am not asking you to build a canary environment right now, I am telling you that the serving endpoint must be fully automated to justify that gap. Do not file this as a request for new tooling, it is a condition for accepting the current state."
+  }
+}

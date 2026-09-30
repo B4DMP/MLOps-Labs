@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_committed_pallets_requirements_reuben_boundary_1",
+  "stage": "gists",
+  "input_hash": "b04adb9d8c49da0f16cc303e6dfb7fccbf44d0d513ad77b577683fd55de07503",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_committed_pallets_requirements_reuben_boundary_1",
+    "fact": "{requirements_reuben} proposed that the acceptance criteria must be fully governed.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Committed Pallets"
+  },
+  "output": {
+    "gist": "Governance of the acceptance criteria for the replenishment system has been raised by {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that governance over acceptance criteria has been raised, which is a factual statement about the status of the requirements process without indicating a specific stance such as a driver, boundary, or trade-off."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_ingestion_failure_ruth_edge_gov_boundary",
+  "stage": "gists",
+  "input_hash": "2fd1c07d7c7469cba16f20231ffd962f46a272aa16ad50169927384cc360abdd",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_silent_ingestion_failure_ruth_edge_gov_boundary",
+    "fact": "{reliability_ruth} asked for a formal sign-off on the hand-over from ingestion to validation.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Store Gap"
+  },
+  "output": {
+    "gist": "The hand-over from ingestion to validation is the topic of the current reliability discussion.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist explicitly identifies the topic as a 'reliability discussion' but merely states that the hand-over is the current subject without expressing a stance on whether it is a driver, boundary, trade-off, or fact."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_consent_gap_ruth_driver_eval",
+  "stage": "gists",
+  "input_hash": "794af3eb437bd15997e2e3f103692917e7e5d52c0876a4a0fc285c7d6487a14b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_loyalty_consent_gap_ruth_driver_eval",
+    "fact": "{reliability_ruth} suggested automating the acceptance criteria to ensure model evaluation starts immediately.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Loyalty Data Audit"
+  },
+  "output": {
+    "gist": "Reliability of the model evaluation trigger when acceptance criteria run automatically is the topic under discussion.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist explicitly states the topic is the reliability of the trigger but does not indicate a desire for more, a refusal, a trade-off, or a descriptive fact about the current state."
+  }
+}

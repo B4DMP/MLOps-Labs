@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_reuben_trade_off_acceptance",
+  "stage": "gists",
+  "input_hash": "cb93bed0bc0ccbb63c6185a3413305e332641b0ad8654ffa264b7f785c37ecc9",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_reuben_trade_off_acceptance",
+    "fact": "{requirements_reuben} suggested that the acceptance criteria hand-over is manual.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "The hand over of acceptance criteria between teams is the topic in {requirements_reuben}'s note.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the handover of acceptance criteria as the topic but does not express a stance on whether it should be increased, refused, traded off, or simply describe how it currently functions."
+  }
+}

@@ -294,7 +294,9 @@ class TestEmotionDynamicsSimulation:
                 by_challenge.setdefault(r["challenge_id"], []).append(r)
         for _, reqs in sorted(by_challenge.items()):
             if any(r["type"] == "driver" for r in reqs):
-                return reqs
+                # The maths under test is per item: composite items score by card atoms, which these
+                # tests do not build, so they are flattened to the single-step form.
+                return [{**r, "atoms": [], "branch_x_atoms": [], "branch_y_atoms": []} for r in reqs]
         raise AssertionError(f"no challenge in gameConfig has stance intel for {stakeholder_id}")
 
     def test_positive_pitch_produces_happiness_and_enthusiasm(self):

@@ -1,0 +1,52 @@
+{
+  "item_id": "artifacts:gen_cost_crisis_drift_gap_fact_drift_alert_edge",
+  "stage": "artifacts",
+  "input_hash": "ff6b6303f9ba8c5a0ef304f3ea62be6129d0dda66c6b288914257e226575af9d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_fact_drift_alert_edge",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The hand-over from drift monitoring to alerting is done by hand. A team member manually copies drift metrics into the alerting system when they notice a change.",
+      "fact": "The hand-over from drift monitoring to alerting is done by hand.",
+      "reading": "A team member manually copies drift metrics into the alerting system when they notice a change.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.drift_alert",
+        "axis": "automation",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "narrator": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Cost Cliff",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "When a drift threshold trips, no notification fires automatically. I watched a colleague sit at the monitoring dashboard on a Tuesday morning, spot a spike in feature variance for the northern stores, and open a separate ticketing tool. They typed the metric name, the store region, and the timestamp by hand into the alerting queue. The drift dashboard itself does not push this information anywhere. The alerting system has no direct feed from the monitoring service. The only link is the person who notices the change and decides to type it in. I timed the process once. It takes about four minutes from spotting the spike to the alert appearing in the on call channel, assuming the person is already looking at the screen.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The artifact describes the current operational state and a measured latency without expressing a wish, refusal, or explicit need to change the process."
+  }
+}

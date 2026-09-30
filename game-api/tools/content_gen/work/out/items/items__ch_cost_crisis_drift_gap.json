@@ -1,9 +1,9 @@
 {
   "item_id": "items:ch_cost_crisis_drift_gap",
   "stage": "items",
-  "input_hash": "bbcc3b871c71e6d73a88915604664603833e2618dbcbf7ba5d74cdbbffb8f3ef",
+  "input_hash": "63f4d0201264ace20efc3aa5f692edd6780c82e9d2d7295998098620ce06a1af",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 1,
+  "attempts": 5,
   "inputs": {
     "challenge": {
       "phase_id": 5,
@@ -19,12 +19,14 @@
           {
             "component": "ops.production_drift_monitoring",
             "op": "eq",
-            "level": 1
+            "level": 1,
+            "axis": "automation"
           },
           {
             "component": "ops.observability",
             "op": "gte",
-            "level": 2
+            "level": 2,
+            "axis": "automation"
           }
         ]
       },
@@ -34,7 +36,8 @@
           "kind": "set_to",
           "target": "ops.production_drift_monitoring",
           "value": 0,
-          "reason": "budget freeze on automated monitoring tools"
+          "reason": "budget freeze on automated monitoring tools",
+          "axis": "automation"
         }
       ],
       "stalemate_ops": [
@@ -42,7 +45,8 @@
           "kind": "set_to",
           "target": "e.observe_drift",
           "value": 0,
-          "reason": "data pipeline to drift monitor disconnected due to cost"
+          "reason": "data pipeline to drift monitor disconnected due to cost",
+          "axis": "automation"
         }
       ],
       "conflict": {
@@ -51,11 +55,13 @@
         "positions": [
           {
             "stakeholder_id": "efficiency_emilia",
-            "wants": 1
+            "wants": 1,
+            "axis": "automation"
           },
           {
             "stakeholder_id": "reliability_ruth",
-            "wants": 4
+            "wants": 3,
+            "axis": "governance"
           }
         ]
       },
@@ -97,7 +103,7 @@
         "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
         "priorities": "Guaranteeing high product quality through rigorous testing of applications. Guaranteeing the integrity, confidentiality, and security of all ML assets. Meeting internal and external compliance and data protection standards. Keeping infrastructure stable, reproducible, and cost-controlled.",
         "metric_id": "requirements",
-        "power": "low",
+        "power": "high",
         "interest": "low"
       }
     ],
@@ -107,13 +113,17 @@
         {
           "id": "ops.performance_monitoring",
           "name": "Model Performance Monitoring",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "reliability_ruth",
           "attributes": {}
@@ -121,13 +131,17 @@
         {
           "id": "ops.production_drift_monitoring",
           "name": "Production Drift Monitoring",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "reliability_ruth",
           "attributes": {
@@ -142,13 +156,17 @@
         {
           "id": "ops.alerting",
           "name": "Alerting System",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "reliability_ruth",
           "attributes": {
@@ -163,13 +181,17 @@
         {
           "id": "ops.observability",
           "name": "Logging and Observability",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "reliability_ruth",
           "attributes": {
@@ -184,13 +206,17 @@
         {
           "id": "ops.retraining_trigger",
           "name": "Retraining Trigger",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "reliability_ruth",
           "attributes": {}
@@ -198,13 +224,17 @@
         {
           "id": "ops.rollback",
           "name": "Rollback Mechanism",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "reliability_ruth",
           "attributes": {}
@@ -216,13 +246,18 @@
           "from": "deploy.serving",
           "to": "ops.observability",
           "kind": "pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "start_trigger": "manual_request",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -237,13 +272,18 @@
           "from": "ops.observability",
           "to": "ops.performance_monitoring",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -258,13 +298,18 @@
           "from": "ops.observability",
           "to": "ops.production_drift_monitoring",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -279,13 +324,18 @@
           "from": "ops.performance_monitoring",
           "to": "ops.alerting",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -300,13 +350,18 @@
           "from": "ops.production_drift_monitoring",
           "to": "ops.alerting",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -321,13 +376,18 @@
           "from": "ops.alerting",
           "to": "ops.retraining_trigger",
           "kind": "feedback",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -342,13 +402,18 @@
           "from": "ops.retraining_trigger",
           "to": "model.training_pipeline",
           "kind": "feedback",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -363,13 +428,18 @@
           "from": "ops.alerting",
           "to": "ops.rollback",
           "kind": "feedback",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -384,13 +454,18 @@
           "from": "ops.rollback",
           "to": "deploy.serving",
           "kind": "feedback",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -405,49 +480,62 @@
     },
     "current": {
       "ops.performance_monitoring": {
-        "level": 1
+        "automation": 1,
+        "governance": 0
       },
       "ops.production_drift_monitoring": {
-        "level": 0
+        "automation": 0,
+        "governance": 0
       },
       "ops.alerting": {
-        "level": 1
+        "automation": 1,
+        "governance": 0
       },
       "ops.observability": {
-        "level": 2
+        "automation": 2,
+        "governance": 0
       },
       "ops.retraining_trigger": {
-        "level": 1
+        "automation": 1,
+        "governance": 0
       },
       "ops.rollback": {
-        "level": 1
+        "automation": 1,
+        "governance": 0
       },
       "e.serving_observe": {
-        "level": 2,
+        "automation": 2,
+        "governance": 0,
         "trigger": "manual_request"
       },
       "e.observe_perf": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       },
       "e.observe_drift": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       },
       "e.perf_alert": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       },
       "e.drift_alert": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       },
       "e.alert_retrain": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       },
       "e.alert_rollback": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       }
     },
@@ -459,10 +547,16 @@
       "reliability",
       "requirements"
     ],
+    "quotas": {
+      "efficiency_emilia": 4,
+      "reliability_ruth": 2,
+      "model_monica": 2,
+      "requirements_reuben": 3
+    },
     "counts": {
       "stances": [
-        6,
-        10
+        11,
+        11
       ],
       "facts": [
         3,
@@ -476,133 +570,58 @@
       "boundary_max_share": 0.34,
       "driver_min": 1,
       "boundary_min": 1
+    },
+    "stance_shape": {
+      "edge_min_share": 0.3,
+      "composite_min": 2,
+      "composite_atoms": [
+        3,
+        5
+      ],
+      "boundary_per_stakeholder_max": 1
     }
   },
   "output": {
     "items": [
       {
-        "key": "emilia_cut_drift",
-        "tag": "trade_off",
+        "key": "emilia_drift_cut",
+        "tag": "boundary",
         "stakeholder_id": "efficiency_emilia",
         "fact": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero.",
         "readings": {
-          "driver": "She wants to redirect those funds to improve the efficiency of the forecasting pipeline.",
-          "boundary": "She will not approve any spend on drift monitoring if it exceeds the current infrastructure budget.",
-          "trade_off": "She is willing to accept the risk of undetected drift to keep the operational costs within the approved limit.",
-          "fact": "The current budget for drift monitoring is zero."
+          "driver": "The efficiency metric improves if the cost of running drift checks is removed from the infrastructure bill.",
+          "boundary": "She will not fund any automation for drift monitoring as long as the infrastructure cost remains above the current baseline.",
+          "trade_off": "She would accept a manual review of drift signals if the automated tooling is too expensive to maintain.",
+          "fact": "The drift monitoring tool is currently broken and has not been running."
         },
         "metric_id": null,
         "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "ops.production_drift_monitoring",
-            "value": 0,
-            "axis": "automation"
-          }
-        ],
-        "concedes_metric": "reliability",
-        "concedes_loss": 8,
-        "asserts_target": null,
-        "asserts_level": null,
-        "asserts_trigger": null,
-        "branch_x_description": "governed, automated drift monitoring",
-        "branch_x_target": "ops.production_drift_monitoring",
-        "branch_x_level": 3,
-        "branch_y_description": "drift monitoring cut back to the bare minimum",
-        "branch_y_target": "ops.production_drift_monitoring",
-        "branch_y_level": 1,
         "suggested_axis": null,
-        "asserts_axis": null,
-        "branch_x_axis": "governance",
-        "branch_x_ops": [],
-        "branch_y_axis": "automation",
-        "branch_y_ops": []
-      },
-      {
-        "key": "ruth_governed_drift",
-        "tag": "driver",
-        "stakeholder_id": "reliability_ruth",
-        "fact": "{reliability_ruth} asked for governed drift monitoring on the production forecast.",
-        "readings": {
-          "driver": "She believes that governed drift checks are essential to catch silent failures before they impact store availability.",
-          "boundary": "She will not deploy new models without a governed drift monitoring setup in place.",
-          "trade_off": "She would accept a delay in the promotion calendar to ensure the drift monitoring is fully governed.",
-          "fact": "The drift monitoring is currently absent."
-        },
-        "metric_id": "reliability",
-        "suggested_target": "ops.production_drift_monitoring",
-        "suggested_level": 3,
-        "holds": null,
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "ops.production_drift_monitoring",
-            "value": 3,
-            "axis": "governance"
-          }
-        ],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": null,
-        "asserts_level": null,
-        "asserts_trigger": null,
-        "suggested_axis": "governance",
-        "concedes_axis": null,
-        "asserts_axis": null,
-        "branch_x_description": null,
-        "branch_x_target": null,
-        "branch_x_axis": null,
-        "branch_x_level": null,
-        "branch_x_ops": [],
-        "branch_y_description": null,
-        "branch_y_target": null,
-        "branch_y_axis": null,
-        "branch_y_level": null,
-        "branch_y_ops": []
-      },
-      {
-        "key": "ruth_no_manual",
-        "tag": "boundary",
-        "stakeholder_id": "reliability_ruth",
-        "fact": "{reliability_ruth} noted that manual drift checks are not a substitute for automated signal.",
-        "readings": {
-          "driver": "She wants to automate the drift checks to reduce the manual workload on the operations team.",
-          "boundary": "She will not accept a manual process for drift monitoring as it is unreliable during promotion weeks.",
-          "trade_off": "She would accept a temporary reduction in monitoring frequency if the checks are automated.",
-          "fact": "The drift monitoring is currently done by hand."
-        },
-        "metric_id": null,
-        "suggested_target": null,
         "suggested_level": null,
         "holds": {
           "component": "ops.production_drift_monitoring",
-          "op": "gte",
-          "level": 3,
-          "axis": "automation"
+          "axis": "automation",
+          "op": "lte",
+          "level": 1
         },
         "ops": [
           {
             "kind": "raise_to",
             "target": "ops.production_drift_monitoring",
-            "value": 3,
-            "axis": "automation"
+            "axis": "automation",
+            "value": 1,
+            "attr": null
           }
         ],
         "concedes_metric": null,
         "concedes_loss": null,
         "concedes_target": null,
+        "concedes_axis": null,
         "concedes_max_level": null,
         "asserts_target": null,
+        "asserts_axis": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": null,
-        "concedes_axis": null,
-        "asserts_axis": null,
         "branch_x_description": null,
         "branch_x_target": null,
         "branch_x_axis": null,
@@ -615,148 +634,699 @@
         "branch_y_ops": []
       },
       {
-        "key": "monica_retraining",
+        "key": "emilia_obs_cost",
         "tag": "trade_off",
-        "stakeholder_id": "model_monica",
-        "fact": "{model_monica} suggested linking drift alerts to the retraining trigger.",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} noted that the observability pipeline cost is spiking due to scan line volume.",
         "readings": {
-          "driver": "She wants the model to retrain automatically when drift is detected to maintain predictive performance.",
-          "boundary": "She will not release a new model version unless the retraining pipeline is triggered by drift signals.",
-          "trade_off": "She would accept a longer retraining cycle if it is triggered automatically by drift detection.",
-          "fact": "The retraining trigger is currently manual."
+          "driver": "Reducing the volume of data sent to observability would lower the infrastructure bill.",
+          "boundary": "The observability pipeline must remain fully automated to handle the store volume.",
+          "trade_off": "She would accept a reduction in the automation level of the logging pipeline if it cuts the cost significantly.",
+          "fact": "The logging and observability system is currently done by hand."
         },
         "metric_id": null,
         "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "e.alert_retrain",
-            "value": 3,
-            "axis": "automation"
-          }
-        ],
-        "concedes_metric": "model",
-        "concedes_loss": 4,
-        "asserts_target": null,
-        "asserts_level": null,
-        "asserts_trigger": null,
-        "branch_x_description": "drift alerts triggering retraining automatically",
-        "branch_x_target": "e.alert_retrain",
-        "branch_x_level": 3,
-        "branch_y_description": "the retraining trigger staying a manual step",
-        "branch_y_target": "e.alert_retrain",
-        "branch_y_level": 1,
         "suggested_axis": null,
-        "asserts_axis": null,
-        "branch_x_axis": "automation",
-        "branch_x_ops": [],
-        "branch_y_axis": "automation",
-        "branch_y_ops": []
-      },
-      {
-        "key": "reuben_cost_control",
-        "tag": "trade_off",
-        "stakeholder_id": "requirements_reuben",
-        "fact": "{requirements_reuben} mentioned that the observability pipeline cost is spiking due to scan line volume.",
-        "readings": {
-          "driver": "He wants to optimize the observability pipeline to reduce costs while maintaining data quality.",
-          "boundary": "He will not approve any increase in observability spend without a cost control plan.",
-          "trade_off": "He is willing to reduce the granularity of logging if it brings the infrastructure bill back within budget.",
-          "fact": "The observability pipeline is currently automated."
-        },
-        "metric_id": null,
-        "suggested_target": null,
         "suggested_level": null,
         "holds": null,
         "ops": [
           {
             "kind": "raise_to",
             "target": "ops.observability",
-            "value": 2,
-            "axis": "automation"
+            "axis": "automation",
+            "value": 1,
+            "attr": null
           }
         ],
-        "concedes_metric": "data",
-        "concedes_loss": 5,
-        "asserts_target": null,
-        "asserts_level": null,
-        "asserts_trigger": null,
-        "branch_x_description": "full, granular logging",
-        "branch_x_target": "ops.observability",
-        "branch_x_level": 3,
-        "branch_y_description": "the current, lower-granularity logging level",
-        "branch_y_target": "ops.observability",
-        "branch_y_level": 2,
-        "suggested_axis": null,
-        "asserts_axis": null,
-        "branch_x_axis": "automation",
-        "branch_x_ops": [],
-        "branch_y_axis": "automation",
-        "branch_y_ops": []
-      },
-      {
-        "key": "emilia_efficiency_kpi",
-        "tag": "trade_off",
-        "stakeholder_id": "efficiency_emilia",
-        "fact": "{efficiency_emilia} proposed aligning the monitoring budget with the efficiency KPI.",
-        "readings": {
-          "driver": "She wants the cost of watching the system to scale with infrastructure, not headcount.",
-          "boundary": "She will not fund monitoring tools that do not have a clear link to the efficiency KPI.",
-          "trade_off": "She would leave logging at its current granularity if the budget stays flat, but wants full observability if the spend is approved.",
-          "fact": "The efficiency KPI is currently not linked to the monitoring budget."
-        },
-        "metric_id": "efficiency",
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
         "concedes_target": "ops.observability",
-        "concedes_max_level": 2,
+        "concedes_axis": "automation",
+        "concedes_max_level": 1,
         "asserts_target": null,
+        "asserts_axis": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": null,
-        "concedes_axis": "automation",
-        "branch_x_description": "full observability automation, budget permitting",
-        "branch_x_target": "ops.observability",
-        "branch_x_axis": "automation",
-        "branch_x_level": 3,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
         "branch_x_ops": [],
-        "branch_y_description": "observability left at its current, cheaper granularity",
-        "branch_y_target": "ops.observability",
-        "branch_y_axis": "automation",
-        "branch_y_level": 2,
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
         "branch_y_ops": []
       },
       {
-        "key": "fact_drift_absent",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "Production drift monitoring is broken.",
+        "key": "emilia_alert_cost",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} suggested simplifying the alerting system to reduce tooling overhead.",
         "readings": {
-          "driver": "The team wants to implement drift monitoring to improve reliability.",
-          "boundary": "The team will not proceed without drift monitoring.",
-          "trade_off": "The team would accept a delay in other features to implement drift monitoring.",
-          "fact": "That is simply the state of the system today."
+          "driver": "A simpler alerting system would reduce the number of tools the team needs to manage.",
+          "boundary": "The alerting system must remain automated to ensure timely notifications.",
+          "trade_off": "She would accept a manual alerting process if it eliminates the need for a dedicated alerting tool subscription.",
+          "fact": "The alerting system is currently automated."
         },
         "metric_id": null,
         "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "ops.alerting",
+            "axis": "automation",
+            "value": 2,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "ops.alerting",
+        "concedes_axis": "automation",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "emilia_drift_edge",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} mentioned that the data flow from observability to drift monitoring is a cost center.",
+        "readings": {
+          "driver": "Automating the data flow would reduce the manual effort required to move drift metrics.",
+          "boundary": "The data flow must remain manual to avoid unnecessary compute costs.",
+          "trade_off": "She would accept a manual data flow if it eliminates the cost of the automated pipeline.",
+          "fact": "The data flow from observability to drift monitoring is currently done by hand."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "e.observe_drift",
+            "axis": "automation",
+            "value": 2,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "e.observe_drift",
+        "concedes_axis": "automation",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "ruth_drift_gov",
+        "tag": "boundary",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} proposed that drift checks require formal sign off.",
+        "readings": {
+          "driver": "More governance on drift monitoring would improve the reliability of the signal during promotion weeks.",
+          "boundary": "She will not sign off on the production drift monitoring unless it has full formal governance.",
+          "trade_off": "She would accept a lower automation level for drift monitoring if the governance is strict.",
+          "fact": "The production drift monitoring is currently broken."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": {
+          "component": "ops.production_drift_monitoring",
+          "axis": "governance",
+          "op": "gte",
+          "level": 3
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "ops.production_drift_monitoring",
+            "axis": "governance",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "ruth_pipeline_auto",
+        "tag": "driver",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} asked for the entire drift detection pipeline to run on its own.",
+        "readings": {
+          "driver": "Automating the hand-overs from observability to drift monitoring and from drift to alerting ensures the system reacts to drift without human delay.",
+          "boundary": "The pipeline must remain manual to allow for careful review of each step.",
+          "trade_off": "She would accept a manual trigger if the automation is too complex to maintain.",
+          "fact": "The data flow from the observability stack to the drift monitor and then to the alert system currently requires manual requests."
+        },
+        "metric_id": "reliability",
+        "suggested_target": "e.observe_drift",
+        "suggested_axis": "automation",
+        "suggested_level": 2,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "e.observe_drift",
+            "axis": "automation",
+            "value": 2,
+            "attr": null
+          },
+          {
+            "kind": "raise_to",
+            "target": "e.drift_alert",
+            "axis": "automation",
+            "value": 3,
+            "attr": null
+          },
+          {
+            "kind": "raise_to",
+            "target": "e.alert_retrain",
+            "axis": "automation",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "monica_perf_gov",
+        "tag": "driver",
+        "stakeholder_id": "model_monica",
+        "fact": "{model_monica} proposed that the model performance monitoring should be reviewed by the data science team.",
+        "readings": {
+          "driver": "Formal governance on performance monitoring helps the model team understand when the model is degrading.",
+          "boundary": "The performance monitoring must remain automated to track metrics in real time.",
+          "trade_off": "She would accept a less automated monitoring system if it is governed by the model team.",
+          "fact": "The model performance monitoring currently has no governance."
+        },
+        "metric_id": "model",
+        "suggested_target": "ops.performance_monitoring",
+        "suggested_axis": "governance",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "ops.performance_monitoring",
+            "axis": "governance",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "monica_retrain_gov",
+        "tag": "trade_off",
+        "stakeholder_id": "model_monica",
+        "fact": "{model_monica} noted that the retraining trigger is not reviewed before execution.",
+        "readings": {
+          "driver": "Governance on the retraining trigger would prevent unnecessary retraining runs.",
+          "boundary": "The retraining trigger must remain automated to respond to drift quickly.",
+          "trade_off": "She would accept a manual retraining trigger if it is governed by the model team.",
+          "fact": "The retraining trigger currently has no governance."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "ops.retraining_trigger",
+            "axis": "governance",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "ops.retraining_trigger",
+        "concedes_axis": "governance",
+        "concedes_max_level": 3,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "reuben_obs_gov",
+        "tag": "driver",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} asked for the logging and observability pipeline to be governed by the security team.",
+        "readings": {
+          "driver": "Formal governance on the observability pipeline ensures that personal data in the logs is handled correctly.",
+          "boundary": "The observability pipeline must remain automated to capture all scan lines.",
+          "trade_off": "He would accept a less automated observability pipeline if it is governed by the security team.",
+          "fact": "The logging and observability pipeline currently has no governance."
+        },
+        "metric_id": "requirements",
+        "suggested_target": "e.serving_observe",
+        "suggested_axis": "governance",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "e.serving_observe",
+            "axis": "governance",
+            "value": 3,
+            "attr": null
+          },
+          {
+            "kind": "raise_to",
+            "target": "e.observe_perf",
+            "axis": "governance",
+            "value": 3,
+            "attr": null
+          },
+          {
+            "kind": "raise_to",
+            "target": "e.observe_drift",
+            "axis": "governance",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "reuben_rollback_gov",
+        "tag": "trade_off",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} mentioned that the rollback mechanism is not audited.",
+        "readings": {
+          "driver": "Governance on the rollback mechanism would ensure that rollbacks are auditable.",
+          "boundary": "The rollback mechanism must remain automated to respond to failures quickly.",
+          "trade_off": "He would accept a manual rollback mechanism if it is governed by the security team.",
+          "fact": "The rollback mechanism currently has no governance."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "ops.rollback",
+            "axis": "governance",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "ops.rollback",
+        "concedes_axis": "governance",
+        "concedes_max_level": 3,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "reuben_drift_gov",
+        "tag": "driver",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} proposed that the drift monitoring should be governed by the compliance team.",
+        "readings": {
+          "driver": "Formal governance on drift monitoring ensures that the drift signals are compliant with data protection laws.",
+          "boundary": "The drift monitoring must remain automated to detect drift in real time.",
+          "trade_off": "He would accept a less automated drift monitoring if it is governed by the compliance team.",
+          "fact": "The production drift monitoring currently has no governance."
+        },
+        "metric_id": "requirements",
+        "suggested_target": "e.drift_alert",
+        "suggested_axis": "governance",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "e.drift_alert",
+            "axis": "governance",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_drift_broken",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The production drift monitoring is broken.",
+        "readings": {
+          "driver": "The drift monitoring needs to be automated to detect drift in real time.",
+          "boundary": "The drift monitoring must remain automated to be effective.",
+          "trade_off": "The drift monitoring can be manual if the cost is too high.",
+          "fact": "The tool exists but has stopped working and is not producing any output."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
         "suggested_level": null,
         "holds": null,
         "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
         "concedes_target": null,
+        "concedes_axis": null,
         "concedes_max_level": null,
         "asserts_target": "ops.production_drift_monitoring",
-        "asserts_level": 0,
-        "suggested_axis": null,
-        "concedes_axis": null,
         "asserts_axis": "automation",
+        "asserts_level": 0,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_alert_no_gov",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The alerting system has no governance.",
+        "readings": {
+          "driver": "The alerting system needs governance to ensure alerts are not ignored.",
+          "boundary": "The alerting system must have governance to be compliant.",
+          "trade_off": "The alerting system can be without governance if it is automated.",
+          "fact": "No one reviews the alerting rules before they are applied to the production environment."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "ops.alerting",
+        "asserts_axis": "governance",
+        "asserts_level": 0,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_obs_manual",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The logging and observability pipeline is done by hand.",
+        "readings": {
+          "driver": "The observability pipeline needs to be automated to handle the volume of data.",
+          "boundary": "The observability pipeline must be automated to be reliable.",
+          "trade_off": "The observability pipeline can be manual if the cost is too high.",
+          "fact": "A person manually exports logs from the serving layer and loads them into the observability stack."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "ops.observability",
+        "asserts_axis": "automation",
+        "asserts_level": 2,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_retrain_no_gov",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The retraining trigger has no governance.",
+        "readings": {
+          "driver": "The retraining trigger needs governance to prevent unnecessary runs.",
+          "boundary": "The retraining trigger must have governance to be compliant.",
+          "trade_off": "The retraining trigger can be without governance if it is automated.",
+          "fact": "The trigger fires without any formal review of the conditions that caused it."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "ops.retraining_trigger",
+        "asserts_axis": "governance",
+        "asserts_level": 0,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_drift_alert_edge",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The hand-over from drift monitoring to alerting is done by hand.",
+        "readings": {
+          "driver": "The hand-over needs to be automated to ensure timely alerts.",
+          "boundary": "The hand-over must be automated to be reliable.",
+          "trade_off": "The hand-over can be manual if the cost is too high.",
+          "fact": "A team member manually copies drift metrics into the alerting system when they notice a change."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "e.drift_alert",
+        "asserts_axis": "automation",
+        "asserts_level": 1,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_serving_observe_edge",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The hand-over from serving to observability is triggered by a manual request.",
+        "readings": {
+          "driver": "The hand-over needs to be triggered automatically to capture all data.",
+          "boundary": "The hand-over must be triggered automatically to be reliable.",
+          "trade_off": "The hand-over can be triggered manually if the cost is too high.",
+          "fact": "The data flow from the serving layer to the observability stack starts only when someone asks for it."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "e.serving_observe",
+        "asserts_axis": "automation",
+        "asserts_level": 2,
+        "asserts_trigger": "manual_request",
         "branch_x_description": null,
         "branch_x_target": null,
         "branch_x_axis": null,

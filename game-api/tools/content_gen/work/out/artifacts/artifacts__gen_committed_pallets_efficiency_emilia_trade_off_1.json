@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_committed_pallets_efficiency_emilia_trade_off_1",
+  "stage": "artifacts",
+  "input_hash": "6c22ed9d705c0fab229f638b0883e60db0d0c2db76dd6d1ca5f59b0ed7be5292",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_committed_pallets_efficiency_emilia_trade_off_1",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} proposed accepting a manual review of the KPI definition to save time. She would accept the KPI definition remaining manual if it speeds up the release of the allocation feature.",
+      "fact": "{efficiency_emilia} proposed accepting a manual review of the KPI definition to save time.",
+      "reading": "She would accept the KPI definition remaining manual if it speeds up the release of the allocation feature.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "req.kpi_definition",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "author": {
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    },
+    "challenge": {
+      "name": "The Committed Pallets",
+      "description": "A supplier has confirmed a bulk order for a middle aisle promotion that ships next week, leaving no room for model error. #requirements_reuben# insists the acceptance criteria must be fully governed to guarantee the allocation logic is auditable before the trucks leave. #reliability_ruth# argues the criteria are sufficient as manual checks because the physical stock is already committed and the team needs to ship the feature immediately to handle the live orders."
+    }
+  },
+  "output": {
+    "content": "The allocation feature is the bottleneck for the upcoming middle aisle promotion. If we hold the KPI definition for a full formal sign off, we risk missing the supplier lead time and losing the entire promotion week. I am willing to accept the KPI definition remaining a manual check for this release. This trade off gives us the speed needed to ship the allocation logic immediately. We can automate the KPI governance in the next sprint once the live orders are flowing. The immediate business value of securing the stock outweighs the temporary gap in KPI rigor.",
+    "reclassified_as": "trade_off",
+    "reclassify_reason": "The author explicitly states they are willing to accept the risk of manual KPI checks to secure the speed needed for the promotion, defining a clear exchange between rigor and timeliness."
+  }
+}

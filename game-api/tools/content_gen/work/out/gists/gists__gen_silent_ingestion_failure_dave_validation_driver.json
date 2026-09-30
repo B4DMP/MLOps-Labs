@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_ingestion_failure_dave_validation_driver",
+  "stage": "gists",
+  "input_hash": "fbe17d21ef894ebc8bfe83e0ec2c379c93f7fbbd2d8d8a238699f3b87145bbe6",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_silent_ingestion_failure_dave_validation_driver",
+    "fact": "{data_dave} asked for the validation step to be done by hand before data enters the feature store.",
+    "metric_id": "data",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Store Gap"
+  },
+  "output": {
+    "gist": "Manual validation of raw data before it reaches the feature store has been raised by {data_dave}.",
+    "verdict_metric_id": "data",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that a specific process (manual validation) has been raised, but it does not indicate whether this is a desired driver, a strict boundary, an accepted trade-off, or a neutral fact about current operations."
+  }
+}

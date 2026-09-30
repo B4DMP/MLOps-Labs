@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_emilia_drift_cut",
+  "stage": "gists",
+  "input_hash": "5a2fb960ddbf3602757c8b7e18883cde3d4f92ea9cc5ce8b5c2a2b6a5b5847a3",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_emilia_drift_cut",
+    "fact": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "The automated drift monitoring budget has been raised as a topic in the team's efficiency discussions.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the topic was raised in discussions but does not indicate a stance, commitment, or direction regarding the budget or efficiency."
+  }
+}

@@ -36,7 +36,7 @@ def _losing_search_result():
     from mlops_serious_game.application.playtest_service import auto_card
 
     return auto_card.CardSearchResult(
-        changes=[AtomicChange(target="deploy.shadow", kind="raise_to", value=1)],
+        changes=[AtomicChange(target="data.ingestion", kind="raise_to", value=1)],
         outcome="VETO",
         evaluated=1,
         min_buy_in=0.0,
@@ -94,7 +94,7 @@ async def test_skip_breaks_the_veto_and_actually_advances_past_the_stuck_challen
         challenges = {r.challenge_index for r in rows}
         stuck_row_auto_played = next(r.auto_played for r in rows if r.challenge_index == STUCK_CHALLENGE_ID)
     assert stuck_row_auto_played is True
-    assert len(challenges) > 1, "the scheduler moved on to something new, not stuck repeating ch118"
+    assert len(challenges) > 1, "the scheduler moved on to something new, not stuck repeating the stuck challenge"
 
 
 @pytest.mark.anyio

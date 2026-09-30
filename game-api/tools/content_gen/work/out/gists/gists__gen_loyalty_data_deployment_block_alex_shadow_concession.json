@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_data_deployment_block_alex_shadow_concession",
+  "stage": "gists",
+  "input_hash": "2610a9c34774a8a86083a7dc89d4f132dd8873235fd008f65aca763f8e2c2a79",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_loyalty_data_deployment_block_alex_shadow_concession",
+    "fact": "{automation_alex} mentioned that the shadow deployment step can stay done by hand if it unblocks the main pipeline.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Gap"
+  },
+  "output": {
+    "gist": "The shadow deployment step has been raised as a possible manual workaround to unblock the main pipeline.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states a fact about a proposed manual workaround to unblock the pipeline, but does not commit to whether this is desired, refused, accepted as a trade-off, or simply a neutral observation of the current state."
+  }
+}

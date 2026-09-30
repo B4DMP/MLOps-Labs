@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_ruth_version_trigger",
+  "stage": "gists",
+  "input_hash": "6aa6012a2d70ecc80878bac9dd11a7b78075647e0db592d1a039f0641cdb9d4a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_ruth_version_trigger",
+    "fact": "{reliability_ruth} mentioned that the hand-over from validation to versioning could be done by hand if needed.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "The hand-over from validation to versioning keeps coming up in conversations with {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a recurring topic in conversations with a specific stakeholder but does not express a stance, demand, refusal, or trade-off regarding that topic."
+  }
+}

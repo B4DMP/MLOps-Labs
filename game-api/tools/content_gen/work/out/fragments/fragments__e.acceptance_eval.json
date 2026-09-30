@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:e.acceptance_eval",
   "stage": "fragments",
-  "input_hash": "91c31024de6242ffc53f13b52468f802eaf8dab1a59137d31ddc865c70cb09a8",
+  "input_hash": "b7e604537fe6c937500366c6ea57fecd0275a82d7f74efbd6dc0bdb2c75fb320",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -11,16 +11,15 @@
       0,
       1,
       2,
-      3,
       4
     ],
     "name": "hand over from Acceptance Criteria to Model Evaluation Harness"
   },
   "output": {
-    "level_0": "Acceptance criteria contradict the evaluation harness, so no model ever passes the handover check.",
-    "level_1": "There is no defined handover, so developers guess when a model is ready for the harness.",
-    "level_2": "A project manager manually copies acceptance criteria into the evaluation harness configuration each week.",
-    "level_3": "The system automatically validates acceptance criteria against the harness before triggering the evaluation run.",
-    "level_4": "Governed handover ensures criteria and harness align, with audit logs for every model transition."
+    "level_0": "The evaluation harness crashes before finishing, leaving the team with no results for the new model.",
+    "level_1": "No evaluation harness exists, so the team guesses whether the new model is better than the old one.",
+    "level_2": "A data scientist manually runs evaluation scripts and pastes the metrics into a shared spreadsheet for review.",
+    "level_3": null,
+    "level_4": "A formal sign off requires documented evidence that the model meets all acceptance criteria before deployment."
   }
 }

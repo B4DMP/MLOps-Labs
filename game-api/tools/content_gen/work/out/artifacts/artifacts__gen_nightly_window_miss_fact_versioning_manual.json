@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_nightly_window_miss_fact_versioning_manual",
+  "stage": "artifacts",
+  "input_hash": "99c328aaab28275245daf836c38d8076931dda76dd55a1ad240995ce8f4c2acc",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement": {
+      "id": "gen_nightly_window_miss_fact_versioning_manual",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The hand-over from validation to versioning is done by hand and triggered by a manual request. That is simply how the hand-over works today.",
+      "fact": "The hand-over from validation to versioning is done by hand and triggered by a manual request.",
+      "reading": "That is simply how the hand-over works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.validate_version",
+        "axis": "automation",
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "narrator": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    },
+    "challenge": {
+      "name": "The Midnight Deadline",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "We touched on the release flow during the sync. {data_dave} mentioned that the hand-over from validation to versioning is still done by hand. A manual request triggers the next step in the pipeline. There is no automated hook moving the artifact between these states right now. The team follows this manual workflow for every weekly retraining run. The hand-over completes only after a human initiates the specific command in the build environment.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the current state of the release workflow and the specific manual steps involved without expressing any wishes, refusals, or stated trade-offs."
+  }
+}

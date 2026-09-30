@@ -1,12 +1,12 @@
 {
   "item_id": "gists:gen_heatwave_forecast_gap_monica_driver_eval",
   "stage": "gists",
-  "input_hash": "cac6e8b09ccae4c15a2b9db47b265b589815671a1e7e73243cfd4319460251aa",
+  "input_hash": "b911e8e2fae38c8497d4195bbc4c835c5614494a4f6644f0c82db6edf143c141",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "requirement_id": "gen_heatwave_forecast_gap_monica_driver_eval",
-    "fact": "{model_monica} asked for automated testing of new weather features in the evaluation harness.",
+    "fact": "{model_monica} asked for the model evaluation harness to be automated.",
     "metric_id": "model",
     "metric_ids": [
       "automation",
@@ -19,9 +19,9 @@
     "challenge_name": "The Heatwave Blind Spot"
   },
   "output": {
-    "gist": "Testing new weather features in the evaluation harness has been raised by {model_monica}.",
+    "gist": "The model evaluation harness keeps coming up whenever {model_monica} discusses the current testing process.",
     "verdict_metric_id": "model",
     "verdict_reading": "none",
-    "verdict_reason": "The gist mentions testing new features in an evaluation harness, which relates to the model metric, but it simply states that this action has been raised without indicating a preference for improvement, a refusal, a trade-off, or a neutral fact about the current state."
+    "verdict_reason": "The gist identifies the model evaluation harness as a recurring topic in discussions about the testing process but does not express a stance, preference, or specific direction regarding it."
   }
 }

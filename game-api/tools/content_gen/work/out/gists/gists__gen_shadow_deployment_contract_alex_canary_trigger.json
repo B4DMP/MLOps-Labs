@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_alex_canary_trigger",
+  "stage": "gists",
+  "input_hash": "e6194a43d5afd44c0bf003d5dbdd614b2ae679174389bd2c8ba5660c05e06320",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_alex_canary_trigger",
+    "fact": "{automation_alex} mentioned that the hand-over from the pipeline to canary testing is currently set to none.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The pipeline to canary testing hand-over is the topic that keeps coming up with {automation_alex}.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a recurring topic regarding the hand-over to canary testing but does not express a desire for more automation, a refusal, a trade-off, or a specific factual state, leaving the direction ambiguous."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_consent_gap_emilia_driver_acceptance",
+  "stage": "gists",
+  "input_hash": "f3251e1cd4c39a3ccd9dda9f22310247e0dd3b5af382e932dafa20ce10397299",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_loyalty_consent_gap_emilia_driver_acceptance",
+    "fact": "{efficiency_emilia} proposed automating the acceptance criteria to speed up the promotion cycle.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Loyalty Data Audit"
+  },
+  "output": {
+    "gist": "The speed of the promotion cycle keeps coming up in talks with {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes that the speed of the promotion cycle is a recurring topic in discussions but does not indicate whether it is desired, refused, accepted as a loss, or stated as a neutral fact."
+  }
+}

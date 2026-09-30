@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_cost_crisis_drift_gap_fact_alert_no_gov",
+  "stage": "artifacts",
+  "input_hash": "826bd3e0c56faf90cb6b615845a6532e8b0633c90f8c3f33d3ada57b1b249a84",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_fact_alert_no_gov",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The alerting system has no governance. No one reviews the alerting rules before they are applied to the production environment.",
+      "fact": "The alerting system has no governance.",
+      "reading": "No one reviews the alerting rules before they are applied to the production environment.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "ops.alerting",
+        "axis": "governance",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "narrator": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Cost Cliff",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "{reliability_ruth} noted that alert rules move directly from the development branch to the live production cluster. There is no intermediate stage where another engineer examines the threshold logic before it begins firing. The system treats the first person to push the configuration as the final authority. A typo in a threshold or a misconfigured severity level goes live immediately, affecting every store in the region at once. The team identifies these errors after they have already triggered a cascade of false positives in the on call rotation. This sequence repeats whenever a new rule is added to the monitoring stack for the forecast job.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the current operational workflow and the resulting consequences of a lack of review stage without expressing any specific wish, refusal, acceptance, or stated trade-off by the author."
+  }
+}

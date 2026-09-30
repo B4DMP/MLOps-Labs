@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_committed_pallets_fact_acceptance_gov",
+  "stage": "artifacts",
+  "input_hash": "4efa9c8bdfb583f069e364db97d9ca8d9b3229da354e29c1bc418ee975ff6150",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement": {
+      "id": "gen_committed_pallets_fact_acceptance_gov",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The acceptance criteria for the allocation module have no governance. There is no formal sign off process attached to the acceptance criteria.",
+      "fact": "The acceptance criteria for the allocation module have no governance.",
+      "reading": "There is no formal sign off process attached to the acceptance criteria.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "req.acceptance_criteria",
+        "axis": "governance",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "narrator": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    },
+    "challenge": {
+      "name": "The Committed Pallets",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "{requirements_reuben} mentioned that the acceptance criteria for the allocation module are written down in the ticket. He pointed out that nobody signs off on them before the code goes live. There is no formal review gate attached to the criteria, and no designated owner checks the work against them. The technical validation steps exist, but the approval process is missing. He saw the documentation during the sprint review and noted the gap in the release controls.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text reports an observation about the current state of the release controls and the absence of a formal approval process, without expressing a wish, refusal, or acceptance by any party."
+  }
+}

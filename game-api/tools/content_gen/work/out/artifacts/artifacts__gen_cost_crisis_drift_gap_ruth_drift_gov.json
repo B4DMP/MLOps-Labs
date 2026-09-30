@@ -1,0 +1,57 @@
+{
+  "item_id": "artifacts:gen_cost_crisis_drift_gap_ruth_drift_gov",
+  "stage": "artifacts",
+  "input_hash": "c68c068834c4df9441a235707da9b2cf74c5e428975a70cd0e0d489ef75c2a3b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_ruth_drift_gov",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} proposed that drift checks require formal sign off. She will not sign off on the production drift monitoring unless it has full formal governance.",
+      "fact": "{reliability_ruth} proposed that drift checks require formal sign off.",
+      "reading": "She will not sign off on the production drift monitoring unless it has full formal governance.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "ops.production_drift_monitoring",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.production_drift_monitoring",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "author": {
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Cost Cliff",
+      "description": "The infrastructure bill for the monitoring stack has doubled, and #efficiency_emilia# has drawn a hard line: she will not fund automated drift monitoring, insisting it is a luxury the business cannot afford. #reliability_ruth# argues that without automated and governed drift checks, the team is flying blind during promotion weeks, and she refuses to accept a manual process as a substitute for reliable signal."
+    }
+  },
+  "output": {
+    "content": "I am not signing off on the production drift monitoring pipeline unless it carries full formal governance. A manual review process is not a substitute for reliable signal, especially during promotion weeks when a silent failure means empty shelves or unsold pallets. I refuse to accept a setup where we are flying blind on model degradation. If the checks do not have strict sign off and documented approval, I will not deploy them to the live environment. I need the assurance that every alert is reviewed by a designated owner before any automated action is taken. Without that structure, the risk of censored demand going unnoticed is too high for me to accept.",
+    "reclassified_as": "boundary",
+    "reclassify_reason": "The author explicitly refuses to sign off or deploy the pipeline without strict governance and designated owner review, establishing a non-negotiable line whose crossing constitutes refusal."
+  }
+}

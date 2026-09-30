@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_ruth_pipeline_auto",
+  "stage": "gists",
+  "input_hash": "ee7045fa34fd64bad1da732a7f634f823b7fc3e81ec3209ca887d7e8d9fa9c42",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_ruth_pipeline_auto",
+    "fact": "{reliability_ruth} asked for the entire drift detection pipeline to run on its own.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "The drift detection pipeline's autonomous operation is the subject of {reliability_ruth}'s current notes.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist merely identifies that the subject of the notes is the autonomous operation of the drift detection pipeline, without expressing a stance, preference, or specific reading regarding reliability."
+  }
+}

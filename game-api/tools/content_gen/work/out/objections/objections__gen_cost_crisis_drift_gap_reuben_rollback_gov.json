@@ -1,0 +1,54 @@
+{
+  "item_id": "objections:gen_cost_crisis_drift_gap_reuben_rollback_gov",
+  "stage": "objections",
+  "input_hash": "4d7f8b58ecd0afc1d6d409ec837a40421a93b9212ce927b3107c76c4032c5c5c",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_reuben_rollback_gov",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "trade_off",
+      "description": "{requirements_reuben} mentioned that the rollback mechanism is not audited. He would accept a manual rollback mechanism if it is governed by the security team.",
+      "fact": "{requirements_reuben} mentioned that the rollback mechanism is not audited.",
+      "reading": "He would accept a manual rollback mechanism if it is governed by the security team.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.rollback",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "ops.rollback",
+        "axis": "governance",
+        "accepts_max_level": 3
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "You listed the rollback as a pure automation gap, but you ignored the governance requirement I flagged. I need the security team to sign off on the manual procedure before we touch the data pipeline.",
+    "correction": "I did not say the rollback is broken, I said it lacks the audit trail required for personal data access. The issue is the missing formal review, not the lack of a tool."
+  }
+}

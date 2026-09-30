@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_heatwave_kpi_gap_emilia_edge_tradeoff",
+  "stage": "objections",
+  "input_hash": "70e9e16e94ede91c213a74937d47562f68cbb9f0015907060df556909ae864e8",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_heatwave_kpi_gap_emilia_edge_tradeoff",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} suggested that the hand-over from risk assessment to acceptance criteria is currently manual. She would accept a manual hand-over if it ensures strategic alignment.",
+      "fact": "{efficiency_emilia} suggested that the hand-over from risk assessment to acceptance criteria is currently manual.",
+      "reading": "She would accept a manual hand-over if it ensures strategic alignment.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": "efficiency",
+        "loss": 2,
+        "target": "e.risk_acceptance",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are treating my strategic alignment check as a simple task you can just automate away. I need you to acknowledge that I am taking on the manual burden of ensuring every model change fits our roadmap before we sign off.",
+    "correction": "I am not saying the process is broken, I am saying it requires my judgment. You cannot file this as a missing tool, because the value is in the human decision to align the feature with our business goals."
+  }
+}

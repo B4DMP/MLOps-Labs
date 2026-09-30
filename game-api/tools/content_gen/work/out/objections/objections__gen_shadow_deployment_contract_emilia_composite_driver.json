@@ -1,0 +1,69 @@
+{
+  "item_id": "objections:gen_shadow_deployment_contract_emilia_composite_driver",
+  "stage": "objections",
+  "input_hash": "aa22eb180e7e68ebab347210a35f20cece9d1b2da4f34b2ebf33aff0e8904ce1",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_emilia_composite_driver",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} asked for the entire deployment pipeline from the registry to the serving endpoint to be automated and governed. She wants the deployment process to run on its own and be fully reviewed to speed up releases.",
+      "fact": "{efficiency_emilia} asked for the entire deployment pipeline from the registry to the serving endpoint to be automated and governed.",
+      "reading": "She wants the deployment process to run on its own and be fully reviewed to speed up releases.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "e.registry_cicd",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.cicd_container",
+          "axis": "automation",
+          "value": 3
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.container_orch",
+          "axis": "automation",
+          "value": 3
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.orch_serving",
+          "axis": "automation",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(e.registry_cicd, 3)",
+        "raise_to(e.cicd_container, 3)",
+        "raise_to(e.container_orch, 3)",
+        "raise_to(e.orch_serving, 3)"
+      ],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are still asking for a human to click deploy every time we ship a new model version. That bottleneck is exactly why our release cycle is stuck at two weeks when it should be hours.",
+    "correction": "I am not talking about the forecast job itself, which is already automated. I mean the pipeline that moves the model from the registry to the serving endpoint needs to be fully automated and strictly governed."
+  }
+}

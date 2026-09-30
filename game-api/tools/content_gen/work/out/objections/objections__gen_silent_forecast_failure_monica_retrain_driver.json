@@ -1,0 +1,62 @@
+{
+  "item_id": "objections:gen_silent_forecast_failure_monica_retrain_driver",
+  "stage": "objections",
+  "input_hash": "d4267dcf67e49e0ac8ecf5318f7624f303d2e5e15f378e0149dc5709d17d050c",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_silent_forecast_failure_monica_retrain_driver",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} asked for the retraining trigger to be automated so the model updates without manual intervention. She wants the model to retrain automatically when drift is detected to maintain performance.",
+      "fact": "{model_monica} asked for the retraining trigger to be automated so the model updates without manual intervention.",
+      "reading": "She wants the model to retrain automatically when drift is detected to maintain performance.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "ops.retraining_trigger",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.alert_retrain",
+          "axis": "automation",
+          "value": 3
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.retrain_train",
+          "axis": "automation",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(ops.retraining_trigger, 3)",
+        "raise_to(e.alert_retrain, 3)",
+        "raise_to(e.retrain_train, 3)"
+      ],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "You are still treating this as a weekly batch job, but I need the pipeline to watch the drift metrics and trigger a retrain the moment performance slips. I am not asking you to stop the work, I am asking you to stop waiting for me to notice the problem.",
+    "correction": "I did not ask for a new model architecture, I asked for the retraining trigger to be automated based on drift detection. Please do not file this under experimental design, it is a deployment and monitoring requirement."
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "item_id": "artifacts:gen_silent_ingestion_failure_ruth_ingest_gov_driver",
+  "stage": "artifacts",
+  "input_hash": "4148e2ce40361bbaaceba1ee45813eeaf738f4611b82b2accce66897ba5b1379",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_silent_ingestion_failure_ruth_ingest_gov_driver",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} proposed that the nightly store export pipeline run without any manual intervention. If the pipeline runs on its own, the forecast job never waits for a human to notice a missing batch.",
+      "fact": "{reliability_ruth} proposed that the nightly store export pipeline run without any manual intervention.",
+      "reading": "If the pipeline runs on its own, the forecast job never waits for a human to notice a missing batch.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "data.ingestion",
+        "axis": "automation",
+        "level": 2
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.ingest_validate",
+          "axis": "automation",
+          "value": 3
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.ingest_validate",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(data.ingestion, 2)",
+        "raise_to(e.ingest_validate, 3)",
+        "raise_to(e.ingest_validate, 3)"
+      ],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "author": {
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Silent Store Gap",
+      "description": "A batch of till scan lines from the northern stores was silently dropped during last night's ingestion, causing the model to forecast zero demand for fresh produce. #reliability_ruth# argues that the ingestion pipeline must be fully automated to guarantee every store's data arrives on time, while #data_dave# is willing to accept a manual verification step to ensure data quality before it reaches the feature store."
+    }
+  },
+  "output": {
+    "content": "We need the nightly store export pipeline to run entirely on its own. The moment a human has to step in to check if a batch arrived, we have already lost the morning order window. If the system does not catch a silent drop automatically, the forecast job will happily predict zero demand for fresh produce in the northern stores, and we will be explaining empty shelves to store managers who are already tired of overriding our numbers. I want the automation to be complete so that no single point of failure, whether it is a person or a script, can block the data flow. The more we rely on manual checks, the more fragile the whole reliability story becomes.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The text expresses a strong desire for complete automation to prevent business losses, and doing more to ensure no manual intervention is needed would make the author happier."
+  }
+}

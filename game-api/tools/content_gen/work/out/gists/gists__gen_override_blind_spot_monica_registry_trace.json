@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_monica_registry_trace",
+  "stage": "gists",
+  "input_hash": "35ee0ce19e25143211f223558bffdd486a09dce5cc948b38758cb3ff3127be7d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_monica_registry_trace",
+    "fact": "{model_monica} asked for the model registry to be fully automated and governed.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The model registry is the specific topic that keeps surfacing in {model_monica} discussions about the platform.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the model registry as a recurring topic but does not express a stance on whether it should be prioritized, limited, traded off, or simply describe its current state."
+  }
+}

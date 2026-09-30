@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_cost_crisis_drift_gap_fact_retrain_no_gov",
+  "stage": "artifacts",
+  "input_hash": "f5cb64462889b75ea3dc0dd6e1a7cedc861b54bb6588826e01cb128e8c486ebf",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_fact_retrain_no_gov",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The retraining trigger has no governance. The trigger fires without any formal review of the conditions that caused it.",
+      "fact": "The retraining trigger has no governance.",
+      "reading": "The trigger fires without any formal review of the conditions that caused it.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "ops.retraining_trigger",
+        "axis": "governance",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "narrator": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Cost Cliff",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "The retraining trigger fired again last Tuesday. It ran without any formal review of the conditions that caused it. The system detected a shift in the data and kicked off the job automatically. There was no sign off, no check to see if the shift was valid or just noise. The model updated, and the new weights went live by morning. I did not intervene because the pipeline was configured to run end to end. The logs show the trigger condition met, and the deployment proceeded. No one reviewed the inputs or the output before it hit the ordering system. It happens quietly, but the loop behaves this way right now.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text objectively describes the sequence of events, the lack of human intervention, and the current operational state of the pipeline without expressing a wish, refusal, or explicit trade-off."
+  }
+}

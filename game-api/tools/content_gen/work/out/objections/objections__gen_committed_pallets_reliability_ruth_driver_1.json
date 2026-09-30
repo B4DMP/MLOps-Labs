@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_committed_pallets_reliability_ruth_driver_1",
+  "stage": "objections",
+  "input_hash": "9d24b517443a360e7a8d4db6a8aa005683b63bb32d215b5c45fe1ef8a034764a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_committed_pallets_reliability_ruth_driver_1",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} asked for the acceptance criteria to be automated to manual checks. She wants the acceptance criteria to be automated to manual checks to speed up the release.",
+      "fact": "{reliability_ruth} asked for the acceptance criteria to be automated to manual checks.",
+      "reading": "She wants the acceptance criteria to be automated to manual checks to speed up the release.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "req.acceptance_criteria",
+        "axis": "automation",
+        "level": 2
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "You are reading the wrong axis here, because I want the acceptance criteria to run as automated checks, not manual ones. I am asking you to move that item from absent to automated so we can ship without waiting for a human sign off.",
+    "correction": "I am talking about the automation level of the test harness, not the governance review of the code. Please do not file this as a request for more manual oversight, because that is the exact opposite of what I need."
+  }
+}

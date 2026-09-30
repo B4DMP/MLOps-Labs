@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_override_blind_spot_monica_hpo_speed",
+  "stage": "objections",
+  "input_hash": "93357f81e3320b3bf9577278426f86a2d1e8176c16876e41be4aa75f4b59eb4f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_override_blind_spot_monica_hpo_speed",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} brought up the manual nature of hyperparameter tuning. She would accept a less optimal model if the training pipeline is fully automated.",
+      "fact": "{model_monica} brought up the manual nature of hyperparameter tuning.",
+      "reading": "She would accept a less optimal model if the training pipeline is fully automated.",
+      "metric_id": "model",
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.hpo",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "You are treating my concession on model performance as a free pass to automate the tuning without any oversight. I need that trade off explicitly documented so the team understands we are accepting a lower ceiling for the sake of reliability.",
+    "correction": "I am not asking for a new feature or a change in the data pipeline. I am stating a boundary condition where I will accept a less optimal model if the training process becomes fully automated."
+  }
+}

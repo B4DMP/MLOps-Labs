@@ -1,0 +1,52 @@
+{
+  "item_id": "artifacts:gen_cost_crisis_drift_gap_fact_drift_broken",
+  "stage": "artifacts",
+  "input_hash": "0772abbb33c6a36cf3b1f2c9cc8243f2919c3e9e261bd44d82ff6ef32bb9d148",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_fact_drift_broken",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The production drift monitoring is broken. The tool exists but has stopped working and is not producing any output.",
+      "fact": "The production drift monitoring is broken.",
+      "reading": "The tool exists but has stopped working and is not producing any output.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "ops.production_drift_monitoring",
+        "axis": "automation",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "narrator": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Cost Cliff",
+      "description": ""
+    },
+    "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "The drift monitoring service for the nightly forecast job is currently silent. The process is running, but no metrics are being written to the dashboard. The team is checking prediction variance by hand. We pull the last two weeks of forecast errors for a sample of stores and compare them against the baseline. This manual check happens before the weekly retraining cycle.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the current operational status and the manual workaround procedure without expressing any wishes, refusals, or explicit trade-offs."
+  }
+}

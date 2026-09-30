@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_shadow_deployment_contract_emilia_gateway_governance",
+  "stage": "objections",
+  "input_hash": "2f5be22dc2f0db3046e94dfdd51e4713d79720434aa4f0ae823a6820cf5e66d4",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_emilia_gateway_governance",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} mentioned that the API gateway has no governance. She would accept the API gateway remaining without governance if the serving endpoint is fully automated.",
+      "fact": "{efficiency_emilia} mentioned that the API gateway has no governance.",
+      "reading": "She would accept the API gateway remaining without governance if the serving endpoint is fully automated.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "deploy.api_gateway",
+        "axis": "governance",
+        "accepts_max_level": 0
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are treating my concession on the API gateway as if it were a free pass to ignore the serving endpoint. I only agreed to skip that review because I expected the serving layer to be fully automated, and that is not what I see in your plan.",
+    "correction": "Do not file this under general risk tolerance. I am explicitly tying the lack of governance on the gateway to the automation status of the serving endpoint, and that trade off only holds if you actually deliver full automation there."
+  }
+}

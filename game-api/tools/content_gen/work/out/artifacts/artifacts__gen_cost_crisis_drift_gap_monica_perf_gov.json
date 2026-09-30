@@ -1,0 +1,59 @@
+{
+  "item_id": "artifacts:gen_cost_crisis_drift_gap_monica_perf_gov",
+  "stage": "artifacts",
+  "input_hash": "dc396292b8c413df4455efd7acc0217555ce6a2bcdde45b48590aec286cef337",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_monica_perf_gov",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} proposed that the model performance monitoring should be reviewed by the data science team. Formal governance on performance monitoring helps the model team understand when the model is degrading.",
+      "fact": "{model_monica} proposed that the model performance monitoring should be reviewed by the data science team.",
+      "reading": "Formal governance on performance monitoring helps the model team understand when the model is degrading.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "ops.performance_monitoring",
+        "axis": "governance",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.performance_monitoring",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(ops.performance_monitoring, 3)",
+        "raise_to(ops.performance_monitoring, 3)"
+      ],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "author": {
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Cost Cliff",
+      "description": "The infrastructure bill for the monitoring stack has doubled, and #efficiency_emilia# has drawn a hard line: she will not fund automated drift monitoring, insisting it is a luxury the business cannot afford. #reliability_ruth# argues that without automated and governed drift checks, the team is flying blind during promotion weeks, and she refuses to accept a manual process as a substitute for reliable signal."
+    }
+  },
+  "output": {
+    "content": "I want to push for more rigorous formal governance on our model performance monitoring. Right now, the data science team handles the initial review, but I believe we need a deeper, structured sign off process to catch subtle drift before it hits the shelf. The more layers of formal review we add to the monitoring pipeline, the better we become at identifying when the forecast is degrading. I am not looking for a single check; I want a continuous, governed feedback loop that gives the team absolute clarity on model health. More formal oversight directly translates to higher forecast accuracy and fewer surprises during promotion weeks.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The author explicitly states that adding more layers of formal review makes the team better at identifying drift and that more oversight directly translates to higher accuracy, indicating that exceeding the baseline request for a single check would make them happier."
+  }
+}

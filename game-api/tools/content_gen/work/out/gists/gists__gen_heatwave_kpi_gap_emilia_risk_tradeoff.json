@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_kpi_gap_emilia_risk_tradeoff",
+  "stage": "gists",
+  "input_hash": "4ef2eecb5de18a6a37741f2a033c42dbca2ead3a5370f8db4e052929d5f2c475",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_heatwave_kpi_gap_emilia_risk_tradeoff",
+    "fact": "{efficiency_emilia} noted that the risk assessment is currently done by hand.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Summer Forecast Gap"
+  },
+  "output": {
+    "gist": "The manual process behind risk assessment keeps coming up whenever {efficiency_emilia} discusses the current workflow.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes that the manual process is a recurring topic in discussions about the workflow, but it does not express a desire to change it, a refusal, a trade-off, or a definitive fact about its performance, making the direction ambiguous."
+  }
+}

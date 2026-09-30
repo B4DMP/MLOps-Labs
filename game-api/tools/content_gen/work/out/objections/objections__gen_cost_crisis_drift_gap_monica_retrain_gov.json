@@ -1,0 +1,54 @@
+{
+  "item_id": "objections:gen_cost_crisis_drift_gap_monica_retrain_gov",
+  "stage": "objections",
+  "input_hash": "65b7f3a1f939cee0d81803876d621deba4059d843664cae5c2424f7f29229992",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_monica_retrain_gov",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} noted that the retraining trigger is not reviewed before execution. She would accept a manual retraining trigger if it is governed by the model team.",
+      "fact": "{model_monica} noted that the retraining trigger is not reviewed before execution.",
+      "reading": "She would accept a manual retraining trigger if it is governed by the model team.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.retraining_trigger",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "ops.retraining_trigger",
+        "axis": "governance",
+        "accepts_max_level": 3
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "You framed my note as a demand for a new gate, but I am simply asking for the model team to sign off before we burn compute on a retrain. We need that review step to be visible in the workflow so we are not blamed for a bad trigger later.",
+    "correction": "I never said we want to stop the automation or move to a fully manual process. I am only asking that the decision to retrain has a clear owner and a recorded approval before the job runs."
+  }
+}

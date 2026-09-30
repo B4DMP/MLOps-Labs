@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_shadow_deployment_contract_ruth_shadow_governance",
+  "stage": "objections",
+  "input_hash": "ef784f1054dc2772498807e99cd3c3ba01ef9cdb839d4941ca7570402785a928",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_ruth_shadow_governance",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} asked for the shadow deployment to be fully governed. She will not deploy the new model without a fully governed shadow run to verify it.",
+      "fact": "{reliability_ruth} asked for the shadow deployment to be fully governed.",
+      "reading": "She will not deploy the new model without a fully governed shadow run to verify it.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "deploy.shadow",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.shadow",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "You cannot skip the governed shadow run, and I will not sign off on a deployment without it. That is the end of the discussion.",
+    "correction": "I am not asking for a new tool, I am asking for the existing process to be followed. You are confusing a technical gap with a governance requirement."
+  }
+}

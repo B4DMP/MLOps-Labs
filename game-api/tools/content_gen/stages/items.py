@@ -1,12 +1,14 @@
 """Stage 2: the intel items of a challenge. Stances (Driver, Boundary, Trade-off) for the people in the
 room, Facts about the focus stage. Checked with the same payload gate the game loads with."""
 
+import math
 import re
 from typing import Any, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
+from content_gen.solvability import veto_free_errors
 from content_gen.stages.common import (
     AXES, GAME_RULES, GAME_WORDS, LEVEL_TALK, WISH_WORDS, domain_errors, op_dict, parse_json_field, render,
     system_for, text_errors, tokenize_names,
@@ -58,9 +60,104 @@ TAGS = ("driver", "boundary", "trade_off", "fact")
 # Driver is what a player builds an action card out of, and the orphan gate needs Drivers spread
 # over the phase's components.
 DEFAULT_STANCE_MIX = {
-    "trade_off_min_share": 0.4, "trade_off_max_share": 0.55, "driver_min_share": 0.25,
+    "trade_off_min_share": 0.4, "trade_off_max_share": 0.6, "driver_min_share": 0.25,
     "boundary_max_share": 0.34, "driver_min": 1, "boundary_min": 1,
 }
+
+
+# Stance items each stakeholder brings to a challenge, by (power, interest). Nobody has just one: a
+# stakeholder with a single item is fully read by finding it. Scopes may override in scopes.json.
+DEFAULT_STANCES_PER_QUADRANT = {"high_high": 4, "high_low": 3, "low_high": 2, "low_low": 2}
+
+# Shape of a challenge's stance items. Stakeholders used to ask almost only about single components
+# (1 of 45 items targeted an edge, none asked for more than one change), so the hand-overs between
+# components and asks that span several steps ("automate the whole data pipeline") were never in play.
+# A composite driver is partly met by a card that covers some of its steps; a card holds at most three.
+DEFAULT_STANCE_SHAPE = {
+    "edge_min_share": 0.25, "composite_min": 1, "composite_atoms": [2, 4], "boundary_per_stakeholder_max": 1,
+}
+
+
+def stance_quota(scope: dict, power: str, interest: str, template_id: Optional[str] = None) -> int:
+    # `quota_overrides` lowers the quota for a single challenge the model cannot fill cleanly.
+    quotas = {**DEFAULT_STANCES_PER_QUADRANT, **scope.get("stances_per_quadrant", {}),
+              **scope.get("quota_overrides", {}).get(template_id, {})}
+    return quotas[f"{power}_{interest}"]
+
+
+def stance_quotas(scope: dict, roster: list[dict], template_id: Optional[str] = None) -> dict[str, int]:
+    return {r["stakeholder_id"]: stance_quota(scope, r["power"], r["interest"], template_id) for r in roster}
+
+
+def composite_needed(shape: dict, stances: int) -> int:
+    """A small room (few stances, so few drivers) cannot carry as many composite asks as a full one."""
+    return shape["composite_min"] if stances >= 8 else 1
+
+
+def driver_atoms(r) -> list[tuple[str, int]]:
+    """(target, level) of every change a driver asks for: its suggestion plus its composite ops."""
+    if r.suggested is None:
+        return []
+    return [(r.suggested.target, r.suggested.level)] + [
+        (o["target"], o["value"]) for o in r.ops if o.get("kind") == "raise_to"
+    ]
+
+
+def item_targets(r) -> set[str]:
+    """Every graph target a stance item names, whichever payload carries it."""
+    from mlops_serious_game.domain.requirement import item_target
+
+    targets = {item_target(r)} | {o.get("target") for o in r.ops}
+    if r.concedes is not None:
+        targets.add(r.concedes.target)
+    for branch in (r.branch_x, r.branch_y):
+        if branch is not None:
+            targets |= {branch.target} | {o.get("target") for o in branch.ops}
+    if r.holds is not None:
+        stack = [r.holds]
+        while stack:
+            node = stack.pop()
+            if isinstance(node, dict):
+                targets |= {node.get("component"), node.get("edge")}
+                stack += [v for v in node.values() if isinstance(v, (dict, list))]
+            elif isinstance(node, list):
+                stack += node
+    return targets - {None}
+
+
+def shape_errors(reqs: list, graph, shape: dict, stage_edges: set[str]) -> list[str]:
+    """Edge and composite coverage of a challenge's stances, and one boundary at most per stakeholder."""
+    stances = [r for r in reqs if r.type != "fact"]
+    errors = []
+    edge_items = [r for r in stances if any(graph.is_edge(t) for t in item_targets(r))]
+    wanted = min(math.ceil(shape["edge_min_share"] * len(stances)), len(stage_edges))
+    if len(edge_items) < wanted:
+        errors.append(
+            f"{len(edge_items)} of {len(stances)} stances touch a hand-over between components, at least "
+            f"{wanted} must be: give some drivers, trade_offs or boundaries an edge from the focus stage as "
+            f"their target ({sorted(stage_edges)})"
+        )
+    lo, hi = shape["composite_atoms"]
+    composite = [r for r in stances if r.type == "driver" and lo <= len({a for a in driver_atoms(r)}) <= hi]
+    needed = composite_needed(shape, len(stances))
+    if len(composite) < needed:
+        errors.append(
+            f"only {len(composite)} composite drivers, at least {needed} are needed: a driver that "
+            f"names {lo} to {hi} different changes across several components and hand-overs (suggested target "
+            f"plus that many minus one extra raise_to ops), e.g. automating a whole pipeline stretch"
+        )
+    for r in stances:
+        if r.type == "driver" and len(set(driver_atoms(r))) > hi:
+            errors.append(f"{r.id}: a driver may name at most {hi} different changes, not {len(set(driver_atoms(r)))}")
+    boundaries: dict[str, int] = {}
+    for r in stances:
+        if r.type == "boundary":
+            boundaries[r.stakeholder_id] = boundaries.get(r.stakeholder_id, 0) + 1
+    for sid, n in sorted(boundaries.items()):
+        if n > shape["boundary_per_stakeholder_max"]:
+            errors.append(f"{sid} has {n} boundaries, at most {shape['boundary_per_stakeholder_max']}: a second "
+                          "red line leaves nothing to bargain with, make it a trade_off or driver")
+    return errors
 
 
 def mix_bounds(mix: dict, stances: int) -> dict:
@@ -171,10 +268,9 @@ Tags and payloads:
 - driver: something a stakeholder wants improved, more is better. Needs metric_id (one of the
   metrics given), suggested_target (a component or edge in the focus stage), suggested_axis and
   suggested_level (higher than its current level on that axis). The reading is a direction: more
-  is better. If the ask is really about several targets together (e.g. "a fully automated
-  pipeline" spanning ingestion, validation and versioning), put the main one in suggested_target
-  and the rest as extra raise_to entries in ops - the player then earns buy-in in proportion to
-  how many of them the proposal actually covers, not all-or-nothing.
+  is better. A composite ask (see above) puts the main step in suggested_target and the rest as
+  extra raise_to entries in ops - the player then earns buy-in in proportion to how many of them
+  the proposal actually covers, not all-or-nothing.
 - boundary: a line a stakeholder will not cross. Needs holds, a JSON predicate that must be
   true after the player's proposal (e.g. {"component": "data.validation", "axis": "automation",
   "op": "gte", "level": 3}), and ops that make it true (e.g. {"kind": "raise_to", "target":
@@ -188,15 +284,92 @@ Tags and payloads:
   axis given below (and asserts_trigger for edges if you state it). Neutral wording with no wishes
   or opinions.
 
+Hand-overs. Edges (ids starting with "e.") are the hand-overs between two components: how new data,
+a model or an alert moves on to the next step. Their automation says whether that hand-over runs by
+hand or on its own, their governance whether it is reviewed, and their trigger what sets it off. Stakeholders
+care about them as much as about components: a driver, trade_off or boundary may use an edge as its
+target, and edge ids go wherever a component id would (holds uses {"edge": id, ...}). A hand-over
+asked for by hand ("someone should check the export before it moves on") is governance on the edge.
+
+Composite drivers. Some asks are bigger than one change: "automate the whole data pipeline", "make
+the model release run without anyone touching it". Write those as one driver whose suggested target
+is the first step and whose ops list holds the other raise_to steps, spread over components AND the
+hand-overs between them (e.g. ingestion, the hand-over into validation, validation, the hand-over into
+versioning). Each step must be above its current level and the steps are all different. Keep every step away from
+any target and axis where a concession or branch in the same challenge sits lower: a step above it
+forecloses that compromise. Put the steps on targets nobody trades away. The fact
+names the ask as a whole ("asked for the whole data pipeline to run on its own"). A player can only
+put three changes on a card, so such a driver is often met in part, and part credit is the point.
+
+One stakeholder, one line. The items of one stakeholder never contradict each other. Their boundaries
+and the two ways out of their trade_offs (concedes and the branches) must stay possible whatever else
+they ask for: no driver, boundary or trade_off of the same stakeholder may demand a level above the
+level a concession, branch or upper limit of theirs allows on the same target and axis, and no
+two of their items write different values to the same attribute or trigger. Give a stakeholder
+several items about DIFFERENT targets, or about the same target in one consistent direction.
+
 Predicate language: {"component": id, "axis": "automation"|"governance", "op": "gte"|"lte"|...,
 "level": 0..3}, {"edge": id, "axis": ..., ...}, {"all": [...]}, {"any": [...]}, {"not": {...}}.
 Ops: raise_to (axis = automation or governance, value = level on it), set_trigger (value =
 trigger), set_attr (attr = attribute name, value = one of its values)."""
 
 
+def _int(value) -> Optional[int]:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def compromise_ceilings(items: list[dict], conflict: dict) -> dict[tuple[str, str], int]:
+    """Lowest level per (target, axis) that a concession, a branch or a soft conflict position treats
+    as an acceptable stopping point. Drivers must not ask for more (`foreclosed_compromises`)."""
+    ceilings: dict[tuple[str, str], int] = {}
+
+    def note(target, axis, level) -> None:
+        level = _int(level)
+        if target and axis and level is not None:
+            ceilings[(target, axis)] = min(level, ceilings.get((target, axis), level))
+
+    for it in items:
+        if it["tag"] != "trade_off":
+            continue
+        note(it.get("concedes_target"), it.get("concedes_axis"), it.get("concedes_max_level"))
+        for b in ("branch_x", "branch_y"):
+            note(it.get(f"{b}_target"), it.get(f"{b}_axis"), it.get(f"{b}_level"))
+            for op in it.get(f"{b}_ops") or []:
+                if op.get("kind") == "raise_to":
+                    note(op.get("target"), op.get("axis"), op.get("value"))
+    if conflict["type"] == "soft":
+        for pos in conflict["positions"]:
+            note(conflict["target"], pos.get("axis"), pos.get("wants"))
+    return ceilings
+
+
+def repair_foreclosures(items: list[dict], conflict: dict, current: dict) -> None:
+    """Keeps drivers under the ceilings of the challenge's compromises, in place. A composite step above
+    a ceiling is dropped, a suggested level above it is lowered to it when that is still an increase;
+    anything else is left for the check to report."""
+    ceilings = compromise_ceilings(items, conflict)
+    for it in items:
+        if it["tag"] != "driver":
+            continue
+        it["ops"] = [
+            op for op in it.get("ops") or []
+            if not (op.get("kind") == "raise_to"
+                    and _int(op.get("value")) is not None
+                    and _int(op.get("value")) > ceilings.get((op.get("target"), op.get("axis")), 99))
+        ]
+        key = (it.get("suggested_target"), it.get("suggested_axis"))
+        level = it.get("suggested_level")
+        if key in ceilings and level is not None and level > ceilings[key]:
+            if ceilings[key] > current.get(key[0], {}).get(key[1], 99):
+                it["suggested_level"] = ceilings[key]
+
+
 class ItemsStage:
     name = "items"
-    prompt_version = "i9"  # i9: automation/governance axes
+    prompt_version = "i10"  # i10: items per quadrant, edges, composite drivers, no self-contradiction
     upstream = "templates"
 
     def plan(self, ctx) -> list[WorkItem]:
@@ -209,18 +382,23 @@ class ItemsStage:
             challenge = tstage.to_challenge(record["output"], template_item)
             phase_id = challenge["phase_id"]
             stage_id = challenge["focus_stage_ids"][0]
+            roster = ctx.roster(phase_id)
+            quotas = stance_quotas(ctx.scope, roster, challenge["template_id"])
             items.append(WorkItem(
                 stage=self.name,
                 item_id=f"items:{challenge['template_id']}",
                 depends_on=[record["item_id"]],
                 inputs={
                     "challenge": challenge,
-                    "roster": ctx.roster(phase_id),
+                    "roster": roster,
                     "graph": ctx.graph_slice(stage_id),
                     "current": current_levels(ctx, challenge),
                     "metrics": sorted(ctx.metric_ids - {"efficiency_intro", "model_intro"}),
-                    "counts": {"stances": ctx.scope["stances_per_template"], "facts": ctx.scope["facts_per_template"]},
-                    "stance_mix": ctx.scope.get("stance_mix", DEFAULT_STANCE_MIX),
+                    "quotas": quotas,
+                    "counts": {"stances": [sum(quotas.values())] * 2, "facts": ctx.scope["facts_per_template"]},
+                    "stance_mix": {**ctx.scope.get("stance_mix", DEFAULT_STANCE_MIX),
+                                   **ctx.scope.get("mix_overrides", {}).get(challenge["template_id"], {})},
+                    "stance_shape": {**DEFAULT_STANCE_SHAPE, **ctx.scope.get("stance_shape", {})},
                 },
             ))
         return items
@@ -229,6 +407,7 @@ class ItemsStage:
         i = item.inputs
         c = i["challenge"]
         conflict = c["conflict"]
+        shape = i.get("stance_shape") or DEFAULT_STANCE_SHAPE
         bounds = mix_bounds(i.get("stance_mix") or DEFAULT_STANCE_MIX, i["counts"]["stances"][0])
         sides = " or ".join(p["stakeholder_id"] for p in conflict["positions"])
         rule = (
@@ -241,15 +420,25 @@ class ItemsStage:
         user = "\n".join([
             f"Challenge: {c['name']}. {c['description']} {c['roundIntroduction']}",
             f"Conflict ({conflict['type']}) on {conflict['target']}: " + render(conflict["positions"]) + f" Rule: {rule}",
-            f"Write {i['counts']['stances'][0]} to {i['counts']['stances'][1]} stance items (every stakeholder in the "
-            f"room gets at least one; at least one driver, one boundary, one trade_off overall) and "
-            f"{i['counts']['facts'][0]} to {i['counts']['facts'][1]} facts.",
+            f"Write exactly {i['counts']['stances'][0]} stance items and "
+            f"{i['counts']['facts'][0]} to {i['counts']['facts'][1]} facts. Stance items per stakeholder, exactly: "
+            + ", ".join(f"{sid} {n}" for sid, n in i["quotas"].items())
+            + ". At least one driver, one boundary and one trade_off overall.",
+            f"Shape of the stances: at least {math.ceil(shape['edge_min_share'] * i['counts']['stances'][0])} of them "
+            f"must be about a hand-over between two components (an edge id as target), and at least "
+            f"{composite_needed(shape, i['counts']['stances'][0])} drivers must be composite: {shape['composite_atoms'][0]} to "
+            f"{shape['composite_atoms'][1]} different changes across several components and hand-overs.",
             f"Most of what the player finds must be something a stakeholder would trade away, not a line they "
             f"hold, but the room still needs people pushing for things. For {i['counts']['stances'][0]} stance "
             f"items that means {bounds['trade_off_min']} to {bounds['trade_off_max']} trade_off, at least "
             f"{bounds['driver_min']} driver and at most {bounds['boundary_max']} boundary; scale those up if you "
             f"write more stances. A boundary is rare and costly: keep it for the thing that stakeholder truly "
             f"cannot give up, and give everyone else a price instead of a wall.",
+            "Ceilings: a driver may never ask for more than a concession, a branch or a conflict position of "
+            "the same challenge allows on the same target and axis. Write the trade_offs first, then keep every "
+            "driver step at or under their levels. Known already from the conflict: "
+            + (render([{"target": conflict["target"], "axis": p["axis"], "at_most": p["wants"]} for p in conflict["positions"]])
+               if conflict["type"] == "soft" else "none"),
             "Stakeholders in the room:", render(i["roster"]),
             "Metrics:", render(i["metrics"]),
             "Focus stage graph:", render(i["graph"]),
@@ -262,6 +451,7 @@ class ItemsStage:
         for it in data["items"]:
             it["fact"] = tokenize_names(it["fact"], ctx.stakeholders)
             it["readings"] = {t: tokenize_names(r, ctx.stakeholders) for t, r in it["readings"].items()}
+        repair_foreclosures(data["items"], c["conflict"], i["current"])
         return data, usage
 
     # ---- conversion and checks ----
@@ -296,7 +486,8 @@ class ItemsStage:
                 if it["tag"] == "driver" and item_ops:
                     suggested_atom = f"raise_to({it['suggested_target']}, {it['suggested_level']})"
                     data["atoms"] = [suggested_atom] + [
-                        f"{o['kind']}({o['target']}, {o['value']})" for o in item_ops if o.get("kind") == "raise_to"
+                        f"{o['kind']}({o['target']}, {o['value']})" for o in item_ops
+                        if o.get("kind") in ("raise_to", "set_trigger")
                     ]
             if any(it.get(k) is not None for k in ("concedes_metric", "concedes_target")):
                 data["concedes"] = {
@@ -416,12 +607,13 @@ class ItemsStage:
             errors.append(f"with {len(stances)} stances at most {bounds['boundary_max']} may be boundary, "
                           f"not {counted['boundary']}; a red line the player cannot bargain with is rare, "
                           "rewrite the others as trade_offs")
-        for sid in roster:
-            if not any(r.stakeholder_id == sid for r in stances):
-                errors.append(f"{sid} is in the room but has no stance")
+        for sid, quota in i["quotas"].items():
+            have = sum(1 for r in stances if r.stakeholder_id == sid)
+            if have != quota:
+                errors.append(f"{sid} needs exactly {quota} stance items, has {have}")
 
         from mlops_serious_game.domain.Challenge import ChallengeConflict
-        from mlops_serious_game.domain.requirement import foreclosed_compromises
+        from mlops_serious_game.domain.requirement import foreclosed_compromises, self_contradictions
 
         conflict_obj = ChallengeConflict.model_validate(c["conflict"])
         for msg in foreclosed_compromises(reqs, conflict_obj):
@@ -433,6 +625,8 @@ class ItemsStage:
             )
 
         stage_targets = {t for t in current}
+        errors += shape_errors(reqs, g, i["stance_shape"], {t for t in current if g.is_edge(t)})
+        errors += self_contradictions(reqs)
         for r in reqs:
             where = r.id.removeprefix(f"gen_{c['template_id'].removeprefix('ch_')}_")
             errors += text_errors(f"{where} fact", r.fact, 4, 25)
@@ -503,6 +697,8 @@ class ItemsStage:
             )
             if not ok:
                 errors.append(f"hard conflict: one of {sorted(sides)} needs a boundary whose holds refers to {conflict['target']}")
+        if not errors:
+            errors += veto_free_errors(ctx, c, i["roster"], reqs)
         return errors
 
     def summary(self, output: dict) -> str:
@@ -512,14 +708,19 @@ class ItemsStage:
         return ", ".join(f"{n} {t}" for t, n in sorted(tags.items()))
 
 
-def current_levels(ctx, challenge: dict) -> dict:
-    """Nominal automation, governance and trigger of every focus stage target right after the
-    challenge's world event."""
+def challenge_state(ctx, challenge: dict):
+    """The graph right after the challenge's world event, from the fresh start."""
     from mlops_serious_game.application.graph_service.apply import apply_ops
     from mlops_serious_game.domain.graph import GraphOp
 
+    return apply_ops(ctx.graph, ctx.start_state(), [GraphOp.model_validate(o) for o in challenge["on_enter_ops"]]).state
+
+
+def current_levels(ctx, challenge: dict) -> dict:
+    """Nominal automation, governance and trigger of every focus stage target right after the
+    challenge's world event."""
     g = ctx.graph
-    state = apply_ops(g, ctx.start_state(), [GraphOp.model_validate(o) for o in challenge["on_enter_ops"]]).state
+    state = challenge_state(ctx, challenge)
     stage_id = challenge["focus_stage_ids"][0]
     out = {}
     for comp in g.components:

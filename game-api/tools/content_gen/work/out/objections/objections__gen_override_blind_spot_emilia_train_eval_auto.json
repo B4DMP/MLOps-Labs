@@ -1,0 +1,62 @@
+{
+  "item_id": "objections:gen_override_blind_spot_emilia_train_eval_auto",
+  "stage": "objections",
+  "input_hash": "5109ee5680f6b545610876946ff81ccc6298d572bbe9c2c12d090e96dfe6aa52",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_override_blind_spot_emilia_train_eval_auto",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} proposed automating the hand-over from the training pipeline to the evaluation harness. She wants the training pipeline to feed the evaluation harness automatically to reduce cycle time.",
+      "fact": "{efficiency_emilia} proposed automating the hand-over from the training pipeline to the evaluation harness.",
+      "reading": "She wants the training pipeline to feed the evaluation harness automatically to reduce cycle time.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "e.train_eval",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.training_pipeline",
+          "axis": "automation",
+          "value": 3
+        },
+        {
+          "kind": "raise_to",
+          "target": "model.evaluation",
+          "axis": "automation",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(e.train_eval, 3)",
+        "raise_to(model.training_pipeline, 3)",
+        "raise_to(model.evaluation, 3)"
+      ],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are looking at the wrong metric if you only count the minutes saved on the hand over. I want the evaluation harness to flag when a new model hurts availability on the middle aisle before it ever reaches a store.",
+    "correction": "I am not asking for a faster pipeline, I am asking for a stricter gate on the model quality. The cycle time is only important if the result actually reduces our residual stock and waste."
+  }
+}
