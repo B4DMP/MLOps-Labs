@@ -1,126 +1,68 @@
 {
   "requirements": [
     {
-      "id": "gen_heatwave_kpi_gap_monica_kpi_automation",
+      "id": "gen_honey_vault_bruce_ingestion_automation",
       "challenge_id": 113,
-      "stakeholder_id": "model_monica",
+      "stakeholder_id": "bear_bruce",
       "type": "driver",
-      "description": "{model_monica} proposed automating the KPI definition. Automated KPI tracking would let the model team validate forecast shifts during heatwaves in real time.",
-      "fact": "{model_monica} proposed automating the KPI definition.",
-      "reading": "Automated KPI tracking would let the model team validate forecast shifts during heatwaves in real time.",
-      "metric_id": "model",
+      "description": "{bear_bruce} proposed automating the vault's data ingestion. An automated feed would let him catch a problem without technically being awake for it.",
+      "fact": "{bear_bruce} proposed automating the vault's data ingestion.",
+      "reading": "An automated feed would let him catch a problem without technically being awake for it.",
+      "metric_id": "model_intro",
       "suggested": {
-        "target": "req.kpi_definition",
+        "target": "data.ingestion",
         "level": 3,
-        "axis": "governance"
+        "axis": "automation"
       },
       "ops": [],
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
-      "gist": "The way model KPIs are defined has been raised in discussions with {model_monica}."
+      "gist": "How the vault's feed gets collected has come up with {bear_bruce}."
     },
     {
-      "id": "gen_heatwave_kpi_gap_emilia_kpi_manual",
+      "id": "gen_honey_vault_mark_ingestion_manual",
       "challenge_id": 113,
-      "stakeholder_id": "efficiency_emilia",
+      "stakeholder_id": "mohawk_mark",
       "type": "trade_off",
-      "description": "{efficiency_emilia} suggested keeping the KPI definition manual. {efficiency_emilia} would accept an automated KPI definition if it clearly supports the agreed business goals.",
-      "fact": "{efficiency_emilia} suggested keeping the KPI definition manual.",
-      "reading": "{efficiency_emilia} would accept an automated KPI definition if it clearly supports the agreed business goals.",
-      "metric_id": "efficiency",
+      "description": "{mohawk_mark} insists the vault's data ingestion stay under his personal eye. {mohawk_mark} would accept an automated pipeline if he gets to spot check it first.",
+      "fact": "{mohawk_mark} insists the vault's data ingestion stay under his personal eye.",
+      "reading": "{mohawk_mark} would accept an automated pipeline if he gets to spot check it first.",
+      "metric_id": "efficiency_intro",
       "ops": [],
       "concedes": {
-        "target": "req.kpi_definition",
+        "target": "data.ingestion",
         "accepts_max_level": 3,
-        "axis": "governance"
+        "axis": "automation"
       },
       "branch_x": {
-        "description": "the KPI definition brought under full governance, since it clearly supports the agreed business goals",
-        "target": "req.kpi_definition",
+        "description": "the ingestion pipeline put under spot checks, since {mohawk_mark} got to check it first",
+        "target": "data.ingestion",
         "level": 3,
         "axis": "governance"
       },
       "branch_y": {
-        "description": "the KPI definition kept manual",
-        "target": "req.kpi_definition",
+        "description": "the validation kept manual, with {mohawk_mark} checking every batch by hand",
+        "target": "data.validation",
         "level": 2,
         "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
-      "gist": "The definition of the efficiency KPI has been raised as a topic for discussion."
+      "gist": "How the vault's feed gets collected is a live argument with {mohawk_mark}."
     },
     {
-      "id": "gen_heatwave_kpi_gap_monica_criteria_automation",
+      "id": "gen_honey_vault_bruce_validation_automation",
       "challenge_id": 113,
-      "stakeholder_id": "model_monica",
-      "type": "trade_off",
-      "description": "{model_monica} asked for automated acceptance criteria. The model team would accept manual acceptance criteria if the review cycle is shortened to one day.",
-      "fact": "{model_monica} asked for automated acceptance criteria.",
-      "reading": "The model team would accept manual acceptance criteria if the review cycle is shortened to one day.",
-      "metric_id": "model",
-      "ops": [],
-      "concedes": {
-        "target": "req.acceptance_criteria",
-        "accepts_max_level": 2,
-        "axis": "automation"
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": []
-    },
-    {
-      "id": "gen_heatwave_kpi_gap_emilia_risk_manual",
-      "challenge_id": 113,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "trade_off",
-      "description": "{efficiency_emilia} noted that the risk assessment is currently done by hand. {efficiency_emilia} would accept automated risk assessment if it includes a manual override for legal issues.",
-      "fact": "{efficiency_emilia} noted that the risk assessment is currently done by hand.",
-      "reading": "{efficiency_emilia} would accept automated risk assessment if it includes a manual override for legal issues.",
-      "metric_id": "efficiency",
-      "ops": [],
-      "concedes": {
-        "target": "req.risk_assessment",
-        "accepts_max_level": 2,
-        "axis": "automation"
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The manual process behind the risk assessment keeps coming up in conversations with {efficiency_emilia}."
-    },
-    {
-      "id": "gen_heatwave_kpi_gap_monica_data_contracts",
-      "challenge_id": 113,
-      "stakeholder_id": "model_monica",
-      "type": "driver",
-      "description": "{model_monica} proposed automated data contracts. Automated data contracts would ensure the weather feed is always available for the model.",
-      "fact": "{model_monica} proposed automated data contracts.",
-      "reading": "Automated data contracts would ensure the weather feed is always available for the model.",
-      "metric_id": "model",
-      "suggested": {
-        "target": "req.data_contracts",
-        "level": 3,
-        "axis": "automation"
-      },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": []
-    },
-    {
-      "id": "gen_heatwave_kpi_gap_emilia_kpi_boundary",
-      "challenge_id": 113,
-      "stakeholder_id": "efficiency_emilia",
+      "stakeholder_id": "bear_bruce",
       "type": "boundary",
-      "description": "{efficiency_emilia} brought up the need for KPI definitions to reflect the margin on the promotion week. {efficiency_emilia} will not accept any KPI definition that does not include margin on the promotion week.",
-      "fact": "{efficiency_emilia} brought up the need for KPI definitions to reflect the margin on the promotion week.",
-      "reading": "{efficiency_emilia} will not accept any KPI definition that does not include margin on the promotion week.",
-      "metric_id": "efficiency",
+      "description": "{bear_bruce} will not sign off on a feed nobody validates. He does not care who checks what arrives, as long as it is not him.",
+      "fact": "{bear_bruce} will not sign off on a feed nobody validates.",
+      "reading": "He does not care who checks what arrives, as long as it is not him.",
+      "metric_id": "model_intro",
       "holds": {
-        "component": "req.kpi_definition",
+        "component": "data.validation",
         "op": "gte",
         "level": 2,
         "axis": "automation"
@@ -128,29 +70,28 @@
       "ops": [
         {
           "kind": "raise_to",
-          "target": "req.kpi_definition",
+          "target": "data.validation",
           "value": 2,
           "axis": "automation"
         }
       ],
       "branch_x_atoms": [],
       "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The definition of margin on the promotion week keeps coming up in efficiency discussions."
+      "atoms": []
     },
     {
-      "id": "gen_heatwave_kpi_gap_fact_kpi_missing",
+      "id": "gen_honey_vault_fact_ingestion_stalled",
       "challenge_id": 113,
       "type": "fact",
-      "description": "The KPI definition is broken in the system. That is simply how the KPI setup works today.",
-      "fact": "The KPI definition is broken in the system.",
-      "reading": "That is simply how the KPI setup works today.",
+      "description": "The vault's data ingestion is broken. Nobody has fixed it, because nobody currently owns it, which is itself the argument.",
+      "fact": "The vault's data ingestion is broken.",
+      "reading": "Nobody has fixed it, because nobody currently owns it, which is itself the argument.",
       "ops": [],
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
       "asserts": {
-        "target": "req.kpi_definition",
+        "target": "data.ingestion",
         "level": 0,
         "axis": "automation"
       }

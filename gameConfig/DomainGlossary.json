@@ -76,6 +76,16 @@
       "why_it_matters": "This is the system the player is here to run. Every challenge in the game is a decision about what Shelfcast should do next."
     },
     {
+      "id": "honey_vault",
+      "term": "Honey Vault",
+      "aliases": [
+        "the vault"
+      ],
+      "category": "company",
+      "definition": "A honey vault watched over by Bear Bruce and audited by Mohawk Mark - the standalone practice scenario for the introduction, with nothing to do with Lindenmarkt or Shelfcast.",
+      "why_it_matters": "It exists so the game's mechanics can be learned on something with no stakes, before anything here counts against the real project that follows."
+    },
+    {
       "id": "liability",
       "term": "liability",
       "aliases": [

@@ -1,16 +1,16 @@
 {
   "artifacts": [
     {
-      "id": "art_gen_heatwave_kpi_gap_monica_kpi_automation",
-      "requirement_id": "gen_heatwave_kpi_gap_monica_kpi_automation",
+      "id": "art_gen_honey_vault_bruce_ingestion_automation",
+      "requirement_id": "gen_honey_vault_bruce_ingestion_automation",
       "challenge_id": 113,
-      "stakeholder_id": "model_monica",
+      "stakeholder_id": "bear_bruce",
       "artifact_type": "slack_message",
-      "content": "The heatwave last week completely broke our current monitoring. We are still manually reconciling the KPI definitions to see if the forecast actually captured the demand spike for seasonal goods. This is too slow. I want the KPI tracking automated so we can validate those shifts in real time. The more immediate visibility we have on these weather driven spikes, the better we can tune the models before the next event hits. I am not asking for a full overhaul, just the ability to see the drift as it happens so we can act on it quickly.",
+      "content": "Watched the vault feed again last night. Also I was asleep, so 'watched' is doing a lot of work in that sentence. I want the data ingestion automated so something is actually collecting the vault feed when I am not, which, statistically, is most of the time. I am not asking for the whole vault to run itself. I am asking for the one part where a human, or in this case bear, is required to be conscious.",
       "wrong_descriptions": {
-        "boundary": "The model team will not deploy seasonal features without automated KPI tracking.",
-        "trade_off": "The model team would accept manual KPI tracking if it allowed more time for feature engineering.",
-        "fact": "The KPI definition is currently broken in the system."
+        "boundary": "He will not keep guarding the vault without an automated feed.",
+        "trade_off": "He would accept a manual data pull if it let him sleep through more of his shift.",
+        "fact": "The vault's data ingestion is currently broken."
       },
       "is_known": true,
       "humor_archetype": null,
@@ -18,16 +18,16 @@
       "humor_review_reason": null
     },
     {
-      "id": "art_gen_heatwave_kpi_gap_emilia_kpi_manual",
-      "requirement_id": "gen_heatwave_kpi_gap_emilia_kpi_manual",
+      "id": "art_gen_honey_vault_mark_ingestion_manual",
+      "requirement_id": "gen_honey_vault_mark_ingestion_manual",
       "challenge_id": 113,
-      "stakeholder_id": "efficiency_emilia",
+      "stakeholder_id": "mohawk_mark",
       "artifact_type": "slack_message",
-      "content": "I am open to letting the system handle the nightly KPI refresh if it directly serves the agreed business goals. I will accept losing the manual review step where I currently adjust each metric to fit the broader product strategy. In return, I need the automated output to align perfectly with our organizational roadmap. If the automation drifts from those strategic targets, I will revert to the manual process immediately. The trade is clear: I give up the hands on control over metric definition only if the automation proves it supports the exact objectives we set for the season.",
+      "content": "Bruce wants to automate the vault feed. Sure, automate it. But it doesn't go live until I've personally spent an afternoon spot checking what it pulls in, and Bruce getting bored of copying numbers into a spreadsheet doesn't count as it passing. Until then I keep doing it by hand, the slow way, the way where I get to argue with the numbers before anyone believes them. Beat my afternoon and the robot can have the job. Lose to me and I'm back to copying.",
       "wrong_descriptions": {
-        "driver": "{efficiency_emilia} wants more manual control to refine the business goals.",
-        "boundary": "{efficiency_emilia} will not accept automated KPI definition without a strategy review.",
-        "fact": "The KPI definition is currently broken in the system."
+        "driver": "He wants more manual checks added on top of the feed.",
+        "boundary": "He will not accept an automated feed without a formal committee review.",
+        "fact": "The vault's data ingestion is currently broken."
       },
       "is_known": true,
       "humor_archetype": null,
@@ -35,90 +35,39 @@
       "humor_review_reason": null
     },
     {
-      "id": "art_gen_heatwave_kpi_gap_monica_criteria_automation",
-      "requirement_id": "gen_heatwave_kpi_gap_monica_criteria_automation",
+      "id": "art_gen_honey_vault_bruce_validation_automation",
+      "requirement_id": "gen_honey_vault_bruce_validation_automation",
       "challenge_id": 113,
-      "stakeholder_id": "model_monica",
+      "stakeholder_id": "bear_bruce",
       "artifact_type": "document",
-      "content": "The pipeline health check asks if the forecast job finished. It does not ask if the forecast is right. Last Tuesday, the job completed successfully at 4:00 AM. The system recorded a green tick. It then suggested ordering forty pallets of ice cream for the northern stores. The temperature was fourteen degrees. The check passed because the code ran. It did not pass because the shelves would be full of melting chocolate. We need the check to look at the weather, not just the timestamp. If the metric says 'success' while the warehouse fills with unsold seasonal goods, the metric is lying. We require the acceptance criteria to verify the output against the actual heatwave data, not just confirm the job did not crash.",
+      "content": "The vault's health check asks exactly one question: did the check run. It does not ask whether there was anything worth checking. Last Tuesday it ran on schedule, reported green across the board, and confirmed a perfectly healthy vault. There was no vault to confirm; it had been moved to sub-basement 2 in March, on a trolley, by two people who did not tell the check. So yes, fix the validation. But fix it so nobody has to. I am not adding 'personally confirm the vault still exists' to my rotation, and I am not setting an alarm to go check on a checker. If it still needs me standing next to it, it is not data validation, it is a coworker. Someone has to check what arrives, and I do not much care who, but it is not going to be me. Otherwise I am back to four-hour shifts, and nobody wants that version of me.",
       "wrong_descriptions": {
-        "driver": "Automated acceptance criteria would let the model team iterate faster on seasonal forecasting.",
-        "boundary": "The model team cannot proceed with deployment if acceptance criteria remain manual.",
-        "fact": "The acceptance criteria are currently done by hand."
+        "driver": "He proposed automating the data validation to speed up vault monitoring.",
+        "trade_off": "He would accept a one-day manual review cycle, so long as it does not cut into his nap.",
+        "fact": "The data validation is currently done by hand."
       },
       "is_known": false,
       "humor_archetype": "A health check that asks the wrong question",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully employs the assigned device (shallow check vs. real check) and preserves the core fact that the team wants to move from simple status checks (did it run) to meaningful acceptance criteria (is it correct) to handle seasonal/heatwave shifts. The concrete example (ordering ice cream in 14-degree weather) is absurd yet plausible and clearly illustrates the danger of the shallow check. It does not invent a new causal mechanism; it dramatizes the original need for 'automated acceptance criteria' by showing what happens when the criteria are merely 'job completed.' The tone is sharp and actionable."
+      "humor_review_reason": "Reuses the confirmed device from the original heatwave artifact (a status check that confirms only that it ran, not that its subject still exists/is correct), recast onto a wholly invented, ungrounded premise (the vault physically relocating without the check's knowledge) rather than the retail/heatwave scenario. The concrete image - a green light confirming a vault that is no longer there - is absurd but mechanically identical to the original's 'green tick, wrong world' joke, and it now motivates Bruce's actual boundary directly: he will not sign off on acceptance criteria unless they run themselves, because the alternative is him personally standing next to the vault to catch what the check misses."
     },
     {
-      "id": "art_gen_heatwave_kpi_gap_emilia_risk_manual",
-      "requirement_id": "gen_heatwave_kpi_gap_emilia_risk_manual",
-      "challenge_id": 113,
-      "stakeholder_id": "efficiency_emilia",
-      "artifact_type": "document",
-      "content": "The current risk assessment for weather driven spikes is done by hand, which slows our response to heatwaves. I am prepared to accept an automated system for this task if it includes a manual override specifically for legal issues. This allows us to maintain strict compliance with our contractual obligations while gaining the speed we need. Without that safety valve, I cannot support automation, as the risk of an unreviewed legal breach is too high for my comfort. I want the system to handle the routine calculations so my team can focus on strategy, but only if we retain final control over the sensitive parts. The criterion is met when the override exists. Last week, the system flagged a heatwave spike. A human clicked the override to review the legal risk. The forecast remained unchanged. The button was clicked. The criterion was met.",
-      "wrong_descriptions": {
-        "driver": "{efficiency_emilia} wants more detailed risk assessments for every promotion week.",
-        "boundary": "{efficiency_emilia} will not approve automated risk assessment without a compliance check.",
-        "fact": "The risk assessment is currently done by hand."
-      },
-      "is_known": false,
-      "humor_archetype": "Retroactively-satisfiable criterion",
-      "humor_verdict": "strong",
-      "humor_review_reason": "The candidate preserves the original facts regarding manual risk assessment and the condition for automation (manual override for legal issues). It successfully employs the assigned device (retroactively-satisfiable criterion) by defining the success metric as the existence/clicking of the button rather than the outcome of the review. The concrete instance (clicking the button, forecast unchanged, criterion met) clearly illustrates the absurdity of satisfying the compliance box without achieving the strategic goal, landing the joke effectively without obscuring the intel."
-    },
-    {
-      "id": "art_gen_heatwave_kpi_gap_monica_data_contracts",
-      "requirement_id": "gen_heatwave_kpi_gap_monica_data_contracts",
-      "challenge_id": 113,
-      "stakeholder_id": "model_monica",
-      "artifact_type": "meeting_notes",
-      "content": "I need the KPI tracking to run automatically so we can see how the heatwave is shifting demand for seasonal goods in real time. Right now we are staring at stale numbers while the weather feed changes everything. I want the system to capture these spikes the moment they happen, not after the fact. The more immediate the feedback loop, the better the model can adapt. If we can automate the data contracts, the weather feed stays live and the metrics reflect the actual shelf reality. I am pushing for this because a faster signal means a sharper forecast. I want the tracking to be as responsive as the weather itself, so we stop guessing and start seeing the true demand curve unfold daily.",
-      "wrong_descriptions": {
-        "boundary": "The model team cannot train on weather data without automated contracts.",
-        "trade_off": "The model team would accept manual data contracts if the feed is reliable.",
-        "fact": "The data contracts are currently done by hand."
-      },
-      "is_known": false,
-      "humor_archetype": null,
-      "humor_verdict": null,
-      "humor_review_reason": null
-    },
-    {
-      "id": "art_gen_heatwave_kpi_gap_emilia_kpi_boundary",
-      "requirement_id": "gen_heatwave_kpi_gap_emilia_kpi_boundary",
-      "challenge_id": 113,
-      "stakeholder_id": "efficiency_emilia",
-      "artifact_type": "meeting_notes",
-      "content": "We must lock the definition before building. The margin on the promotion week is the only metric that matters. If a KPI definition does not include that specific number, I will not sign off. We cannot let operational speed override financial reality. Any proposal ignoring that margin is a no. The strategy is clear. Do not bring me a dashboard measuring availability or waste without tying it to that margin figure. That is the line. {model_monica} wants real time tracking, but I need the business goal first. The current manual check asks if the report generated. It does not ask if the report is right. Last week, the tracker confirmed the margin calculation ran successfully. It did not check that the margin was actually negative. The green light was accurate. The business was bleeding. We need a definition that catches the gap, not just a timestamp.",
-      "wrong_descriptions": {
-        "driver": "{efficiency_emilia} wants more KPIs to track margin improvements.",
-        "trade_off": "{efficiency_emilia} would drop the margin KPI if availability is prioritized.",
-        "fact": "The KPI definition is currently broken in the system."
-      },
-      "is_known": false,
-      "humor_archetype": "A health check that asks the wrong question",
-      "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully preserves the core fact that {efficiency_emilia} (implied as the speaker/authority, though the name is missing from the text, the stance is identical) refuses KPIs without the promotion week margin. It effectively uses the assigned device: the 'shallow check' is the system confirming the report 'ran successfully' (status: green), while the 'real check' is whether the margin is negative (substance: bleeding). The concrete example of a green light masking a financial loss is absurd yet plausible in an MLOps context where pipeline success is often conflated with data validity. It does not invent a new causal mechanism but dramatizes the gap between operational status and business correctness."
-    },
-    {
-      "id": "art_gen_heatwave_kpi_gap_fact_kpi_missing",
-      "requirement_id": "gen_heatwave_kpi_gap_fact_kpi_missing",
+      "id": "art_gen_honey_vault_fact_ingestion_stalled",
+      "requirement_id": "gen_honey_vault_fact_ingestion_stalled",
       "challenge_id": 113,
       "stakeholder_id": null,
-      "narrator_id": "model_monica",
+      "narrator_id": "bear_bruce",
       "artifact_type": "meeting_notes",
-      "content": "{model_monica} noted the availability KPI calculation has developed a profound contempt for the rule that it must actually compute anything. It sits in the pipeline after the nightly batch, treating the requirement to generate a number as a suggestion it finds personally offensive. It fails silently, offering no error, only a void where the metric should be. The dashboard widget still displays the last successful value from three weeks ago, a number that has become a historical artifact while actual store performance shifts beneath it. To compensate, the team exports raw scan data and calculates the figures manually in a spreadsheet. This hour long ritual is performed by whoever is on call. The calculation does not break; it simply regards the act of producing a result as beneath its dignity, leaving the team to do the work it was built to do.",
+      "content": "{bear_bruce} noted that the vault's data ingestion has developed a personal grudge against the concept of producing output. It sits in the pipeline every night, looks at the requirement to pull a batch, and declines, silently, the exact way a teenager declines a chore. Nobody has been informed, because it does not fail loudly enough to page anyone - it just stops, and the number stays wherever it last was. The dashboard still shows last month's figure, which the team has started treating as this month's figure out of sheer momentum. To compensate, {mohawk_mark} pulls the batch by hand every week, which is the tell: if the automated version actually worked, nobody would need to. It is not refusing to work as a form of protest. It has simply never worked, and nobody has yet made it.",
       "wrong_descriptions": {
-        "driver": "The team wants to add KPI definitions to track performance.",
-        "boundary": "The team will not proceed without KPI definitions.",
-        "trade_off": "The team would accept broken KPIs if the models are accurate."
+        "driver": "The vault team wants to add another data source to track performance.",
+        "boundary": "The vault team will not proceed without a working feed.",
+        "trade_off": "The vault team would accept a broken feed if the vault stayed put."
       },
       "is_known": true,
       "humor_archetype": "Personification",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully employs the assigned device (personification) by attributing a specific attitude ('profound contempt', 'regards... as beneath its dignity') to the inanimate calculation process. It preserves the core fact that the KPI definition is broken in the system ('fails silently', 'stopped updating correctly') and accurately dramatizes the actual mechanism: the job fails silently after the nightly batch, forcing a manual workaround. The humor arises from the incongruity of a software process having an ego, which is a clear second layer, rather than just raising emotional temperature. It does not target a person's competence, nor does it invent a new causal mechanism (it sticks to the 'silent failure' described in the original). The information remains comprehensible as an intel document."
+      "humor_review_reason": "Same device as the original (an inanimate process personified with a specific, petty attitude toward its own job). Revised after playtest feedback flagged a cognitive-dissonance bug in the prior draft: 'the calculation is not broken, it is on strike' directly contradicted the requirement's own fact (the KPI definition is broken, automation level 0) and the observation that Mark manually recalculates it - if a manual workaround is needed, it is broken, full stop. The rewrite keeps the personification (a sulking teenager) but makes the manual recalculation the *proof* of brokenness rather than evidence it's fine, so the joke and the intel no longer disagree with each other."
     },
     {
       "id": "art_gen_loyalty_consent_gap_reuben_contracts_governance",

@@ -466,6 +466,82 @@
         "confidence": 1.0,
         "interest": 1.0
       }
+    },
+    {
+      "metric_id": "model_intro",
+      "id": "bear_bruce",
+      "name": "Bear Bruce",
+      "voice": "male",
+      "introduction": "Hey, I'm {bear_bruce}. I used to worry about the vault. Then I automated the worrying, and now I mostly nap.",
+      "role_description": "Runs the honey vault's overnight monitoring shift, and has been trying to automate himself out of the job since approximately his first day on it.",
+      "responsibilities": "You are responsible for watching the honey vault overnight, a task you have restructured, delegated, and scripted into something that increasingly resembles you being asleep on a beanbag while a dashboard does the actual watching. Your ideal outcome for any given requirement is that it stops requiring you. You collaborate with {mohawk_mark} mainly by disagreeing with him about whether a green checkmark on a dashboard counts as 'watching' something.",
+      "priorities": "Maximum automation. Minimum Bruce. A vault that checks itself, reports itself, and files its own incident tickets, so the only thing left for a bear to do is sign off on the summary once a week, ideally from a hammock.",
+      "requirements": "Requires the vault's monitoring to run itself end to end - automated checks, automated alerts, automated everything - so the honeyed status quo holds whether or not a bear is technically awake to witness it.",
+      "avatar": {
+        "face": "eyesClosed",
+        "emotion": "eyesClosed",
+        "clothingColor": "fdea6b",
+        "backgroundColor": "ffdfbf"
+      },
+      "personas": [
+        {
+          "key": "bruce",
+          "name": "Bear Bruce",
+          "avatar": {
+            "head": "bear",
+            "skinColor": "d08b5b",
+            "headContrastColor": "724133"
+          }
+        }
+      ],
+      "emotion_sensitivities": {
+        "stress": 0.6,
+        "perceived_risk": 0.7,
+        "sense_of_control": 1.6,
+        "trust": 1.0,
+        "fairness": 1.0,
+        "confidence": 1.2,
+        "interest": 0.8
+      }
+    },
+    {
+      "metric_id": "efficiency_intro",
+      "id": "mohawk_mark",
+      "name": "Mohawk Mark",
+      "voice": "male",
+      "introduction": "Name's {mohawk_mark}. I don't trust a system I haven't personally yelled at at least once.",
+      "role_description": "Self-appointed auditor of anything Bruce tries to automate, on the grounds that a rule nobody has to enforce is just a suggestion wearing a badge.",
+      "responsibilities": "You are responsible for reviewing every change to the vault's monitoring before it ships, in person, out loud, usually unimpressed. You do not object to automation on principle. You object to automation that has never had a human tell it 'no' at least once, on the theory that a system untested by contradiction has not actually been tested. You collaborate with {bear_bruce} mainly by making him defend decisions he was hoping nobody would ask about.",
+      "priorities": "Keeping a real, human thumbprint on the process, even if that thumbprint is mostly his. A fast system is fine. A fast system nobody has ever argued with is a liability wearing a green checkmark.",
+      "requirements": "Requires a manual override that is still real, not a button that exists for compliance and has never once been pressed. If the vault is going to run itself, someone still has to be allowed to tell it to stop - and that someone is him.",
+      "avatar": {
+        "face": "cheeky",
+        "emotion": "cheeky",
+        "clothingColor": "9ddadb",
+        "backgroundColor": "c0aede"
+      },
+      "personas": [
+        {
+          "key": "mark",
+          "name": "Mohawk Mark",
+          "avatar": {
+            "head": "mohawk",
+            "accessories": "eyepatch",
+            "accessoriesProbability": 100,
+            "skinColor": "edb98a",
+            "headContrastColor": "c93305"
+          }
+        }
+      ],
+      "emotion_sensitivities": {
+        "stress": 1.4,
+        "perceived_risk": 1.6,
+        "sense_of_control": 1.5,
+        "trust": 0.7,
+        "fairness": 1.3,
+        "confidence": 1.0,
+        "interest": 1.0
+      }
     }
   ]
 }

@@ -605,6 +605,18 @@
       "why_it_matters": "Auditability is why an approval step that feels like bureaucracy is sometimes genuinely non-negotiable."
     },
     {
+      "id": "audit",
+      "term": "audit",
+      "aliases": [
+        "auditor",
+        "audited",
+        "auditing"
+      ],
+      "category": "governance",
+      "definition": "Someone (or something) checking a system's work against a rule, on purpose, independent of whoever built it.",
+      "why_it_matters": "An automated system that has never been audited is untested in the one way that matters most: nobody has tried to prove it wrong yet."
+    },
+    {
       "id": "bias",
       "term": "bias",
       "aliases": [
@@ -1340,6 +1352,16 @@
       "category": "model",
       "definition": "A model too simple to capture the real pattern, performing poorly on training and new data alike.",
       "why_it_matters": "The honest failure mode. At least it is visible before deployment."
+    },
+    {
+      "id": "dashboard",
+      "term": "dashboard",
+      "aliases": [
+        "dashboards"
+      ],
+      "category": "monitoring",
+      "definition": "A live display of a system's current numbers, built to be glanced at rather than read closely.",
+      "why_it_matters": "A dashboard only shows what someone thought to put on it. Green means nothing was flagged, not that nothing is wrong."
     },
     {
       "id": "alerting",

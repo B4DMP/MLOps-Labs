@@ -41,7 +41,7 @@ async def test_gather_open_updates_attention_tokens_in_session():
             "phase_id": 0,
             "challenge_id": 0,
             "card_id": "eng_1",
-            "stakeholder_ids": ["model_monica"],
+            "stakeholder_ids": ["bear_bruce"],
             "attention_tokens": 16,
         }
         await handle_gather_open(ws, username, payload)

@@ -15,6 +15,8 @@ class RequirementFactory:
         if req.fact:
             update["fact"] = personalize(req.fact)
             update["reading"] = personalize(req.reading) if req.reading else req.reading
+        if req.gist:
+            update["gist"] = personalize(req.gist)
         return req.model_copy(update=update)
 
     @classmethod

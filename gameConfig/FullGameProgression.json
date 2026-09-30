@@ -3,12 +3,12 @@
     {
       "phase_name": "Introduction",
       "phase_description": "Introduction to the serious game mechanics and environment",
-      "phase_introduction": "The board has approved a forecasting programme for the whole chain. Buyers, store operations and the data team sit down together for the first time to work out what the new system is actually supposed to decide.",
+      "phase_introduction": "Somewhere behind Lindenmarkt's actual supply chain sits a honey vault, watched over by a bear who would rather be asleep and audited by a man who trusts nobody, least of all a dashboard.",
       "challenges": [
         {
-          "challenge_title": "The Introduction",
-          "challenge_description": "#model_monica# proposes a complex ML model for maximizing accuracy. #efficiency_emilia# argues that a simpler model would be sufficient and could generate more business value.",
-          "round_introduction_text": "This sample challenge introduces you to the game and its mechanics.",
+          "challenge_title": "The Honey Vault Standoff",
+          "challenge_description": "#bear_bruce# wants the honey vault's KPI tracking fully automated so he can go back to hibernating. #mohawk_mark# refuses to let a dashboard replace him without a fight, though he might accept an automated solution if he personally gets to argue with it first.",
+          "round_introduction_text": "You've been handed the file on Lindenmarkt's honey vault, and asked to settle why Bruce and Mark can't agree on how it gets watched. Read the room, then figure out who's actually right.",
           "metric_changes": {
             "model_intro": 0,
             "efficiency_intro": 0

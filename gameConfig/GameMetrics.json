@@ -164,8 +164,8 @@
     {
       "id": "efficiency_intro",
       "metric_color": "#06b6d4",
-      "metric_name": "Efficiency",
-      "metric_icon": "lucide:trending-up",
+      "metric_name": "Mark-Up",
+      "metric_icon": "ph:trend-up-duotone",
       "metric_value": 10,
       "max_value": 50,
       "active": [
@@ -176,7 +176,7 @@
         false,
         false
       ],
-      "metric_desc": "How well the team manages time, compute, and budget relative to outcomes.",
+      "metric_desc": "How much of the process still bears Mohawk Mark's own signature before he'll trust it not to explode.",
       "component_weights": {
         "model.hpo": 0.4,
         "deploy.orchestration": 0.4
@@ -185,8 +185,8 @@
     {
       "id": "model_intro",
       "metric_color": "#3b82f6",
-      "metric_name": "Model",
-      "metric_icon": "lucide:brain-circuit",
+      "metric_name": "Bear Market",
+      "metric_icon": "ph:paw-print-duotone",
       "metric_value": 10,
       "max_value": 50,
       "active": [
@@ -197,7 +197,7 @@
         false,
         false
       ],
-      "metric_desc": "Accuracy, robustness, and generalization of the model in both lab and real-world conditions.",
+      "metric_desc": "How much Bear Bruce is being made to do by paw, instead of by pipeline. Drops every time someone hands him a manual task.",
       "component_weights": {
         "model.training_pipeline": 1.0,
         "model.evaluation": 0.8,

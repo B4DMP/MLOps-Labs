@@ -127,46 +127,25 @@
       "correction": "I did not agree to skip the core compliance checks, so do not file this as a waiver of privacy obligations. I am only asking for a compressed timeline for the non critical documentation while the mandatory data governance validations remain fully intact."
     },
     {
-      "intel_id": "gen_heatwave_kpi_gap_emilia_kpi_boundary",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "boundary",
-      "text": "I am not signing off on this KPI framework because it ignores the margin on the promotion week. That metric is the only number that matters to my team, so this proposal is a dead end.",
-      "correction": "You misread my concern as a technical gap, but I am simply refusing to accept a goal that does not measure our commercial success. The system is only useful if it protects the profit we make during the promotion week."
-    },
-    {
-      "intel_id": "gen_heatwave_kpi_gap_emilia_kpi_manual",
-      "stakeholder_id": "efficiency_emilia",
+      "intel_id": "gen_honey_vault_mark_ingestion_manual",
+      "stakeholder_id": "mohawk_mark",
       "kind": "price",
-      "text": "You are treating my input as a technical preference, but I am defining the business goals for the middle aisle promotion week. If you automate this without acknowledging that it sets the strategic direction for residual stock and margin, you are bypassing the roadmap I am protecting.",
-      "correction": "I did not say the KPI definition must stay manual forever; I said it must be automated only if it clearly supports the agreed business goals. You filed this as a resistance to change, but it is actually a requirement for alignment with the organizational strategy."
+      "text": "You are treating my review as a formality, but I am the only quality control this vault has. If you automate the ingestion without acknowledging that I get to spot check it first, you are removing the one check that has ever caught anything.",
+      "correction": "I did not say the ingestion must stay manual forever; I said it must survive me personally spot checking it first. You filed this as blanket resistance to automation, but it is a one-time condition, not a standing veto."
     },
     {
-      "intel_id": "gen_heatwave_kpi_gap_emilia_risk_manual",
-      "stakeholder_id": "efficiency_emilia",
+      "intel_id": "gen_honey_vault_bruce_validation_automation",
+      "stakeholder_id": "bear_bruce",
       "kind": "price",
-      "text": "You are proposing to automate the risk assessment without acknowledging that I am currently doing it by hand. I need you to state clearly that I will retain a manual override for legal issues before we proceed.",
-      "correction": "I am not asking to keep the spreadsheet forever, I am asking for a specific guardrail in the new workflow. Do not file this as a general resistance to automation, it is a requirement for legal compliance."
+      "text": "You are treating my request for validation as laziness, but it is a demand for a check that does not eat my whole night. If it still needs me to verify every batch by paw, I will not sign off on it.",
+      "correction": "You misread my position as not caring whether the data is correct. I care a great deal, from a horizontal position. I am asking for the checking to happen without me, by anyone or anything else, not for the checking to stop mattering."
     },
     {
-      "intel_id": "gen_heatwave_kpi_gap_monica_criteria_automation",
-      "stakeholder_id": "model_monica",
-      "kind": "price",
-      "text": "You are treating my request for automated acceptance criteria as a simple technical preference, but it is actually a demand for a faster review cycle. If you do not shorten that manual review to one day, I will not build the automation you are asking for.",
-      "correction": "You misread my position as a preference for tooling, when I am explicitly offering a trade off. I am willing to accept manual criteria only if you commit to a one day review window, so stop filing this under model deployment and start filing it under process speed."
-    },
-    {
-      "intel_id": "gen_heatwave_kpi_gap_monica_data_contracts",
-      "stakeholder_id": "model_monica",
+      "intel_id": "gen_honey_vault_bruce_ingestion_automation",
+      "stakeholder_id": "bear_bruce",
       "kind": "stance",
-      "text": "Automated data contracts are a floor, not a ceiling, so they only guarantee the weather feed arrives on time. I want us to actually monitor for drift in those inputs so the model does not quietly degrade when a heatwave hits.",
-      "correction": "I am not talking about the schema of the file, which is a data engineering concern. I mean the statistical properties of the values, because a perfectly formatted feed with wrong temperatures will still break our forecasts."
-    },
-    {
-      "intel_id": "gen_heatwave_kpi_gap_monica_kpi_automation",
-      "stakeholder_id": "model_monica",
-      "kind": "stance",
-      "text": "Automated KPI tracking is just the dashboard, not the engine that catches the heatwave drift before the morning order window opens. I need the model to flag those shifts in real time so we can adjust the allocation before the buyers lock the pallets.",
-      "correction": "You logged this as a monitoring request, but I am talking about active model validation that triggers a retraining check, not just watching a number go red. The KPI definition is the output, not the input we need to automate."
+      "text": "An automated feed is not about catching every problem, it is about there being any witness to the vault at all during the hours I am asleep. I need the system to flag a shift the moment it happens, not wait for me to wake up and notice.",
+      "correction": "You logged this as a request for more monitoring in general. I am asking for exactly one thing: coverage during the hours nobody is watching, which is most of them. Do not expand this into a general surveillance upgrade."
     },
     {
       "intel_id": "gen_loyalty_consent_gap_alex_pipeline_stability",
