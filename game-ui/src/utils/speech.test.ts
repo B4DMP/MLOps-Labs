@@ -218,6 +218,18 @@ describe("stripForSpeech", () => {
   it("strips markdown emphasis and link syntax", () => {
     expect(stripForSpeech("This is **bold** and a [link](https://x.test)")).toBe("This is bold and a link");
   });
+
+  it("drops HTML tags a tour step uses to highlight a phrase, keeping the phrase itself", () => {
+    expect(stripForSpeech("Drag a card onto the <mark>plaque</mark> in the middle.")).toBe(
+      "Drag a card onto the plaque in the middle.",
+    );
+  });
+
+  it("drops an inline <iconify-icon> tag a tour step renders next to a button's name", () => {
+    expect(stripForSpeech("Open <iconify-icon icon='ph:gear-six-bold'></iconify-icon> Settings.")).toBe(
+      "Open Settings.",
+    );
+  });
 });
 
 describe("chunkText", () => {

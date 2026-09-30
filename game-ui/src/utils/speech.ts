@@ -18,17 +18,91 @@
 
 import { fetchTtsAudioUrl } from "./speechBackend";
 
+/**
+ * Browsers refuse a bare `<audio>.play()` outright until the *document itself* has had a real
+ * gesture (Chrome's exact wording: "play() failed because the user didn't interact with the
+ * document first") - not "a gesture happened at some point in this app", but this specific
+ * document, which a full reload (or a fresh tab landing straight back in an auto-opened dialog
+ * via a restored session) has never had yet, even if the player clicked plenty before that
+ * reload. No amount of pre-warming from inside a click handler helps a *later, gestureless*
+ * `.play()` call - by definition nothing has happened between the gesture and that later call.
+ * `window.speechSynthesis.speak()` has no such restriction, which is why an unlucky first
+ * narration of a session reads as "the fallback voice, just this once".
+ *
+ * So instead of trying to dodge the restriction, `waitForAudioUnlock()` below makes the first
+ * backend narration of a session wait for that gesture rather than immediately downgrading to
+ * the worse fallback voice - matching what the player already asked for elsewhere (a loading
+ * state instead of an eager fallback). Capped by `AUDIO_UNLOCK_TIMEOUT_MS` so a session that
+ * genuinely never gets a gesture (e.g. a hands-off demo) still narrates eventually.
+ */
+let audioUnlocked = false;
+let audioUnlockWaiters: Array<() => void> = [];
+
+function markAudioUnlocked(): void {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  audioUnlockWaiters.forEach((resolve) => resolve());
+  audioUnlockWaiters = [];
+}
+
+function installAudioUnlock(): void {
+  if (typeof document === "undefined") return;
+  const unlock = () => {
+    document.removeEventListener("pointerdown", unlock, true);
+    document.removeEventListener("keydown", unlock, true);
+    markAudioUnlocked();
+  };
+  document.addEventListener("pointerdown", unlock, true);
+  document.addEventListener("keydown", unlock, true);
+}
+installAudioUnlock();
+
+/** In practice a session only ever reaches this ungestured state via a fresh reload/restore
+ *  straight into an auto-narrating screen - the player already clicked "Next"/whatever got them
+ *  there in every normal playthrough. 5s is plenty for that reload case without leaving a real,
+ *  hands-off session waiting long. */
+const AUDIO_UNLOCK_TIMEOUT_MS = 5000;
+
+/** Resolves once the document has had a real gesture, or immediately if it already has one.
+ *  Times out rather than waiting forever, for a session that never gets a gesture at all. */
+function waitForAudioUnlock(): Promise<void> {
+  if (audioUnlocked) return Promise.resolve();
+  return new Promise((resolve) => {
+    const onUnlock = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(() => {
+      audioUnlockWaiters = audioUnlockWaiters.filter((w) => w !== onUnlock);
+      resolve();
+    }, AUDIO_UNLOCK_TIMEOUT_MS);
+    audioUnlockWaiters.push(onUnlock);
+  });
+}
+
 export type VoiceSlot = "male" | "female" | "narrator" | "player";
 
-/* Includes the online "Natural"/neural voice names alongside the local ones, since those are
- * now what the automatic choice reaches for first: Windows/Edge ship Ava, Emma, Aria, Michelle
- * and Jenny (female), Andrew, Brian, Christopher, Eric, Guy, Roger and Steffan (male). The
- * multi-word online names are anchored on word boundaries so they cannot match inside a longer
- * name. */
-const FEMALE_REGEX =
-  /(zira|jenny|samantha|victoria|slt|clb|eva|f[1-5]\b|\b(ava|emma|aria|michelle)\b)/i;
-const MALE_REGEX =
-  /(david|guy|alex|fred|awb|rms|bdl|ksp|kal|m[1-5]\b|\b(andrew|brian|christopher|eric|roger|steffan)\b)/i;
+/* The exact neural voice names `voice_and_prosody` in tts_service.py picks from for each slot
+ * (VOICE_POOLS/FIXED_VOICES/PLAYER_VOICES) - matching one of these here, even on a local/offline
+ * voice, means the webspeech fallback still sounds like the same voice family the backend would
+ * have used, rather than whatever the OS happens to default to. Word-bounded so they cannot
+ * match inside an unrelated longer name. */
+const NEURAL_VOICE_NAMES: Record<"male" | "female" | "narrator", RegExp> = {
+  male: /\b(andrew|guy|christopher|eric|brian)\b/i,
+  female: /\b(michelle|jenny|aria|emma|ava)\b/i,
+  narrator: /\bryan\b/i,
+};
+
+/* Old, low-quality voices bundled with every Windows/macOS install (David/Zira/Samantha/
+ * Victoria/Alex/Fred), plus the espeak-ng/festival tiers speech-dispatcher's engines tend to
+ * produce on Linux. Only ever reached for once no NEURAL_VOICE_NAMES match is installed - these
+ * used to share top priority with the good names above, which is what made the fallback default
+ * to a robotic system voice ("Microsoft David Desktop") the instant no online voice was present,
+ * even though better-than-that local voices often exist. */
+const LEGACY_VOICE_NAMES: Record<"male" | "female", RegExp> = {
+  male: /(david|alex|fred|awb|rms|bdl|ksp|kal|m[1-5]\b)/i,
+  female: /(zira|samantha|victoria|slt|clb|eva|f[1-5]\b)/i,
+};
 
 const BASELINE_PITCH: Record<VoiceSlot, number> = {
   male: 0.95,
@@ -129,20 +203,21 @@ function voicePool(
  * Resolves a voice for `slot`. `preferredName` (a stored `SpeechSynthesisVoice.name`) wins when
  * it still names an installed voice - it may not, since voices are OS-specific and a player's
  * choice on one machine may not exist on another, which is exactly why an unresolved name falls
- * through to the regex rather than erroring.
+ * through to the tiers below rather than erroring.
  *
- * `narrator` has no gender regex: absent a stored preference it just takes the first voice in the
- * pool, which is an online one wherever the browser offers any. `male`/`female` match by name
- * within that same order, so a matching online voice beats a matching local one; when nothing in
- * the installed set matches either gender regex (the common Linux outcome with only
- * language-named voices), both resolve to the same first voice, differentiated only by
- * `pitchFor`'s baseline. `player` behaves the same way as whichever gender `playerGender` names
- * (the player's own "Your voice" setting) - falling back to the ungendered `narrator`-style pick
- * when it's not given, since a caller that doesn't know the player's chosen gender has nothing
- * else to go on.
+ * Three tiers after that, each tried in order against the online-first pool so an online match
+ * always beats a local one within the same tier:
+ *   1. `NEURAL_VOICE_NAMES` - the same voice family edge-tts itself would pick for this slot.
+ *   2. `LEGACY_VOICE_NAMES` - known lower-quality voices, only reached once tier 1 has nothing.
+ *   3. `pool[0]` - whatever's first, so a Linux box with only language-named espeak voices (no
+ *      name to match at all) still gets *a* voice rather than silence.
+ * `narrator` only has a tier-1 name (Ryan, edge-tts's fixed narrator voice) and no tier 2 - absent
+ * a match it goes straight to `pool[0]`, exactly as before. `player` behaves like whichever
+ * gender `playerGender` names (the player's own "Your voice" setting), falling back to the
+ * ungendered pick when it's not given.
  *
- * `localOnly` excludes the network voices, including a stored one: it is for the retry after an
- * online voice has already failed, where re-picking it would just fail again.
+ * `localOnly` excludes the network voices, including a stored preferred one: it is for the retry
+ * after an online voice has already failed, where re-picking it would just fail again.
  */
 export function pickVoice(
   voices: SpeechSynthesisVoice[],
@@ -160,10 +235,20 @@ export function pickVoice(
   if (pool.length === 0) return null;
 
   const genderedSlot = slot === "player" ? playerGender : slot;
+  const neuralRegex =
+    slot === "narrator"
+      ? NEURAL_VOICE_NAMES.narrator
+      : genderedSlot === "male" || genderedSlot === "female"
+        ? NEURAL_VOICE_NAMES[genderedSlot]
+        : null;
+
+  const neuralMatch = neuralRegex ? pool.find((v) => neuralRegex.test(v.name)) : undefined;
+  if (neuralMatch) return neuralMatch;
+
   if (genderedSlot !== "male" && genderedSlot !== "female") return pool[0];
 
-  const regex = genderedSlot === "male" ? MALE_REGEX : FEMALE_REGEX;
-  return pool.find((v) => regex.test(v.name)) ?? pool[0];
+  const legacyMatch = pool.find((v) => LEGACY_VOICE_NAMES[genderedSlot].test(v.name));
+  return legacyMatch ?? pool[0];
 }
 
 /** Maps a stakeholder's configured voice gender hint (male/female/neutral, from
@@ -172,6 +257,29 @@ export function pickVoice(
 export function slotForStakeholderVoice(voice: string | undefined | null): VoiceSlot {
   return voice === "male" || voice === "female" ? voice : "narrator";
 }
+
+/** Passed as `seed` by every guided-tour call site (`tour.ts`'s `narrate` callbacks), so the tour
+ *  guide reading tooltip text is audibly a different voice from the narrator reading artifacts/
+ *  briefings, even though both use the `narrator` slot - mirrored by `TOUR_GUIDE_SEED` in
+ *  `tts_service.py` so the backend voice matches this fallback instead of the two swapping
+ *  character every time a session flips between them. */
+export const TOUR_GUIDE_SEED = "tour_guide";
+
+/** Stakeholders/seeds whose pitch is pinned rather than hash-derived from their id. Bear Bruce
+ *  reads as a large, sleepy bear, so he always gets the deepest voice available instead of
+ *  wherever the hash happens to land; the tour guide is pinned brighter/higher, the opposite
+ *  direction from the narrator's plain baseline. */
+const PITCH_OVERRIDES: Record<string, number> = {
+  bear_bruce: PITCH_MIN,
+  [TOUR_GUIDE_SEED]: 1.35,
+};
+
+/** Same idea as `PITCH_OVERRIDES` but for rate: the tour guide reads a little brisker than the
+ *  narrator's slower, document-reading pace, since it's walking the player through UI rather than
+ *  reading prose. */
+const RATE_OVERRIDES: Record<string, number> = {
+  [TOUR_GUIDE_SEED]: 1.05,
+};
 
 function hashSeed(seed: string): number {
   let h = 0;
@@ -195,6 +303,8 @@ export function pitchFor(
   slot: VoiceSlot,
   playerGender?: "male" | "female" | null,
 ): number {
+  if (seed && seed in PITCH_OVERRIDES) return PITCH_OVERRIDES[seed];
+
   const baseline =
     slot === "player" && (playerGender === "male" || playerGender === "female")
       ? BASELINE_PITCH[playerGender]
@@ -214,6 +324,9 @@ export function stripForSpeech(text: string): string {
     .replace(/\{[^}]*\}/g, "")
     .replace(/```[\s\S]*?```/g, " ")
     .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
+    // `<mark>` etc. in a tour step's `data-intro` (intro.js renders it as real HTML, see app.css)
+    // - keeps the tag's own text, just drops the markup, so narration reads the words, not tags.
+    .replace(/<\/?[a-z][^>]*>/gi, "")
     .replace(/[*_#>`~]/g, "")
     .replace(/\s+/g, " ")
     .trim();
@@ -311,7 +424,12 @@ export function speak(text: string, opts: SpeakOptions): () => void {
   }
 
   const pitch = pitchFor(opts.seed, opts.slot, opts.playerGender);
-  const baseRate = opts.slot === "narrator" ? 0.95 : 1;
+  const baseRate =
+    opts.seed && opts.seed in RATE_OVERRIDES
+      ? RATE_OVERRIDES[opts.seed]
+      : opts.slot === "narrator"
+        ? 0.95
+        : 1;
   const rate = Math.max(RATE_MIN, Math.min(RATE_MAX, baseRate * (opts.rate ?? 1)));
   let cancelled = false;
   let index = 0;
@@ -321,6 +439,16 @@ export function speak(text: string, opts: SpeakOptions): () => void {
    * and retries the chunk that failed, rather than dropping it. */
   let localOnly = false;
 
+  /* Chrome/Edge load voices asynchronously and return `[]` from a bare `getVoices()` call until
+   * `voiceschanged` has fired at least once - which, on the very first `speak()` of a session,
+   * hasn't happened yet. `pickVoice` then sees no online voices at all (not "none installed", just
+   * "not enumerated yet") and silently settles for whatever the browser defaults to, typically a
+   * local one - this is what actually made the first backend-narration fallback of a session sound
+   * different from every later one, not the online/local matching logic itself. Cached for the
+   * rest of this call only; a fresh `getVoices()` next time this module is used will already be
+   * warm since the browser only ever needs to load its voice list once per page life. */
+  let voices = synth.getVoices();
+
   const speakNext = () => {
     if (cancelled) return;
     if (index >= chunks.length) {
@@ -329,7 +457,7 @@ export function speak(text: string, opts: SpeakOptions): () => void {
       return;
     }
     const utterance = new SpeechSynthesisUtterance(chunks[index]);
-    const voice = pickVoice(synth.getVoices(), opts.slot, opts.voiceName, localOnly, opts.playerGender);
+    const voice = pickVoice(voices, opts.slot, opts.voiceName, localOnly, opts.playerGender);
     if (voice) utterance.voice = voice;
     utterance.pitch = pitch;
     utterance.rate = rate;
@@ -350,7 +478,15 @@ export function speak(text: string, opts: SpeakOptions): () => void {
     synth.speak(utterance);
   };
 
-  speakNext();
+  if (voices.length > 0) {
+    speakNext();
+  } else {
+    loadVoices().then((loaded) => {
+      if (cancelled) return;
+      voices = loaded;
+      speakNext();
+    });
+  }
 
   const cancel = () => {
     cancelled = true;
@@ -388,7 +524,7 @@ function speakBackendChunks(
   chunks: string[],
   opts: Pick<SpeakOptions, "slot" | "seed" | "onSentence">,
   onDone: () => void,
-  onFailure: () => void,
+  onFailure: (err: unknown) => void,
 ): () => void {
   let cancelled = false;
   let settled = false;
@@ -411,7 +547,21 @@ function speakBackendChunks(
         const audio = new Audio(url);
         currentAudio = audio;
         opts.onSentence?.({ index: i, total: chunks.length, text: chunks[i] });
-        await audio.play();
+        try {
+          await audio.play();
+        } catch (err) {
+          // Only a gesture-policy rejection is worth waiting out - anything else (a real decode/
+          // network error) should still fail fast into the normal webspeech fallback.
+          if (!(err instanceof DOMException) || err.name !== "NotAllowedError" || audioUnlocked) {
+            throw err;
+          }
+          await waitForAudioUnlock();
+          if (cancelled) {
+            URL.revokeObjectURL(url);
+            return;
+          }
+          await audio.play();
+        }
         // Kick off the next sentence's fetch now that this one is audibly playing, so the
         // network round-trip overlaps with playback instead of creating a gap after it.
         if (i + 1 < chunks.length) nextUrl = fetchTtsAudioUrl(chunks[i + 1], opts);
@@ -427,10 +577,10 @@ function speakBackendChunks(
         settled = true;
         onDone();
       }
-    } catch {
+    } catch (err) {
       if (!cancelled && !settled) {
         settled = true;
-        onFailure();
+        onFailure(err);
       }
     }
   })();
@@ -487,9 +637,17 @@ export function speakAuto(text: string, opts: SpeakAutoOptions): () => void {
     setStop(null);
   };
 
-  const fallbackToWebspeech = () => {
+  const fallbackToWebspeech = (err: unknown) => {
     if (stopped) return;
     stopped = true;
+    // Surfaced so a real failure (as opposed to a guess) is one console check away next time
+    // this happens - includes the DOMException name for a play() rejection (e.g.
+    // "NotAllowedError" means the browser's autoplay policy blocked it, not a network problem).
+    console.warn(
+      `[TTS] Backend narration failed for slot "${opts.slot}" - falling back to the browser voice. ` +
+        `A "NotAllowedError" here means the browser's autoplay policy blocked playback, not a network issue.`,
+      err,
+    );
     // Neutralize the arbiter entry for this call before speak() runs its own arbiter turn -
     // otherwise speak()'s own `currentStop?.()` would reach back into this very `cancel` and
     // immediately mark itself stopped, before `fallbackCancel` is even assigned.

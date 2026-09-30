@@ -61,6 +61,20 @@ DEFAULT_PLAYER_VOICE_GENDER = "male"
 
 SEEDED_SLOTS = {"male", "female"}
 
+# Stakeholders whose voice is pinned rather than seed-derived. Bear Bruce reads as a large,
+# sleepy bear, so he always gets the deepest voice in the pool and the bottom of the pitch/rate
+# spread, instead of wherever his id's hash happens to land.
+VOICE_OVERRIDES: dict[str, str] = {
+    "bear_bruce": "en-US-ChristopherNeural",
+}
+
+# Passed as `seed` by every guided-tour narration call (mirrored by `TOUR_GUIDE_SEED` in
+# speech.ts), so the tour guide reading tooltip text is audibly a different voice from the
+# narrator reading artifacts/briefings, even though both use the fixed `narrator` voice.
+TOUR_GUIDE_SEED = "tour_guide"
+TOUR_GUIDE_PITCH_HZ = 40
+TOUR_GUIDE_RATE_PCT = 5
+
 # Same idea as PITCH_SPREAD in speech.ts, expressed in the units edge_tts.Communicate accepts.
 PITCH_SPREAD_HZ = 20
 RATE_SPREAD_PCT = 8
@@ -110,6 +124,9 @@ def voice_and_prosody(
     speed_pct = round(((speed if speed is not None else 1.0) - 1.0) * 100)
 
     if slot == "narrator":
+        if seed == TOUR_GUIDE_SEED:
+            rate_pct = _clamp(TOUR_GUIDE_RATE_PCT + speed_pct, RATE_PCT_BOUNDS)
+            return FIXED_VOICES["narrator"], f"{_signed(rate_pct)}%", f"{_signed(TOUR_GUIDE_PITCH_HZ)}Hz"
         rate_pct = _clamp(NARRATOR_RATE_PCT + speed_pct, RATE_PCT_BOUNDS)
         return FIXED_VOICES["narrator"], f"{_signed(rate_pct)}%", "+0Hz"
 
@@ -117,6 +134,10 @@ def voice_and_prosody(
         voice = PLAYER_VOICES.get(player_voice_gender or DEFAULT_PLAYER_VOICE_GENDER, PLAYER_VOICES[DEFAULT_PLAYER_VOICE_GENDER])
         rate_pct = _clamp(speed_pct, RATE_PCT_BOUNDS)
         return voice, f"{_signed(rate_pct)}%", "+0Hz"
+
+    if seed and seed in VOICE_OVERRIDES:
+        rate_pct = _clamp(-RATE_SPREAD_PCT + speed_pct, RATE_PCT_BOUNDS)
+        return VOICE_OVERRIDES[seed], f"{_signed(rate_pct)}%", f"{_signed(-PITCH_SPREAD_HZ)}Hz"
 
     pool = VOICE_POOLS[slot]
     if not seed:
