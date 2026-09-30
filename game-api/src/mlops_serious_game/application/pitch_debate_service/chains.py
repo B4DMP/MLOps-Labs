@@ -1,17 +1,15 @@
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_groq import ChatGroq
-from langchain_openai import ChatOpenAI
 from loguru import logger
 
 from mlops_serious_game.application.message_parser import sanitize_dashes
+from mlops_serious_game.application.llm import get_chat_model
 from mlops_serious_game.application.pitch_debate_service.prompts import (
     PLAYER_KICKOFF_PROMPT,
     PLAYER_UTTERANCE_PROMPT,
     STAKEHOLDER_ENGAGEMENT_RESPONSE_PROMPT,
 )
 from mlops_serious_game.application.pitch_debate_service.tools import tools
-from mlops_serious_game.config import settings
 from mlops_serious_game.domain.prompts import (
     with_setting,
     INTEL_ARTIFACT_PROMPT,
@@ -19,31 +17,9 @@ from mlops_serious_game.domain.prompts import (
     WRONG_INTEL_PROMPT,
 )
 
-def get_chat_model(temperature: float = 0.7, model_name: str | None = None) -> ChatOpenAI | ChatGroq:
-    if settings.MISTRAL_API_KEY:
-        return ChatOpenAI(
-            api_key=settings.MISTRAL_API_KEY,
-            base_url=settings.MISTRAL_API_BASE,
-            model_name=model_name or settings.MISTRAL_LLM_MODEL,
-            temperature=temperature,
-        )
-    elif settings.WESTAI_API_KEY:
-        return ChatOpenAI(
-            api_key=settings.WESTAI_API_KEY,
-            base_url=settings.WESTAI_API_BASE,
-            model_name=model_name or settings.WESTAI_LLM_MODEL,
-            temperature=temperature,
-        )
-    else:
-        return ChatGroq(
-            api_key=settings.GROQ_API_KEY,
-            model_name=model_name or settings.GROQ_LLM_MODEL,
-            temperature=temperature,
-        )
-
 
 def get_stakeholder_response_chain():
-    model = get_chat_model()
+    model = get_chat_model(cache_name="debate_stakeholder_response")
     model = model.bind_tools(tools)
 
     prompt = ChatPromptTemplate.from_messages(
@@ -92,19 +68,19 @@ def get_intel_artifact_chain():
 
 def get_player_utterance_chain():
     """Builds and returns the LCEL chain for dynamically generating the player's spoken utterance upon option selection."""
-    model = get_chat_model(temperature=0.7)
+    model = get_chat_model(temperature=0.7, cache_name="debate_player_utterance")
     return with_setting(PLAYER_UTTERANCE_PROMPT) | model | StrOutputParser()
 
 
 def get_stakeholder_engagement_response_chain():
     """Builds and returns the LCEL chain for generating a stakeholder's response to an engagement dialogue option."""
-    model = get_chat_model(temperature=0.7)
+    model = get_chat_model(temperature=0.7, cache_name="debate_stakeholder_engagement")
     return with_setting(STAKEHOLDER_ENGAGEMENT_RESPONSE_PROMPT) | model | StrOutputParser()
 
 
 def get_player_kickoff_chain():
     """Builds and returns the LCEL chain for dynamically generating the player's opening welcome and action card introduction."""
-    model = get_chat_model(temperature=0.6)
+    model = get_chat_model(temperature=0.6, cache_name="debate_kickoff")
     return with_setting(PLAYER_KICKOFF_PROMPT) | model | StrOutputParser()
 
 

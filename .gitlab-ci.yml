@@ -21,7 +21,7 @@ build-game-api:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker build --build-context gameconfig="$GAME_DIR/gameConfig" -t $GAME_API_IMAGE -f "$GAME_DIR/game-api/Dockerfile" "$GAME_DIR/game-api/"
+    - docker build --build-arg BUILD_VERSION="$CI_COMMIT_SHORT_SHA" --build-context gameconfig="$GAME_DIR/gameConfig" -t $GAME_API_IMAGE -f "$GAME_DIR/game-api/Dockerfile" "$GAME_DIR/game-api/"
     - docker save $GAME_API_IMAGE > game-api-image.tar
   artifacts:
     paths:

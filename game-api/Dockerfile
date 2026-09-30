@@ -23,4 +23,8 @@ COPY --from=gameconfig . /gameConfig
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system --no-deps -e .
 
+# Cached LLM answers are dropped when a start-up sees a different value.
+ARG BUILD_VERSION=dev
+ENV BUILD_VERSION=$BUILD_VERSION
+
 CMD ["fastapi", "dev", "mlops_serious_game/infrastructure/api.py", "--port", "8000", "--host", "0.0.0.0"]

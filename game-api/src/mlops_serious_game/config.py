@@ -112,6 +112,8 @@ class Settings(BaseSettings):
     POSTGRES_TEACHER_DATA_TABLE: str = "teacher_data"
     POSTGRES_TEACHER_CAMPAIGN_TABLE: str = "teacher_campaign_data"
     POSTGRES_BUG_REPORT_TABLE: str = "bug_report"
+    POSTGRES_LLM_CACHE_TABLE: str = "llm_cache_entry"
+    POSTGRES_LLM_CACHE_STAT_TABLE: str = "llm_cache_stat"
     POSTGRES_BUG_REPORT_RECIPIENTS_TABLE: str = "bug_report_recipients"
     AUTO_MIGRATE: bool = Field(
         default=True,
@@ -128,6 +130,21 @@ class Settings(BaseSettings):
             self.POSTGRES_ASYNC_URI.replace("postgresql+asyncpg://", "postgresql://")
             .replace("postgresql+psycopg://", "postgresql://")
         )
+    LLM_CACHE_ENABLED: bool = Field(
+        default=True,
+        description="Cache identical LLM prompts in Postgres, per chain (see application/llm_cache.py).",
+    )
+    LLM_CACHE_MAXSIZE: int = Field(
+        default=1000, gt=0, description="Maximum cached prompts per chain."
+    )
+    BUILD_VERSION: str = Field(
+        default="dev",
+        max_length=128,
+        description=(
+            "Identifies the build. Cached LLM answers survive restarts and are dropped when a "
+            "start-up finds a different value, so CI stamps each image with its commit."
+        ),
+    )
     # --- Comet ML & Opik Configuration ---
     COMET_API_KEY: str | None = Field(
         default=None, description="API key for Comet ML and Opik services."

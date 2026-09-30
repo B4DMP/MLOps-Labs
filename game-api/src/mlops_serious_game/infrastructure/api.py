@@ -22,6 +22,7 @@ from mlops_serious_game.infrastructure.routes.tts_routes import router as tts_ro
 from mlops_serious_game.infrastructure.routes.bug_report_routes import router as bug_report_router
 from mlops_serious_game.infrastructure.websocket.router import router as websocket_router
 
+from mlops_serious_game.application.llm_cache import purge_stale
 from mlops_serious_game.infrastructure.database import init_db, init_checkpointer, run_migrations
 
 configure()
@@ -35,6 +36,11 @@ async def lifespan(app: FastAPI):
     run_migrations()
     init_db()
     await init_checkpointer()
+    try:
+        removed = purge_stale()
+        logger.info(f"LLM cache: build {settings.BUILD_VERSION!r}, dropped {removed} entries of other builds.")
+    except Exception as exc:
+        logger.warning(f"Could not purge stale LLM cache entries: {exc}")
     if settings.MISTRAL_API_KEY:
         logger.info(f"LLM Configuration: Using MistralAI proxy with model '{settings.MISTRAL_LLM_MODEL}' (Base URL: {settings.MISTRAL_API_BASE})")
     elif settings.WESTAI_API_KEY:

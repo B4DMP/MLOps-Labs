@@ -499,3 +499,29 @@ export function fetchAdminBugReports(
 export function deleteAdminBugReport(id: number): Promise<{ success: boolean }> {
   return adminMutate(`/api/admin/bug-reports/${id}`, "DELETE", "Failed to delete the bug report.");
 }
+
+export interface LlmCacheRow {
+  name: string;
+  label: string;
+  entries: number;
+  hits: number;
+  misses: number;
+  /** null until the cache has been asked something. */
+  hit_rate: number | null;
+}
+
+export interface LlmCacheStats {
+  enabled: boolean;
+  /** The build the counts belong to. */
+  version: string;
+  maxsize: number;
+  caches: LlmCacheRow[];
+  total_entries: number;
+  total_hits: number;
+  total_requests: number;
+  total_hit_rate: number | null;
+}
+
+export function fetchLlmCacheStats(): Promise<LlmCacheStats> {
+  return adminGet("/api/admin/llm-cache", "Failed to fetch LLM cache statistics.");
+}
