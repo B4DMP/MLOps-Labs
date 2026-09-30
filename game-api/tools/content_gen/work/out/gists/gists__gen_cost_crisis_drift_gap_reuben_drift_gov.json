@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_reuben_drift_gov",
+  "stage": "gists",
+  "input_hash": "52568e56bb3423905cb6c8ae25d32a8bf9ef3a38a7fd3a68224f3cdb84a92c5a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_reuben_drift_gov",
+    "fact": "{requirements_reuben} proposed that the drift monitoring should be governed by the compliance team.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "The question of who governs drift monitoring keeps surfacing in the requirements discussions with {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes that a specific governance topic is recurring in discussions, but it does not express a preference for more or less governance, a refusal, a trade-off, or a definitive factual state about the governance itself."
+  }
+}

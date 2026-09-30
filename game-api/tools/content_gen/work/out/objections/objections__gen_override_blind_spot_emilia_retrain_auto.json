@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_override_blind_spot_emilia_retrain_auto",
+  "stage": "objections",
+  "input_hash": "d085f870bd1cbecc582e3f5121100aee36352c2f591d16c1e1861e56043a423c",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_override_blind_spot_emilia_retrain_auto",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted the lack of automation in the retraining trigger. She would accept a less frequent retraining if the trigger is automated.",
+      "fact": "{efficiency_emilia} noted the lack of automation in the retraining trigger.",
+      "reading": "She would accept a less frequent retraining if the trigger is automated.",
+      "metric_id": "efficiency",
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "e.retrain_train",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are treating my comment on retraining frequency as a casual preference, but it is a hard cost constraint for the project. I need you to acknowledge that we are trading off model freshness for operational stability to keep the budget realistic.",
+    "correction": "I did not say I do not care about the weekly retraining cycle. I am telling you that the current manual trigger is a bottleneck that costs us more in engineering hours than the slight drift risk justifies."
+  }
+}

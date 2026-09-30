@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_reuben_feature_store_gov",
+  "stage": "gists",
+  "input_hash": "2452953529b74721225ccfba9e9d7af0c2d370e4f726be0b61e9eda19fb2fe79",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_reuben_feature_store_gov",
+    "fact": "{requirements_reuben} brought up the need to review the feature store access controls.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "The state of feature store access controls sits at the centre of the discussion with {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a specific topic of discussion regarding feature store access controls but does not express a stance, demand, refusal, or trade-off, nor does it state a definitive fact about the current state."
+  }
+}

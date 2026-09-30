@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_data_deployment_block_reuben_manual_review",
+  "stage": "gists",
+  "input_hash": "c1060cbec88c9e455b159ff151a0735cea2e50967bd12ef2b115b677137dca82",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_loyalty_data_deployment_block_reuben_manual_review",
+    "fact": "{requirements_reuben} suggested that a human should review the consent validation before the model is served.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Gap"
+  },
+  "output": {
+    "gist": "Consent validation for loyalty data before serving the forecast is the subject of the note.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies consent validation as a subject or topic but does not express a stance, direction, or commitment to any specific reading."
+  }
+}

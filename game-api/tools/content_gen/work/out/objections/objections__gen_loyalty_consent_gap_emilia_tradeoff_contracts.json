@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_loyalty_consent_gap_emilia_tradeoff_contracts",
+  "stage": "objections",
+  "input_hash": "21868251f438aac9045f1aa82c407170f8d20a2131a8ab840709cbd431b61a50",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_loyalty_consent_gap_emilia_tradeoff_contracts",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted that the data contracts could be handled manually if it does not delay the leaflet. She is willing to accept a manual review of the data contracts if it keeps the weekly leaflet on schedule.",
+      "fact": "{efficiency_emilia} noted that the data contracts could be handled manually if it does not delay the leaflet.",
+      "reading": "She is willing to accept a manual review of the data contracts if it keeps the weekly leaflet on schedule.",
+      "metric_id": "efficiency",
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "req.data_contracts",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are not just moving a task, you are taking the manual safety net that keeps our leaflet on schedule. I need you to acknowledge that I am accepting a higher risk to protect the promotion week.",
+    "correction": "I did not say we do not care about the data contracts, I said the leaflet deadline is the hard constraint here. Do not file this as a lack of technical interest, it is a prioritization decision."
+  }
+}

@@ -22,7 +22,6 @@ SCOPE = {
     "phases": [2],
     "templates_per_phase": 1,
     "conflict_types": ["soft"],
-    "stances_per_template": [6, 10],
     "facts_per_template": [3, 6],
     "orphans_block": False,
 }
@@ -54,7 +53,9 @@ ITEMS = {"items": [
     {"key": "dave_validation", "tag": "driver", "stakeholder_id": "data_dave",
      "fact": "{data_dave} wants every incoming batch validated automatically.",
      "readings": {"driver": "D: He would take any improvement he can get.", "boundary": "B: He would take any improvement he can get.", "trade_off": "T: He would take any improvement he can get.", "fact": "F: He would take any improvement he can get."},
-     "metric_id": "data", "suggested_target": "data.validation", "suggested_axis": "automation", "suggested_level": 3},
+     "metric_id": "data", "suggested_target": "data.validation", "suggested_axis": "automation", "suggested_level": 3,
+     "ops": [{"kind": "raise_to", "target": "e.ingest_validate", "axis": "automation", "value": "3"},
+             {"kind": "raise_to", "target": "e.validate_version", "axis": "automation", "value": "3"}]},
     {"key": "dave_versioning", "tag": "trade_off", "stakeholder_id": "data_dave",
      "fact": "{data_dave} brought up versioning for each dataset.",
      "readings": {"driver": "D: More versioning is always better in his book.", "boundary": "B: He will not hand over a dataset that has no version.", "trade_off": "T: He would let versioning wait a sprint if ingestion gets fixed first.", "fact": "F: That is how the datasets are handled today."},
@@ -88,6 +89,29 @@ ITEMS = {"items": [
      "fact": "Datasets are not versioned at all.",
      "readings": {"driver": "D: Nothing more to it than that.", "boundary": "B: Nothing more to it than that.", "trade_off": "T: Nothing more to it than that.", "fact": "F: Nothing more to it than that."},
      "asserts_target": "data.versioning", "asserts_axis": "automation", "asserts_level": 1},
+    # Stances 9 to 13 bring every stakeholder up to its quota: dave 2, ruth 4, reuben 3, emilia 2.
+    {"key": "ruth_flow", "tag": "driver", "stakeholder_id": "reliability_ruth",
+     "fact": "{reliability_ruth} asked for the whole feature path to run on its own, from versioning onward.",
+     "readings": {"driver": "D: Every step of that path she does not run by hand helps her.", "boundary": "B: She refuses to sign off on any release until that path runs alone.", "trade_off": "T: She would keep parts of that path manual if the release date is at risk.", "fact": "F: That path is started by hand, one step after another."},
+     "metric_id": "reliability", "suggested_target": "data.feature_store", "suggested_axis": "automation", "suggested_level": 3,
+     "ops": [{"kind": "raise_to", "target": "e.version_fs", "axis": "automation", "value": 3},
+             {"kind": "raise_to", "target": "e.validate_version", "axis": "automation", "value": 3}]},
+    {"key": "ruth_labels", "tag": "trade_off", "stakeholder_id": "reliability_ruth",
+     "fact": "{reliability_ruth} mentioned the labelling tool as something that can wait.",
+     "readings": {"driver": "D: Every improvement to labelling would be welcome to her.", "boundary": "B: She will not sign off while labelling stays untouched.", "trade_off": "T: She would leave labelling alone this round if ingestion comes back first.", "fact": "F: Labelling has been idle since the export stopped."},
+     "concedes_target": "data.labeling", "concedes_axis": "automation", "concedes_max_level": 1},
+    {"key": "reuben_edge", "tag": "driver", "stakeholder_id": "requirements_reuben",
+     "fact": "{requirements_reuben} asked for the data contract check to run on every ingestion hand over.",
+     "readings": {"driver": "D: The more hand overs the check covers, the better for him.", "boundary": "B: He will not sign off on any ingestion without that check.", "trade_off": "T: He would drop the check on small feeds to get the outage closed.", "fact": "F: That check is only done by hand today."},
+     "metric_id": "requirements", "suggested_target": "e.contracts_ingest", "suggested_axis": "automation", "suggested_level": 2},
+    {"key": "reuben_drift", "tag": "trade_off", "stakeholder_id": "requirements_reuben",
+     "fact": "{requirements_reuben} brought up the drift check on the training data.",
+     "readings": {"driver": "D: Catching drift earlier is always better in his view.", "boundary": "B: He will not release a model without a drift check.", "trade_off": "T: He would let that drift check wait if the contract check is done first.", "fact": "F: That drift check is barely used today."},
+     "concedes_target": "data.training_drift_check", "concedes_axis": "automation", "concedes_max_level": 1},
+    {"key": "emilia_nightly", "tag": "trade_off", "stakeholder_id": "efficiency_emilia",
+     "fact": "{efficiency_emilia} raised the cost of running the checks every night.",
+     "readings": {"driver": "D: Cheaper nightly checks are always better for her.", "boundary": "B: She will not approve any spend on nightly checks.", "trade_off": "T: She would pay for nightly checks if they stop the outages.", "fact": "F: Nightly checks run on a rented server today."},
+     "concedes_metric": "efficiency", "concedes_loss": 3},
 ]}
 
 FILLER = ("This note sums up where things stand with the data pipeline this week and what it means for the "
@@ -307,6 +331,71 @@ def test_items_checks_catch_false_facts_and_missing_conflict_trade_off(env):
     assert any("soft conflict" in e for e in errors)
 
 
+def _items_and_plan(env):
+    ctx, ledger = env
+    run("templates", ctx, ledger, FakeLLM(respond))
+    ledger.approve(["templates:p2:s0"])
+    [item] = STAGES["items"].plan(ctx)
+    return ctx, item, json.loads(json.dumps(ITEMS))
+
+
+def _by_key(items, key):
+    return next(i for i in items["items"] if i["key"] == key)
+
+
+def test_items_plan_sets_a_quota_per_quadrant(env):
+    ctx, item, _ = _items_and_plan(env)
+    # data_dave low/high, reliability_ruth high/high, requirements_reuben high/low, efficiency_emilia low/low
+    assert item.inputs["quotas"] == {"data_dave": 2, "reliability_ruth": 4, "requirements_reuben": 3, "efficiency_emilia": 2}
+    assert item.inputs["counts"]["stances"] == [11, 11]
+
+
+def test_items_check_needs_the_quota_of_every_stakeholder(env):
+    ctx, item, bad = _items_and_plan(env)
+    bad["items"] = [i for i in bad["items"] if i["key"] != "emilia_nightly"]
+    errors = STAGES["items"].check(bad, item, ctx)
+    assert any("efficiency_emilia needs exactly 2 stance items, has 1" in e for e in errors)
+
+
+def test_items_check_wants_hand_overs_and_composite_drivers(env):
+    ctx, item, bad = _items_and_plan(env)
+    for key in ("dave_validation", "ruth_flow"):
+        _by_key(bad, key)["ops"] = []
+    errors = STAGES["items"].check(bad, item, ctx)
+    assert any("only 0 composite drivers" in e for e in errors)
+    assert any("hand-over between components" in e for e in errors)
+
+
+def test_items_check_allows_one_boundary_per_stakeholder(env):
+    ctx, item, bad = _items_and_plan(env)
+    labels = _by_key(bad, "ruth_labels")
+    labels.update(tag="boundary", holds={"component": "data.labeling", "axis": "automation", "op": "gte", "level": 1},
+                  ops=[{"kind": "raise_to", "target": "data.labeling", "axis": "automation", "value": 1}])
+    for k in ("concedes_target", "concedes_axis", "concedes_max_level"):
+        labels.pop(k)
+    errors = STAGES["items"].check(bad, item, ctx)
+    assert any("reliability_ruth has 2 boundaries" in e for e in errors)
+
+
+def test_items_check_rejects_a_stakeholder_who_contradicts_themselves(env):
+    ctx, item, bad = _items_and_plan(env)
+    # dave asks for validation automated fully and also says he would settle for it at level 1
+    _by_key(bad, "dave_versioning").update(concedes_target="data.validation", concedes_max_level=1)
+    errors = STAGES["items"].check(bad, item, ctx)
+    assert any("data_dave" in e and "can never be honoured" in e for e in errors)
+
+
+def test_items_check_rejects_a_challenge_that_cannot_be_passed_without_a_veto(env):
+    ctx, item, bad = _items_and_plan(env)
+    # ruth is high power; a boundary that needs four separate changes cannot fit a card of three
+    targets = ["data.ingestion", "data.validation", "data.versioning", "data.feature_store"]
+    boundary = _by_key(bad, "ruth_ingestion")
+    boundary["holds"] = {"all": [{"component": t, "axis": "automation", "op": "gte", "level": 2} for t in targets]}
+    boundary["ops"] = [{"kind": "raise_to", "target": t, "axis": "automation", "value": 2} for t in targets]
+    errors = STAGES["items"].check(bad, item, ctx)
+    assert any("no card of at most 3 changes gets past a veto" in e for e in errors)
+
+
 def test_items_checks_need_an_axis_on_every_level(env):
     ctx, ledger = env
     run("templates", ctx, ledger, FakeLLM(respond))
@@ -372,7 +461,7 @@ def test_pipeline_assembles_into_a_config_the_game_loads_and_the_gates_pass(env)
 
     summary = assemble(ctx)
     assert list(summary["challenges"]) == ["ch_ingest_outage"]
-    assert summary["requirements"] == 9
+    assert summary["requirements"] == 14
 
     report = run_gates(ctx.config_dir, ctx.work_dir, "test", SCOPE)
     assert report.errors == []
@@ -381,7 +470,7 @@ def test_pipeline_assembles_into_a_config_the_game_loads_and_the_gates_pass(env)
     again = assemble(ctx)
     assert again["challenges"] == summary["challenges"]
     reqs = json.loads((ctx.config_dir / "RequirementObjects.json").read_text())["requirements"]
-    assert sum(r["id"].startswith("gen_ingest_outage_") for r in reqs) == 9
+    assert sum(r["id"].startswith("gen_ingest_outage_") for r in reqs) == 14
 
     # The generated challenge is dealt by the real scheduler in its phase.
     from mlops_serious_game.application.graph_service.scheduler import select_in_phase
@@ -415,9 +504,9 @@ def test_gists_plan_covers_stance_items_only_not_facts(env):
     ledger.approve(["items:ch_ingest_outage"])
 
     items = STAGES["gists"].plan(ctx)
-    # 6 stances (2 driver for dave, 1 boundary for ruth, 1 driver for ruth, 1 trade_off for
-    # emilia, 1 driver for reuben) in the ITEMS fixture; the 3 facts are excluded.
-    assert len(items) == 6
+    # 11 stances in the ITEMS fixture (one quota per stakeholder: dave 2, ruth 4, reuben 3, emilia 2);
+    # the 3 facts are excluded.
+    assert len(items) == 11
     assert all(i.item_id.startswith("gists:gen_ingest_outage_") for i in items)
     assert all(i.depends_on == ["items:ch_ingest_outage"] for i in items)
 
@@ -614,3 +703,21 @@ def test_bare_stakeholder_id_errors_flags_a_leak_and_clears_once_fixed():
         "objection", "{requirements_reuben} mentioned governed data quality checks.", stakeholders
     )
     assert not bare_stakeholder_id_errors("objection", "", stakeholders)
+
+
+def test_repair_keeps_drivers_under_the_ceilings_of_their_challenge():
+    from content_gen.stages.items import repair_foreclosures
+
+    conflict = {"type": "hard", "target": "data.validation", "positions": []}
+    current = {"data.versioning": {"automation": 1}, "e.validate_version": {"automation": 2}}
+    items = [
+        {"tag": "trade_off", "concedes_target": "e.validate_version", "concedes_axis": "automation", "concedes_max_level": 2},
+        {"tag": "driver", "suggested_target": "data.versioning", "suggested_axis": "automation", "suggested_level": 3,
+         "ops": [{"kind": "raise_to", "target": "e.validate_version", "axis": "automation", "value": 3},
+                 {"kind": "raise_to", "target": "data.ingestion", "axis": "automation", "value": 3}]},
+        {"tag": "trade_off", "concedes_target": "data.versioning", "concedes_axis": "automation", "concedes_max_level": 2},
+    ]
+    repair_foreclosures(items, conflict, current)
+    driver = items[1]
+    assert driver["suggested_level"] == 2  # lowered to the ceiling, still above the current 1
+    assert [o["target"] for o in driver["ops"]] == ["data.ingestion"]  # the step past the ceiling is dropped

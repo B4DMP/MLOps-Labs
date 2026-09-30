@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_ingestion_failure_reuben_feature_gov_driver",
+  "stage": "gists",
+  "input_hash": "520152e890e6de194ee64810509854d98c205abb4f31a130593bcf089755fb37",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_silent_ingestion_failure_reuben_feature_gov_driver",
+    "fact": "{requirements_reuben} asked for a formal review of the feature store before any model is trained on it.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Store Gap"
+  },
+  "output": {
+    "gist": "The feature store review process before model training is a topic that has been raised with {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist simply states that the topic has been raised with a stakeholder, which is a factual observation about the status of the discussion without committing to a specific stance, direction, or constraint."
+  }
+}

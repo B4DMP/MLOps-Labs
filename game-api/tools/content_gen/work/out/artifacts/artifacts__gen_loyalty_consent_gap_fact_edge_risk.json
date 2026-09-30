@@ -1,0 +1,52 @@
+{
+  "item_id": "artifacts:gen_loyalty_consent_gap_fact_edge_risk",
+  "stage": "artifacts",
+  "input_hash": "37dea8f386f27a2744b35c9593c3d4cf8b774d1925b253644c918509905c21c8",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement": {
+      "id": "gen_loyalty_consent_gap_fact_edge_risk",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The hand-over from risk assessment to acceptance criteria is done by hand. The hand-over from risk assessment to acceptance criteria is currently performed manually.",
+      "fact": "The hand-over from risk assessment to acceptance criteria is done by hand.",
+      "reading": "The hand-over from risk assessment to acceptance criteria is currently performed manually.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.risk_acceptance",
+        "axis": "automation",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "narrator": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    },
+    "challenge": {
+      "name": "The Loyalty Data Audit",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "I checked the workflow between the privacy review and the test planning for the loyalty basket feed. When the risk assessment is finished, the architect drafts the acceptance criteria separately in the project tracker. There is no automated link or template transfer between the two documents. I watched two sessions this week where the architect copied the risk findings line by line into the criteria list. The time between the risk sign off and the criteria entry varied from four hours to two days. The criteria list does not reference the specific risk item id. The tracker shows the two items as independent entries with no shared metadata. This manual copying is how the team handles all new data sources.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text consists entirely of observational statements describing the current workflow, timing variances, and lack of automation without expressing any wishes, refusals, or stated trade-offs."
+  }
+}

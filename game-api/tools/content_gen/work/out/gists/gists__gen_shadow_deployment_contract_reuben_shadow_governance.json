@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_reuben_shadow_governance",
+  "stage": "gists",
+  "input_hash": "0d06cff198cecd898873ae466211d72a13b9fe74e94bdfddb19d07e6c1439523",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_reuben_shadow_governance",
+    "fact": "{requirements_reuben} proposed that the shadow deployment should have full governance.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The governance scope for the shadow deployment is the subject of the current requirements discussion.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the topic of discussion (governance scope) but does not express a preference, refusal, trade-off, or factual state about the requirements themselves."
+  }
+}

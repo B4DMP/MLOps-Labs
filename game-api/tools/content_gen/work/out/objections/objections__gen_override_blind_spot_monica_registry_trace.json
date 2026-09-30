@@ -1,0 +1,69 @@
+{
+  "item_id": "objections:gen_override_blind_spot_monica_registry_trace",
+  "stage": "objections",
+  "input_hash": "b0d2625345243f8e014e9fc56704140fc8ea6139fb954dd7a756f0ccf332584e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_override_blind_spot_monica_registry_trace",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} asked for the model registry to be fully automated and governed. She wants every model version to be traceable so she can reproduce the exact experiment that produced the current forecast.",
+      "fact": "{model_monica} asked for the model registry to be fully automated and governed.",
+      "reading": "She wants every model version to be traceable so she can reproduce the exact experiment that produced the current forecast.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "model.registry",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "axis": "governance",
+          "value": 3
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.eval_registry",
+          "axis": "automation",
+          "value": 3
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.registry_cicd",
+          "axis": "automation",
+          "value": 2
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(model.registry, 3)",
+        "raise_to(model.registry, 3)",
+        "raise_to(e.eval_registry, 3)",
+        "raise_to(e.registry_cicd, 2)"
+      ],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "You are missing the point entirely because I need the registry to run without me touching it. I cannot debug a forecast if I cannot reproduce the exact training run that created it.",
+    "correction": "You called that a preference, but it is a hard requirement for my workflow. I am asking for full automation and strict governance so I can trace every model version back to its source data."
+  }
+}

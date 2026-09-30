@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_cost_crisis_drift_gap_fact_serving_observe_edge",
+  "stage": "artifacts",
+  "input_hash": "ca61da20b5a2059cd6e899a8eeff613267b65a5e7bdedfcc90127b54f00d4a9f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_fact_serving_observe_edge",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The hand-over from serving to observability is triggered by a manual request. The data flow from the serving layer to the observability stack starts only when someone asks for it.",
+      "fact": "The hand-over from serving to observability is triggered by a manual request.",
+      "reading": "The data flow from the serving layer to the observability stack starts only when someone asks for it.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.serving_observe",
+        "axis": "automation",
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "slack_message",
+    "narrator": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Cost Cliff",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "I was tracing a latency spike in the morning order window and noticed the data flow from the serving layer to the observability stack did not start automatically. The hand over is triggered by a manual request. I had to submit a ticket to get the metrics stream going. Until that request is processed, the observability tools show nothing from the serving side. The connection sits idle until someone explicitly asks for it to open. This means we are blind to serving performance until a human intervenes to start the flow.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text objectively describes the current operational state where metrics collection requires a manual ticket and does not express a wish, refusal, or acceptance of a specific trade-off."
+  }
+}

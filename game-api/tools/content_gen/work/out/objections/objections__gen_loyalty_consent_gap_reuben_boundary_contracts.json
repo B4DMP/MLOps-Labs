@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_loyalty_consent_gap_reuben_boundary_contracts",
+  "stage": "objections",
+  "input_hash": "31e700a7129d79c983f865c08675154d95f5d274a1fd67923c044aea5a42d230",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_loyalty_consent_gap_reuben_boundary_contracts",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} proposed that the data contracts must be fully governed before any data is accepted. He will not accept any data into the system if the contracts are not formally signed off by the compliance team.",
+      "fact": "{requirements_reuben} proposed that the data contracts must be fully governed before any data is accepted.",
+      "reading": "He will not accept any data into the system if the contracts are not formally signed off by the compliance team.",
+      "metric_id": "requirements",
+      "suggested": null,
+      "holds": {
+        "component": "req.data_contracts",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.data_contracts",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "I am not going to let us ingest a single scan line without a formal compliance sign off on the data contract. That is a hard boundary for the team, and it does not move.",
+    "correction": "I was talking about the governance axis for the loyalty basket data, not the automation of the nightly forecast job. You are mixing up our review process with the engineering pipeline, which are two separate things."
+  }
+}

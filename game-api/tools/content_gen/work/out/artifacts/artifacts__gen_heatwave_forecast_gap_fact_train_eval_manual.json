@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_heatwave_forecast_gap_fact_train_eval_manual",
+  "stage": "artifacts",
+  "input_hash": "4d435775ef1dcd9d0513301b9c0143513b655065f1823d57058496908bd35864",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_fact_train_eval_manual",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The hand-over from training to evaluation is done by hand. A person moves the model file to the harness manually.",
+      "fact": "The hand-over from training to evaluation is done by hand.",
+      "reading": "A person moves the model file to the harness manually.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.train_eval",
+        "axis": "automation",
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "narrator": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Heatwave Blind Spot",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "While checking the nightly logs, I noticed the transition from the training environment to the evaluation harness still relies on a person manually moving the model file across the network. There is no automated pipeline handling this step. The file sits in the training directory until someone copies it to the evaluation folder. This manual transfer happens every week during the retraining cycle. I am just noting how the current workflow operates between those two systems. The file movement is a discrete action performed by a human operator rather than a scripted job.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text explicitly states that the author is 'just noting how the current workflow operates,' describing the manual process without expressing a wish, refusal, or acceptance."
+  }
+}

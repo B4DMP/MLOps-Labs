@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_monica_perf_gov",
+  "stage": "gists",
+  "input_hash": "663c1c9e49777bbe4a54880f6099a81cf89651b7661a6929a69dfd995252acb6",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_monica_perf_gov",
+    "fact": "{model_monica} proposed that the model performance monitoring should be reviewed by the data science team.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "Model performance monitoring review ownership has been raised in the Shelfcast team meetings.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the topic of model performance monitoring ownership has been raised, but it does not indicate a stance, desire for change, refusal, or trade-off, making it a neutral fact or topic mention without a specific directional commitment."
+  }
+}

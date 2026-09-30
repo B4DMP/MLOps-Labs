@@ -1,9 +1,9 @@
 {
   "item_id": "items:ch_loyalty_data_deployment_block",
   "stage": "items",
-  "input_hash": "df02d99adadb787bfb04d3aa428f25dfaa743ee58faa6139597bcfc7f1573d30",
+  "input_hash": "61b62a04924c5062f1039cd20aeb934bd7299241b5f8925fd0f46ef96224d372",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 4,
+  "attempts": 3,
   "inputs": {
     "challenge": {
       "phase_id": 4,
@@ -17,7 +17,8 @@
       "preconditions": {
         "component": "deploy.cicd",
         "op": "gte",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "fallback": false,
       "on_enter_ops": [
@@ -25,7 +26,8 @@
           "kind": "set_to",
           "target": "deploy.cicd",
           "value": 0,
-          "reason": "The deployment pipeline was halted after a compliance audit flagged the use of loyalty data without verified consent."
+          "reason": "The deployment pipeline was halted after a compliance audit flagged the use of loyalty data without verified consent.",
+          "axis": "automation"
         }
       ],
       "stalemate_ops": [
@@ -33,7 +35,8 @@
           "kind": "set_to",
           "target": "deploy.canary_ab",
           "value": 0,
-          "reason": "The canary testing infrastructure was disabled to prevent any unverified model from reaching a subset of stores."
+          "reason": "The canary testing infrastructure was disabled to prevent any unverified model from reaching a subset of stores.",
+          "axis": "automation"
         }
       ],
       "conflict": {
@@ -42,11 +45,13 @@
         "positions": [
           {
             "stakeholder_id": "automation_alex",
-            "wants": 4
+            "wants": 3,
+            "axis": "governance"
           },
           {
             "stakeholder_id": "requirements_reuben",
-            "wants": 2
+            "wants": 2,
+            "axis": "automation"
           }
         ]
       },
@@ -88,7 +93,7 @@
         "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
         "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
         "metric_id": "efficiency",
-        "power": "low",
+        "power": "high",
         "interest": "low"
       }
     ],
@@ -98,13 +103,17 @@
         {
           "id": "deploy.cicd",
           "name": "CI/CD Pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "automation_alex",
           "attributes": {
@@ -119,13 +128,17 @@
         {
           "id": "deploy.serving",
           "name": "Model Serving Endpoint",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "automation_alex",
           "attributes": {
@@ -147,13 +160,17 @@
         {
           "id": "deploy.canary_ab",
           "name": "Canary and A/B Testing",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "automation_alex",
           "attributes": {}
@@ -161,13 +178,17 @@
         {
           "id": "deploy.shadow",
           "name": "Shadow Deployment",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "automation_alex",
           "attributes": {}
@@ -175,13 +196,17 @@
         {
           "id": "deploy.containerization",
           "name": "Containerization",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "automation_alex",
           "attributes": {
@@ -195,13 +220,17 @@
         {
           "id": "deploy.orchestration",
           "name": "Orchestration",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "automation_alex",
           "attributes": {
@@ -216,13 +245,17 @@
         {
           "id": "deploy.api_gateway",
           "name": "API Gateway",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "automation_alex",
           "attributes": {
@@ -241,20 +274,24 @@
           "from": "model.registry",
           "to": "deploy.cicd",
           "kind": "pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "start_trigger": "manual_request",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
             "manual_request",
             "on_commit",
-            "on_new_version",
-            "on_approval"
+            "on_new_version"
           ]
         },
         {
@@ -262,20 +299,24 @@
           "from": "deploy.cicd",
           "to": "deploy.containerization",
           "kind": "pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "start_trigger": "manual_request",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
             "manual_request",
             "on_commit",
-            "on_new_version",
-            "on_approval"
+            "on_new_version"
           ]
         },
         {
@@ -283,20 +324,24 @@
           "from": "deploy.containerization",
           "to": "deploy.orchestration",
           "kind": "pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "start_trigger": "manual_request",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
             "manual_request",
             "on_commit",
-            "on_new_version",
-            "on_approval"
+            "on_new_version"
           ]
         },
         {
@@ -304,20 +349,24 @@
           "from": "deploy.orchestration",
           "to": "deploy.serving",
           "kind": "pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "start_trigger": "manual_request",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
             "manual_request",
             "on_commit",
-            "on_new_version",
-            "on_approval"
+            "on_new_version"
           ]
         },
         {
@@ -325,20 +374,24 @@
           "from": "deploy.serving",
           "to": "deploy.api_gateway",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
             "manual_request",
             "on_commit",
-            "on_new_version",
-            "on_approval"
+            "on_new_version"
           ]
         },
         {
@@ -346,20 +399,24 @@
           "from": "deploy.cicd",
           "to": "deploy.canary_ab",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
             "manual_request",
             "on_commit",
-            "on_new_version",
-            "on_approval"
+            "on_new_version"
           ]
         },
         {
@@ -367,20 +424,24 @@
           "from": "deploy.canary_ab",
           "to": "deploy.serving",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
             "manual_request",
             "on_commit",
-            "on_new_version",
-            "on_approval"
+            "on_new_version"
           ]
         },
         {
@@ -388,20 +449,24 @@
           "from": "deploy.cicd",
           "to": "deploy.shadow",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
             "manual_request",
             "on_commit",
-            "on_new_version",
-            "on_approval"
+            "on_new_version"
           ]
         },
         {
@@ -409,13 +474,18 @@
           "from": "deploy.serving",
           "to": "ops.observability",
           "kind": "pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "start_trigger": "manual_request",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -430,13 +500,18 @@
           "from": "ops.rollback",
           "to": "deploy.serving",
           "kind": "feedback",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -444,66 +519,6 @@
             "scheduled",
             "on_metric_threshold",
             "on_alert"
-          ]
-        },
-        {
-          "id": "e.iam_gateway",
-          "from": "gov.iam",
-          "to": "deploy.api_gateway",
-          "kind": "governs",
-          "start_level": 2,
-          "allowed_levels": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ],
-          "allowed_triggers": [
-            "none",
-            "manual_request",
-            "scheduled",
-            "on_approval"
-          ]
-        },
-        {
-          "id": "e.cost_serving",
-          "from": "gov.cost_monitoring",
-          "to": "deploy.serving",
-          "kind": "governs",
-          "start_level": 1,
-          "allowed_levels": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ],
-          "allowed_triggers": [
-            "none",
-            "manual_request",
-            "scheduled",
-            "on_approval"
-          ]
-        },
-        {
-          "id": "e.iac_orch",
-          "from": "gov.iac",
-          "to": "deploy.orchestration",
-          "kind": "governs",
-          "start_level": 1,
-          "allowed_levels": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ],
-          "allowed_triggers": [
-            "none",
-            "manual_request",
-            "scheduled",
-            "on_approval"
           ]
         }
       ],
@@ -539,72 +554,76 @@
     },
     "current": {
       "deploy.cicd": {
-        "level": 0
+        "automation": 0,
+        "governance": 0
       },
       "deploy.serving": {
-        "level": 2
+        "automation": 2,
+        "governance": 0
       },
       "deploy.canary_ab": {
-        "level": 1
+        "automation": 1,
+        "governance": 0
       },
       "deploy.shadow": {
-        "level": 1
+        "automation": 1,
+        "governance": 0
       },
       "deploy.containerization": {
-        "level": 2
+        "automation": 2,
+        "governance": 0
       },
       "deploy.orchestration": {
-        "level": 1
+        "automation": 1,
+        "governance": 0
       },
       "deploy.api_gateway": {
-        "level": 1
+        "automation": 1,
+        "governance": 0
       },
       "e.registry_cicd": {
-        "level": 2,
+        "automation": 2,
+        "governance": 0,
         "trigger": "manual_request"
       },
       "e.cicd_container": {
-        "level": 2,
+        "automation": 2,
+        "governance": 0,
         "trigger": "manual_request"
       },
       "e.container_orch": {
-        "level": 2,
+        "automation": 2,
+        "governance": 0,
         "trigger": "manual_request"
       },
       "e.orch_serving": {
-        "level": 2,
+        "automation": 2,
+        "governance": 0,
         "trigger": "manual_request"
       },
       "e.serving_gateway": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       },
       "e.cicd_canary": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       },
       "e.canary_serving": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       },
       "e.cicd_shadow": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       },
       "e.rollback_serving": {
-        "level": 1,
-        "trigger": "none"
-      },
-      "e.iam_gateway": {
-        "level": 2,
-        "trigger": "manual_request"
-      },
-      "e.cost_serving": {
-        "level": 1,
-        "trigger": "none"
-      },
-      "e.iac_orch": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       }
     },
@@ -616,10 +635,16 @@
       "reliability",
       "requirements"
     ],
+    "quotas": {
+      "automation_alex": 4,
+      "requirements_reuben": 2,
+      "reliability_ruth": 2,
+      "efficiency_emilia": 3
+    },
     "counts": {
       "stances": [
-        6,
-        10
+        11,
+        11
       ],
       "facts": [
         3,
@@ -633,84 +658,67 @@
       "boundary_max_share": 0.34,
       "driver_min": 1,
       "boundary_min": 1
+    },
+    "stance_shape": {
+      "edge_min_share": 0.3,
+      "composite_min": 2,
+      "composite_atoms": [
+        3,
+        5
+      ],
+      "boundary_per_stakeholder_max": 1
     }
   },
   "output": {
     "items": [
       {
-        "key": "alex_promotion_deadline",
-        "tag": "trade_off",
+        "key": "alex_pipeline_restore",
+        "tag": "driver",
         "stakeholder_id": "automation_alex",
-        "fact": "{automation_alex} proposed accelerating the deployment of the loyalty data model to meet the promotion deadline.",
+        "fact": "{automation_alex} proposed restoring the automated flow for the nightly model release.",
         "readings": {
-          "driver": "The promotion deadline is fixed, and a faster deployment path ensures the new model is live before the leaflet prints.",
-          "boundary": "The promotion deadline is a hard constraint that cannot be moved, so the deployment must be finished by a specific date.",
-          "trade_off": "He would accept the audited, compliance-checked pace if that is what keeps the deadline from slipping further.",
-          "fact": "The promotion deadline is part of the business calendar and is not controlled by the deployment team."
+          "driver": "The pipeline needs to run on its own to keep the promotion calendar on track.",
+          "boundary": "He will not let the release process depend on a human clicking a button every night.",
+          "trade_off": "He would drop the automation if the legal team requires a manual gate that blocks the train.",
+          "fact": "That is simply how the release process is set up today."
         },
         "metric_id": "automation",
-        "suggested_target": null,
-        "suggested_level": null,
+        "suggested_target": "deploy.cicd",
+        "suggested_axis": "automation",
+        "suggested_level": 2,
         "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": "deploy.cicd",
-        "concedes_max_level": 2,
-        "asserts_target": null,
-        "asserts_level": null,
-        "asserts_trigger": null,
-        "suggested_axis": null,
-        "concedes_axis": "automation",
-        "branch_x_description": "pushing the deployment pipeline to full automation to beat the deadline",
-        "branch_x_target": "deploy.cicd",
-        "branch_x_axis": "automation",
-        "branch_x_level": 3,
-        "branch_x_ops": [],
-        "branch_y_description": "the deployment pipeline held at the audited, compliance-checked level",
-        "branch_y_target": "deploy.cicd",
-        "branch_y_axis": "automation",
-        "branch_y_level": 2,
-        "branch_y_ops": []
-      },
-      {
-        "key": "reuben_audit_trail",
-        "tag": "boundary",
-        "stakeholder_id": "requirements_reuben",
-        "fact": "{requirements_reuben} brought up the requirement for full audit trails on all automated deployment steps.",
-        "readings": {
-          "driver": "The audit trails improve the visibility of the deployment process and help with future investigations.",
-          "boundary": "The audit trails are a legal requirement for handling loyalty data, and no automated path is acceptable without them.",
-          "trade_off": "The audit trails are a nice to have feature that can be added later if the deployment is urgent.",
-          "fact": "The audit trails are currently missing from the deployment pipeline configuration."
-        },
-        "metric_id": "requirements",
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": {
-          "component": "deploy.cicd",
-          "op": "gte",
-          "level": 2,
-          "axis": "automation"
-        },
         "ops": [
           {
             "kind": "raise_to",
-            "target": "deploy.cicd",
-            "value": 2,
-            "axis": "automation"
+            "target": "e.registry_cicd",
+            "axis": "automation",
+            "value": 3,
+            "attr": null
+          },
+          {
+            "kind": "raise_to",
+            "target": "deploy.containerization",
+            "axis": "automation",
+            "value": 3,
+            "attr": null
+          },
+          {
+            "kind": "raise_to",
+            "target": "e.cicd_container",
+            "axis": "automation",
+            "value": 3,
+            "attr": null
           }
         ],
         "concedes_metric": null,
         "concedes_loss": null,
         "concedes_target": null,
+        "concedes_axis": null,
         "concedes_max_level": null,
         "asserts_target": null,
+        "asserts_axis": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": null,
-        "concedes_axis": null,
-        "asserts_axis": null,
         "branch_x_description": null,
         "branch_x_target": null,
         "branch_x_axis": null,
@@ -723,106 +731,200 @@
         "branch_y_ops": []
       },
       {
-        "key": "alex_manual_approval",
-        "tag": "trade_off",
+        "key": "alex_canary_trigger",
+        "tag": "driver",
         "stakeholder_id": "automation_alex",
-        "fact": "{automation_alex} suggested adding a manual approval step to the deployment pipeline.",
+        "fact": "{automation_alex} suggested that the canary test should start as soon as a new model version is registered.",
         "readings": {
-          "driver": "The manual approval step ensures that only approved models are deployed, improving safety.",
-          "boundary": "The manual approval step is a mandatory control that cannot be removed from the pipeline.",
-          "trade_off": "The manual approval step slows down the deployment process, but it is acceptable if it keeps the pipeline moving toward automation.",
-          "fact": "The manual approval step is currently not present in the deployment pipeline."
+          "driver": "Waiting for a manual request means the promotion week starts with an untested model.",
+          "boundary": "He will not accept a workflow where the canary test sits idle until someone remembers to run it.",
+          "trade_off": "He would keep the manual trigger if the automated path introduces a delay that misses the leaflet deadline.",
+          "fact": "That is simply how the canary test is triggered today."
         },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_level": null,
+        "metric_id": "automation",
+        "suggested_target": "e.cicd_canary",
+        "suggested_axis": "automation",
+        "suggested_level": 3,
         "holds": null,
         "ops": [
           {
             "kind": "set_trigger",
-            "target": "e.registry_cicd",
-            "value": "on_approval"
+            "target": "e.cicd_canary",
+            "axis": null,
+            "value": "on_new_version",
+            "attr": null
           }
         ],
-        "concedes_target": "deploy.cicd",
-        "concedes_max_level": 3,
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
         "asserts_target": null,
+        "asserts_axis": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "branch_x_description": "pushing the deployment pipeline to full automation",
-        "branch_x_target": "deploy.cicd",
-        "branch_x_level": 3,
-        "branch_y_description": "the pipeline moving with a manual approval gate",
-        "branch_y_target": "deploy.cicd",
-        "branch_y_level": 3,
-        "suggested_axis": null,
-        "concedes_axis": "automation",
-        "asserts_axis": null,
-        "branch_x_axis": "governance",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
         "branch_x_ops": [],
-        "branch_y_axis": "automation",
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
         "branch_y_ops": []
       },
       {
-        "key": "reuben_compliance_check",
+        "key": "alex_shadow_concession",
         "tag": "trade_off",
-        "stakeholder_id": "requirements_reuben",
-        "fact": "{requirements_reuben} asked for a compliance check to be integrated into the pre-deployment validation.",
+        "stakeholder_id": "automation_alex",
+        "fact": "{automation_alex} mentioned that the shadow deployment step can stay done by hand if it unblocks the main pipeline.",
         "readings": {
-          "driver": "The compliance check ensures that all data governance rules are met before the model is deployed, reducing legal risk.",
-          "boundary": "The compliance check is a mandatory step that cannot be skipped, even for urgent deployments.",
-          "trade_off": "The compliance check adds time to the deployment process, but it is worth it to avoid legal issues.",
-          "fact": "The compliance check is currently not part of the pre-deployment validation process."
+          "driver": "He wants the shadow test to run automatically so it does not consume engineering time.",
+          "boundary": "He will not skip the shadow test entirely, even if it slows down the release.",
+          "trade_off": "He is willing to keep the shadow test manual if it allows the main deployment to proceed without delay.",
+          "fact": "That is simply how the shadow test is run today."
         },
-        "metric_id": "requirements",
+        "metric_id": null,
         "suggested_target": null,
+        "suggested_axis": null,
         "suggested_level": null,
         "holds": null,
         "ops": [],
-        "concedes_metric": "requirements",
-        "concedes_loss": 2,
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "deploy.shadow",
+        "concedes_axis": "automation",
+        "concedes_max_level": 2,
         "asserts_target": null,
+        "asserts_axis": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "branch_x_description": "the deployment pipeline held at the audited, compliance-checked level",
-        "branch_x_target": "deploy.cicd",
-        "branch_x_level": 2,
-        "branch_y_description": "the deployment pipeline moving to full automation",
-        "branch_y_target": "deploy.cicd",
-        "branch_y_level": 3,
-        "suggested_axis": null,
-        "asserts_axis": null,
-        "branch_x_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
         "branch_x_ops": [],
-        "branch_y_axis": "governance",
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
         "branch_y_ops": []
       },
       {
-        "key": "ruth_feedback_loop",
-        "tag": "driver",
-        "stakeholder_id": "reliability_ruth",
-        "fact": "{reliability_ruth} proposed connecting the serving endpoint to the monitoring system for real time feedback.",
+        "key": "alex_governance_gate",
+        "tag": "trade_off",
+        "stakeholder_id": "automation_alex",
+        "fact": "{automation_alex} proposed adding a manual approval step to the deployment pipeline if it keeps the release moving.",
         "readings": {
-          "driver": "The feedback loop helps identify issues with the deployed model in real time, improving reliability.",
-          "boundary": "The real time feedback signals are essential for catching silent forecast failures before they reach store managers.",
-          "trade_off": "The feedback loop adds complexity to the system, but it is necessary for long term reliability.",
-          "fact": "The feedback loop is currently not connected between the serving endpoint and the monitoring system."
+          "driver": "He wants the governance step to be automated so it does not become a bottleneck.",
+          "boundary": "He will not accept a governance step that requires a physical signature or a meeting.",
+          "trade_off": "He accepts a manual approval gate if it is the only way to satisfy the compliance team without stopping the train.",
+          "fact": "That is simply how the deployment pipeline is governed today."
         },
-        "metric_id": "reliability",
-        "suggested_target": "deploy.serving",
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "deploy.cicd",
+        "concedes_axis": "governance",
+        "concedes_max_level": 3,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "reuben_audit_boundary",
+        "tag": "boundary",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} noted that the deployment pipeline must have full audit trails for any automated path.",
+        "readings": {
+          "driver": "He wants the audit trail to be generated automatically so it is always complete.",
+          "boundary": "He will not accept any automated deployment without a full audit trail that proves consent was checked.",
+          "trade_off": "He would accept a partial audit trail if the rest is covered by a manual review.",
+          "fact": "That is simply how the deployment pipeline is audited today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": {
+          "component": "deploy.cicd",
+          "axis": "governance",
+          "op": "gte",
+          "level": 3
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "deploy.cicd",
+            "axis": "governance",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "reuben_manual_review",
+        "tag": "driver",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} suggested that a human should review the consent validation before the model is served.",
+        "readings": {
+          "driver": "A human review catches the edge cases in the loyalty data consent that the tooling misses.",
+          "boundary": "He will not let a model with loyalty data features go live without a human sign off.",
+          "trade_off": "He would accept an automated check if it is backed by a robust audit log.",
+          "fact": "That is simply how the consent validation is handled today."
+        },
+        "metric_id": "requirements",
+        "suggested_target": "e.orch_serving",
+        "suggested_axis": "governance",
         "suggested_level": 3,
         "holds": null,
         "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
         "concedes_target": null,
+        "concedes_axis": null,
         "concedes_max_level": null,
         "asserts_target": null,
+        "asserts_axis": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "automation",
-        "concedes_axis": null,
-        "asserts_axis": null,
         "branch_x_description": null,
         "branch_x_target": null,
         "branch_x_axis": null,
@@ -835,71 +937,357 @@
         "branch_y_ops": []
       },
       {
-        "key": "emilia_cost_control",
-        "tag": "trade_off",
-        "stakeholder_id": "efficiency_emilia",
-        "fact": "{efficiency_emilia} noted the cost implications of running the new model version in the production environment.",
+        "key": "ruth_rollback_automation",
+        "tag": "driver",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} proposed that the rollback process should trigger automatically when a metric threshold is crossed.",
         "readings": {
-          "driver": "The cost control ensures that the project stays within budget, which is important for the business case.",
-          "boundary": "The cost control is a hard limit that cannot be exceeded, regardless of the model performance.",
-          "trade_off": "The cost control can be relaxed if the model provides significant business value, but it needs to be monitored closely.",
-          "fact": "The cost control is currently not integrated into the deployment pipeline."
+          "driver": "Waiting for a manual request means the bad forecast stays live until someone notices the empty shelf.",
+          "boundary": "She will not accept a rollback process that relies on a human checking the dashboard every morning.",
+          "trade_off": "She would keep the manual trigger if the automated alerts are too noisy to be useful.",
+          "fact": "That is simply how the rollback process is triggered today."
+        },
+        "metric_id": "reliability",
+        "suggested_target": "e.rollback_serving",
+        "suggested_axis": "automation",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "set_trigger",
+            "target": "e.rollback_serving",
+            "axis": null,
+            "value": "on_metric_threshold",
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "ruth_canary_concession",
+        "tag": "trade_off",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} mentioned that the canary test results can be reviewed by a single engineer if it speeds up the release.",
+        "readings": {
+          "driver": "She wants the canary test to be fully automated so it does not block the promotion deadline.",
+          "boundary": "She will not skip the canary test entirely, even if it slows down the release.",
+          "trade_off": "She is willing to accept a single engineer review for canary results if it keeps the pipeline moving.",
+          "fact": "That is simply how the canary test is governed today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "deploy.canary_ab",
+        "concedes_axis": "governance",
+        "concedes_max_level": 0,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "emilia_promo_deadline",
+        "tag": "driver",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} proposed that the entire deployment chain should run without human intervention to meet the promotion deadline.",
+        "readings": {
+          "driver": "Every hour of manual work is an hour the promotion allocation is not optimized.",
+          "boundary": "She will not let a manual step delay the promotion week start.",
+          "trade_off": "She would accept a manual step if it is the only way to ensure the model is correct.",
+          "fact": "That is simply how the deployment chain runs today."
         },
         "metric_id": "efficiency",
-        "suggested_target": null,
-        "suggested_level": null,
+        "suggested_target": "deploy.cicd",
+        "suggested_axis": "automation",
+        "suggested_level": 2,
         "holds": null,
         "ops": [
           {
             "kind": "raise_to",
-            "target": "deploy.orchestration",
-            "value": 2,
-            "axis": "automation"
+            "target": "e.registry_cicd",
+            "axis": "automation",
+            "value": 3,
+            "attr": null
+          },
+          {
+            "kind": "raise_to",
+            "target": "deploy.containerization",
+            "axis": "automation",
+            "value": 3,
+            "attr": null
+          },
+          {
+            "kind": "raise_to",
+            "target": "e.cicd_container",
+            "axis": "automation",
+            "value": 3,
+            "attr": null
           }
         ],
-        "concedes_metric": "efficiency",
-        "concedes_loss": 3,
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
         "asserts_target": null,
+        "asserts_axis": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "branch_x_description": "cost control relaxed for the new model version",
-        "branch_x_target": "deploy.orchestration",
-        "branch_x_level": 2,
-        "branch_y_description": "cost control held at its current, strict level",
-        "branch_y_target": "deploy.orchestration",
-        "branch_y_level": 1,
-        "suggested_axis": null,
-        "asserts_axis": null,
-        "branch_x_axis": "automation",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
         "branch_x_ops": [],
-        "branch_y_axis": "automation",
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
         "branch_y_ops": []
       },
       {
-        "key": "fact_pipeline_broken",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "The deployment pipeline is currently broken due to a missing consent validation flag.",
+        "key": "emilia_cost_tradeoff",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} noted that the canary test can be skipped if the shadow test passes.",
         "readings": {
-          "driver": "The broken pipeline needs to be fixed to allow the new model to be deployed.",
-          "boundary": "The broken pipeline is a critical issue that must be resolved before any further deployments.",
-          "trade_off": "The broken pipeline can be worked around if the deployment is urgent, but it is not a long term solution.",
-          "fact": "The deployment pipeline is currently in a broken state because the consent validation flag is missing."
+          "driver": "She wants both tests to run automatically to maximize confidence.",
+          "boundary": "She will not skip both tests, even if it delays the release.",
+          "trade_off": "She is willing to skip the canary test if the shadow test gives enough confidence and saves time.",
+          "fact": "That is simply how the testing process is run today."
         },
         "metric_id": null,
         "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "deploy.canary_ab",
+        "concedes_axis": "automation",
+        "concedes_max_level": 1,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "emilia_gateway_sourcing",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} suggested that the API gateway can be handled by a custom internal service if it reduces the license cost.",
+        "readings": {
+          "driver": "She wants the best tool available, regardless of cost.",
+          "boundary": "She will not use a tool that has no support contract.",
+          "trade_off": "She is willing to switch to a custom internal service if it saves money and meets the security requirements.",
+          "fact": "That is simply how the API gateway is sourced today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": "efficiency",
+        "concedes_loss": 2,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_cicd_broken",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The CI/CD pipeline is broken.",
+        "readings": {
+          "driver": "The pipeline needs to be fixed so the model can be deployed.",
+          "boundary": "The pipeline cannot be fixed without addressing the consent validation.",
+          "trade_off": "The pipeline can be bypassed if the model is deployed manually.",
+          "fact": "That is simply how the CI/CD pipeline is working today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
         "suggested_level": null,
         "holds": null,
         "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
         "concedes_target": null,
+        "concedes_axis": null,
         "concedes_max_level": null,
         "asserts_target": "deploy.cicd",
-        "asserts_level": 0,
-        "suggested_axis": null,
-        "concedes_axis": null,
         "asserts_axis": "automation",
+        "asserts_level": 0,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_cicd_governance",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The CI/CD pipeline has no governance controls in place.",
+        "readings": {
+          "driver": "Governance controls need to be added to the pipeline.",
+          "boundary": "The pipeline cannot run without governance controls.",
+          "trade_off": "Governance controls can be added later if the pipeline is working.",
+          "fact": "That is simply how the CI/CD pipeline is governed today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "deploy.cicd",
+        "asserts_axis": "governance",
+        "asserts_level": 0,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_registry_trigger",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The hand-over from the model registry to the CI/CD pipeline is triggered by a manual request.",
+        "readings": {
+          "driver": "The trigger should be changed to on_new_version.",
+          "boundary": "The trigger cannot be changed without updating the pipeline configuration.",
+          "trade_off": "The trigger can stay manual if the pipeline is not automated.",
+          "fact": "That is simply how the hand-over from the model registry to the CI/CD pipeline is triggered today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "e.registry_cicd",
+        "asserts_axis": "automation",
+        "asserts_level": 2,
+        "asserts_trigger": "manual_request",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_canary_governance",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The canary test results are not reviewed by anyone.",
+        "readings": {
+          "driver": "Governance controls need to be added to the canary test.",
+          "boundary": "The canary test cannot run without governance controls.",
+          "trade_off": "Governance controls can be added later if the canary test is working.",
+          "fact": "That is simply how the canary test is governed today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "deploy.canary_ab",
+        "asserts_axis": "governance",
+        "asserts_level": 0,
+        "asserts_trigger": null,
         "branch_x_description": null,
         "branch_x_target": null,
         "branch_x_axis": null,

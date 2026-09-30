@@ -1,0 +1,52 @@
+{
+  "item_id": "artifacts:gen_override_blind_spot_fact_registry_broken",
+  "stage": "artifacts",
+  "input_hash": "8673e04e60ce335512031fc9e2fe00e9024c676f4b1b10f0be82e2ae2acd7c0e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement": {
+      "id": "gen_override_blind_spot_fact_registry_broken",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The model registry is broken and stopped working. That is simply the state of the registry today.",
+      "fact": "The model registry is broken and stopped working.",
+      "reading": "That is simply the state of the registry today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "model.registry",
+        "axis": "automation",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "narrator": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Override Blind Spot",
+      "description": ""
+    },
+    "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "The model registry stopped accepting new entries after the last infrastructure migration. It used to log each weekly retraining cycle automatically, but that pipeline failed and has not recovered. The team now maintains a shared spreadsheet on a local drive to record which model version is live. I cross reference that sheet against the deployment scripts to verify what is running in production. This is the current method for confirming the active algorithm before starting the next optimization pass.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the current operational state and workflow (using a spreadsheet to track models) without expressing a wish, refusal, or explicit trade-off."
+  }
+}

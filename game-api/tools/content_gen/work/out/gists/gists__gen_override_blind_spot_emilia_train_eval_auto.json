@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_emilia_train_eval_auto",
+  "stage": "gists",
+  "input_hash": "f8758fbbe83f28a8f308a59cbb97970021fb154042454a6d991cf52af921ef53",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_emilia_train_eval_auto",
+    "fact": "{efficiency_emilia} proposed automating the hand-over from the training pipeline to the evaluation harness.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The hand over from the training pipeline to the evaluation harness keeps coming up in {efficiency_emilia}'s notes.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist merely states that the handover process is a recurring topic in notes, without expressing a desire to improve it, a refusal to change it, or an acceptance of a loss."
+  }
+}

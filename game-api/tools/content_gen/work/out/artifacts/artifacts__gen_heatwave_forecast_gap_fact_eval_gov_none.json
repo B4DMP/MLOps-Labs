@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_heatwave_forecast_gap_fact_eval_gov_none",
+  "stage": "artifacts",
+  "input_hash": "380891c2881fa3860365c81932c7c8bda8f9b49ada745e31fa5deff6ad01f067",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_fact_eval_gov_none",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The model evaluation harness has no governance. There is no sign-off step for evaluation results.",
+      "fact": "The model evaluation harness has no governance.",
+      "reading": "There is no sign-off step for evaluation results.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "model.evaluation",
+        "axis": "governance",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "narrator": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Heatwave Blind Spot",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "I ran the latest backtest for the heatwave scenario and pulled the metrics from the evaluation harness. The output shows a sharp drop in accuracy for seasonal articles during temperature spikes. The harness logs the results to the shared drive. The numbers sit in the folder without any formal review or approval attached to them. I checked the access logs and saw no record of a second person validating the performance scores before we moved to the next iteration. The current workflow treats the harness output as final the moment the job finishes. There is no gate or check to confirm the results are sound before they influence the training pipeline.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text consists entirely of objective observations regarding the backtest results, file locations, access logs, and the current workflow configuration, without expressing any personal wishes, refusals, or stated trade-offs."
+  }
+}

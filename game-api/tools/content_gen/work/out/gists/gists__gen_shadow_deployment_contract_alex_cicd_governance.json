@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_alex_cicd_governance",
+  "stage": "gists",
+  "input_hash": "de330cc1396a2c261a5fb290501691a65e15a4283333dbdcb3c80e14dcc032ba",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_alex_cicd_governance",
+    "fact": "{automation_alex} noted that the CI/CD pipeline has no governance review.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The governance review status of the CI/CD pipeline has been brought up by {automation_alex}.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions a status update regarding the CI/CD pipeline but does not express a desire for more automation, a refusal, a trade-off, or a definitive fact about the pipeline's performance or state."
+  }
+}

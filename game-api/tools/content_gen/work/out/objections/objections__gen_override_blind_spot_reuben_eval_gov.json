@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_override_blind_spot_reuben_eval_gov",
+  "stage": "objections",
+  "input_hash": "e69156b7f6d4fca3e5d86835abb04619944adccf28ab07b8a10de41d56395d32",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_override_blind_spot_reuben_eval_gov",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "trade_off",
+      "description": "{requirements_reuben} noted the lack of governance in the model evaluation harness. He would accept a less rigorous evaluation if the registry is fully governed.",
+      "fact": "{requirements_reuben} noted the lack of governance in the model evaluation harness.",
+      "reading": "He would accept a less rigorous evaluation if the registry is fully governed.",
+      "metric_id": "requirements",
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.evaluation",
+        "axis": "governance",
+        "accepts_max_level": 0
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "You are trading away the rigor of our model evaluation harness without acknowledging that cost. I will only accept a lighter evaluation if the model registry itself is fully governed.",
+    "correction": "I am not asking for more paperwork on the evaluation side, I am asking for a strict sign off on the registry. Do not misread my trade off as a request to loosen the testing standards."
+  }
+}

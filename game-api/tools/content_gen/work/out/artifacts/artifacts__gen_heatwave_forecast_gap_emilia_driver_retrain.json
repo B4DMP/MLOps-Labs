@@ -1,0 +1,66 @@
+{
+  "item_id": "artifacts:gen_heatwave_forecast_gap_emilia_driver_retrain",
+  "stage": "artifacts",
+  "input_hash": "7095ebefa2f9d75e7ad048fdbd764c5c74d4fcbbfeed322e7a3f084be2263bdf",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_emilia_driver_retrain",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} proposed automating the retraining trigger pipeline. Automating retraining aligns the model with business goals.",
+      "fact": "{efficiency_emilia} proposed automating the retraining trigger pipeline.",
+      "reading": "Automating retraining aligns the model with business goals.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "e.retrain_train",
+        "axis": "automation",
+        "level": 2
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.training_pipeline",
+          "axis": "automation",
+          "value": 3
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.train_eval",
+          "axis": "automation",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(e.retrain_train, 2)",
+        "raise_to(model.training_pipeline, 3)",
+        "raise_to(e.train_eval, 3)"
+      ],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "author": {
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    },
+    "challenge": {
+      "name": "The Heatwave Blind Spot",
+      "description": "A sudden heatwave has shifted demand for seasonal articles, and the current forecast is missing the mark. #model_monica# wants to automate the evaluation harness to test new weather features rapidly, while #requirements_reuben# wants to keep it manual to ensure every test case is rigorously documented before any model change is considered."
+    }
+  },
+  "output": {
+    "content": "We are seeing a clear gap between our strategic goals and the current retraining cadence. The model lags behind market shifts, which hurts our availability KPIs. I want the retrigger pipeline fully automated so the system adapts in real time. The more frequently we can validate new data without human intervention, the better our alignment with the roadmap. Manual checks create a bottleneck that prevents us from scaling the platform across all regions. We need this automation to be robust and fast, as it is critical for meeting our quarterly targets on waste reduction and stock accuracy.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The text articulates a need for automated retraining to meet strategic goals and KPIs, and explicitly states that increasing the frequency of validation (doing more than the baseline) improves alignment, fitting the driver definition."
+  }
+}

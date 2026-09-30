@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_nightly_window_miss_fact_till_scan_late",
+  "stage": "artifacts",
+  "input_hash": "72564375db38d507a054b7685a82f986af908fefe0cf18ac9ffe271cabb3b0c9",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement": {
+      "id": "gen_nightly_window_miss_fact_till_scan_late",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The till scan lines arrived late last night and the validation step was skipped. That is simply how the data pipeline works today.",
+      "fact": "The till scan lines arrived late last night and the validation step was skipped.",
+      "reading": "That is simply how the data pipeline works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "data.ingestion",
+        "axis": "automation",
+        "level": 2,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "narrator": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    },
+    "challenge": {
+      "name": "The Midnight Deadline",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "During the pipeline review, {data_dave} noted that the till scan lines for the northern stores arrived past the scheduled cutoff last night. The automated validation step was skipped because the arrival time exceeded the standard window. {data_dave} confirmed that the raw data was loaded directly into the staging area without the usual quality checks. This sequence of events reflects the current operational procedure for handling late data feeds, where processing speed takes precedence over immediate data validation to maintain the nightly schedule.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The artifact describes a sequence of events and the resulting state of the data pipeline without expressing any wishes, refusals, or explicit trade-offs, serving as a record of what happened."
+  }
+}

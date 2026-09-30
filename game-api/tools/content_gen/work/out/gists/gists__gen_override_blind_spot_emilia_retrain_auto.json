@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_emilia_retrain_auto",
+  "stage": "gists",
+  "input_hash": "99bf0450cc9b4b22e8fbc9e504d96ccdeaab81aa021d08bf8ee61215931addc2",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_emilia_retrain_auto",
+    "fact": "{efficiency_emilia} noted the lack of automation in the retraining trigger.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The manual retraining trigger has been raised in discussions about operational efficiency for the forecasting pipeline.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that a topic regarding manual retraining and operational efficiency has been discussed, but it does not indicate whether this is a driver, boundary, trade-off, or simple fact about the current state."
+  }
+}

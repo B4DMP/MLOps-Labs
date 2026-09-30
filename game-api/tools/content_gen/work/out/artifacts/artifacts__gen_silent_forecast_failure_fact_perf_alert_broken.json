@@ -1,0 +1,52 @@
+{
+  "item_id": "artifacts:gen_silent_forecast_failure_fact_perf_alert_broken",
+  "stage": "artifacts",
+  "input_hash": "3ce8b754a33d4267f6002778fef8d2891bce97173e955abc2875b6f552d2c55d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement": {
+      "id": "gen_silent_forecast_failure_fact_perf_alert_broken",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The hand-over from performance monitoring to alerting is broken and does not run on its own. That is simply the current state of the hand-over from performance monitoring to alerting.",
+      "fact": "The hand-over from performance monitoring to alerting is broken and does not run on its own.",
+      "reading": "That is simply the current state of the hand-over from performance monitoring to alerting.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.perf_alert",
+        "axis": "automation",
+        "level": 0,
+        "trigger": "none"
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "slack_message",
+    "narrator": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Warehouse Flood",
+      "description": ""
+    },
+    "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "The automated hand over from performance monitoring to alerting is broken. It stopped running on its own a few weeks ago. Today, I open the dashboards by hand each morning to check for red tiles. When I spot a problem, I type a ticket into the tracker and tag the on call engineer. This manual step is the only thing that catches issues before the order window opens. The system does not send pings on its own. I am just describing how the process goes right now.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text explicitly states that the author is 'just describing how the process goes right now,' indicating a neutral report of the current manual workflow without expressing a wish, refusal, or stated trade-off."
+  }
+}

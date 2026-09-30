@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_emilia_gateway_governance",
+  "stage": "gists",
+  "input_hash": "0160e6aac912b982a9f70699f86c0a5f54737b893ba32ae22ea29fb7fae1f244",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_emilia_gateway_governance",
+    "fact": "{efficiency_emilia} mentioned that the API gateway has no governance.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The API gateway and its review process have been raised in conversations with {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the API gateway and review process were discussed with a stakeholder, which is a neutral statement of fact about the conversation without indicating a specific stance, demand, or trade-off regarding efficiency."
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_override_blind_spot_monica_tracking_gov",
+  "stage": "objections",
+  "input_hash": "ac7f349e6d0d5d950c7c47c9a0464fbe4ab449223d5dc8f0764692bb50139d73",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_override_blind_spot_monica_tracking_gov",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} mentioned the lack of governance in experiment tracking. She would accept keeping experiment tracking manual if the registry is fully governed.",
+      "fact": "{model_monica} mentioned the lack of governance in experiment tracking.",
+      "reading": "She would accept keeping experiment tracking manual if the registry is fully governed.",
+      "metric_id": "model",
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.experiment_tracking",
+        "axis": "governance",
+        "accepts_max_level": 0
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "You are treating the manual experiment log as a cost we should remove, but it is the only thing keeping our model versions auditable. I need you to acknowledge that we are trading automation for strict governance, not just losing a tool.",
+    "correction": "I am not saying the registry is broken or that we hate the work. I am saying that if we keep it manual, every entry must pass a formal review before it is accepted, which is a different requirement than the one you just noted."
+  }
+}

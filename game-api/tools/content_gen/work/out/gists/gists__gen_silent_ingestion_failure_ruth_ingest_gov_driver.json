@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_ingestion_failure_ruth_ingest_gov_driver",
+  "stage": "gists",
+  "input_hash": "967fa8b69ad06d2835623d57ae206a71d856c3d4359a09aeb2ff96b3a821f343",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_silent_ingestion_failure_ruth_ingest_gov_driver",
+    "fact": "{reliability_ruth} proposed that the nightly store export pipeline run without any manual intervention.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Store Gap"
+  },
+  "output": {
+    "gist": "The nightly store export pipeline running without manual intervention keeps coming up in reliability discussions.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the pipeline's lack of manual intervention is a recurring topic in reliability discussions, but it does not indicate whether the stakeholder wants to change this, views it as a constraint, accepts it as a trade-off, or is merely stating a fact about the current state."
+  }
+}

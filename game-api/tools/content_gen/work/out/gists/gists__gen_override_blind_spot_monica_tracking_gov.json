@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_monica_tracking_gov",
+  "stage": "gists",
+  "input_hash": "2a442891c152d0681a19a789a3d329f26e698740ea4cdc499ed1ad5237a57132",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_monica_tracking_gov",
+    "fact": "{model_monica} mentioned the lack of governance in experiment tracking.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "Experiment tracking governance has been raised in conversations about the model development workflow.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that experiment tracking governance has been raised in conversations, which is a neutral observation about the topic without expressing a preference, refusal, trade-off, or specific directional commitment."
+  }
+}

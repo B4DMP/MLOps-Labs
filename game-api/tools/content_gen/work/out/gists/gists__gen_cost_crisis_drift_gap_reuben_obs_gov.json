@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_reuben_obs_gov",
+  "stage": "gists",
+  "input_hash": "a98e85dc1d6b0e4f60e7565bd3052a09fc24645cc8311649534bd1a79fb72bbc",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_reuben_obs_gov",
+    "fact": "{requirements_reuben} asked for the logging and observability pipeline to be governed by the security team.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "The security team's role in the logging and observability pipeline is the topic of {requirements_reuben}'s note.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the topic of the note as the security team's role in logging, which is a statement of subject matter without expressing a stance, demand, or trade-off."
+  }
+}

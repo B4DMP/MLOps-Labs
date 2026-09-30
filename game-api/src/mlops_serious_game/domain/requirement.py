@@ -274,14 +274,197 @@ def foreclosed_compromises(reqs: list["StakeholderRequirement"], conflict: Optio
     for r in reqs:
         if r.type != IntelTag.DRIVER or r.suggested is None:
             continue
-        ceiling = ceilings.get((r.suggested.target, r.suggested.axis))
-        if ceiling is not None and r.suggested.level is not None and r.suggested.level > ceiling:
-            violations.append(
-                f"driver '{r.id}' asks for {r.suggested.target} {r.suggested.axis} level "
-                f"{r.suggested.level}, above the compromise ceiling {ceiling} authored on the same "
-                "target/axis elsewhere in the challenge - it forecloses that compromise"
-            )
+        # A composite Driver's extra ops ask for levels too.
+        asks = [(r.suggested.target, r.suggested.axis, r.suggested.level)] + _raise_atoms(r.ops)
+        for target, axis, level in asks:
+            ceiling = ceilings.get((target, axis))
+            if ceiling is not None and level is not None and level > ceiling:
+                violations.append(
+                    f"driver '{r.id}' asks for {target} {axis} level "
+                    f"{level}, above the compromise ceiling {ceiling} authored on the same "
+                    "target/axis elsewhere in the challenge - it forecloses that compromise"
+                )
     return violations
+
+
+_NEGATED_OP = {"gte": "lt", "gt": "lte", "lte": "gt", "lt": "gte", "eq": "ne", "ne": "eq"}
+
+
+def _leaf_bounds(pred: Any, negated: bool = False) -> list[tuple[str, str, Optional[int], Optional[int]]]:
+    """(target, axis, floor, ceiling) per level clause a predicate certainly requires.
+
+    `any` is skipped (nothing certain), as is `ne` on a level."""
+    if not isinstance(pred, dict):
+        return []
+    if "all" in pred:
+        return [] if negated else [b for p in pred["all"] for b in _leaf_bounds(p)]
+    if "any" in pred:
+        return [b for p in pred["any"] for b in _leaf_bounds(p, True)] if negated else []
+    if "not" in pred:
+        return _leaf_bounds(pred["not"], not negated)
+    target = pred.get("component") or pred.get("edge")
+    axis = pred.get("axis")
+    if not target or axis not in ("automation", "governance") or "level" not in pred:
+        return []
+    try:
+        from mlops_serious_game.domain.graph import parse_axis_level
+
+        level = parse_axis_level(axis, pred["level"])
+    except Exception:
+        return []
+    op = pred.get("op", "gte")
+    op = _NEGATED_OP.get(op, op) if negated else op
+    if op == "gte":
+        return [(target, axis, level, None)]
+    if op == "gt":
+        return [(target, axis, level + 1, None)]
+    if op == "lte":
+        return [(target, axis, None, level)]
+    if op == "lt":
+        return [(target, axis, None, level - 1)]
+    if op == "eq":
+        return [(target, axis, level, level)]
+    return []
+
+
+def _value_clauses(pred: Any, negated: bool = False) -> list[tuple[str, str, bool]]:
+    """(key, value, must_equal) per attribute or trigger clause a predicate certainly requires."""
+    if not isinstance(pred, dict):
+        return []
+    if "all" in pred:
+        return [] if negated else [c for p in pred["all"] for c in _value_clauses(p)]
+    if "any" in pred:
+        return [c for p in pred["any"] for c in _value_clauses(p, True)] if negated else []
+    if "not" in pred:
+        return _value_clauses(pred["not"], not negated)
+    if "attr" in pred and "value" in pred:
+        key, op = pred["attr"], pred.get("op", "eq")
+    elif "edge" in pred and "trigger" in pred and "value" in pred:
+        key, op = f"{pred['edge']}.trigger", pred["trigger"]
+    else:
+        return []
+    if op not in ("eq", "ne"):
+        return []
+    return [(key, str(pred["value"]), (op == "eq") != negated)]
+
+
+def _as_int(value: Any) -> Optional[int]:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _raise_atoms(ops: Any) -> list[tuple[str, str, int]]:
+    out = []
+    for op in ops or []:
+        if isinstance(op, dict) and op.get("kind") == "raise_to" and op.get("target") and op.get("axis") in ("automation", "governance"):
+            level = _as_int(op.get("value"))
+            if level is not None:
+                out.append((op["target"], op["axis"], level))
+    return out
+
+
+def _set_values(item: "StakeholderRequirement") -> list[tuple[str, str]]:
+    """(attribute or trigger key, value) every set_attr and set_trigger op of an item writes."""
+    ops = list(item.ops or [])
+    for branch in (item.branch_x, item.branch_y):
+        ops += list(branch.ops) if branch is not None else []
+    out = []
+    for op in ops:
+        if not isinstance(op, dict) or op.get("value") is None:
+            continue
+        if op.get("kind") == "set_attr" and op.get("attr"):
+            out.append((f"{op['target']}.{op['attr']}", str(op["value"])))
+        elif op.get("kind") == "set_trigger":
+            out.append((f"{op['target']}.trigger", str(op["value"])))
+    return out
+
+
+def _stance_floors_and_ceilings(item: "StakeholderRequirement"):
+    """What one stance item needs reached (floors) and what it treats as an acceptable stopping
+    point (ceilings), both as (target, axis, level).
+
+    A Trade-off's branches are alternatives, so its floor on a (target, axis) is its lowest branch
+    level, and only where every branch raises it; every branch level is also a ceiling for the stakeholder's other items, because a
+    branch is only a real option while nothing else of theirs demands more than it delivers."""
+    floors: list[tuple[str, str, int]] = []
+    ceilings: list[tuple[str, str, int]] = []
+    if item.type == IntelTag.DRIVER:
+        if item.suggested is not None and item.suggested.axis and item.suggested.level is not None:
+            floors.append((item.suggested.target, item.suggested.axis, item.suggested.level))
+        floors += _raise_atoms(item.ops)
+    elif item.type == IntelTag.BOUNDARY:
+        for target, axis, lo, hi in _leaf_bounds(item.holds):
+            if lo is not None:
+                floors.append((target, axis, lo))
+            if hi is not None:
+                ceilings.append((target, axis, hi))
+        floors += _raise_atoms(item.ops)
+    elif item.type == IntelTag.TRADE_OFF:
+        floors += _raise_atoms(item.ops)
+        if item.concedes is not None and item.concedes.accepts_max_level is not None and item.concedes.axis:
+            ceilings.append((item.concedes.target, item.concedes.axis, item.concedes.accepts_max_level))
+        branches = [b for b in (item.branch_x, item.branch_y) if b is not None]
+        per_key: dict[tuple[str, str], list[int]] = {}
+        for branch in branches:
+            atoms = _raise_atoms(branch.ops)
+            if branch.target and branch.axis and branch.level is not None:
+                atoms.append((branch.target, branch.axis, branch.level))
+            for target, axis, level in atoms:
+                per_key.setdefault((target, axis), []).append(level)
+                ceilings.append((target, axis, level))
+        # Only a target every branch raises is something the Trade-off cannot avoid asking for.
+        floors += [(t, a, min(levels)) for (t, a), levels in per_key.items() if len(levels) == len(branches)]
+    return floors, ceilings
+
+
+def self_contradictions(reqs: list["StakeholderRequirement"]) -> list[str]:
+    """Places where one stakeholder's own intel items undo each other, one message per pair.
+
+    A stakeholder's Boundaries and Trade-off branches must stay reachable whatever else that
+    stakeholder asks for. Within one stakeholder (and one challenge) it flags:
+    - a floor above another item's ceiling on the same (target, axis): a Driver or Boundary that
+      demands more than a Trade-off concession or branch, or another Boundary's upper limit, allows
+    - two items that write different values to one attribute or trigger, or an item that writes a
+      value the stakeholder's own Boundary rules out
+    Items of one stakeholder are never compared with themselves, so a Trade-off's own concession
+    and branches may sit at different levels."""
+    by_stakeholder: dict[str, list["StakeholderRequirement"]] = {}
+    for r in reqs:
+        if r.type != IntelTag.FACT and r.stakeholder_id:
+            by_stakeholder.setdefault(r.stakeholder_id, []).append(r)
+
+    messages: list[str] = []
+    for sid, items in by_stakeholder.items():
+        shapes = {r.id: _stance_floors_and_ceilings(r) for r in items}
+        for a in items:
+            for b in items:
+                if a.id == b.id:
+                    continue
+                for target, axis, floor in shapes[a.id][0]:
+                    for c_target, c_axis, ceiling in shapes[b.id][1]:
+                        if (target, axis) == (c_target, c_axis) and floor > ceiling:
+                            messages.append(
+                                f"{sid}: '{a.id}' needs {target} {axis} at level {floor}, above the level {ceiling} "
+                                f"that '{b.id}' allows for it, so '{b.id}' can never be honoured"
+                            )
+        writes: dict[str, list[tuple[str, str]]] = {}
+        for r in items:
+            for key, value in _set_values(r):
+                writes.setdefault(key, []).append((r.id, value))
+        for key, entries in writes.items():
+            values = {v for _, v in entries}
+            if len({rid for rid, _ in entries}) > 1 and len(values) > 1:
+                messages.append(f"{sid}: {sorted({rid for rid, _ in entries})} write different values to {key}")
+        for r in items:
+            if r.type != IntelTag.BOUNDARY:
+                continue
+            for key, value, must_equal in _value_clauses(r.holds):
+                for rid, written in writes.get(key, []):
+                    if rid != r.id and (written == value) != must_equal:
+                        messages.append(f"{sid}: '{rid}' sets {key} to {written}, which '{r.id}' rules out")
+    return sorted(set(messages))
 
 
 def gist_or_fallback(item: "StakeholderRequirement", stakeholder_name: str, metric_label: Optional[str]) -> str:

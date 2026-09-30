@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:e.risk_acceptance",
   "stage": "fragments",
-  "input_hash": "8f923439d3a479ca3728408174d8281622e8be66f5a1fad00f5e7190bbbd702f",
+  "input_hash": "b26f602be802dd8a96ce5eb1d37c1c26122c45c1d4db85b8e8d7b0826df3e235",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -11,16 +11,15 @@
       0,
       1,
       2,
-      3,
       4
     ],
     "name": "hand over from Risk Assessment to Acceptance Criteria"
   },
   "output": {
-    "level_0": "Risk flags are ignored and acceptance criteria are written without any documented safety checks.",
-    "level_1": "No one connects risk findings to acceptance criteria, so dangerous gaps slip into the release.",
-    "level_2": "A senior engineer manually checks if risks are addressed before approving the acceptance criteria.",
-    "level_3": "The system automatically blocks acceptance criteria approval until all high risk items are resolved.",
-    "level_4": "Governance logs verify that every acceptance criterion explicitly cites its corresponding risk assessment."
+    "level_0": "The handover is broken, and no one knows which risk maps to which acceptance criterion.",
+    "level_1": "No process exists to connect risk assessment findings to specific acceptance criteria for the team.",
+    "level_2": "A project manager manually maps each identified risk to an acceptance criterion in a shared spreadsheet.",
+    "level_3": null,
+    "level_4": "A formal sign off confirms that every risk assessment finding has a matching acceptance criterion."
   }
 }

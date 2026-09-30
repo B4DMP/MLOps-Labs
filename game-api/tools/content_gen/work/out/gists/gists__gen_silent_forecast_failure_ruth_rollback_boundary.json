@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_forecast_failure_ruth_rollback_boundary",
+  "stage": "gists",
+  "input_hash": "f440731b8c226d1bd2ef6d00b5782c1d465ed14a3f5c57027110a7fbe49a3dd8",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_silent_forecast_failure_ruth_rollback_boundary",
+    "fact": "{reliability_ruth} proposed that the rollback mechanism must be governed before it is used in production.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Warehouse Flood"
+  },
+  "output": {
+    "gist": "The governance status of the rollback mechanism before production use has been raised by {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the governance status of a rollback mechanism has been raised, which is a factual statement about the process status without explicitly committing to a desire for more, a refusal, or an accepted trade-off."
+  }
+}

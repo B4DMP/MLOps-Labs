@@ -1,7 +1,7 @@
 {
   "item_id": "artifacts:gen_heatwave_forecast_gap_monica_driver_eval",
   "stage": "artifacts",
-  "input_hash": "2aa4f06173d5304bc0402d2cb4ad324c2bff828f68e04036de58706cf7b63b60",
+  "input_hash": "55ebe192af5fa35c32a11cbe6bea6b54f0f5e361bcee68334d95d7b47ef7856b",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -10,22 +10,17 @@
       "challenge_id": -1,
       "stakeholder_id": "model_monica",
       "type": "driver",
-      "description": "{model_monica} asked for automated testing of new weather features in the evaluation harness. Faster iteration on the weather feature set directly improves the forecast accuracy for the northern region's seasonal shifts.",
-      "fact": "{model_monica} asked for automated testing of new weather features in the evaluation harness.",
-      "reading": "Faster iteration on the weather feature set directly improves the forecast accuracy for the northern region's seasonal shifts.",
+      "description": "{model_monica} asked for the model evaluation harness to be automated. Automating the harness lets her test weather features faster.",
+      "fact": "{model_monica} asked for the model evaluation harness to be automated.",
+      "reading": "Automating the harness lets her test weather features faster.",
       "metric_id": "model",
       "suggested": {
         "target": "model.evaluation",
-        "level": 3
+        "axis": "automation",
+        "level": 1
       },
       "holds": null,
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "model.evaluation",
-          "value": 3
-        }
-      ],
+      "ops": [],
       "concedes": null,
       "branch_x": null,
       "branch_y": null,
@@ -47,10 +42,8 @@
     }
   },
   "output": {
-    "content": "I need the evaluation harness to run automatically so I can test new weather features without waiting for a manual queue. The northern region is already showing significant drift in seasonal demand during heat events, and the current forecast misses the mark badly on those articles. If I can iterate on the feature set overnight, I can catch those shifts before the next promotion week locks in. Every additional hour spent on manual documentation delays the model update, which means more residual stock in the warehouse. I want the system to flag when a new feature improves accuracy so I can move it to production immediately.",
+    "content": "I am pushing to automate the model evaluation harness. Right now, manually running the test suite for every new weather feature takes days, which stalls the entire iteration cycle. I need a pipeline that spins up fresh evaluations the moment I push a candidate model. The more rapid feedback loops I have, the better I can isolate the heatwave signal from the noise. Faster testing means I can iterate on the seasonal article forecasts without waiting on a queue. I want to see the impact of the new weather feed on residual stock predictions within hours, not weeks. This speed is the only way we will catch the drift before the next promotion week hits the shelves.",
     "reclassified_as": "driver",
-    "reclassify_reason": "The author explicitly states that being able to iterate overnight would allow them to catch demand shifts before a deadline, indicating that fulfilling this need for speed would make them happier by reducing stock risk.",
-    "humor_status": "selected",
-    "humor_archetype": "Retroactively-satisfiable criterion"
+    "reclassify_reason": "The author states a need for rapid feedback loops and explicitly notes that having faster testing and more rapid iterations would make them happier and more effective in isolating signals."
   }
 }

@@ -1,0 +1,52 @@
+{
+  "item_id": "artifacts:gen_nightly_window_miss_fact_validation_broken",
+  "stage": "artifacts",
+  "input_hash": "8051cebab120f22bb296d2ffb0553db8883c9acf84b32dde2c20166a5de57ca9",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement": {
+      "id": "gen_nightly_window_miss_fact_validation_broken",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The data validation layer is broken and stopped working last night. That is simply how the validation setup works today.",
+      "fact": "The data validation layer is broken and stopped working last night.",
+      "reading": "That is simply how the validation setup works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "data.validation",
+        "axis": "automation",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "narrator": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    },
+    "challenge": {
+      "name": "The Midnight Deadline",
+      "description": ""
+    },
+    "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "The nightly data validation layer for the point of sale scan lines stopped producing reports at two a.m. last night. The pipeline still moves the raw files from the store systems into the staging area, but the checks that flag missing till data or duplicate receipts are not running. The team is currently opening the raw files in a spreadsheet to spot check a handful of stores by hand before the models start retraining. This manual process covers only a small slice of the network. It is the only way we have to catch obvious errors before they feed into the forecast job.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the current operational state of the pipeline failure and the manual workaround without expressing any wishes, refusals, or stated trade-offs."
+  }
+}

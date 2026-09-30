@@ -1,0 +1,49 @@
+{
+  "item_id": "artifacts:gen_heatwave_kpi_gap_monica_kpi_governance_driver",
+  "stage": "artifacts",
+  "input_hash": "6b4f0ae589c9ee6c468737ff5a3136cf0deb3ab159ffae11f7d49fdef9e56b54",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_kpi_gap_monica_kpi_governance_driver",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} proposed that the KPI definition be governed with formal sign off. Formal sign off ensures the metrics used for model evaluation are rigorous and aligned with predictive goals.",
+      "fact": "{model_monica} proposed that the KPI definition be governed with formal sign off.",
+      "reading": "Formal sign off ensures the metrics used for model evaluation are rigorous and aligned with predictive goals.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "req.kpi_definition",
+        "axis": "governance",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "author": {
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Summer Forecast Gap",
+      "description": "A sudden heatwave has skewed demand for seasonal goods, exposing that our KPI definitions do not account for weather driven spikes. #model_monica# wants to automate the KPI tracking to capture these shifts in real time, while #efficiency_emilia# prefers to keep the process manual to ensure every metric aligns with the broader business strategy. #efficiency_emilia# might accept an automated solution if it clearly supports the agreed business goals."
+    }
+  },
+  "output": {
+    "content": "The heatwave has made the gap obvious. Our current KPI definitions do not account for weather driven spikes, so the model looks wrong when it is actually adapting correctly. I want to automate the tracking of these metrics so we can see the shift in real time instead of waiting for a weekly review. The more granular and immediate the signal, the better our tuning becomes. I also need the definition of these KPIs to be governed with formal sign off. Rigorous, agreed upon metrics are essential for reliable evaluation. Without that strict alignment, we are just guessing at performance. I am asking for both the speed of automation and the certainty of formal governance.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The statement expresses a need for real-time visibility and formal governance, and the author explicitly indicates that more granular and immediate signals lead to better outcomes, making it a driver."
+  }
+}

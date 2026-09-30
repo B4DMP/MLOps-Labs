@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_reuben_eval_gov",
+  "stage": "gists",
+  "input_hash": "ee9cc7bad1c975fe4ac943c3f2fe7a6c5b4d8d4500c99f11e9088826e87c1617",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_reuben_eval_gov",
+    "fact": "{requirements_reuben} noted the lack of governance in the model evaluation harness.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The model evaluation harness and its review process keep coming up in discussions with {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the evaluation harness and review process are frequently discussed with a requirements stakeholder, but it does not indicate a desire to increase, decrease, or change these processes, nor does it present them as a constraint or trade-off."
+  }
+}

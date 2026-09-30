@@ -10,10 +10,6 @@
       "soft",
       "hard"
     ],
-    "stances_per_template": [
-      6,
-      10
-    ],
     "facts_per_template": [
       3,
       6
@@ -21,11 +17,23 @@
     "orphans_block": false,
     "stance_mix": {
       "trade_off_min_share": 0.4,
-      "trade_off_max_share": 0.55,
+      "trade_off_max_share": 0.6,
       "driver_min_share": 0.25,
       "boundary_max_share": 0.34,
       "driver_min": 1,
       "boundary_min": 1
+    },
+    "quota_overrides": {
+      "ch_committed_pallets": {
+        "high_high": 3,
+        "high_low": 2
+      }
+    },
+    "mix_overrides": {
+      "ch_shadow_deployment_contract": {
+        "trade_off_min_share": 0.2,
+        "trade_off_max_share": 0.4
+      }
     }
   },
   "dialogue0": {
@@ -39,10 +47,6 @@
       "soft",
       "hard"
     ],
-    "stances_per_template": [
-      6,
-      10
-    ],
     "facts_per_template": [
       3,
       6
@@ -50,11 +54,23 @@
     "orphans_block": false,
     "stance_mix": {
       "trade_off_min_share": 0.4,
-      "trade_off_max_share": 0.55,
+      "trade_off_max_share": 0.6,
       "driver_min_share": 0.25,
       "boundary_max_share": 0.34,
       "driver_min": 1,
       "boundary_min": 1
+    },
+    "quota_overrides": {
+      "ch_committed_pallets": {
+        "high_high": 3,
+        "high_low": 2
+      }
+    },
+    "mix_overrides": {
+      "ch_shadow_deployment_contract": {
+        "trade_off_min_share": 0.2,
+        "trade_off_max_share": 0.4
+      }
     }
   },
   "tier1": {
@@ -72,10 +88,6 @@
       "soft",
       "hard"
     ],
-    "stances_per_template": [
-      6,
-      10
-    ],
     "facts_per_template": [
       3,
       6
@@ -83,13 +95,25 @@
     "orphans_block": false,
     "stance_mix": {
       "trade_off_min_share": 0.4,
-      "trade_off_max_share": 0.55,
+      "trade_off_max_share": 0.6,
       "driver_min_share": 0.25,
       "boundary_max_share": 0.34,
       "driver_min": 1,
       "boundary_min": 1
     },
-    "intro_phase": 0
+    "intro_phase": 0,
+    "quota_overrides": {
+      "ch_committed_pallets": {
+        "high_high": 3,
+        "high_low": 2
+      }
+    },
+    "mix_overrides": {
+      "ch_shadow_deployment_contract": {
+        "trade_off_min_share": 0.2,
+        "trade_off_max_share": 0.4
+      }
+    }
   },
   "full": {
     "description": "The whole game, introduction included.",
@@ -108,10 +132,6 @@
       "soft",
       "hard"
     ],
-    "stances_per_template": [
-      6,
-      10
-    ],
     "facts_per_template": [
       3,
       6
@@ -119,12 +139,24 @@
     "orphans_block": true,
     "stance_mix": {
       "trade_off_min_share": 0.4,
-      "trade_off_max_share": 0.55,
+      "trade_off_max_share": 0.6,
       "driver_min_share": 0.25,
       "boundary_max_share": 0.34,
       "driver_min": 1,
       "boundary_min": 1
     },
-    "intro_phase": 0
+    "intro_phase": 0,
+    "quota_overrides": {
+      "ch_committed_pallets": {
+        "high_high": 3,
+        "high_low": 2
+      }
+    },
+    "mix_overrides": {
+      "ch_shadow_deployment_contract": {
+        "trade_off_min_share": 0.2,
+        "trade_off_max_share": 0.4
+      }
+    }
   }
 }

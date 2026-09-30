@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_emilia_forecast_speed",
+  "stage": "gists",
+  "input_hash": "2792da9511adb6d2f7626ed571736a0cdad5626840f94e846601e24eaa25d432",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_emilia_forecast_speed",
+    "fact": "{efficiency_emilia} proposed that the forecast job should run faster to meet the morning window.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "The speed of the nightly forecast job keeps coming up whenever the morning order window is discussed.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the speed of the job is a recurring topic in discussions, but it does not express a desire for more speed, a refusal, a trade-off, or a specific factual claim about performance levels."
+  }
+}

@@ -1,7 +1,7 @@
 {
   "item_id": "artifacts:gen_heatwave_forecast_gap_fact_eval_broken",
   "stage": "artifacts",
-  "input_hash": "a88e719bfcb803242ac2f1a3bf3e37f10ba82f0746214b0aa029669e0d9143c9",
+  "input_hash": "308fc63b3cd789895fb497273a2767dd0984cc994edfa095b3480e6e83b786ae",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 2,
   "inputs": {
@@ -10,9 +10,9 @@
       "challenge_id": -1,
       "stakeholder_id": null,
       "type": "fact",
-      "description": "The model evaluation harness is currently broken and cannot run any tests. That is simply how the evaluation setup works today.",
-      "fact": "The model evaluation harness is currently broken and cannot run any tests.",
-      "reading": "That is simply how the evaluation setup works today.",
+      "description": "The model evaluation harness is broken. The harness stopped working before the heatwave hit.",
+      "fact": "The model evaluation harness is broken.",
+      "reading": "The harness stopped working before the heatwave hit.",
       "metric_id": null,
       "suggested": null,
       "holds": null,
@@ -25,6 +25,7 @@
       "atoms": [],
       "asserts": {
         "target": "model.evaluation",
+        "axis": "automation",
         "level": 0,
         "trigger": null
       },
@@ -41,13 +42,11 @@
       "name": "The Heatwave Blind Spot",
       "description": ""
     },
-    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+    "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "The evaluation harness is not responding. When I attempt to launch a batch of backtests on the nightly forecast job, the script exits immediately with a connection error to the metrics store. There is no queue, no retry logic, and no fallback. I checked the logs for the last three weeks and found no successful runs. The codebase has not changed, but the underlying service it depends on is not responding. I am inspecting the output files for a few sample stores by hand. The automated pipeline that would normally flag a regression before deployment is not active. The current validation process relies on these manual checks.",
+    "content": "The evaluation harness for the weekly model retraining stopped working before the heatwave began. It used to run automatically after the nightly data load, but now it stalls before it finishes scoring the new weights against the holdout set. Because the automated pipeline is stuck, I pull the validation metrics by hand. I run a small script on my local machine to check the mean absolute error for the northern stores, then copy the results into the shared spreadsheet. This manual step takes about forty minutes each Tuesday morning. The new model goes live without a documented performance check, and the team has to rely on the forecast hitting the ordering system to see if the numbers look reasonable.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text is a diagnostic report detailing the current operational state of the system, including the failure of the evaluation harness, the absence of retry logic, and the reliance on manual checks, without expressing any wishes, trade-offs, or explicit requirements.",
-    "humor_status": "selected",
-    "humor_archetype": "A gap left idling with a pet's patience"
+    "reclassify_reason": "The text describes the current operational state, the manual workaround, and the resulting lack of documented performance checks without expressing a wish, refusal, acceptance, or explicit trade-off."
   }
 }

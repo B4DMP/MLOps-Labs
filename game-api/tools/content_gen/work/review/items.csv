@@ -1,11 +1,12 @@
 item_id,status,summary,error,note,output_file
-items:ch_blind_forecast_failure,approved,"1 boundary, 2 driver, 4 fact, 3 trade_off",,,out/items/items__ch_blind_forecast_failure.json
-items:ch_blind_promotion_retrain,failed,,"registry_state: a fact states no wishes or refusals, rewrite it neutrally",,
-items:ch_committed_promo_stock,approved,"1 boundary, 1 driver, 4 fact, 4 trade_off",,,out/items/items__ch_committed_promo_stock.json
-items:ch_heatwave_forecast_blindness,done,"1 boundary, 1 driver, 5 fact, 4 trade_off",,,out/items/items__ch_heatwave_forecast_blindness.json
-items:ch_locked_promo_shadow,done,"1 boundary, 1 driver, 4 fact, 4 trade_off",,,out/items/items__ch_locked_promo_shadow.json
-items:ch_loyalty_data_breach,done,"1 boundary, 2 driver, 4 fact, 3 trade_off",,,out/items/items__ch_loyalty_data_breach.json
-items:ch_loyalty_retention_gap,approved,"1 boundary, 1 driver, 4 fact, 5 trade_off",,,out/items/items__ch_loyalty_retention_gap.json
-items:ch_midnight_compute_squeeze,approved,"1 boundary, 1 driver, 3 fact, 4 trade_off",,,out/items/items__ch_midnight_compute_squeeze.json
-items:ch_nightly_window_breach,failed,,fact_ingestion_slow: the reading must not repeat the fact; fact_feature_store_manual: the reading must not repeat the fact,,
-items:ch_silent_ingestion_failure,done,"1 boundary, 1 driver, 4 fact, 4 trade_off",,,out/items/items__ch_silent_ingestion_failure.json
+items:ch_committed_pallets,failed,"1 boundary, 2 driver, 1 fact, 3 trade_off","driver 'gen_committed_pallets_reuben_governance_pipeline' asks for e.risk_acceptance governance level 3, above the compromise ceiling 0 authored on the same target/axis elsewhere in the challenge - it forecloses that compromise; a driver may never force a (target, axis) past a compromise level authored as a trade_off concession/branch or a conflict position elsewhere in the challenge - lower the driver's suggested_level, or make it a trade_off branch instead of an unconditional demand",,out/items/items__ch_committed_pallets.json
+items:ch_cost_crisis_drift_gap,done,"2 boundary, 4 driver, 6 fact, 5 trade_off",,,out/items/items__ch_cost_crisis_drift_gap.json
+items:ch_heatwave_forecast_gap,approved,"1 boundary, 4 driver, 6 fact, 6 trade_off",,,out/items/items__ch_heatwave_forecast_gap.json
+items:ch_heatwave_kpi_gap,approved,"1 boundary, 2 driver, 3 fact, 3 trade_off",,,out/items/items__ch_heatwave_kpi_gap.json
+items:ch_loyalty_consent_gap,done,"2 boundary, 4 driver, 4 fact, 5 trade_off",,,out/items/items__ch_loyalty_consent_gap.json
+items:ch_loyalty_data_deployment_block,approved,"1 boundary, 5 driver, 4 fact, 5 trade_off",,,out/items/items__ch_loyalty_data_deployment_block.json
+items:ch_nightly_window_miss,approved,"2 boundary, 4 driver, 5 fact, 5 trade_off",,,out/items/items__ch_nightly_window_miss.json
+items:ch_override_blind_spot,approved,"1 boundary, 4 driver, 3 fact, 6 trade_off",,,out/items/items__ch_override_blind_spot.json
+items:ch_shadow_deployment_contract,failed,"1 boundary, 2 driver, 1 fact, 3 trade_off","driver 'gen_shadow_deployment_contract_alex_cicd_trigger' asks for e.cicd_shadow automation level 2, above the compromise ceiling 1 authored on the same target/axis elsewhere in the challenge - it forecloses that compromise; a driver may never force a (target, axis) past a compromise level authored as a trade_off concession/branch or a conflict position elsewhere in the challenge - lower the driver's suggested_level, or make it a trade_off branch instead of an unconditional demand; only 0 composite drivers, at least 1 are needed: a driver that names 2 to 4 different changes across several components and hand-overs (suggested target plus that many minus one extra raise_to ops), e.g. automating a whole pipeline stretch; automation_alex: 'gen_shadow_deployment_contract_alex_cicd_trigger' needs e.cicd_shadow automation at level 2, above the level 1 that 'gen_shadow_deployment_contract_alex_cicd_shadow_edge' allows for it, so 'gen_shadow_deployment_contract_alex_cicd_shadow_edge' can never be honoured",,out/items/items__ch_shadow_deployment_contract.json
+items:ch_silent_forecast_failure,approved,"2 boundary, 3 driver, 3 fact, 6 trade_off",,,out/items/items__ch_silent_forecast_failure.json
+items:ch_silent_ingestion_failure,done,"2 boundary, 5 driver, 3 fact, 4 trade_off",,,out/items/items__ch_silent_ingestion_failure.json

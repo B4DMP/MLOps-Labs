@@ -120,6 +120,33 @@ def run_gates(config_dir, work_dir, scope: str, scope_data: dict | None = None) 
                 f"stance mix: {share['boundary']:.0%} of the {n} generated stances are boundaries, "
                 f"the scope allows at most {mix.get('boundary_max_share', 1):.0%}")
 
+    # 8c. Per challenge: items per stakeholder by quadrant, hand-over and composite coverage. Warnings
+    #     until content is regenerated under the new shape; `shape_blocks` turns them into errors.
+    from content_gen.solvability import veto_free_errors
+    from content_gen.stages.items import (
+        DEFAULT_STANCE_SHAPE, shape_errors, stance_quotas,
+    )
+    from mlops_serious_game.domain.requirement import self_contradictions
+
+    shape = {**DEFAULT_STANCE_SHAPE, **ctx.scope.get("stance_shape", {})}
+    shape_report = report.errors if ctx.scope.get("shape_blocks") else report.warnings
+    for c in generated:
+        stances = [r for r in reqs if r.challenge_id == c["id"] and r.type != "fact"]
+        roster = ctx.roster(c["phase_id"])
+        for sid, quota in stance_quotas(ctx.scope, roster, c["template_id"]).items():
+            have = sum(1 for r in stances if r.stakeholder_id == sid)
+            if have != quota:
+                shape_report.append(f"shape: {c['template_id']}: {sid} has {have} stance items, needs {quota}")
+        stage_id = c["focus_stage_ids"][0]
+        stage_edges = {e.id for e in g.edges if g.stage_of(e.id) == stage_id}
+        shape_report += [f"shape: {c['template_id']}: {e}" for e in shape_errors(stances, g, shape, stage_edges)]
+
+        # 8d. No stakeholder's items undo each other (always blocking).
+        report.errors += [f"contradiction: {c['template_id']}: {m}" for m in self_contradictions(stances)]
+
+        # 8e. The challenge can be passed without a veto (always blocking).
+        report.errors += [f"veto: {c['template_id']}: {m}" for m in veto_free_errors(ctx, c, roster, stances)]
+
     # 9. Voiced Facts: a Fact is dealt under its narrator's name, so the narrator must be in the room.
     phase_of = {c["id"]: c["phase_id"] for c in generated}
     fact_ids = {r.id for r in reqs if r.type == "fact"}

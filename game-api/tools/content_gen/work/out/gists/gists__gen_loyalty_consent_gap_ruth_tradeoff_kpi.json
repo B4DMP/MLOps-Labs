@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_consent_gap_ruth_tradeoff_kpi",
+  "stage": "gists",
+  "input_hash": "2ed5f8de8a5235add7f07bc205fc9ed0911613b17d2aa0f67b56a9c04a6ad21d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_loyalty_consent_gap_ruth_tradeoff_kpi",
+    "fact": "{reliability_ruth} noted that the KPI definitions could be manual if the model evaluation is reliable.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Loyalty Data Audit"
+  },
+  "output": {
+    "gist": "The link between model evaluation reliability and how KPI definitions are handled has been raised.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes that a link between reliability and KPI definitions has been raised, but it does not express a desire for more reliability, a refusal, a trade-off, or a definitive factual claim about the state of things."
+  }
+}

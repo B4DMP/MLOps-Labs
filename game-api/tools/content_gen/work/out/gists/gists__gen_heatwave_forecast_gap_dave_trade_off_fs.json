@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_dave_trade_off_fs",
+  "stage": "gists",
+  "input_hash": "21a8d67dd61dd8099bc7d645bd013d18984f1ea41781b428b91873c7d081a2c6",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_dave_trade_off_fs",
+    "fact": "{data_dave} mentioned that the feature store hand-over is manual.",
+    "metric_id": "data",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "The manual feature store hand over is the topic {data_dave} keeps raising about the data pipeline.",
+    "verdict_metric_id": "data",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the manual feature store handover as a recurring topic raised by a stakeholder but does not specify whether this is a driver, boundary, trade-off, or simple fact."
+  }
+}

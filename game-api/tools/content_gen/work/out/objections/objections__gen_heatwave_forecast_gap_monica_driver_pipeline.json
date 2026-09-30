@@ -1,0 +1,62 @@
+{
+  "item_id": "objections:gen_heatwave_forecast_gap_monica_driver_pipeline",
+  "stage": "objections",
+  "input_hash": "797aa97a1823750d4747ceb6c5ded7bf4b23e40af93304a966a1bb6b941d20c0",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_monica_driver_pipeline",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} proposed automating the model training and evaluation pipeline. Automating this stretch speeds up the whole model iteration cycle.",
+      "fact": "{model_monica} proposed automating the model training and evaluation pipeline.",
+      "reading": "Automating this stretch speeds up the whole model iteration cycle.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "model.training_pipeline",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.train_eval",
+          "axis": "automation",
+          "value": 3
+        },
+        {
+          "kind": "raise_to",
+          "target": "model.evaluation",
+          "axis": "automation",
+          "value": 1
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(model.training_pipeline, 3)",
+        "raise_to(e.train_eval, 3)",
+        "raise_to(model.evaluation, 1)"
+      ],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "Automating the pipeline is just the floor, not the ceiling. I need the evaluation harness to flag drift and label gaps before we even think about deployment.",
+    "correction": "I am not asking for a faster button, I am asking for a safer gate. The automation must enforce the quality checks that keep the forecast honest."
+  }
+}

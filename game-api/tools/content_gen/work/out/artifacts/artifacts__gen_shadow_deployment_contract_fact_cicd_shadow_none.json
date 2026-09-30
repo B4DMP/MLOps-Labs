@@ -1,0 +1,52 @@
+{
+  "item_id": "artifacts:gen_shadow_deployment_contract_fact_cicd_shadow_none",
+  "stage": "artifacts",
+  "input_hash": "26f5509163fee1707d60a01c8cc9dd85ae55e9d35855e3f8b57a2eda60cd5048",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_fact_cicd_shadow_none",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The hand-over from the CI/CD pipeline to the shadow deployment has no trigger set. That is simply the current state of the hand-over to the shadow deployment.",
+      "fact": "The hand-over from the CI/CD pipeline to the shadow deployment has no trigger set.",
+      "reading": "That is simply the current state of the hand-over to the shadow deployment.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.cicd_shadow",
+        "axis": "automation",
+        "level": 1,
+        "trigger": "none"
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "narrator": {
+      "id": "automation_alex",
+      "name": "Automation Alex",
+      "role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling."
+    },
+    "challenge": {
+      "name": "The Locked Shadow",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "I was looking at the pipeline logs for the last three weeks. When the main build finishes, the shadow deployment does not start on its own. There is no trigger set to hand over from the CI/CD pipeline to the shadow environment. A human has to manually run the deployment script in the shadow cluster. I watched the process on Tuesday. The build completed at 02:14. The shadow deployment did not begin until 09:30, when someone typed the command into the terminal. This has been the routine for every weekly model retrain. The shadow instance sits idle for several hours after the build succeeds, waiting for that manual input.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text exclusively describes observed operational behaviors and specific timestamps regarding the lack of automated triggers, without expressing any wishes, refusals, or stated needs."
+  }
+}

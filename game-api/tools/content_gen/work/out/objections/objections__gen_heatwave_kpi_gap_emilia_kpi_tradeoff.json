@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_heatwave_kpi_gap_emilia_kpi_tradeoff",
+  "stage": "objections",
+  "input_hash": "fece10dfb15d5f6ed977300d03256bef3f3bca5c00e3ebc7bda6616b22d2c95a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_heatwave_kpi_gap_emilia_kpi_tradeoff",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} mentioned that the KPI definition process is currently manual. She would accept an automated KPI definition if it clearly supports the agreed business goals.",
+      "fact": "{efficiency_emilia} mentioned that the KPI definition process is currently manual.",
+      "reading": "She would accept an automated KPI definition if it clearly supports the agreed business goals.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": "efficiency",
+        "loss": 3,
+        "target": "req.kpi_definition",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are treating my manual KPI definition as a bug, but it is the only place I ensure metrics align with margin and waste goals. Automating that step without my sign off removes business logic, and I will not support it.",
+    "correction": "I did not say the process is too slow or that I want it replaced by a tool. I said it is manual because I need to verify that every feature maps to a strategic objective before we commit to it."
+  }
+}

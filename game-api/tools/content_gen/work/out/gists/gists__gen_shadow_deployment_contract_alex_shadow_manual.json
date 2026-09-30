@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_alex_shadow_manual",
+  "stage": "gists",
+  "input_hash": "bfe5ffdc4fe4d5cb9082359c74cfa5fdbf8ad9f7f2131911c05d915efcc89609",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_alex_shadow_manual",
+    "fact": "{automation_alex} proposed keeping the shadow deployment setup done by hand.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The manual process for maintaining the shadow deployment environment keeps coming up in team discussions.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a manual process as a recurring discussion point but does not explicitly state a desire to automate it, a refusal to change, an acceptance of the cost, or a neutral fact about its nature."
+  }
+}

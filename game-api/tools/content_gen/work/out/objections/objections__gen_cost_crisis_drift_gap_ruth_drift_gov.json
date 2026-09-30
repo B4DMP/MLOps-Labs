@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_cost_crisis_drift_gap_ruth_drift_gov",
+  "stage": "objections",
+  "input_hash": "c2fa9be4204d975a8eab168e64492426641ef5f3fbdceb4f8471ba28bfab986a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_ruth_drift_gov",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} proposed that drift checks require formal sign off. She will not sign off on the production drift monitoring unless it has full formal governance.",
+      "fact": "{reliability_ruth} proposed that drift checks require formal sign off.",
+      "reading": "She will not sign off on the production drift monitoring unless it has full formal governance.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "ops.production_drift_monitoring",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.production_drift_monitoring",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "I am not signing off on that drift check without a formal governance framework in place. You cannot deploy monitoring into production if you cannot prove it meets our strict reliability standards.",
+    "correction": "I am not refusing to build the drift checks, I am refusing to release them without the required sign off. Do not treat my governance requirement as a refusal to do the technical work."
+  }
+}

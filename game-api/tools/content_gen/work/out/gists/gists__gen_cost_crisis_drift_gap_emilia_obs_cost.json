@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_emilia_obs_cost",
+  "stage": "gists",
+  "input_hash": "362b5bad16e0dcf907606b2cb4ba40b153971df28e458e7b87f712644d301acd",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_emilia_obs_cost",
+    "fact": "{efficiency_emilia} noted that the observability pipeline cost is spiking due to scan line volume.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "The cost of the observability pipeline keeps climbing as scan line volume grows across the stores.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states a factual observation about rising costs and volume but does not explicitly commit to a desire for improvement, a refusal, or an acceptance of the loss."
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_heatwave_kpi_gap_monica_kpi_governance_driver",
+  "stage": "objections",
+  "input_hash": "5c46763d67f506b2e7146cf95c9db38d625583fe93e69991bed647b88f980532",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_heatwave_kpi_gap_monica_kpi_governance_driver",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} proposed that the KPI definition be governed with formal sign off. Formal sign off ensures the metrics used for model evaluation are rigorous and aligned with predictive goals.",
+      "fact": "{model_monica} proposed that the KPI definition be governed with formal sign off.",
+      "reading": "Formal sign off ensures the metrics used for model evaluation are rigorous and aligned with predictive goals.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "req.kpi_definition",
+        "axis": "governance",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "I did not propose a formal sign off for the KPI definition, I only want the evaluation metrics to be rigorous and aligned with our predictive goals. Please do not file that as a governance request, it is a technical standard for model performance.",
+    "correction": "You are reading a technical requirement as a compliance hurdle. I am asking for strict metric definitions to ensure the model is actually working, not for a formal approval process."
+  }
+}

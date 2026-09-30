@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_dave_driver_drift",
+  "stage": "gists",
+  "input_hash": "9da533b554f453b24452c6abdc6de8130195d50570f95adf838a79ca11fec2a9",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_dave_driver_drift",
+    "fact": "{data_dave} asked for the drift check hand-over to be automated.",
+    "metric_id": "data",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "The hand-over process for drift checks on the weather feed keeps coming up in data discussions.",
+    "verdict_metric_id": "data",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions that a specific process regarding the weather feed is a recurring topic in discussions, but it does not express a desire to change it, refuse it, accept a loss, or state it as a fixed constraint."
+  }
+}

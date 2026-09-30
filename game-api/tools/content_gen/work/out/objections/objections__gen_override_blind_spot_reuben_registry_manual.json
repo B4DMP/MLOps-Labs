@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_override_blind_spot_reuben_registry_manual",
+  "stage": "objections",
+  "input_hash": "22fd27a54be899dcc8e909c7cc5f4ab76b5c46300fe9e2d8b8072991b3428cfb",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_override_blind_spot_reuben_registry_manual",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} proposed keeping the model registry process manual. He will not allow any model to enter the registry without a manual, documented review of its evaluation metrics.",
+      "fact": "{requirements_reuben} proposed keeping the model registry process manual.",
+      "reading": "He will not allow any model to enter the registry without a manual, documented review of its evaluation metrics.",
+      "metric_id": "requirements",
+      "suggested": null,
+      "holds": {
+        "component": "model.registry",
+        "axis": "automation",
+        "op": "lte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "axis": "automation",
+          "value": 2
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "I will not sign off on automating the registry without a human reviewing the metrics first. That manual gate is non-negotiable for our security posture.",
+    "correction": "I am not blocking the model training pipeline itself. I am only requiring a documented review before any artifact is promoted to the registry."
+  }
+}

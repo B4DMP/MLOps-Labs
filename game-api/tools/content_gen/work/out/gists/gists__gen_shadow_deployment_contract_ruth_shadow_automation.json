@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_ruth_shadow_automation",
+  "stage": "gists",
+  "input_hash": "b778be844ab9af682f6772ad4adf1b0020f1cab3886613d3c4171f22426e7945",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_ruth_shadow_automation",
+    "fact": "{reliability_ruth} noted that the shadow deployment is currently broken.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The shadow deployment of the forecast pipeline keeps coming up in reliability discussions with {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions that shadow deployment comes up in reliability discussions, which is a neutral observation about where the topic is discussed rather than a commitment to a specific stance like a driver, boundary, trade-off, or factual state of the system itself."
+  }
+}

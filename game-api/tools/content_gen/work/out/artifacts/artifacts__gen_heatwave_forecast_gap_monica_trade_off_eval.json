@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_heatwave_forecast_gap_monica_trade_off_eval",
+  "stage": "artifacts",
+  "input_hash": "37c9b927c1c1bd1d860de8ad7e81c5f094b2c1a577f92a20c339eef4dab03e91",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_monica_trade_off_eval",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} mentioned that the model evaluation harness is manual. She would give up rapid testing if the harness is manual.",
+      "fact": "{model_monica} mentioned that the model evaluation harness is manual.",
+      "reading": "She would give up rapid testing if the harness is manual.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.evaluation",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "author": {
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Heatwave Blind Spot",
+      "description": "A sudden heatwave has shifted demand for seasonal articles, and the current forecast is missing the mark. #model_monica# wants to automate the evaluation harness to test new weather features rapidly, while #requirements_reuben# wants to keep it manual to ensure every test case is rigorously documented before any model change is considered."
+    }
+  },
+  "output": {
+    "content": "The current evaluation process is entirely manual, and I am willing to accept that constraint. I will give up the ability to rapidly iterate on new weather features and test multiple configurations in a single afternoon. In exchange, I accept that every test case must be rigorously documented before any model change is considered. This means I will lose the speed of automated feedback loops, but I am comfortable trading that velocity for the certainty that our validation steps are fully traceable and meet the documentation standards required for the next deployment cycle.",
+    "reclassified_as": "trade_off",
+    "reclassify_reason": "The author explicitly states they are willing to give up rapid iteration speed in exchange for rigorous documentation and traceability, which defines a clear trade-off between velocity and compliance."
+  }
+}

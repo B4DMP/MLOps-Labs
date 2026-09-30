@@ -1,9 +1,9 @@
 {
   "item_id": "items:ch_heatwave_forecast_gap",
   "stage": "items",
-  "input_hash": "c3290ac2b9ce179fc4cf5d5cdc21d645a82e9fc4cac796354a384d07c7c2109e",
+  "input_hash": "1c173170ed31c11997bda2ced22b18551e0619bd974d9d3c1399bc32414a79e6",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 5,
+  "attempts": 4,
   "inputs": {
     "challenge": {
       "phase_id": 3,
@@ -14,27 +14,15 @@
       "metric_changes": {},
       "attention_tokens": 20,
       "priority": 75,
-      "preconditions": {
-        "all": [
-          {
-            "component": "model.evaluation",
-            "op": "eq",
-            "level": 2
-          },
-          {
-            "component": "model.training_pipeline",
-            "op": "gte",
-            "level": 2
-          }
-        ]
-      },
+      "preconditions": true,
       "fallback": false,
       "on_enter_ops": [
         {
           "kind": "set_to",
           "target": "model.evaluation",
           "value": 0,
-          "reason": "The evaluation scripts failed to parse the new weather feed format, halting all model validation."
+          "reason": "The evaluation scripts failed to parse the new weather feed format, halting all model validation.",
+          "axis": "automation"
         }
       ],
       "stalemate_ops": [
@@ -42,7 +30,8 @@
           "kind": "set_to",
           "target": "e.train_eval",
           "value": 0,
-          "reason": "Without an agreed evaluation path, the pipeline link between training and testing was disabled to prevent unverified models from progressing."
+          "reason": "Without an agreed evaluation path, the pipeline link between training and testing was disabled to prevent unverified models from progressing.",
+          "axis": "automation"
         }
       ],
       "conflict": {
@@ -51,11 +40,13 @@
         "positions": [
           {
             "stakeholder_id": "model_monica",
-            "wants": 3
+            "wants": 3,
+            "axis": "automation"
           },
           {
             "stakeholder_id": "requirements_reuben",
-            "wants": 1
+            "wants": 1,
+            "axis": "automation"
           }
         ]
       },
@@ -97,7 +88,7 @@
         "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
         "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
         "metric_id": "efficiency",
-        "power": "low",
+        "power": "high",
         "interest": "low"
       }
     ],
@@ -107,13 +98,17 @@
         {
           "id": "model.experiment_tracking",
           "name": "Experiment Tracking",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "model_monica",
           "attributes": {
@@ -128,13 +123,17 @@
         {
           "id": "model.registry",
           "name": "Model Registry",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "model_monica",
           "attributes": {
@@ -155,13 +154,17 @@
         {
           "id": "model.training_pipeline",
           "name": "Training Pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "model_monica",
           "attributes": {
@@ -176,13 +179,17 @@
         {
           "id": "model.hpo",
           "name": "Hyperparameter Tuning",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "model_monica",
           "attributes": {
@@ -197,13 +204,17 @@
         {
           "id": "model.evaluation",
           "name": "Model Evaluation Harness",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "model_monica",
           "attributes": {}
@@ -215,18 +226,21 @@
           "from": "req.acceptance_criteria",
           "to": "model.evaluation",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
-            2,
-            3,
-            4
+            2
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
-            "manual_request",
-            "on_approval"
+            "manual_request"
           ]
         },
         {
@@ -234,13 +248,18 @@
           "from": "data.feature_store",
           "to": "model.training_pipeline",
           "kind": "pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "start_trigger": "manual_request",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -256,13 +275,18 @@
           "from": "data.training_drift_check",
           "to": "model.training_pipeline",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -278,13 +302,18 @@
           "from": "model.hpo",
           "to": "model.training_pipeline",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -300,13 +329,18 @@
           "from": "model.training_pipeline",
           "to": "model.experiment_tracking",
           "kind": "pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "start_trigger": "manual_request",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -322,13 +356,18 @@
           "from": "model.training_pipeline",
           "to": "model.evaluation",
           "kind": "pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "start_trigger": "manual_request",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -344,13 +383,18 @@
           "from": "model.evaluation",
           "to": "model.registry",
           "kind": "pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "start_trigger": "manual_request",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -366,20 +410,24 @@
           "from": "model.registry",
           "to": "deploy.cicd",
           "kind": "pipeline",
-          "start_level": 2,
-          "allowed_levels": [
+          "start_automation": 2,
+          "start_governance": 0,
+          "start_trigger": "manual_request",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
             "manual_request",
             "on_commit",
-            "on_new_version",
-            "on_approval"
+            "on_new_version"
           ]
         },
         {
@@ -387,13 +435,18 @@
           "from": "ops.retraining_trigger",
           "to": "model.training_pipeline",
           "kind": "feedback",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
@@ -401,66 +454,6 @@
             "scheduled",
             "on_metric_threshold",
             "on_alert"
-          ]
-        },
-        {
-          "id": "e.audit_registry",
-          "from": "gov.audit",
-          "to": "model.registry",
-          "kind": "governs",
-          "start_level": 1,
-          "allowed_levels": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ],
-          "allowed_triggers": [
-            "none",
-            "manual_request",
-            "scheduled",
-            "on_approval"
-          ]
-        },
-        {
-          "id": "e.cards_registry",
-          "from": "gov.model_cards",
-          "to": "model.registry",
-          "kind": "governs",
-          "start_level": 1,
-          "allowed_levels": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ],
-          "allowed_triggers": [
-            "none",
-            "manual_request",
-            "scheduled",
-            "on_approval"
-          ]
-        },
-        {
-          "id": "e.compute_train",
-          "from": "gov.compute_scheduling",
-          "to": "model.training_pipeline",
-          "kind": "governs",
-          "start_level": 2,
-          "allowed_levels": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ],
-          "allowed_triggers": [
-            "none",
-            "manual_request",
-            "scheduled",
-            "on_approval"
           ]
         }
       ],
@@ -497,63 +490,64 @@
     },
     "current": {
       "model.experiment_tracking": {
-        "level": 2
+        "automation": 2,
+        "governance": 0
       },
       "model.registry": {
-        "level": 1
+        "automation": 1,
+        "governance": 0
       },
       "model.training_pipeline": {
-        "level": 2
+        "automation": 2,
+        "governance": 0
       },
       "model.hpo": {
-        "level": 1
+        "automation": 1,
+        "governance": 0
       },
       "model.evaluation": {
-        "level": 0
+        "automation": 0,
+        "governance": 0
       },
       "e.acceptance_eval": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       },
       "e.fs_train": {
-        "level": 2,
+        "automation": 2,
+        "governance": 0,
         "trigger": "manual_request"
       },
       "e.driftcheck_train": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       },
       "e.hpo_train": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       },
       "e.train_tracking": {
-        "level": 2,
+        "automation": 2,
+        "governance": 0,
         "trigger": "manual_request"
       },
       "e.train_eval": {
-        "level": 2,
+        "automation": 2,
+        "governance": 0,
         "trigger": "manual_request"
       },
       "e.eval_registry": {
-        "level": 2,
+        "automation": 2,
+        "governance": 0,
         "trigger": "manual_request"
       },
       "e.retrain_train": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
-      },
-      "e.audit_registry": {
-        "level": 1,
-        "trigger": "none"
-      },
-      "e.cards_registry": {
-        "level": 1,
-        "trigger": "none"
-      },
-      "e.compute_train": {
-        "level": 2,
-        "trigger": "manual_request"
       }
     },
     "metrics": [
@@ -564,10 +558,16 @@
       "reliability",
       "requirements"
     ],
+    "quotas": {
+      "data_dave": 2,
+      "model_monica": 4,
+      "requirements_reuben": 2,
+      "efficiency_emilia": 3
+    },
     "counts": {
       "stances": [
-        6,
-        10
+        11,
+        11
       ],
       "facts": [
         3,
@@ -581,84 +581,356 @@
       "boundary_max_share": 0.34,
       "driver_min": 1,
       "boundary_min": 1
+    },
+    "stance_shape": {
+      "edge_min_share": 0.3,
+      "composite_min": 2,
+      "composite_atoms": [
+        3,
+        5
+      ],
+      "boundary_per_stakeholder_max": 1
     }
   },
   "output": {
     "items": [
       {
-        "key": "monica_driver_eval",
-        "tag": "trade_off",
-        "stakeholder_id": "model_monica",
-        "fact": "{model_monica} asked for automated testing of new weather features in the evaluation harness.",
+        "key": "fact_eval_broken",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The model evaluation harness is broken.",
         "readings": {
-          "driver": "Faster iteration on the weather feature set directly improves the forecast accuracy for the northern region's seasonal shifts.",
-          "boundary": "She will not approve a model change if the evaluation process requires manual sign-off for every feature addition.",
-          "trade_off": "She would accept keeping the harness manual for now if that is what it takes to get a decision before the next heatwave.",
-          "fact": "That is simply how the evaluation setup works today."
+          "driver": "Fixing the harness is the first step to testing weather features.",
+          "boundary": "No model change proceeds while the harness is broken.",
+          "trade_off": "The team would skip the harness if the deadline is tight.",
+          "fact": "The harness stopped working before the heatwave hit."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "model.evaluation",
+        "asserts_axis": "automation",
+        "asserts_level": 0,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_train_eval_manual",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The hand-over from training to evaluation is done by hand.",
+        "readings": {
+          "driver": "Automating this step would speed up the evaluation cycle.",
+          "boundary": "This hand-over must stay manual for human review.",
+          "trade_off": "The team would keep it manual if evaluation is fast.",
+          "fact": "A person moves the model file to the harness manually."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "e.train_eval",
+        "asserts_axis": "automation",
+        "asserts_level": 2,
+        "asserts_trigger": "manual_request",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_hpo_manual",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "Hyperparameter tuning is done by hand.",
+        "readings": {
+          "driver": "Automating tuning would find better weather feature weights.",
+          "boundary": "Tuning must stay manual to control compute costs.",
+          "trade_off": "The team would skip tuning if the base model is good.",
+          "fact": "A developer runs grid search in a notebook by hand."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "model.hpo",
+        "asserts_axis": "automation",
+        "asserts_level": 1,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_eval_gov_none",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The model evaluation harness has no governance.",
+        "readings": {
+          "driver": "Adding governance would ensure only valid models are deployed.",
+          "boundary": "No model is deployed without a governance review.",
+          "trade_off": "The team would skip governance if the deadline is tight.",
+          "fact": "There is no sign-off step for evaluation results."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "model.evaluation",
+        "asserts_axis": "governance",
+        "asserts_level": 0,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_registry_absent",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The model registry is missing.",
+        "readings": {
+          "driver": "A registry would track which model version is in production.",
+          "boundary": "No model is deployed without a registry entry.",
+          "trade_off": "The team would skip the registry if deployment is urgent.",
+          "fact": "Model versions are tracked in a shared spreadsheet."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "model.registry",
+        "asserts_axis": "automation",
+        "asserts_level": 1,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_acceptance_missing",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The hand-over from acceptance criteria to evaluation is missing.",
+        "readings": {
+          "driver": "Automating this hand-over would ensure criteria are always checked.",
+          "boundary": "Evaluation must not run without acceptance criteria.",
+          "trade_off": "The team would skip criteria if the evaluation is fast.",
+          "fact": "Acceptance criteria are not linked to the evaluation harness."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "e.acceptance_eval",
+        "asserts_axis": "automation",
+        "asserts_level": 1,
+        "asserts_trigger": "none",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "monica_driver_eval",
+        "tag": "driver",
+        "stakeholder_id": "model_monica",
+        "fact": "{model_monica} asked for the model evaluation harness to be automated.",
+        "readings": {
+          "driver": "Automating the harness lets her test weather features faster.",
+          "boundary": "She will not deploy a model if the harness is not automated.",
+          "trade_off": "She would skip weather features if the harness stays manual.",
+          "fact": "She wants the harness to run without manual steps."
         },
         "metric_id": "model",
+        "suggested_target": "model.evaluation",
+        "suggested_axis": "automation",
+        "suggested_level": 1,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "monica_trade_off_eval",
+        "tag": "trade_off",
+        "stakeholder_id": "model_monica",
+        "fact": "{model_monica} mentioned that the model evaluation harness is manual.",
+        "readings": {
+          "driver": "She wants the harness automated, but hand is acceptable.",
+          "boundary": "She will not accept a manual harness for new features.",
+          "trade_off": "She would give up rapid testing if the harness is manual.",
+          "fact": "She is open to a manual evaluation process."
+        },
+        "metric_id": null,
         "suggested_target": null,
+        "suggested_axis": null,
         "suggested_level": null,
         "holds": null,
         "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
         "concedes_target": "model.evaluation",
-        "concedes_max_level": 1,
+        "concedes_axis": "automation",
+        "concedes_max_level": 2,
         "asserts_target": null,
+        "asserts_axis": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": null,
-        "concedes_axis": "automation",
-        "branch_x_description": "the evaluation harness fully automated for rapid feature iteration",
-        "branch_x_target": "model.evaluation",
-        "branch_x_axis": "automation",
-        "branch_x_level": 3,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
         "branch_x_ops": [],
-        "branch_y_description": "the evaluation harness brought back up manually, one documented case at a time",
-        "branch_y_target": "model.evaluation",
-        "branch_y_axis": "automation",
-        "branch_y_level": 1,
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
         "branch_y_ops": []
       },
       {
-        "key": "reuben_boundary_doc",
-        "tag": "boundary",
-        "stakeholder_id": "requirements_reuben",
-        "fact": "{requirements_reuben} proposed keeping the evaluation harness manual to document every test case.",
+        "key": "monica_driver_pipeline",
+        "tag": "driver",
+        "stakeholder_id": "model_monica",
+        "fact": "{model_monica} proposed automating the model training and evaluation pipeline.",
         "readings": {
-          "driver": "More documentation per test case improves the audit trail for the model's compliance with data governance rules.",
-          "boundary": "He will not allow the evaluation harness to be automated without a complete, manually verified test case log for each scenario.",
-          "trade_off": "He would accept a slower evaluation cycle if the documentation requirements remain strict.",
-          "fact": "That is simply how the evaluation setup works today."
+          "driver": "Automating this stretch speeds up the whole model iteration cycle.",
+          "boundary": "She will not accept a partial pipeline for new weather features.",
+          "trade_off": "She would skip the registry if the training pipeline is automated.",
+          "fact": "She wants the training, evaluation, and registry steps to run on their own."
         },
-        "metric_id": "requirements",
-        "suggested_target": "model.evaluation",
-        "suggested_level": 1,
-        "holds": {
-          "component": "model.evaluation",
-          "op": "lte",
-          "level": 1,
-          "axis": "automation"
-        },
+        "metric_id": "model",
+        "suggested_target": "model.training_pipeline",
+        "suggested_axis": "automation",
+        "suggested_level": 3,
+        "holds": null,
         "ops": [
           {
             "kind": "raise_to",
+            "target": "e.train_eval",
+            "axis": "automation",
+            "value": 3,
+            "attr": null
+          },
+          {
+            "kind": "raise_to",
             "target": "model.evaluation",
+            "axis": "automation",
             "value": 1,
-            "axis": "automation"
+            "attr": null
           }
         ],
         "concedes_metric": null,
         "concedes_loss": null,
         "concedes_target": null,
+        "concedes_axis": null,
         "concedes_max_level": null,
         "asserts_target": null,
+        "asserts_axis": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "automation",
-        "concedes_axis": null,
-        "asserts_axis": null,
         "branch_x_description": null,
         "branch_x_target": null,
         "branch_x_axis": null,
@@ -671,102 +943,31 @@
         "branch_y_ops": []
       },
       {
-        "key": "dave_tradeoff_data",
+        "key": "monica_trade_off_tracking",
         "tag": "trade_off",
-        "stakeholder_id": "data_dave",
-        "fact": "{data_dave} suggested pausing the automated hookup of the new weather feed into the training pipeline.",
+        "stakeholder_id": "model_monica",
+        "fact": "{model_monica} noted that experiment tracking is manual.",
         "readings": {
-          "driver": "Connecting the feed automatically improves data quality for seasonal demand predictions, once someone's confirmed the schema doesn't drift.",
-          "boundary": "He will not allow the weather feed to be used if the data lineage is not fully documented.",
-          "trade_off": "He would accept a delay in automating the weather feed hookup if the data pipeline stability is maintained during the heatwave.",
-          "fact": "That is simply how the evaluation setup works today."
+          "driver": "She wants tracking automated, but hand is acceptable.",
+          "boundary": "She will not accept manual tracking for new models.",
+          "trade_off": "She would give up automated tracking if evaluation is fast.",
+          "fact": "She is open to manual experiment tracking."
         },
-        "metric_id": "data",
-        "suggested_target": "model.training_pipeline",
-        "suggested_level": 2,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": "data",
-        "concedes_loss": 3,
-        "concedes_target": "model.training_pipeline",
-        "concedes_max_level": 2,
-        "asserts_target": null,
-        "asserts_level": null,
-        "asserts_trigger": null,
-        "suggested_axis": "automation",
-        "concedes_axis": "automation",
-        "asserts_axis": null,
-        "branch_x_description": null,
-        "branch_x_target": null,
-        "branch_x_axis": null,
-        "branch_x_level": null,
-        "branch_x_ops": [],
-        "branch_y_description": null,
-        "branch_y_target": null,
-        "branch_y_axis": null,
-        "branch_y_level": null,
-        "branch_y_ops": []
-      },
-      {
-        "key": "emilia_driver_eff",
-        "tag": "trade_off",
-        "stakeholder_id": "efficiency_emilia",
-        "fact": "{efficiency_emilia} asked for a faster turnaround on the model evaluation to address the stockout issue.",
-        "readings": {
-          "driver": "Reducing the evaluation time directly lowers the operational cost of the stockout and overstock incidents.",
-          "boundary": "She will not approve a model update if the evaluation process exceeds the current manual cycle time.",
-          "trade_off": "She would accept the harness staying manual if a quick decision matters more than the turnaround time right now.",
-          "fact": "That is simply how the evaluation setup works today."
-        },
-        "metric_id": "efficiency",
+        "metric_id": null,
         "suggested_target": null,
+        "suggested_axis": null,
         "suggested_level": null,
         "holds": null,
         "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
-        "concedes_target": "model.evaluation",
-        "concedes_max_level": 1,
-        "asserts_target": null,
-        "asserts_level": null,
-        "asserts_trigger": null,
-        "suggested_axis": null,
+        "concedes_target": "model.experiment_tracking",
         "concedes_axis": "automation",
-        "branch_x_description": "the evaluation harness fully automated for a fast turnaround",
-        "branch_x_target": "model.evaluation",
-        "branch_x_axis": "automation",
-        "branch_x_level": 3,
-        "branch_x_ops": [],
-        "branch_y_description": "the evaluation harness brought back up manually, slower but immediate",
-        "branch_y_target": "model.evaluation",
-        "branch_y_axis": "automation",
-        "branch_y_level": 1,
-        "branch_y_ops": []
-      },
-      {
-        "key": "monica_tradeoff_eval",
-        "tag": "trade_off",
-        "stakeholder_id": "model_monica",
-        "fact": "{model_monica} mentioned accepting a manual review step for the final model approval.",
-        "readings": {
-          "driver": "Adding a manual review step improves the trust in the model's decisions for the store managers.",
-          "boundary": "She will not accept a manual review step if it delays the deployment of the weather feature by more than one week.",
-          "trade_off": "She would give up the full automation of the evaluation harness if it ensures the model passes the compliance checks.",
-          "fact": "That is simply how the evaluation setup works today."
-        },
-        "metric_id": "model",
-        "suggested_target": "model.evaluation",
-        "suggested_level": 3,
-        "holds": null,
-        "ops": [],
-        "concedes_target": "model.evaluation",
         "concedes_max_level": 2,
         "asserts_target": null,
+        "asserts_axis": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "automation",
-        "concedes_axis": "automation",
-        "asserts_axis": null,
         "branch_x_description": null,
         "branch_x_target": null,
         "branch_x_axis": null,
@@ -779,31 +980,44 @@
         "branch_y_ops": []
       },
       {
-        "key": "reuben_tradeoff_time",
-        "tag": "trade_off",
+        "key": "reuben_boundary_eval",
+        "tag": "boundary",
         "stakeholder_id": "requirements_reuben",
-        "fact": "{requirements_reuben} suggested accepting a shorter documentation window for the heatwave model update.",
+        "fact": "{requirements_reuben} brought up that the model evaluation harness is manual.",
         "readings": {
-          "driver": "Shortening the documentation window allows the model to be deployed before the next promotion week.",
-          "boundary": "He will not accept a shorter documentation window if the test cases are not fully verified.",
-          "trade_off": "He would accept a reduced scope of documentation if the core compliance checks are still performed.",
-          "fact": "That is simply how the evaluation setup works today."
+          "driver": "He wants the harness automated for speed.",
+          "boundary": "He will not approve a model if the harness is automated.",
+          "trade_off": "He would accept an automated harness if documented.",
+          "fact": "He insists on manual evaluation for rigor."
         },
         "metric_id": "requirements",
-        "suggested_target": "model.evaluation",
-        "suggested_level": 1,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": "requirements",
-        "concedes_loss": 2,
-        "concedes_target": "model.evaluation",
-        "concedes_max_level": 1,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": {
+          "component": "model.evaluation",
+          "axis": "automation",
+          "op": "lte",
+          "level": 2
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "model.evaluation",
+            "axis": "automation",
+            "value": 2,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
         "asserts_target": null,
+        "asserts_axis": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "automation",
-        "concedes_axis": "automation",
-        "asserts_axis": null,
         "branch_x_description": null,
         "branch_x_target": null,
         "branch_x_axis": null,
@@ -816,30 +1030,231 @@
         "branch_y_ops": []
       },
       {
-        "key": "fact_eval_broken",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "The model evaluation harness is currently broken and cannot run any tests.",
+        "key": "reuben_trade_off_acceptance",
+        "tag": "trade_off",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} suggested that the acceptance criteria hand-over is manual.",
         "readings": {
-          "driver": "Fixing the harness is essential for testing the new weather features.",
-          "boundary": "The harness must be fixed before any model changes are considered.",
-          "trade_off": "The team could accept a temporary manual evaluation if the harness is not fixed quickly.",
-          "fact": "That is simply how the evaluation setup works today."
+          "driver": "He wants the hand-over automated for consistency.",
+          "boundary": "He will not accept an automated hand-over without review.",
+          "trade_off": "He would give up manual hand-over if evaluation is rigorous.",
+          "fact": "He is open to automating the acceptance hand-over."
         },
         "metric_id": null,
         "suggested_target": null,
+        "suggested_axis": null,
         "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "e.acceptance_eval",
+        "concedes_axis": "automation",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "dave_driver_drift",
+        "tag": "driver",
+        "stakeholder_id": "data_dave",
+        "fact": "{data_dave} asked for the drift check hand-over to be automated.",
+        "readings": {
+          "driver": "Automating the drift check improves data quality monitoring.",
+          "boundary": "He will not accept a model change without drift checking.",
+          "trade_off": "He would skip drift checking if the data is stable.",
+          "fact": "He wants the drift check to run automatically."
+        },
+        "metric_id": "data",
+        "suggested_target": "e.driftcheck_train",
+        "suggested_axis": "automation",
+        "suggested_level": 2,
         "holds": null,
         "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
         "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": "model.evaluation",
-        "asserts_level": 0,
-        "suggested_axis": null,
         "concedes_axis": null,
-        "asserts_axis": "automation",
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "dave_trade_off_fs",
+        "tag": "trade_off",
+        "stakeholder_id": "data_dave",
+        "fact": "{data_dave} mentioned that the feature store hand-over is manual.",
+        "readings": {
+          "driver": "He wants the hand-over automated for speed.",
+          "boundary": "He will not accept a manual hand-over for new features.",
+          "trade_off": "He would give up automated hand-over if drift check is good.",
+          "fact": "He is open to manual feature store hand-over."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "e.fs_train",
+        "concedes_axis": "automation",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "emilia_driver_retrain",
+        "tag": "driver",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} proposed automating the retraining trigger pipeline.",
+        "readings": {
+          "driver": "Automating retraining aligns the model with business goals.",
+          "boundary": "She will not accept a model change without retraining.",
+          "trade_off": "She would skip retraining if the model is stable.",
+          "fact": "She wants the retraining trigger to run automatically."
+        },
+        "metric_id": "efficiency",
+        "suggested_target": "e.retrain_train",
+        "suggested_axis": "automation",
+        "suggested_level": 2,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "model.training_pipeline",
+            "axis": "automation",
+            "value": 3,
+            "attr": null
+          },
+          {
+            "kind": "raise_to",
+            "target": "e.train_eval",
+            "axis": "automation",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "emilia_trade_off_hpo",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} noted that hyperparameter tuning is manual.",
+        "readings": {
+          "driver": "She wants tuning automated for better performance.",
+          "boundary": "She will not accept manual tuning for new models.",
+          "trade_off": "She would give up automated tuning if retraining is fast.",
+          "fact": "She is open to manual hyperparameter tuning."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "model.hpo",
+        "concedes_axis": "automation",
+        "concedes_max_level": 1,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "emilia_trade_off_registry",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} suggested that the model registry is missing.",
+        "readings": {
+          "driver": "She wants a registry for model versioning.",
+          "boundary": "She will not accept a model change without a registry.",
+          "trade_off": "She would give up the registry if retraining is automated.",
+          "fact": "She is open to a missing model registry."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "model.registry",
+        "concedes_axis": "automation",
+        "concedes_max_level": 1,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
         "branch_x_description": null,
         "branch_x_target": null,
         "branch_x_axis": null,

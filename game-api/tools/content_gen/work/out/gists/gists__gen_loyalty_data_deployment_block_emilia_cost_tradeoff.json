@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_data_deployment_block_emilia_cost_tradeoff",
+  "stage": "gists",
+  "input_hash": "ceafb8ef5b0dee27c7b31a2cceb12fb40edd7b01631bc11dbc43b8d4dbc1c977",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_loyalty_data_deployment_block_emilia_cost_tradeoff",
+    "fact": "{efficiency_emilia} noted that the canary test can be skipped if the shadow test passes.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Gap"
+  },
+  "output": {
+    "gist": "The relationship between shadow testing and canary validation for model releases has been raised by {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist merely notes that the relationship between two validation methods was raised by a stakeholder, without expressing a stance on whether to increase, limit, or trade off efficiency."
+  }
+}

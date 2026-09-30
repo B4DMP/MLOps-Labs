@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_override_blind_spot_fact_eval_gov_none",
+  "stage": "artifacts",
+  "input_hash": "53c25431dadd19b754e0c757c6e149dd95a20cf0e1715f0413ed69aaf73a5e45",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_override_blind_spot_fact_eval_gov_none",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The model evaluation harness has no governance. That is simply the state of the evaluation harness today.",
+      "fact": "The model evaluation harness has no governance.",
+      "reading": "That is simply the state of the evaluation harness today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "model.evaluation",
+        "axis": "governance",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "narrator": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Override Blind Spot",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "I spent the last two hours tracing why the weekly retraining pipeline flagged a degradation in the northern region. The evaluation harness that scores our candidate models before deployment is running entirely without any formal review or sign off. There are no access controls on who can push a new metric threshold, and no audit log exists to show who changed the validation set criteria last month. It is just a set of scripts on a shared server that anyone with repo access can modify at will. The current state is that model quality checks are performed, but the governance surrounding those checks is completely absent from the workflow.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text exclusively describes the current operational state and lack of governance controls without expressing any wishes, refusals, or explicit trade-offs."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_monica_retrain_gov",
+  "stage": "gists",
+  "input_hash": "174bd5cc16432f0cbb5da01d54691c32c0616ebdc140942bcaa333825eef8be0",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_monica_retrain_gov",
+    "fact": "{model_monica} noted that the retraining trigger is not reviewed before execution.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "The weekly model retraining step and its execution controls have been raised by {model_monica}.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the topic as model retraining and execution controls but does not indicate a stance on increasing, limiting, or accepting trade-offs regarding these processes."
+  }
+}

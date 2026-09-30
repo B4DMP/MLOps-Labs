@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_emilia_drift_edge",
+  "stage": "gists",
+  "input_hash": "9abe9c5c77d81670d6613e82edba01758eb5768233f33ccee2dee19198a73467",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_emilia_drift_edge",
+    "fact": "{efficiency_emilia} mentioned that the data flow from observability to drift monitoring is a cost center.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "The ongoing expense of the drift monitoring data flow keeps coming up in {efficiency_emilia}'s notes.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes that the expense of the data flow is a recurring topic in the stakeholder's notes, but it does not specify whether the stakeholder wants to reduce it (driver), refuses to accept it (boundary), accepts the cost (trade_off), or is simply stating a fact about its existence."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_data_deployment_block_ruth_canary_concession",
+  "stage": "gists",
+  "input_hash": "feb888bfd885238d49bb76e8eb5211d9421cb68058f174edcafb7279f89e6454",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_loyalty_data_deployment_block_ruth_canary_concession",
+    "fact": "{reliability_ruth} mentioned that the canary test results can be reviewed by a single engineer if it speeds up the release.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Gap"
+  },
+  "output": {
+    "gist": "The review process for canary test results has come up in discussions about release speed.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions that the review process for canary tests (a reliability safeguard) has come up in discussions, but it does not specify whether the stakeholder wants to speed it up, slow it down, or remove it."
+  }
+}

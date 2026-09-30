@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_monica_eval_auto",
+  "stage": "gists",
+  "input_hash": "b357ae4438149459489558308124198f1e66c837bf050ecdf6506891c28176c5",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_monica_eval_auto",
+    "fact": "{model_monica} proposed automating the hand-over from model evaluation to the registry.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The hand over from model evaluation to the registry keeps coming up in team discussions.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the model handover process as a recurring topic of discussion but does not express a desire for change, a refusal, an accepted trade-off, or a definitive statement of fact about its quality or status."
+  }
+}

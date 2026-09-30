@@ -1,9 +1,9 @@
 {
   "item_id": "items:ch_committed_pallets",
   "stage": "items",
-  "input_hash": "d653deec9cf0facb1efb3a9340b9b20402449275083723d51efabffceda8695b",
+  "input_hash": "220db77fa8b07c53328851cb0eaec548ad0f078b81d9131069c3d80f573a4461",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 1,
+  "attempts": 3,
   "inputs": {
     "challenge": {
       "phase_id": 1,
@@ -14,27 +14,15 @@
       "metric_changes": {},
       "attention_tokens": 20,
       "priority": 75,
-      "preconditions": {
-        "all": [
-          {
-            "component": "req.acceptance_criteria",
-            "op": "eq",
-            "level": 1
-          },
-          {
-            "component": "req.risk_assessment",
-            "op": "eq",
-            "level": 1
-          }
-        ]
-      },
+      "preconditions": true,
       "fallback": false,
       "on_enter_ops": [
         {
           "kind": "set_to",
           "target": "req.acceptance_criteria",
           "value": 0,
-          "reason": "The team paused the sign off process to rush the supplier data integration for the locked promotion week"
+          "reason": "The team paused the sign off process to rush the supplier data integration for the locked promotion week",
+          "axis": "automation"
         }
       ],
       "stalemate_ops": [
@@ -42,7 +30,8 @@
           "kind": "set_to",
           "target": "req.risk_assessment",
           "value": 0,
-          "reason": "Without agreed criteria, the risk review was abandoned and the allocation logic went live without validation"
+          "reason": "Without agreed criteria, the risk review was abandoned and the allocation logic went live without validation",
+          "axis": "automation"
         }
       ],
       "conflict": {
@@ -51,11 +40,13 @@
         "positions": [
           {
             "stakeholder_id": "requirements_reuben",
-            "wants": 4
+            "wants": 3,
+            "axis": "governance"
           },
           {
             "stakeholder_id": "reliability_ruth",
-            "wants": 2
+            "wants": 2,
+            "axis": "automation"
           }
         ]
       },
@@ -88,7 +79,7 @@
         "role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling.",
         "priorities": "Building automated pipelines and maintaining full system operational stability. Ensuring seamless deployment, integration, and stability of models and services in production.",
         "metric_id": "automation",
-        "power": "low",
+        "power": "high",
         "interest": "low"
       },
       {
@@ -107,12 +98,16 @@
         {
           "id": "req.kpi_definition",
           "name": "KPI Definition",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
-            2,
-            4
+            2
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "requirements_reuben",
           "attributes": {}
@@ -120,12 +115,16 @@
         {
           "id": "req.acceptance_criteria",
           "name": "Acceptance Criteria",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
-            2,
-            4
+            2
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "requirements_reuben",
           "attributes": {}
@@ -133,13 +132,17 @@
         {
           "id": "req.data_contracts",
           "name": "Data Contracts",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
             2,
-            3,
-            4
+            3
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "requirements_reuben",
           "attributes": {}
@@ -147,12 +150,16 @@
         {
           "id": "req.risk_assessment",
           "name": "Risk Assessment",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "allowed_automation": [
             0,
             1,
-            2,
-            4
+            2
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "owner": "requirements_reuben",
           "attributes": {}
@@ -164,18 +171,21 @@
           "from": "req.data_contracts",
           "to": "data.ingestion",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
-            2,
-            3,
-            4
+            2
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
-            "manual_request",
-            "on_approval"
+            "manual_request"
           ]
         },
         {
@@ -183,18 +193,21 @@
           "from": "req.risk_assessment",
           "to": "req.acceptance_criteria",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
-            2,
-            3,
-            4
+            2
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
-            "manual_request",
-            "on_approval"
+            "manual_request"
           ]
         },
         {
@@ -202,18 +215,21 @@
           "from": "req.acceptance_criteria",
           "to": "model.evaluation",
           "kind": "pipeline",
-          "start_level": 1,
-          "allowed_levels": [
+          "start_automation": 1,
+          "start_governance": 0,
+          "start_trigger": "none",
+          "allowed_automation": [
             0,
             1,
-            2,
-            3,
-            4
+            2
+          ],
+          "allowed_governance": [
+            0,
+            3
           ],
           "allowed_triggers": [
             "none",
-            "manual_request",
-            "on_approval"
+            "manual_request"
           ]
         }
       ],
@@ -221,19 +237,24 @@
     },
     "current": {
       "req.kpi_definition": {
-        "level": 1
+        "automation": 1,
+        "governance": 0
       },
       "req.acceptance_criteria": {
-        "level": 0
+        "automation": 0,
+        "governance": 0
       },
       "req.data_contracts": {
-        "level": 1
+        "automation": 1,
+        "governance": 0
       },
       "req.risk_assessment": {
-        "level": 1
+        "automation": 1,
+        "governance": 0
       },
       "e.risk_acceptance": {
-        "level": 1,
+        "automation": 1,
+        "governance": 0,
         "trigger": "none"
       }
     },
@@ -245,10 +266,16 @@
       "reliability",
       "requirements"
     ],
+    "quotas": {
+      "efficiency_emilia": 2,
+      "requirements_reuben": 3,
+      "automation_alex": 2,
+      "reliability_ruth": 2
+    },
     "counts": {
       "stances": [
-        6,
-        10
+        9,
+        9
       ],
       "facts": [
         3,
@@ -257,59 +284,50 @@
     },
     "stance_mix": {
       "trade_off_min_share": 0.4,
-      "trade_off_max_share": 0.55,
+      "trade_off_max_share": 0.6,
       "driver_min_share": 0.25,
       "boundary_max_share": 0.34,
       "driver_min": 1,
       "boundary_min": 1
+    },
+    "stance_shape": {
+      "edge_min_share": 0.25,
+      "composite_min": 1,
+      "composite_atoms": [
+        2,
+        4
+      ],
+      "boundary_per_stakeholder_max": 1
     }
   },
   "output": {
     "items": [
       {
-        "key": "reuben_governance_wall",
-        "tag": "boundary",
-        "stakeholder_id": "requirements_reuben",
-        "fact": "{requirements_reuben} proposed that the acceptance criteria be governed to make the allocation logic auditable.",
+        "key": "fact_acceptance_broken",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The acceptance criteria for the allocation module are broken.",
         "readings": {
-          "driver": "He wants the audit trail to be as detailed as possible for every promotion week.",
-          "boundary": "He will not approve the release if the acceptance criteria remain below the governed level.",
-          "trade_off": "He would drop the audit requirement if the supplier delays the shipment by a week.",
-          "fact": "The current workflow does not include a governance step for the acceptance criteria."
+          "driver": "Restoring the criteria would allow the team to verify the allocation logic before the trucks leave.",
+          "boundary": "The release cannot proceed until the broken criteria are repaired and validated.",
+          "trade_off": "The team would accept keeping the criteria broken if the physical stock is already committed and the orders are live.",
+          "fact": "The criteria exist but stopped working before this promotion week."
         },
-        "metric_id": "requirements",
+        "metric_id": null,
         "suggested_target": null,
+        "suggested_axis": null,
         "suggested_level": null,
-        "holds": {
-          "component": "req.acceptance_criteria",
-          "op": "gte",
-          "level": 3,
-          "axis": "governance"
-        },
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "req.acceptance_criteria",
-            "value": 2,
-            "axis": "automation"
-          },
-          {
-            "kind": "raise_to",
-            "target": "req.acceptance_criteria",
-            "value": 3,
-            "axis": "governance"
-          }
-        ],
+        "holds": null,
+        "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
         "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": null,
-        "asserts_level": null,
-        "asserts_trigger": null,
-        "suggested_axis": null,
         "concedes_axis": null,
-        "asserts_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "req.acceptance_criteria",
+        "asserts_axis": "automation",
+        "asserts_level": 0,
+        "asserts_trigger": null,
         "branch_x_description": null,
         "branch_x_target": null,
         "branch_x_axis": null,
@@ -322,72 +340,274 @@
         "branch_y_ops": []
       },
       {
-        "key": "ruth_speed_trade",
-        "tag": "trade_off",
-        "stakeholder_id": "reliability_ruth",
-        "fact": "{reliability_ruth} proposed keeping the acceptance criteria as manual checks to ship the feature immediately.",
+        "key": "fact_risk_acceptance_edge",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The hand-over from risk assessment to acceptance criteria is missing and has no trigger.",
         "readings": {
-          "driver": "She wants the deployment pipeline to run without any human intervention.",
-          "boundary": "She refuses to delay the release for any governance review.",
-          "trade_off": "She will accept a lower level of governance if it allows the feature to ship before the trucks leave.",
-          "fact": "The current deployment process relies on manual verification steps."
+          "driver": "Establishing this hand-over would let risk findings flow into the criteria without manual intervention.",
+          "boundary": "The hand-over must be established before any risk assessment results can be considered valid.",
+          "trade_off": "The team would accept the hand-over remaining missing if the risk assessment is handled manually.",
+          "fact": "This hand-over never existed in the pipeline configuration."
         },
-        "metric_id": "reliability",
+        "metric_id": null,
         "suggested_target": null,
+        "suggested_axis": null,
         "suggested_level": null,
         "holds": null,
         "ops": [],
-        "concedes_metric": "requirements",
-        "concedes_loss": 5,
-        "asserts_target": null,
-        "asserts_level": null,
-        "asserts_trigger": null,
-        "branch_x_description": "the acceptance criteria fully governed",
-        "branch_x_target": "req.acceptance_criteria",
-        "branch_x_level": 3,
-        "branch_y_description": "the acceptance criteria kept as a basic manual check",
-        "branch_y_target": "req.acceptance_criteria",
-        "branch_y_level": 2,
-        "suggested_axis": null,
-        "asserts_axis": null,
-        "branch_x_axis": "governance",
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "e.risk_acceptance",
+        "asserts_axis": "automation",
+        "asserts_level": 1,
+        "asserts_trigger": "none",
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
         "branch_x_ops": [],
-        "branch_y_axis": "automation",
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
         "branch_y_ops": []
       },
       {
-        "key": "emilia_kpi_driver",
-        "tag": "driver",
-        "stakeholder_id": "efficiency_emilia",
-        "fact": "{efficiency_emilia} proposed defining the KPIs for the promotion week to track residual stock and margin.",
+        "key": "fact_risk_acceptance_gov",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The hand-over from risk assessment to acceptance criteria has no governance.",
         "readings": {
-          "driver": "She wants the KPIs to be calculated automatically so the team can see the impact in real time.",
-          "boundary": "She will not approve the project if the KPIs are not defined.",
-          "trade_off": "She would accept a manual KPI report if the automated version is delayed.",
-          "fact": "The KPI definition is currently missing."
+          "driver": "Adding governance to this hand-over would ensure risk findings are properly reviewed.",
+          "boundary": "The hand-over cannot be used for compliance purposes until it is fully governed.",
+          "trade_off": "The team would accept the hand-over having no governance if the risk assessment is done by hand.",
+          "fact": "No one reviews the movement of data between these two steps."
         },
-        "metric_id": "efficiency",
-        "suggested_target": "req.kpi_definition",
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "e.risk_acceptance",
+        "asserts_axis": "governance",
+        "asserts_level": 0,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "fact_acceptance_gov",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The acceptance criteria for the allocation module have no governance.",
+        "readings": {
+          "driver": "Governing the criteria would ensure they are auditable for the promotion week.",
+          "boundary": "The criteria cannot be used for compliance sign-off until they are fully governed.",
+          "trade_off": "The team would accept the criteria having no governance if the manual checks are sufficient for this release.",
+          "fact": "There is no formal sign off process attached to the acceptance criteria."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": "req.acceptance_criteria",
+        "asserts_axis": "governance",
+        "asserts_level": 0,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "efficiency_emilia_trade_off_1",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} proposed accepting a manual review of the KPI definition to save time.",
+        "readings": {
+          "driver": "She wants the KPI definition to be fully governed to ensure strategic alignment.",
+          "boundary": "She will not allow the KPI definition to be automated without a formal sign off.",
+          "trade_off": "She would accept the KPI definition remaining manual if it speeds up the release of the allocation feature.",
+          "fact": "That is simply how the KPI definition works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "req.kpi_definition",
+        "concedes_axis": "automation",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "efficiency_emilia_trade_off_2",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} mentioned that the data contracts can stay manual for this release.",
+        "readings": {
+          "driver": "She wants the data contracts to be automated to reduce operational friction.",
+          "boundary": "She will not allow the data contracts to be governed without a full audit trail.",
+          "trade_off": "She would accept the data contracts remaining manual if the focus is on the live allocation orders.",
+          "fact": "That is simply how the data contracts work today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "req.data_contracts",
+        "concedes_axis": "automation",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "requirements_reuben_boundary_1",
+        "tag": "boundary",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} proposed that the acceptance criteria must be fully governed.",
+        "readings": {
+          "driver": "He wants the acceptance criteria to be automated to ensure consistency.",
+          "boundary": "He will not allow the allocation to proceed unless the acceptance criteria are fully governed.",
+          "trade_off": "He would accept manual checks if the risk assessment is automated.",
+          "fact": "That is simply how the acceptance criteria work today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": {
+          "component": "req.acceptance_criteria",
+          "axis": "governance",
+          "op": "gte",
+          "level": 3
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "req.acceptance_criteria",
+            "axis": "governance",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "requirements_reuben_driver_1",
+        "tag": "driver",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} asked for the risk assessment and the hand-over to acceptance criteria to be fully governed.",
+        "readings": {
+          "driver": "He wants the risk assessment and the hand-over to acceptance criteria to be fully governed to ensure compliance before the trucks leave.",
+          "boundary": "He will not allow the risk assessment to be automated without a formal sign off.",
+          "trade_off": "He would accept the risk assessment remaining manual if the acceptance criteria are governed.",
+          "fact": "That is simply how the risk assessment works today."
+        },
+        "metric_id": "requirements",
+        "suggested_target": "req.risk_assessment",
+        "suggested_axis": "governance",
         "suggested_level": 3,
         "holds": null,
         "ops": [
           {
             "kind": "raise_to",
-            "target": "req.kpi_definition",
+            "target": "e.risk_acceptance",
+            "axis": "governance",
             "value": 3,
-            "axis": "governance"
+            "attr": null
           }
         ],
         "concedes_metric": null,
         "concedes_loss": null,
         "concedes_target": null,
+        "concedes_axis": null,
         "concedes_max_level": null,
         "asserts_target": null,
+        "asserts_axis": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "governance",
-        "concedes_axis": null,
-        "asserts_axis": null,
         "branch_x_description": null,
         "branch_x_target": null,
         "branch_x_axis": null,
@@ -400,145 +620,179 @@
         "branch_y_ops": []
       },
       {
-        "key": "alex_pipeline_trade",
+        "key": "requirements_reuben_trade_off_1",
         "tag": "trade_off",
-        "stakeholder_id": "automation_alex",
-        "fact": "{automation_alex} mentioned that the data contracts are currently manual and would take time to automate.",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} mentioned that the data contracts can be manual for this specific release.",
         "readings": {
-          "driver": "He wants the data contracts to be fully automated to reduce manual errors.",
-          "boundary": "He will not deploy if the data contracts are not automated.",
-          "trade_off": "He would accept keeping the data contracts manual for this release to meet the deadline.",
-          "fact": "The data contracts are currently managed by hand."
-        },
-        "metric_id": "automation",
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": "automation",
-        "concedes_loss": 3,
-        "concedes_target": "req.data_contracts",
-        "concedes_max_level": 2,
-        "asserts_target": null,
-        "asserts_level": null,
-        "asserts_trigger": null,
-        "branch_x_description": "the data contracts fully automated",
-        "branch_x_target": "req.data_contracts",
-        "branch_x_level": 3,
-        "branch_y_description": "the data contracts kept manual for this release",
-        "branch_y_target": "req.data_contracts",
-        "branch_y_level": 2,
-        "suggested_axis": null,
-        "concedes_axis": "automation",
-        "asserts_axis": null,
-        "branch_x_axis": "governance",
-        "branch_x_ops": [],
-        "branch_y_axis": "automation",
-        "branch_y_ops": []
-      },
-      {
-        "key": "ruth_monitoring_driver",
-        "tag": "driver",
-        "stakeholder_id": "reliability_ruth",
-        "fact": "{reliability_ruth} suggested adding a monitoring check for the allocation module to catch errors before the trucks leave.",
-        "readings": {
-          "driver": "She wants the monitoring to be automated so it runs continuously without manual intervention.",
-          "boundary": "She will not ship the feature without a monitoring check.",
-          "trade_off": "She would accept a manual monitoring check if the automated one is not ready.",
-          "fact": "The allocation module currently has no monitoring check."
-        },
-        "metric_id": "reliability",
-        "suggested_target": "req.acceptance_criteria",
-        "suggested_level": 2,
-        "holds": null,
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "req.acceptance_criteria",
-            "value": 2,
-            "axis": "automation"
-          }
-        ],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": null,
-        "asserts_level": null,
-        "asserts_trigger": null,
-        "suggested_axis": "automation",
-        "concedes_axis": null,
-        "asserts_axis": null,
-        "branch_x_description": null,
-        "branch_x_target": null,
-        "branch_x_axis": null,
-        "branch_x_level": null,
-        "branch_x_ops": [],
-        "branch_y_description": null,
-        "branch_y_target": null,
-        "branch_y_axis": null,
-        "branch_y_level": null,
-        "branch_y_ops": []
-      },
-      {
-        "key": "emilia_cost_trade",
-        "tag": "trade_off",
-        "stakeholder_id": "efficiency_emilia",
-        "fact": "{efficiency_emilia} noted that the cost of the promotion week is a key factor in the decision.",
-        "readings": {
-          "driver": "She wants the cost tracking to be as detailed as possible to optimize the margin.",
-          "boundary": "She will not approve the project if the cost exceeds the budget.",
-          "trade_off": "She would accept a lower level of cost tracking if it saves money on the project.",
-          "fact": "The cost tracking is currently done manually."
-        },
-        "metric_id": "efficiency",
-        "suggested_target": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": "efficiency",
-        "concedes_loss": 2,
-        "asserts_target": null,
-        "asserts_level": null,
-        "asserts_trigger": null,
-        "branch_x_description": "the promotion week's KPIs calculated automatically",
-        "branch_x_target": "req.kpi_definition",
-        "branch_x_level": 3,
-        "branch_y_description": "a lower, manually tracked level of cost reporting",
-        "branch_y_target": "req.kpi_definition",
-        "branch_y_level": 2,
-        "suggested_axis": null,
-        "asserts_axis": null,
-        "branch_x_axis": "governance",
-        "branch_x_ops": [],
-        "branch_y_axis": "automation",
-        "branch_y_ops": []
-      },
-      {
-        "key": "fact_acceptance_missing",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "The acceptance criteria for the allocation module are currently broken.",
-        "readings": {
-          "driver": "The team wants to add acceptance criteria to ensure quality.",
-          "boundary": "The team will not ship without acceptance criteria.",
-          "trade_off": "The team would accept missing acceptance criteria if it speeds up the release.",
-          "fact": "That is simply how the acceptance criteria setup works today."
+          "driver": "He wants the data contracts to be automated to ensure data integrity.",
+          "boundary": "He will not allow the data contracts to be governed without a full audit trail.",
+          "trade_off": "He would accept the data contracts remaining manual if the acceptance criteria are fully governed.",
+          "fact": "That is simply how the data contracts work today."
         },
         "metric_id": null,
         "suggested_target": null,
+        "suggested_axis": null,
         "suggested_level": null,
         "holds": null,
         "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
+        "concedes_target": "req.data_contracts",
+        "concedes_axis": "automation",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "automation_alex_driver_1",
+        "tag": "driver",
+        "stakeholder_id": "automation_alex",
+        "fact": "{automation_alex} asked for the hand-over from risk assessment to acceptance criteria to be automated.",
+        "readings": {
+          "driver": "He wants the hand-over from risk assessment to acceptance criteria to be automated to reduce manual errors.",
+          "boundary": "He will not allow the hand-over to be governed without a formal sign off.",
+          "trade_off": "He would accept the hand-over remaining manual if the acceptance criteria are automated.",
+          "fact": "That is simply how the hand-over works today."
+        },
+        "metric_id": "automation",
+        "suggested_target": "e.risk_acceptance",
+        "suggested_axis": "automation",
+        "suggested_level": 2,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
         "concedes_target": null,
-        "concedes_max_level": null,
-        "asserts_target": "req.acceptance_criteria",
-        "asserts_level": 0,
-        "suggested_axis": null,
         "concedes_axis": null,
-        "asserts_axis": "automation",
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "automation_alex_trade_off_1",
+        "tag": "trade_off",
+        "stakeholder_id": "automation_alex",
+        "fact": "{automation_alex} proposed that the KPI definition can remain manual for this release.",
+        "readings": {
+          "driver": "He wants the KPI definition to be automated to ensure consistency.",
+          "boundary": "He will not allow the KPI definition to be governed without a formal sign off.",
+          "trade_off": "He would accept the KPI definition remaining manual if the hand-over from risk assessment to acceptance criteria is automated.",
+          "fact": "That is simply how the KPI definition works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "req.kpi_definition",
+        "concedes_axis": "automation",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "reliability_ruth_driver_1",
+        "tag": "driver",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} asked for the acceptance criteria to be automated to manual checks.",
+        "readings": {
+          "driver": "She wants the acceptance criteria to be automated to manual checks to speed up the release.",
+          "boundary": "She will not allow the acceptance criteria to be governed without a formal sign off.",
+          "trade_off": "She would accept the acceptance criteria remaining broken if the risk assessment is automated.",
+          "fact": "That is simply how the acceptance criteria work today."
+        },
+        "metric_id": "reliability",
+        "suggested_target": "req.acceptance_criteria",
+        "suggested_axis": "automation",
+        "suggested_level": 2,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_axis": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "reliability_ruth_trade_off_1",
+        "tag": "trade_off",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} mentioned that the risk assessment can remain manual for this release.",
+        "readings": {
+          "driver": "She wants the risk assessment to be automated to ensure reliability.",
+          "boundary": "She will not allow the risk assessment to be governed without a formal sign off.",
+          "trade_off": "She would accept the risk assessment remaining manual if the acceptance criteria are automated to manual checks.",
+          "fact": "That is simply how the risk assessment works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "req.risk_assessment",
+        "concedes_axis": "automation",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
         "branch_x_description": null,
         "branch_x_target": null,
         "branch_x_axis": null,

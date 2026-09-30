@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_emilia_canary_automation",
+  "stage": "gists",
+  "input_hash": "a3d0f4c3467645984a717802254933b8062bcba8f0c211c0bccecee0aea30382",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_emilia_canary_automation",
+    "fact": "{efficiency_emilia} noted that the canary testing setup is currently absent.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The release pipeline's canary testing setup has been brought up by {efficiency_emilia} regarding deployment speed.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that canary testing was raised in the context of deployment speed, but it does not indicate whether the stakeholder wants to increase speed, refuse changes, accept trade-offs, or is merely stating a fact."
+  }
+}

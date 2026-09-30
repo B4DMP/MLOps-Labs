@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_emilia_registry_cicd",
+  "stage": "gists",
+  "input_hash": "f1332d506d0bc0a2e5735c64bd7acc574a6e616f953ff445fa8c4a2d4d4beec5",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_emilia_registry_cicd",
+    "fact": "{efficiency_emilia} brought up the manual nature of the registry to CI/CD hand-over.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The hand over between the model registry and the CI/CD pipeline keeps coming up in {efficiency_emilia}'s notes.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist merely states that the handover process is a recurring topic in notes, without expressing a desire to improve it, a refusal, a trade-off, or a definitive factual claim about its performance."
+  }
+}

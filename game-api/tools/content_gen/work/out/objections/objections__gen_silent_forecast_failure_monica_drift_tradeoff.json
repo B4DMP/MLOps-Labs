@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_silent_forecast_failure_monica_drift_tradeoff",
+  "stage": "objections",
+  "input_hash": "93eae0867058a7461caff61719ab7642f0ecdb6ff32c34e4cbb9a71601172032",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_silent_forecast_failure_monica_drift_tradeoff",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} noted that the drift monitoring hand-over can be less frequent to save on compute costs. She would accept a less frequent drift hand-over if it reduces the compute costs.",
+      "fact": "{model_monica} noted that the drift monitoring hand-over can be less frequent to save on compute costs.",
+      "reading": "She would accept a less frequent drift hand-over if it reduces the compute costs.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "e.observe_drift",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "You are treating my offer to reduce drift monitoring frequency as a free concession, but it is a trade for lower compute costs. I need that cost saving explicitly acknowledged in the plan, not just the reduced coverage.",
+    "correction": "I am not volunteering to let the model run blind for weeks to save a few pennies. I am saying the hand over can be less frequent only if you commit to the cheaper compute budget I requested."
+  }
+}

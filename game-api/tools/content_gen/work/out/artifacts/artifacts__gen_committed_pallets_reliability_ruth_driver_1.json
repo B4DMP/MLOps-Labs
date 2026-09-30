@@ -1,0 +1,49 @@
+{
+  "item_id": "artifacts:gen_committed_pallets_reliability_ruth_driver_1",
+  "stage": "artifacts",
+  "input_hash": "a8b027c034da1d836a906e6fd2da7e1bb9afbe5e59c00162c4e26296b1ead580",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_committed_pallets_reliability_ruth_driver_1",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} asked for the acceptance criteria to be automated to manual checks. She wants the acceptance criteria to be automated to manual checks to speed up the release.",
+      "fact": "{reliability_ruth} asked for the acceptance criteria to be automated to manual checks.",
+      "reading": "She wants the acceptance criteria to be automated to manual checks to speed up the release.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "req.acceptance_criteria",
+        "axis": "automation",
+        "level": 2
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "author": {
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Committed Pallets",
+      "description": "A supplier has confirmed a bulk order for a middle aisle promotion that ships next week, leaving no room for model error. #requirements_reuben# insists the acceptance criteria must be fully governed to guarantee the allocation logic is auditable before the trucks leave. #reliability_ruth# argues the criteria are sufficient as manual checks because the physical stock is already committed and the team needs to ship the feature immediately to handle the live orders."
+    }
+  },
+  "output": {
+    "content": "The pallets are already committed to the supplier and the trucks leave in days. We cannot wait for a full governance cycle to verify the allocation logic. {reliability_ruth} wants the acceptance criteria to be automated to manual checks to speed up the release. The current manual process is too slow for the live order window. If we automate these checks, we can validate the allocation logic quickly and ship the feature immediately. This allows us to handle the live orders without delay. The physical stock is locked in, so we need the system to process the data now. Automating the checks gives us the speed we need to avoid missing the shipment window. We must move faster than the current manual verification allows.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The text expresses a strong need to automate checks to meet the immediate shipment window, and doing more to expedite this process would satisfy the author's urgency."
+  }
+}

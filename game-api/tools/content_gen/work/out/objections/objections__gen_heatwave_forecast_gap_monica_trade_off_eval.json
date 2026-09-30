@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_heatwave_forecast_gap_monica_trade_off_eval",
+  "stage": "objections",
+  "input_hash": "538957de0f693a42cd157f2f664d8fc86d1c7dae0425d43fff875817f82aee47",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_monica_trade_off_eval",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} mentioned that the model evaluation harness is manual. She would give up rapid testing if the harness is manual.",
+      "fact": "{model_monica} mentioned that the model evaluation harness is manual.",
+      "reading": "She would give up rapid testing if the harness is manual.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.evaluation",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "I said the manual evaluation harness is a bottleneck, not that I am happy to work slowly. You cannot ask me to iterate on model versions if every test takes days to run by hand.",
+    "correction": "I was not asking for more compute or a bigger team. I was telling you that the current manual process prevents the rapid testing we need to catch drift before it hits the stores."
+  }
+}

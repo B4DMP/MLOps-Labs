@@ -1,0 +1,57 @@
+{
+  "item_id": "artifacts:gen_heatwave_kpi_gap_emilia_acceptance_boundary",
+  "stage": "artifacts",
+  "input_hash": "d543698ba7acae63034211b28f094689bf070f957f8f2de66600fca72a834355",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_kpi_gap_emilia_acceptance_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "boundary",
+      "description": "{efficiency_emilia} brought up that the acceptance criteria must remain aligned with business strategy. She will not allow the acceptance criteria to be automated without a governance review.",
+      "fact": "{efficiency_emilia} brought up that the acceptance criteria must remain aligned with business strategy.",
+      "reading": "She will not allow the acceptance criteria to be automated without a governance review.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "req.acceptance_criteria",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.acceptance_criteria",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "author": {
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    },
+    "challenge": {
+      "name": "The Summer Forecast Gap",
+      "description": "A sudden heatwave has skewed demand for seasonal goods, exposing that our KPI definitions do not account for weather driven spikes. #model_monica# wants to automate the KPI tracking to capture these shifts in real time, while #efficiency_emilia# prefers to keep the process manual to ensure every metric aligns with the broader business strategy. #efficiency_emilia# might accept an automated solution if it clearly supports the agreed business goals."
+    }
+  },
+  "output": {
+    "content": "We need to be clear about the line here. I am not willing to let the acceptance criteria for our seasonal KPIs move into an automated pipeline without a formal governance review. The metrics must stay aligned with the broader business strategy, and that alignment is a strategic decision, not a technical one. If we automate the tracking without that review, we risk measuring the wrong things during a heatwave and missing the actual business impact. I will refuse to sign off on any deployment where the criteria are locked in without that human check. The tooling can capture the data, but the definition of success must remain under strategic control.",
+    "reclassified_as": "boundary",
+    "reclassify_reason": "The author explicitly refuses to sign off on deployments without a formal governance review, establishing a hard limit on automation that cannot be crossed."
+  }
+}

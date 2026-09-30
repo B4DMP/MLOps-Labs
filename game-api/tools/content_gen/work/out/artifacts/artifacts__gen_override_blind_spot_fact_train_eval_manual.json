@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_override_blind_spot_fact_train_eval_manual",
+  "stage": "artifacts",
+  "input_hash": "7f53fcd5c90582fd6e4b22ea03e2172b14cd7d020dc4dc2028670a2ac6b31cdd",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement": {
+      "id": "gen_override_blind_spot_fact_train_eval_manual",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The hand-over from the training pipeline to the evaluation harness is done by hand. That is simply the state of the hand-over today.",
+      "fact": "The hand-over from the training pipeline to the evaluation harness is done by hand.",
+      "reading": "That is simply the state of the hand-over today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.train_eval",
+        "axis": "automation",
+        "level": 2,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "narrator": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Override Blind Spot",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "During the sync, {model_monica} described the current workflow between the training pipeline and the evaluation harness. She explained that a person manually copies the model artifact from one directory to the other after each weekly retraining. This transfer is not automated. The team uses a shared calendar reminder to track when the copy should happen. {model_monica} stated that this manual step has caused delays on two occasions when the assigned engineer was absent. She confirmed that the nightly forecast service has not failed because of this hand over. The process remains a manual task performed by hand each week.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The artifact documents the current state of the workflow and past incidents without expressing any wishes, refusals, or stated trade-offs."
+  }
+}

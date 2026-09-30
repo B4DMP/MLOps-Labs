@@ -1,7 +1,7 @@
 {
   "item_id": "objections:gen_heatwave_forecast_gap_monica_driver_eval",
   "stage": "objections",
-  "input_hash": "336ce37e97e730d3c081e58bef530cc6cb6ad707f0b377ea92e484f506049682",
+  "input_hash": "bc7fec3f72414732f3b35947e9f13da24f7449a1201521c7acdd55d785f394f6",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -11,22 +11,17 @@
       "challenge_id": -1,
       "stakeholder_id": "model_monica",
       "type": "driver",
-      "description": "{model_monica} asked for automated testing of new weather features in the evaluation harness. Faster iteration on the weather feature set directly improves the forecast accuracy for the northern region's seasonal shifts.",
-      "fact": "{model_monica} asked for automated testing of new weather features in the evaluation harness.",
-      "reading": "Faster iteration on the weather feature set directly improves the forecast accuracy for the northern region's seasonal shifts.",
+      "description": "{model_monica} asked for the model evaluation harness to be automated. Automating the harness lets her test weather features faster.",
+      "fact": "{model_monica} asked for the model evaluation harness to be automated.",
+      "reading": "Automating the harness lets her test weather features faster.",
       "metric_id": "model",
       "suggested": {
         "target": "model.evaluation",
-        "level": 3
+        "axis": "automation",
+        "level": 1
       },
       "holds": null,
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "model.evaluation",
-          "value": 3
-        }
-      ],
+      "ops": [],
       "concedes": null,
       "branch_x": null,
       "branch_y": null,
@@ -44,7 +39,7 @@
     }
   },
   "output": {
-    "objection": "You are missing the point when you treat this as a one off request for a single weather variable. I need the harness to automatically test the entire seasonal feature set so I can iterate on the northern region's demand shifts without waiting for manual validation.",
-    "correction": "Stop misreading my ask as a simple data pipeline fix for one specific feed. I am asking for a rigorous evaluation framework that lets me test and version new model features end to end, which is what actually drives the accuracy improvements you need."
+    "objection": "Automating the harness is just the baseline, not the finish line. I need the pipeline to ingest live weather feeds so I can test feature drift without waiting for a nightly batch.",
+    "correction": "You logged this as a general tooling request, but I specifically flagged the weather data integration as the blocker. The automation is only useful if it can pull that external feed in real time."
   }
 }

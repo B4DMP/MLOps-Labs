@@ -1,0 +1,52 @@
+{
+  "item_id": "artifacts:gen_nightly_window_miss_fact_forecast_incomplete",
+  "stage": "artifacts",
+  "input_hash": "3687a850e53420977e6251af3dd799d1aaea108f6927fffee57a077142d7a075",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_nightly_window_miss_fact_forecast_incomplete",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The forecast job started with incomplete data last night, causing wrong order suggestions. That is simply how the forecast job works today.",
+      "fact": "The forecast job started with incomplete data last night, causing wrong order suggestions.",
+      "reading": "That is simply how the forecast job works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "data.validation",
+        "axis": "automation",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "narrator": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    },
+    "challenge": {
+      "name": "The Midnight Deadline",
+      "description": ""
+    },
+    "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "Last night the nightly forecast run pulled from the point of sale feed before the final batch of till scans had landed. The job did not fail, but it processed a partial dataset, which meant the order suggestions generated for the morning window were based on incomplete sales history. The pipeline did not flag the missing data or pause the run. Because the automated check for data completeness is not yet active, the system simply proceeded. The team is currently reviewing the logs manually each morning to see if the previous night’s ingestion was cut short. They then manually adjust the affected order suggestions in the staging environment before the store manager app pulls the final numbers. This manual review step is the current workaround for the missing automated validation gate.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the current operational state, the specific failure mode, and the existing manual workaround without expressing any wishes, refusals, or stated needs for change."
+  }
+}

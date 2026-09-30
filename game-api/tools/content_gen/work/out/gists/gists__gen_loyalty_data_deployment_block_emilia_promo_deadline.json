@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_data_deployment_block_emilia_promo_deadline",
+  "stage": "gists",
+  "input_hash": "01d16d1435a1df8ea0b88a18e67d63fe3f3cebb378f619517147793fa64127da",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_loyalty_data_deployment_block_emilia_promo_deadline",
+    "fact": "{efficiency_emilia} proposed that the entire deployment chain should run without human intervention to meet the promotion deadline.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Gap"
+  },
+  "output": {
+    "gist": "The timing of the promotion deadline relative to the deployment process has been raised by {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions that a timing issue was raised by a stakeholder but does not specify whether they are demanding a change, setting a boundary, accepting a trade-off, or stating a fact."
+  }
+}

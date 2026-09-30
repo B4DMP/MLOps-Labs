@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_committed_pallets_reliability_ruth_driver_1",
+  "stage": "gists",
+  "input_hash": "1fdf71fd1a1dfef5ccd92ed6835b06a94e5d7202c0fef86653ca641cc4dee4db",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_committed_pallets_reliability_ruth_driver_1",
+    "fact": "{reliability_ruth} asked for the acceptance criteria to be automated to manual checks.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Committed Pallets"
+  },
+  "output": {
+    "gist": "Acceptance criteria for the forecast pipeline keep coming up whenever you talk to {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that acceptance criteria for the forecast pipeline are frequently raised by a stakeholder, but it does not specify whether this indicates a desire for more reliability, a refusal, a trade-off, or is merely a factual observation about the conversation."
+  }
+}

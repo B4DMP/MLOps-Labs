@@ -8,7 +8,7 @@ The long pole. Precondition driven selection plus the new taxonomy plus determin
 
 ```
 challenge template   preconditions on patterns, on_enter_ops, stalemate_ops, conflict with type, focus stages, intro
-stance items         6 to 10 per challenge: Driver, Boundary, Trade-off, with payloads per 02
+stance items         per stakeholder by quadrant (see "Stance shape"): Driver, Boundary, Trade-off, with payloads per 02
 fact items           3 to 6 per challenge, on targets in the focus stages
 artifacts            1 per item: stakeholder types for stances, technical types for facts
 objections           per (stakeholder, target, kind): stance, boundary, price, technical, correction, see 06
@@ -61,6 +61,29 @@ same `player_text_errors` check the other two stages already run, next time this
 `make content-status-tier1` / `content-validate-tier1` / `content-assemble-tier1` wrap the
 container-side CLI calls; CI's `validate-game-content` job runs `--scope tier1 validate` alongside
 tier0.
+
+## Stance shape
+
+Playtests showed thin rooms: most stakeholders had one or two items, 1 of 45 stance items targeted an edge
+and none asked for more than one change. The items stage (prompt `i10`) now shapes every challenge:
+
+| rule | value | where |
+|---|---|---|
+| items per stakeholder | high power and high interest 4, high power and low interest 3, everyone else 2 | `DEFAULT_STANCES_PER_QUADRANT`, override `stances_per_quadrant` in a scope, or `quota_overrides` and `mix_overrides` per template for one challenge the model cannot fill cleanly (tier1: `ch_committed_pallets` 9 items) |
+| hand-overs | at least 25 percent of the stances touch an edge of the focus stage (as target, composite step, branch or predicate) | `stance_shape.edge_min_share` |
+| composite drivers | at least 1 driver per challenge names 2 to 4 different changes over components and edges ("automate the whole data pipeline"); the card holds 3 changes, so they are met in part | `composite_min`, `composite_atoms` |
+| red lines | at most one Boundary per stakeholder | `boundary_per_stakeholder_max` |
+
+A stakeholder's own items never undo each other (`self_contradictions` in `domain/requirement.py`): no Driver,
+Boundary or Trade-off of one stakeholder demands more on a (target, axis) than a concession, branch or upper
+limit of theirs allows, and none write different values to one attribute or trigger. A Trade-off only counts as
+demanding a target when all its branches raise it, because the player can pick the branch that avoids it.
+
+A challenge must stay passable without a veto: `solvability.find_veto_free_card` searches every card of at most
+3 changes built from what the items name, scored by the game's own `card_view` with neutral emotions, and the
+items check fails when none passes. The same gate (`veto:`) and `contradiction:` run on assembled content in
+`content_gen validate`. The quota and hand-over/composite gates (`shape:`) are warnings until a scope sets
+`shape_blocks: true`, which is the switch to flip once the content is regenerated.
 
 ## Generation harness
 

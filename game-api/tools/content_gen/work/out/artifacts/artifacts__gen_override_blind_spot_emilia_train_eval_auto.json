@@ -1,0 +1,66 @@
+{
+  "item_id": "artifacts:gen_override_blind_spot_emilia_train_eval_auto",
+  "stage": "artifacts",
+  "input_hash": "ea4e87814ca3ca585f6f391d563c754feae7c1e21ccf4697ecd6728c37ed98a6",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_override_blind_spot_emilia_train_eval_auto",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} proposed automating the hand-over from the training pipeline to the evaluation harness. She wants the training pipeline to feed the evaluation harness automatically to reduce cycle time.",
+      "fact": "{efficiency_emilia} proposed automating the hand-over from the training pipeline to the evaluation harness.",
+      "reading": "She wants the training pipeline to feed the evaluation harness automatically to reduce cycle time.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "e.train_eval",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.training_pipeline",
+          "axis": "automation",
+          "value": 3
+        },
+        {
+          "kind": "raise_to",
+          "target": "model.evaluation",
+          "axis": "automation",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(e.train_eval, 3)",
+        "raise_to(model.training_pipeline, 3)",
+        "raise_to(model.evaluation, 3)"
+      ],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "author": {
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    },
+    "challenge": {
+      "name": "The Override Blind Spot",
+      "description": "Store managers are overriding order suggestions at an alarming rate because they cannot verify if the model behind them is the one they tested. #model_monica# wants a fully automated registry to ensure every deployment is traceable and reproducible. #requirements_reuben# has a red line: no model enters the registry without a manual, documented review of its evaluation metrics to ensure compliance, so he insists on keeping the process manual."
+    }
+  },
+  "output": {
+    "content": "We are losing valuable cycle time because the hand over from the training pipeline to the evaluation harness is still done by hand. Every time we retrain, a human has to manually trigger the evaluation run, which delays our ability to see fresh metrics. I want this step automated so that the moment a new model version finishes training, it is immediately pushed to the evaluation harness. This will allow us to iterate faster and catch performance drift before it impacts store replenishment. The more automatic this link is, the better, because it removes a significant bottleneck in our development workflow and lets us focus on improving forecast accuracy rather than managing manual transfers.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The text articulates a need to automate the handover to remove a bottleneck, and the author explicitly states that making this link more automatic would make them happier by allowing faster iteration and focus on forecast accuracy."
+  }
+}
