@@ -463,14 +463,16 @@ export default function OfflineIntelGathering({
     if (!artifact.content) return;
     narrationCancelRef.current(); // a replay or a fresh artifact both interrupt any prior reading
     const speaker = artifact.stakeholder_id ? stakeholders[artifact.stakeholder_id] : undefined;
-    const slot = speaker ? slotForStakeholderVoice(speaker.voice) : "narrator";
+    // Meeting notes are a third-party summary, not the stakeholder speaking.
+    const isNarrated = !speaker || artifact.artifact_type === "meeting_notes";
+    const slot = isNarrated ? "narrator" : slotForStakeholderVoice(speaker.voice);
 
     setIsNarrating(true);
     setNarratingArtifactKey(artifact.id);
     setActiveSentenceIndex(null);
     narrationCancelRef.current = speakTts(artifact.content, {
       slot,
-      seed: artifact.stakeholder_id || undefined,
+      seed: isNarrated ? undefined : artifact.stakeholder_id || undefined,
       onSentence: ({ index }) => setActiveSentenceIndex(index),
       onEnd: () => {
         setIsNarrating(false);
