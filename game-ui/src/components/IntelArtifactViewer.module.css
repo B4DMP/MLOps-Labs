@@ -200,15 +200,20 @@
   padding: 14px 20px;
 }
 
-.chatUserRow {
+.chatMessageRow {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 10px;
 }
 
 .chatAvatarWrapper {
   position: relative;
+  flex-shrink: 0;
+}
+
+.chatMessageContent {
+  flex: 1;
+  min-width: 0;
 }
 
 .chatAvatar {
@@ -241,6 +246,7 @@
   align-items: baseline;
   gap: 8px;
   flex-wrap: wrap;
+  margin-bottom: 4px;
 }
 
 .chatUserName {
@@ -274,12 +280,10 @@
   line-height: 1.5;
   color: #1e293b;
   white-space: pre-wrap;
-  margin-left: 50px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .reactionBar {
-  margin-left: 50px;
   margin-top: 8px;
   display: flex;
   align-items: center;

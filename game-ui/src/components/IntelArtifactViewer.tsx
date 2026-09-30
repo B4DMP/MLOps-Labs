@@ -120,29 +120,29 @@ export default function IntelArtifactViewer({
 
         {/* Message Container */}
         <div className={styles.chatMessageBody}>
-          <div className={styles.chatUserRow}>
+          <div className={styles.chatMessageRow}>
             <div className={styles.chatAvatarWrapper}>
               <div className={styles.chatAvatar}>{initial}</div>
               <div className={styles.onlineStatusDot} />
             </div>
-            <div>
-              <div className={styles.chatUserMeta}>
-                <span className={styles.chatUserName}>{name}</span>
-                <span className={styles.chatTime}>Today at 10:42 AM</span>
+
+            <div className={styles.chatMessageContent}>
+              <div className={`${styles.chatBubble} ${styles.markdownContent}`}>
+                <div className={styles.chatUserMeta}>
+                  <span className={styles.chatUserName}>{name}</span>
+                  <span className={styles.chatTime}>Today at 10:42 AM</span>
+                </div>
+                {renderContent()}
+              </div>
+
+              {/* Emoji Reactions & Thread Bar */}
+              <div className={styles.reactionBar}>
+                <div className={styles.reactionChip}><EmojiIcon name="reactionThumbsUp" /> 4</div>
+                <div className={styles.reactionChip}><EmojiIcon name="reactionEyes" /> 2</div>
+                <div className={styles.reactionChip}><EmojiIcon name="reactionRocket" /> 1</div>
+                <div className={styles.threadIndicator}><EmojiIcon name="chatThread" /> 3 replies from team</div>
               </div>
             </div>
-          </div>
-
-          <div className={`${styles.chatBubble} ${styles.markdownContent}`}>
-            {renderContent()}
-          </div>
-
-          {/* Emoji Reactions & Thread Bar */}
-          <div className={styles.reactionBar}>
-            <div className={styles.reactionChip}><EmojiIcon name="reactionThumbsUp" /> 4</div>
-            <div className={styles.reactionChip}><EmojiIcon name="reactionEyes" /> 2</div>
-            <div className={styles.reactionChip}><EmojiIcon name="reactionRocket" /> 1</div>
-            <div className={styles.threadIndicator}><EmojiIcon name="chatThread" /> 3 replies from team</div>
           </div>
         </div>
       </div>
