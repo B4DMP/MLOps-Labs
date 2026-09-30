@@ -1,6 +1,6 @@
 import datetime
 from typing import Any
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, JSON, Boolean
+from sqlalchemy import BigInteger, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint, JSON, Boolean
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from mlops_serious_game.config import settings
@@ -367,3 +367,36 @@ class BugReportRecipientsRow(Base):
         onupdate=datetime.datetime.utcnow,
         nullable=False,
     )
+
+
+class LlmCacheEntry(Base):
+    """One cached LLM answer. `key_hash` is a sha256 of the prompt and the model settings."""
+
+    __tablename__ = settings.POSTGRES_LLM_CACHE_TABLE
+    __table_args__ = (
+        UniqueConstraint("cache_name", "version", "key_hash", name="uq_llm_cache_key"),
+        Index("ix_llm_cache_lru", "cache_name", "version", "last_used_at"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    cache_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    version: Mapped[str] = mapped_column(String(128), nullable=False)
+    key_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    response: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime, default=datetime.datetime.utcnow, nullable=False
+    )
+    last_used_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime, default=datetime.datetime.utcnow, nullable=False
+    )
+
+
+class LlmCacheStat(Base):
+    """Hits and misses of one cache under one build version."""
+
+    __tablename__ = settings.POSTGRES_LLM_CACHE_STAT_TABLE
+
+    cache_name: Mapped[str] = mapped_column(String(64), primary_key=True)
+    version: Mapped[str] = mapped_column(String(128), primary_key=True)
+    hits: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    misses: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)

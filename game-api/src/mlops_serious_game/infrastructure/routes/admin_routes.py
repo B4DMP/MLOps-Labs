@@ -38,6 +38,7 @@ from mlops_serious_game.application.services.teacher_service import (
     update_teacher_campaigns,
     update_teacher_password,
 )
+from mlops_serious_game.application.llm_cache import cache_stats
 from mlops_serious_game.config import settings
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
@@ -300,6 +301,11 @@ async def generate_offline_intel(_: str = Depends(check_admin_token)):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/llm-cache")
+async def get_llm_cache_stats(_: str = Depends(check_admin_token)):
+    return cache_stats()
 
 
 @router.get("/graph-debug")

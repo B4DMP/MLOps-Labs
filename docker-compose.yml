@@ -24,6 +24,8 @@ services:
       dockerfile: Dockerfile
       additional_contexts:
         - gameconfig=./gameConfig
+      args:
+        BUILD_VERSION: ${BUILD_VERSION:-dev}
     environment:
       - POSTGRES_URI=postgresql+psycopg://mlops_labs:mlops_labs@postgres:5432/mlops_labs
       - POSTGRES_ASYNC_URI=postgresql+asyncpg://mlops_labs:mlops_labs@postgres:5432/mlops_labs

@@ -29,6 +29,7 @@ import { GraphDebug } from "./GraphDebug";
 import AdminResults from "./Results/AdminResults";
 import TeacherManager from "./TeacherManager";
 import BugReportsAdmin from "./BugReportsAdmin";
+import LlmCacheAdmin from "./LlmCacheAdmin";
 import {
   fetchAdminDashboard,
   fetchAdminEmailStatus,
@@ -129,7 +130,7 @@ export function Admin({
   questionaire_results,
 }: AdminProps) {
   // Navigation
-  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis" | "results" | "graph_debug" | "teachers" | "bug_reports" | "email">("config");
+  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis" | "results" | "graph_debug" | "teachers" | "bug_reports" | "llm_cache" | "email">("config");
 
   // Email / SMTP state
   const [emailStatus, setEmailStatus] = useState<AdminEmailStatus | null>(null);
@@ -685,6 +686,14 @@ export function Admin({
             </button>
             <button
               type="button"
+              className={`${styles.navTab} ${activeSubpage === "llm_cache" ? styles.navTabActive : ""}`}
+              onClick={() => setActiveSubpage("llm_cache")}
+            >
+              <Icon icon="ph:lightning-bold" />
+              <span>LLM Cache</span>
+            </button>
+            <button
+              type="button"
               className={`${styles.navTab} ${activeSubpage === "email" ? styles.navTabActive : ""}`}
               onClick={() => setActiveSubpage("email")}
             >
@@ -701,6 +710,7 @@ export function Admin({
             {activeSubpage === "graph_debug" && "Inspect the MLOps pipeline graph state per player"}
             {activeSubpage === "teachers" && "Manage teacher accounts and their live monitoring access"}
             {activeSubpage === "bug_reports" && "Player-submitted bug reports"}
+            {activeSubpage === "llm_cache" && "How many prompts are cached and how often the caches are hit"}
             {activeSubpage === "email" && "Inspect SMTP configuration and send test emails"}
           </div>
         </div>
@@ -1814,6 +1824,8 @@ export function Admin({
           {activeSubpage === "teachers" && <TeacherManager campaigns={campaigns} />}
 
           {activeSubpage === "bug_reports" && <BugReportsAdmin campaigns={campaigns} />}
+
+          {activeSubpage === "llm_cache" && <LlmCacheAdmin />}
 
           {/* ======================================================== */}
           {/* SUBPAGE 5: SMTP EMAIL CONFIGURATION & TEST               */}
