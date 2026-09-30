@@ -101,34 +101,33 @@ def event_log_db():
     from mlops_serious_game.infrastructure.database.connection import get_session
     from mlops_serious_game.infrastructure.database.models import GameEventRow
 
-    # Unique per test run - a hardcoded username here raced with itself under xdist/parallel runs
+    # Unique per test run - a hardcoded user here raced with itself under xdist/parallel runs
     # (or leaked rows from an interrupted prior run) and threw off the exact seq assertions below.
-    username = f"test_event_log_user_{uuid.uuid4().hex[:8]}"
-    ensure_test_user(username)
-    yield username
+    user_id = ensure_test_user(f"test_event_log_user_{uuid.uuid4().hex[:8]}")
+    yield user_id
     with get_session() as session:
-        session.query(GameEventRow).filter(GameEventRow.user_name == username).delete()
+        session.query(GameEventRow).filter(GameEventRow.user_id == user_id).delete()
 
 
 def test_append_events_assigns_monotonic_seq_and_load_returns_them_in_order(event_log_db):
     from mlops_serious_game.application.event_log_service.store import append_events, load_events
 
-    username = event_log_db
-    first_batch = append_events(username, [
+    user_id = event_log_db
+    first_batch = append_events(user_id, [
         GameEvent(phase_id=0, challenge_id=1, step="object", kind="emotion", subject_id="data_dave",
                   direction="up", magnitude="slight", cause="emotion.reframe_hit", params={"st": "Data Dave"}),
         GameEvent(phase_id=0, challenge_id=1, step="commit", kind="outcome", cause="outcome.pass"),
     ])
     assert [e.seq for e in first_batch] == [1, 2]
 
-    second_batch = append_events(username, [
+    second_batch = append_events(user_id, [
         GameEvent(phase_id=0, challenge_id=1, step="commit", kind="outcome", cause="outcome.stalemate"),
     ])
     assert second_batch[0].seq == 3
 
-    loaded = load_events(username)
+    loaded = load_events(user_id)
     assert [e.seq for e in loaded] == [1, 2, 3]
     assert loaded[0].cause == "emotion.reframe_hit"
 
-    since = load_events(username, since_seq=1)
+    since = load_events(user_id, since_seq=1)
     assert [e.seq for e in since] == [2, 3]

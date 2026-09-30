@@ -138,6 +138,10 @@ class PitchState(BaseModel):
     # the pipeline "this PASS was actually a broken veto, against this stakeholder" - see that
     # function's docstring for why a dedicated field replaced the old patience-based one.
     overridden_stakeholder_id: Optional[str] = None
+    # The card and per-stakeholder card-driven emotion deltas of the last pitch, so a re-pitch can
+    # be refused when unchanged and stakeholders whose reaction didn't move can stay silent.
+    last_pitched_changes: list[AtomicChange] = Field(default_factory=list)
+    reaction_signatures: dict[str, dict[str, float]] = Field(default_factory=dict)
 
     def open_objections(self) -> list[Objection]:
         return self.objections
@@ -149,6 +153,22 @@ def risk_band(value: float) -> str:
     if value >= RISK_AMBER:
         return "amber"
     return "red"
+
+
+def same_card(a: list[AtomicChange], b: list[AtomicChange]) -> bool:
+    """Whether two cards hold the same changes, ignoring slot order."""
+    def key(c: AtomicChange) -> tuple:
+        return (c.target, c.kind, c.axis, str(c.value), c.trigger)
+    return sorted(map(key, a)) == sorted(map(key, b))
+
+
+def silent_stakeholders(state: PitchState, new_signatures: dict[str, dict[str, float]]) -> set[str]:
+    """Stakeholders reacting exactly as they did to the last pitch (same card-driven emotion deltas,
+    which encode alignment, boundaries and misclassifications) - they skip the reply."""
+    return {
+        st_id for st_id, sig in new_signatures.items()
+        if st_id in state.reaction_signatures and state.reaction_signatures[st_id] == sig
+    }
 
 
 def find_pipeline_predecessors(graph: TechnicalGraph, target: str) -> list[str]:
@@ -783,6 +803,7 @@ def evaluate_pitch(
     objections: list[Objection] = []
     feedback: list[PitchFeedbackMessage] = []
     accumulated_deltas: dict[str, dict[str, float]] = {}
+    reaction_signatures: dict[str, dict[str, float]] = {}
     items_to_correct: list[str] = []
 
     # Map held items by stakeholder
@@ -930,6 +951,8 @@ def evaluate_pitch(
         for dim, m_val in st_misclass_malus.items():
             deltas[dim] = round(deltas.get(dim, 0.0) + m_val, 4)
 
+        reaction_signatures[st_id] = dict(deltas)
+
         # Apply patience malus on repeat presentations
         if repeat_count > 0:
             for dim, p_val in patience_delta.items():
@@ -980,6 +1003,8 @@ def evaluate_pitch(
         emotion_deltas=accumulated_deltas,
         outcome=view.outcome,
         presentation_count=presentation_count,
+        last_pitched_changes=valid_atomic_changes,
+        reaction_signatures=reaction_signatures,
     )
     return new_pitch_state, view, items_to_correct
 

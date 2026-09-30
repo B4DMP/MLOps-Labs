@@ -62,7 +62,7 @@ class StakeholderFactory:
         return bool(persona and persona.name == id)
 
     @classmethod
-    def choose_personas(cls, player: str, existing: Optional[dict] = None) -> dict[str, str]:
+    def choose_personas(cls, player: str | int, existing: Optional[dict] = None) -> dict[str, str]:
         """Deals one persona key per stakeholder for `player`.
 
         Seeded per stakeholder so that the draw is reproducible if a session

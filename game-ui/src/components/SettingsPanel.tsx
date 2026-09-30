@@ -9,7 +9,6 @@ import PlaytestSection from "./PlaytestSection";
 import {
   changeEmail,
   changePassword,
-  changeUsername,
   confirmEmailChange,
 } from "../services/api/auth";
 import styles from "./SettingsPanel.module.css";
@@ -68,15 +67,15 @@ function englishVoicesSorted(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoi
 }
 
 interface ProfileSectionProps {
-  username: string;
+  email: string;
   onLogout: () => void;
-  onUsernameChanged: (newUsername: string) => void;
+  onEmailChanged: (newEmail: string) => void;
 }
 
-/** Change password/email/username plus Logout (docs/plans/session-persistence-and-url-routing.md,
+/** Change password/email plus Logout (docs/plans/session-persistence-and-url-routing.md,
  * D-profile-ui). Each form manages its own pending/error/success state independently - there is
  * no shared "profile is loading" flag, since submitting one shouldn't disable the others. */
-function ProfileSection({ username, onLogout, onUsernameChanged }: ProfileSectionProps) {
+function ProfileSection({ email, onLogout, onEmailChanged }: ProfileSectionProps) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
@@ -88,11 +87,6 @@ function ProfileSection({ username, onLogout, onUsernameChanged }: ProfileSectio
   const [isAwaitingEmailCode, setIsAwaitingEmailCode] = useState(false);
   const [emailStatus, setEmailStatus] = useState<{ kind: "success" | "error"; text: string } | null>(null);
   const [isChangingEmail, setIsChangingEmail] = useState(false);
-
-  const [newUsername, setNewUsername] = useState("");
-  const [usernamePassword, setUsernamePassword] = useState("");
-  const [usernameStatus, setUsernameStatus] = useState<{ kind: "success" | "error"; text: string } | null>(null);
-  const [isChangingUsername, setIsChangingUsername] = useState(false);
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,6 +126,7 @@ function ProfileSection({ username, onLogout, onUsernameChanged }: ProfileSectio
     setEmailStatus(null);
     try {
       await confirmEmailChange(emailCode);
+      onEmailChanged(newEmail);
       setEmailStatus({ kind: "success", text: "Email changed." });
       setIsAwaitingEmailCode(false);
       setNewEmail("");
@@ -143,27 +138,10 @@ function ProfileSection({ username, onLogout, onUsernameChanged }: ProfileSectio
     }
   };
 
-  const handleChangeUsername = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsChangingUsername(true);
-    setUsernameStatus(null);
-    try {
-      const result = await changeUsername(newUsername, usernamePassword);
-      onUsernameChanged(result.username);
-      setUsernameStatus({ kind: "success", text: `Username changed to ${result.username}.` });
-      setNewUsername("");
-      setUsernamePassword("");
-    } catch (err: any) {
-      setUsernameStatus({ kind: "error", text: err.message || "Could not change your username." });
-    } finally {
-      setIsChangingUsername(false);
-    }
-  };
-
   return (
     <div className={styles.profileGroup}>
       <div className={styles.profileRow}>
-        <span className={styles.toggleLabel}>Signed in as {username}</span>
+        <span className={styles.toggleLabel}>Signed in as {email}</span>
         <button type="button" className={styles.cancelButton} onClick={onLogout}>
           Log out
         </button>
@@ -259,36 +237,6 @@ function ProfileSection({ username, onLogout, onUsernameChanged }: ProfileSectio
           </div>
         </form>
       )}
-
-      <form className={styles.profileForm} onSubmit={handleChangeUsername}>
-        <h4 className={styles.profileFormTitle}>Change username</h4>
-        <input
-          type="text"
-          className="form-control form-control-sm"
-          placeholder="New username"
-          autoComplete="username"
-          value={newUsername}
-          onChange={(e) => setNewUsername(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          className="form-control form-control-sm"
-          placeholder="Current password"
-          autoComplete="current-password"
-          value={usernamePassword}
-          onChange={(e) => setUsernamePassword(e.target.value)}
-          required
-        />
-        {usernameStatus && (
-          <p className={usernameStatus.kind === "error" ? styles.errorText : styles.successText}>
-            {usernameStatus.text}
-          </p>
-        )}
-        <button type="submit" className={styles.submitButton} disabled={isChangingUsername}>
-          Change username
-        </button>
-      </form>
     </div>
   );
 }
@@ -300,7 +248,7 @@ interface SettingsPanelProps {
 }
 
 export default function SettingsPanel({ isVisible, onClose, onLogout }: SettingsPanelProps) {
-  const { username, setUsername } = useGameWebSocket();
+  const { email, setEmail } = useGameWebSocket();
   const { settings, updateSettings, canResetAccount, resetAccount, canPlaytest } = useSettings();
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [isConfirmingReset, setIsConfirmingReset] = useState(false);
@@ -354,7 +302,7 @@ export default function SettingsPanel({ isVisible, onClose, onLogout }: Settings
 
         <Accordion defaultOpenId={null}>
           <AccordionSection id="profile" title="Profile">
-            <ProfileSection username={username} onLogout={onLogout} onUsernameChanged={setUsername} />
+            <ProfileSection email={email} onLogout={onLogout} onEmailChanged={setEmail} />
           </AccordionSection>
 
           <AccordionSection id="conversations" title="Conversations">
@@ -512,10 +460,10 @@ export default function SettingsPanel({ isVisible, onClose, onLogout }: Settings
                 <div className={styles.confirmBox}>
                   <p className={styles.confirmWarning}>
                     This permanently deletes all progress, intel, conversations and these settings
-                    for <strong>{username}</strong>. It cannot be recovered.
+                    for <strong>{email}</strong>. It cannot be recovered.
                   </p>
                   <label className={styles.confirmLabel}>
-                    Type your username ({username}) to confirm:
+                    Type your email ({email}) to confirm:
                     <input
                       type="text"
                       className="form-control form-control-sm mt-1"
@@ -538,7 +486,7 @@ export default function SettingsPanel({ isVisible, onClose, onLogout }: Settings
                     <button
                       type="button"
                       className={styles.dangerButton}
-                      disabled={confirmText !== username}
+                      disabled={confirmText !== email}
                       onClick={() => {
                         resetAccount();
                         setIsConfirmingReset(false);

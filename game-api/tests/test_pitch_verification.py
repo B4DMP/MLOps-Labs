@@ -11,7 +11,7 @@ INTEL = "mlops_serious_game.application.intel_handler"
 
 def _ctx(held):
     return SimpleNamespace(
-        username="pitch_verify_user",
+        user_id=1,
         challenge=MagicMock(),
         room_ids=["dave", "tess"],
         read_exactly=set(),

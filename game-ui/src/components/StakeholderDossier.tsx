@@ -839,7 +839,7 @@ export default function StakeholderDossier({
   onOpenArtifact,
   cheatSheetActiveSection,
 }: StakeholderDossierProps) {
-  const { emit, subscribe, username } = useGameWebSocket();
+  const { emit, subscribe } = useGameWebSocket();
   const { stakeholders, emotionColors: contextEmotionColors } = useContext(StakeholderContext) || {
     stakeholders: {},
     emotionColors: {},
@@ -2707,7 +2707,6 @@ export default function StakeholderDossier({
       isOpen={isCheatSheetOpen}
       onClose={() => setIsCheatSheetOpen(false)}
       activeSectionTitle={cheatSheetActiveSection}
-      username={username}
       currentPhase={currentPhase}
       currentChallenge={currentChallenge}
     />

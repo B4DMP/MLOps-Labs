@@ -5,7 +5,7 @@ import { ReadyState } from "../services/websocket/types";
 import styles from "./Login.module.css";
 
 interface LoginProps {
-  onSubmit: (username: string, password: string, startMuted: boolean) => void;
+  onSubmit: (email: string, password: string, startMuted: boolean) => void;
   onForgotPassword: () => void;
   readyState: ReadyState;
   onBack: () => void;
@@ -23,19 +23,19 @@ export function Login({
   errorMessage,
   onClearError,
 }: LoginProps) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [startMuted, setStartMuted] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username.trim() && password && !isLoading) {
-      onSubmit(username.trim(), password, startMuted);
+    if (email.trim() && password && !isLoading) {
+      onSubmit(email.trim(), password, startMuted);
     }
   };
 
-  const handleUsernameChange = (val: string) => {
-    setUsername(val);
+  const handleEmailChange = (val: string) => {
+    setEmail(val);
     if (errorMessage && onClearError) {
       onClearError();
     }
@@ -82,26 +82,27 @@ export function Login({
             style={{ color: "#7dd3fc", fontSize: "1.2rem" }}
           />
           <span>
-            Please enter your registered <strong>username</strong> to continue where you left off.
+            Please enter your registered <strong>email</strong> to continue where you left off.
           </span>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="login-username-input" className={styles.formLabel}>
-              <Icon icon="ph:user-bold" style={{ fontSize: "1rem" }} />
-              <span>Username</span>
+            <label htmlFor="login-email-input" className={styles.formLabel}>
+              <Icon icon="ph:envelope-bold" style={{ fontSize: "1rem" }} />
+              <span>Email</span>
             </label>
             <input
-              id="login-username-input"
+              id="login-email-input"
               type="text"
+              autoComplete="username"
               className={styles.formInput}
-              placeholder="Enter your username"
-              value={username}
+              placeholder="Enter your email"
+              value={email}
               autoFocus
               disabled={isLoading}
-              onChange={(e) => handleUsernameChange(e.target.value)}
+              onChange={(e) => handleEmailChange(e.target.value)}
             />
           </div>
 
@@ -160,7 +161,7 @@ export function Login({
             <button
               type="submit"
               className={`d-flex align-items-center justify-content-center gap-2 ${styles.actionButton}`}
-              disabled={isLoading || readyState !== ReadyState.OPEN || !username.trim() || !password}
+              disabled={isLoading || readyState !== ReadyState.OPEN || !email.trim() || !password}
             >
               <span>{isLoading ? "Starting Game..." : readyState === ReadyState.OPEN ? "Resume Game" : "Connecting..."}</span>
               <Icon icon="ph:arrow-right-bold" />

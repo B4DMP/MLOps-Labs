@@ -25,7 +25,7 @@ from sqlalchemy import select
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 
-from test_run_scope import migrated_db  # noqa: F401  (fixture used by name)
+from test_run_scope import _uid, migrated_db  # noqa: F401  (fixture used by name)
 from test_veto_breaker import STUCK_CHALLENGE_ID, STUCK_PHASE_ID, _seed_player_on_stuck_challenge
 
 
@@ -54,7 +54,7 @@ async def _skip(username: str = "alice"):
     with patch.object(manager, "send_event", new=AsyncMock()) as send_event, \
          patch.object(manager, "send_error", new=AsyncMock()) as send_error, \
          patch.object(settings, "ENABLE_PLAYTEST_TOOLS", True):
-        await playtest_handler.handle_playtest_skip_challenge(MagicMock(), username, {})
+        await playtest_handler.handle_playtest_skip_challenge(MagicMock(), _uid(username), {})
     events = {c.kwargs["event"]: c.kwargs["payload"] for c in send_event.await_args_list}
     errors = [c.kwargs.get("code") for c in send_error.await_args_list]
     return events, errors
@@ -76,14 +76,14 @@ async def test_skip_breaks_the_veto_and_actually_advances_past_the_stuck_challen
     from mlops_serious_game.infrastructure.database.models import GameChallenge
 
     user_id = await _seed_player_on_stuck_challenge()
-    assert pitch_store.escalation_points("alice") == 3
+    assert pitch_store.escalation_points(_uid()) == 3
 
     with _patched_search():
         events, errors = await _skip()
 
     assert errors == []
     assert events["playtest:skipped"]["ok"] is True
-    assert pitch_store.escalation_points("alice") == 2, "the fallback spent exactly one point"
+    assert pitch_store.escalation_points(_uid()) == 2, "the fallback spent exactly one point"
 
     with get_session() as session:
         rows = session.scalars(
@@ -110,7 +110,7 @@ async def test_skip_no_longer_needs_the_fallback_on_ch118(migrated_db):
 
     assert errors == []
     assert events["playtest:skipped"]["ok"] is True
-    assert pitch_store.escalation_points("alice") == 3, "never touched"
+    assert pitch_store.escalation_points(_uid()) == 3, "never touched"
 
 
 @pytest.mark.anyio
@@ -132,8 +132,8 @@ async def test_skip_refuses_only_once_escalation_points_are_actually_exhausted(m
 
     await _seed_player_on_stuck_challenge()
     for _ in range(3):
-        pitch_store.spend_escalation_point("alice")
-    assert pitch_store.escalation_points("alice") == 0
+        pitch_store.spend_escalation_point(_uid())
+    assert pitch_store.escalation_points(_uid()) == 0
 
     with _patched_search():
         events, errors = await _skip()
@@ -156,17 +156,17 @@ async def test_a_refusal_from_exhausted_points_still_taints_and_commits_nothing_
 
     await _seed_player_on_stuck_challenge()
     for _ in range(3):
-        pitch_store.spend_escalation_point("alice")
+        pitch_store.spend_escalation_point(_uid())
 
     with _patched_search():
         await _skip()
 
     with get_session() as session:
         assert session.scalar(
-            select(User.playtest_tainted).where(User.user_name == "alice")
+            select(User.playtest_tainted).where(User.email == "alice@example.test")
         ) is True
 
-    state = pitch_store.load_pitch("alice", STUCK_PHASE_ID, STUCK_CHALLENGE_ID)
+    state = pitch_store.load_pitch(_uid(), STUCK_PHASE_ID, STUCK_CHALLENGE_ID)
     assert state.outcome == "VETO"
     assert state.overridden_stakeholder_id is None
 
@@ -180,14 +180,14 @@ async def test_auto_card_never_spends_an_escalation_point_on_its_own(migrated_db
     from mlops_serious_game.infrastructure.websocket.manager import manager
 
     await _seed_player_on_stuck_challenge()
-    before = pitch_store.escalation_points("alice")
+    before = pitch_store.escalation_points(_uid())
 
     with patch.object(manager, "send_event", new=AsyncMock()), \
          patch.object(manager, "send_error", new=AsyncMock()), \
          patch.object(settings, "ENABLE_PLAYTEST_TOOLS", True):
-        await playtest_handler.handle_playtest_auto_card(MagicMock(), "alice", {})
+        await playtest_handler.handle_playtest_auto_card(MagicMock(), _uid(), {})
 
-    assert pitch_store.escalation_points("alice") == before
+    assert pitch_store.escalation_points(_uid()) == before
 
 
 @pytest.mark.anyio
@@ -205,21 +205,21 @@ async def test_a_challenge_with_a_real_winning_card_never_touches_escalation_at_
     challenge = PhaseFactory.get_challenge_by_id(winnable_challenge_id)
 
     user_id = _seed_user(username)
-    _start_run(user_id, 1, None, username)
+    _start_run(user_id, 1, None)
     with get_session() as session:
         session.add(
             GameChallenge(
-                user_name=username, user_id=user_id, run_index=1,
+                user_id=user_id, run_index=1,
                 phase_index=challenge.phase_id, challenge_index=challenge.id, challenge_loop_index=1,
                 action_card={}, metric_values=[], messages=[], attention_tokens=20, emotion_values={},
             )
         )
-        session.add(GameSession(player=username, user_id=user_id, run_index=1))
-    auto_gather(username, challenge)
-    graph_store.enter_challenge(username, challenge)
+        session.add(GameSession(user_id=user_id, run_index=1))
+    auto_gather(user_id, challenge)
+    graph_store.enter_challenge(user_id, challenge)
 
     events, errors = await _skip(username)
 
     assert errors == []
     assert events["playtest:skipped"]["ok"] is True
-    assert pitch_store.escalation_points(username) == 3, "never touched"
+    assert pitch_store.escalation_points(user_id) == 3, "never touched"

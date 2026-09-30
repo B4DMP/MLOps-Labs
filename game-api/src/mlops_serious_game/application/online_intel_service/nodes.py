@@ -155,10 +155,10 @@ async def determine_intel_items_node(state: OnlineIntelState, config: RunnableCo
     # D-ws-cookie). Only used here to seed a deterministic shuffle, so an unresolvable cookie
     # degrades to "" rather than raising.
     from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, verify_player_token
-    username = (verify_player_token(ws.cookies.get(PLAYER_COOKIE_NAME)) or "") if ws else ""
+    user_id = (verify_player_token(ws.cookies.get(PLAYER_COOKIE_NAME)) or "") if ws else ""
     # Folds in how much the player already knows, so a replayed card does not always turn up
     # the exact same order (D49) without needing a dedicated play-count column.
-    seed = f"{username}|{curr_challenge.id}|{state['card_id']}|{len(collected_items)}"
+    seed = f"{user_id}|{curr_challenge.id}|{state['card_id']}|{len(collected_items)}"
 
     revealed_by_st: dict[str, list[dict[str, Any]]] = {}
 

@@ -39,7 +39,7 @@ interface OrphanSection {
   facts_on_nonexistent_targets: string[];
 }
 export interface GraphDebugPayload {
-  username: string;
+  email: string;
   stages: StageDebug[];
   components: ComponentDebug[];
   edges: EdgeDebug[];
@@ -377,7 +377,7 @@ interface GraphDebugProps {
 }
 
 export function GraphDebug({ campaigns, players }: GraphDebugProps) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [data, setData] = useState<GraphDebugPayload | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -392,7 +392,7 @@ export function GraphDebug({ campaigns, players }: GraphDebugProps) {
   }, [campaigns, players]);
 
   async function load(name: string) {
-    setUsername(name);
+    setEmail(name);
     if (!name) {
       setData(null);
       return;
@@ -412,7 +412,7 @@ export function GraphDebug({ campaigns, players }: GraphDebugProps) {
     <div style={{ color: "#e2e8f0", fontFamily: "system-ui, sans-serif" }}>
       <div style={{ display: "flex", gap: 8, marginBottom: 20, alignItems: "center" }}>
         <select
-          value={username}
+          value={email}
           onChange={(e) => load(e.target.value)}
           style={{
             background: "#1e293b", border: "1px solid #334155", color: "#e2e8f0",
@@ -436,7 +436,7 @@ export function GraphDebug({ campaigns, players }: GraphDebugProps) {
       {data && (
         <>
           <div style={{ color: "#64748b", fontSize: 12, marginBottom: 16 }}>
-            Player: <strong style={{ color: "#94a3b8" }}>{data.username}</strong>
+            Player: <strong style={{ color: "#94a3b8" }}>{data.email}</strong>
           </div>
           <StagesSection data={data.stages} />
           <ComponentsSection data={data.components} />

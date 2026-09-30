@@ -10,24 +10,12 @@ from fastapi import Response
 from jwt.exceptions import InvalidTokenError
 from loguru import logger
 from pydantic import BaseModel, Field
-from sqlalchemy import select, update
+from sqlalchemy import func, select
 
 from mlops_serious_game.application.services import user_settings_service
 from mlops_serious_game.application.services.email_service import build_code_email, send_email
 from mlops_serious_game.config import settings
-from mlops_serious_game.infrastructure.database import (
-    Campaign,
-    GameChallenge,
-    GameProgression,
-    GameResult,
-    GameSession,
-    IntelItem,
-    Teacher,
-    User,
-    UserSettings,
-    get_session,
-)
-from mlops_serious_game.infrastructure.database.models import GameEventRow, GraphOpLog
+from mlops_serious_game.infrastructure.database import Campaign, Teacher, User, get_session
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 120
@@ -48,7 +36,7 @@ _MIN_PASSWORD_LENGTH = 8
 class UserData(BaseModel):
     id: Optional[str] = Field(None, alias="_id")
     campaign_key: str
-    user_name: str
+    email: str
 
 
 class CampaignData(BaseModel):
@@ -105,33 +93,43 @@ def verify_teacher_token(token: str | None) -> dict | None:
     return {"id": teacher_id, "user_name": username}
 
 
-def player_exists(username: str) -> bool:
-    """Whether a `User` row still backs this username."""
+def player_exists(user_id: int) -> bool:
+    """Whether a `User` row still backs this id."""
     with get_session() as session:
-        return session.scalar(select(User.id).where(User.user_name == username)) is not None
+        return session.scalar(select(User.id).where(User.id == user_id)) is not None
 
 
-def verify_player_token(token: str) -> str | None:
-    """Returns the token's username if it's a valid, unexpired player token naming a user that
+def _player_id_from_payload(payload: dict | None) -> int | None:
+    """The `User.id` a valid player payload names, if that user still exists."""
+    if payload is None or payload.get("role") != "player":
+        return None
+    try:
+        user_id = int(payload.get("sub"))
+    except (TypeError, ValueError):
+        return None
+    return user_id if player_exists(user_id) else None
+
+
+def verify_player_token(token: str) -> int | None:
+    """Returns the token's user id if it's a valid, unexpired player token naming a user that
     still exists, else None.
 
     The token itself is a self-contained, signed JWT: it verifies against nothing but its own
     signature and expiry, so it would otherwise stay "valid" after the row it names is gone (a
     database reset, an account deletion) - every call site trusts this for DB writes keyed by
-    username, so a stale-but-unexpired cookie must fail here, not reach a NOT NULL constraint deep
+    user id, so a stale-but-unexpired cookie must fail here, not reach a NOT NULL constraint deep
     in a handler.
     """
-    payload = decode_token(token)
-    if payload is None or payload.get("role") != "player":
-        return None
-    username = payload.get("sub")
-    if username is None or not player_exists(username):
-        return None
-    return username
+    return _player_id_from_payload(decode_token(token))
 
 
-def _create_player_token(username: str) -> str:
-    return create_access_token(data={"sub": username, "role": "player"})
+def get_player_email(user_id: int) -> str | None:
+    with get_session() as session:
+        return session.scalar(select(User.email).where(User.id == user_id))
+
+
+def _create_player_token(user_id: int) -> str:
+    return create_access_token(data={"sub": str(user_id), "role": "player"})
 
 
 def _create_admin_token() -> str:
@@ -166,11 +164,11 @@ def _set_csrf_cookie_if_absent(response: Response, *, existing: str | None, secu
 
 
 def set_player_cookie(
-    response: Response, username: str, *, secure: bool, existing_csrf: str | None = None
+    response: Response, user_id: int, *, secure: bool, existing_csrf: str | None = None
 ) -> None:
     response.set_cookie(
         PLAYER_COOKIE_NAME,
-        _create_player_token(username),
+        _create_player_token(user_id),
         httponly=True,
         secure=secure,
         samesite="lax",
@@ -235,18 +233,16 @@ def sliding_refresh_player(
     token: str | None, response: Response, *, secure: bool, existing_csrf: str | None = None
 ) -> str | None:
     """If the player token is valid and close to expiring, reissue its cookie on `response`.
-    Returns the current username, or None if the token isn't a valid player token for a user that
+    Returns the current user id, or None if the token isn't a valid player token for a user that
     still exists - this is what `/auth/whoami` reports back as "logged in", so a stale cookie left
     over from before a database reset must read as logged-out here, not be reissued forever."""
     payload = decode_token(token)
-    if payload is None or payload.get("role") != "player":
-        return None
-    username = payload.get("sub")
-    if username is None or not player_exists(username):
+    user_id = _player_id_from_payload(payload)
+    if user_id is None:
         return None
     if _remaining_lifetime(payload) < _SLIDING_REFRESH_THRESHOLD:
-        set_player_cookie(response, username, secure=secure, existing_csrf=existing_csrf)
-    return username
+        set_player_cookie(response, user_id, secure=secure, existing_csrf=existing_csrf)
+    return user_id
 
 
 def sliding_refresh_admin(
@@ -291,25 +287,29 @@ def _generate_code() -> str:
     return f"{random.randint(0, 999999):06d}"
 
 
-async def _send_code_email(to_email: str, username: str, code: str, purpose: str) -> None:
+async def _send_code_email(to_email: str, code: str, purpose: str) -> None:
     """Raises ValueError (via email_service.send_email) if delivery fails - callers must
     surface this to the user, since the code is never shown anywhere else."""
     ttl = settings.VERIFICATION_CODE_TTL_MINUTES
-    subject, body, html = build_code_email(purpose, username, code, ttl)
+    subject, body, html = build_code_email(purpose, code, ttl)
     await send_email(to_email=to_email, subject=subject, body=body, html_body=html)
 
 
-async def authenticate_user(username: str, password: str) -> dict:
-    username = username.strip() if username else ""
+def _find_user_by_email(session, email: str) -> User | None:
+    """Case-insensitive, since some rows predate email normalisation."""
+    return session.scalar(select(User).where(func.lower(User.email) == email.lower()))
+
+
+async def authenticate_user(login: str, password: str) -> dict:
+    """`login` is the player's email; admin and teacher accounts still sign in by their name."""
+    login = login.strip() if login else ""
     password = password or ""
 
-    if not username or not password:
-        return {"success": False, "error": "Username and password are required."}
+    if not login or not password:
+        return {"success": False, "error": "Email and password are required."}
 
-    # Admin bootstrap: the admin account has no User row (see register_user's own copy of this
-    # check) - the register form now requires email/password fields the admin never fills in, so
-    # this needs to also work straight from the plain username+password login screen.
-    if username == settings.ADMIN_USER and password == settings.ADMIN_KEY:
+    # Admin bootstrap: the admin account has no User row - the login screen is where the admin signs in.
+    if login == settings.ADMIN_USER and password == settings.ADMIN_KEY:
         access_token = create_access_token(
             data={"sub": settings.ADMIN_USER},
             expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
@@ -320,10 +320,10 @@ async def authenticate_user(username: str, password: str) -> dict:
     # self-registration - see teacher_service.create_teacher), so this is checked before the
     # player lookup below rather than folded into it.
     with get_session() as session:
-        teacher = session.scalar(select(Teacher).where(Teacher.user_name == username))
+        teacher = session.scalar(select(Teacher).where(Teacher.user_name == login))
         if teacher is not None:
             if not verify_password(password, teacher.password_hash):
-                return {"success": False, "error": "Invalid username or password."}
+                return {"success": False, "error": "Invalid email or password."}
             return {
                 "success": True,
                 "is_teacher": True,
@@ -332,9 +332,9 @@ async def authenticate_user(username: str, password: str) -> dict:
             }
 
     with get_session() as session:
-        user = session.scalar(select(User).where(User.user_name == username))
+        user = _find_user_by_email(session, login)
         if user is None or not verify_password(password, user.password_hash):
-            return {"success": False, "error": "Invalid username or password."}
+            return {"success": False, "error": "Invalid email or password."}
 
         campaign = session.scalar(select(Campaign).where(Campaign.id == user.campaign_id))
         if campaign is not None and not campaign.is_active:
@@ -352,12 +352,12 @@ async def authenticate_user(username: str, password: str) -> dict:
                 "success": True,
                 "is_admin": False,
                 "needs_verification": False,
-                "username": username,
-                "token": _create_player_token(username),
+                "user_id": user.id,
+                "email": user.email,
             }
 
     try:
-        await _send_code_email(email, username, code, "verification")
+        await _send_code_email(email, code, "verification")
     except Exception as e:
         logger.error(f"Could not send verification email to {email}: {e}")
         return {
@@ -365,11 +365,10 @@ async def authenticate_user(username: str, password: str) -> dict:
             "error": "We couldn't send a verification email right now. Please try again shortly.",
         }
 
-    return {"success": True, "is_admin": False, "needs_verification": True, "username": username}
+    return {"success": True, "is_admin": False, "needs_verification": True, "email": email}
 
 
 async def register_user(
-    username: str,
     email: str,
     email_confirm: str,
     password: str,
@@ -378,9 +377,8 @@ async def register_user(
     campaign_key: str,
     player_voice_gender: str | None = None,
 ) -> dict:
-    username = username.strip() if username else ""
-    email = email.strip() if email else ""
-    email_confirm = email_confirm.strip() if email_confirm else ""
+    email = email.strip().lower() if email else ""
+    email_confirm = email_confirm.strip().lower() if email_confirm else ""
     password = password or ""
     password_confirm = password_confirm or ""
     campaign_key = campaign_key.strip() if campaign_key else ""
@@ -389,18 +387,7 @@ async def register_user(
     if player_voice_gender not in user_settings_service.PLAYER_VOICE_GENDER_VALUES:
         player_voice_gender = user_settings_service.DEFAULT_SETTINGS["player_voice_gender"]
 
-    if campaign_key == settings.ADMIN_KEY and username == settings.ADMIN_USER:
-        access_token = create_access_token(
-            data={"sub": settings.ADMIN_USER},
-            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        )
-        return {
-            "success": True,
-            "is_admin": True,
-            "token": access_token
-        }
-
-    if not username or not password or not campaign_key:
+    if not email or not password or not campaign_key:
         return {"success": False, "error": "All fields are required."}
     if password != password_confirm:
         return {"success": False, "error": "Passwords do not match."}
@@ -414,9 +401,9 @@ async def register_user(
         if not campaign.is_active:
             return {"success": False, "error": "This campaign is currently inactive. Registration is disabled."}
 
-        # Test campaigns don't require an email, skip verification entirely, and don't enforce
-        # the password length policy - this is the only place that decides any of that, the
-        # frontend has no notion of "test campaign". ENABLE_DEV_ACCOUNTS extends the same path to
+        # Test campaigns skip verification entirely and don't enforce the password length
+        # policy - this is the only place that decides any of that, the frontend has no notion
+        # of "test campaign". ENABLE_DEV_ACCOUNTS extends the same path to
         # every campaign, for a local dev environment with no SMTP configured.
         is_test_campaign = campaign.is_test_campaign or settings.ENABLE_DEV_ACCOUNTS
         # A lighter opt-out than is_test_campaign: still requires a real email and password, but
@@ -426,28 +413,16 @@ async def register_user(
         if not is_test_campaign and len(password) < _MIN_PASSWORD_LENGTH:
             return {"success": False, "error": f"Password must be at least {_MIN_PASSWORD_LENGTH} characters long."}
 
-        if not is_test_campaign and not email:
-            return {"success": False, "error": "Email is required."}
-        if email or email_confirm:
-            if email != email_confirm:
-                return {"success": False, "error": "Email addresses do not match."}
-            if not _EMAIL_RE.match(email):
-                return {"success": False, "error": "Please enter a valid email address."}
+        if email != email_confirm:
+            return {"success": False, "error": "Email addresses do not match."}
+        if not _EMAIL_RE.match(email):
+            return {"success": False, "error": "Please enter a valid email address."}
 
-        if session.scalar(select(User).where(User.user_name == username)) is not None:
-            return {"success": False, "error": "This username already exists. Please choose another username."}
-
-        if email:
-            if session.scalar(select(User).where(User.email == email)) is not None:
-                return {"success": False, "error": "An account with this email already exists."}
-        else:
-            # Unique, non-routable placeholder (RFC 2606) - the email column stays NOT NULL/
-            # UNIQUE for every account, this one is just never used to send anything.
-            email = f"{username}@test-campaign.invalid"
+        if _find_user_by_email(session, email) is not None:
+            return {"success": False, "error": "An account with this email already exists."}
 
         if skip_email_verification:
             new_user = User(
-                user_name=username,
                 campaign_key=campaign_key,
                 campaign_id=campaign.id,
                 email=email,
@@ -456,10 +431,11 @@ async def register_user(
                 is_verified=True,
             )
             session.add(new_user)
+            session.flush()
+            new_user_id = new_user.id
         else:
             code = _generate_code()
             new_user = User(
-                user_name=username,
                 campaign_key=campaign_key,
                 campaign_id=campaign.id,
                 email=email,
@@ -472,23 +448,24 @@ async def register_user(
                 ),
             )
             session.add(new_user)
+            session.flush()
+            new_user_id = new_user.id
 
     # The `with` block above has now committed the new user, so `user_settings_service` (which
-    # opens its own session) can resolve `user_id` and seed the row - it would be a silent no-op
-    # if called any earlier.
-    user_settings_service.update_settings(username, {"player_voice_gender": player_voice_gender})
+    # opens its own session) can see the row - it would be a silent no-op if called any earlier.
+    user_settings_service.update_settings(new_user_id, {"player_voice_gender": player_voice_gender})
 
     if skip_email_verification:
         return {
             "success": True,
             "is_admin": False,
             "skip_verification": True,
-            "username": username,
-            "token": _create_player_token(username),
+            "user_id": new_user_id,
+            "email": email,
         }
 
     try:
-        await _send_code_email(email, username, code, "verification")
+        await _send_code_email(email, code, "verification")
     except Exception as e:
         logger.error(f"Could not send verification email to {email}: {e}")
         return {
@@ -499,20 +476,20 @@ async def register_user(
             ),
         }
 
-    return {"success": True, "is_admin": False, "username": username}
+    return {"success": True, "is_admin": False, "email": email}
 
 
-def verify_email_code(username: str, code: str) -> dict:
-    username = username.strip() if username else ""
+def verify_email_code(email: str, code: str) -> dict:
+    email = email.strip() if email else ""
     code = code.strip() if code else ""
 
-    if not username or not code:
-        return {"success": False, "error": "Username and code are required."}
+    if not email or not code:
+        return {"success": False, "error": "Email and code are required."}
 
     with get_session() as session:
-        user = session.scalar(select(User).where(User.user_name == username))
+        user = _find_user_by_email(session, email)
         if user is None:
-            return {"success": False, "error": "Invalid username or code."}
+            return {"success": False, "error": "Invalid email or code."}
 
         if not user.is_verified:
             if not user.verification_code or not user.verification_code_expires_at:
@@ -532,20 +509,19 @@ def verify_email_code(username: str, code: str) -> dict:
             user.verification_code = None
             user.verification_code_expires_at = None
 
-        return {"success": True, "username": username, "token": _create_player_token(username)}
+        return {"success": True, "user_id": user.id, "email": user.email}
 
 
-async def forgot_password(username: str, email: str) -> dict:
-    username = username.strip() if username else ""
+async def forgot_password(email: str) -> dict:
     email = email.strip() if email else ""
 
-    if not username or not email:
-        return {"success": False, "error": "Username and email are required."}
+    if not email:
+        return {"success": False, "error": "Email is required."}
 
     with get_session() as session:
-        user = session.scalar(select(User).where(User.user_name == username))
-        if user is None or user.email.lower() != email.lower():
-            return {"success": False, "error": "No account found matching that username and email."}
+        user = _find_user_by_email(session, email)
+        if user is None:
+            return {"success": False, "error": "No account found for that email."}
 
         code = _generate_code()
         user.password_reset_code = code
@@ -555,7 +531,7 @@ async def forgot_password(username: str, email: str) -> dict:
         user_email = user.email
 
     try:
-        await _send_code_email(user_email, username, code, "password_reset")
+        await _send_code_email(user_email, code, "password_reset")
     except Exception as e:
         logger.error(f"Could not send password reset email to {user_email}: {e}")
         return {
@@ -563,16 +539,16 @@ async def forgot_password(username: str, email: str) -> dict:
             "error": "We couldn't send a password reset email right now. Please try again shortly.",
         }
 
-    return {"success": True, "username": username}
+    return {"success": True, "email": user_email}
 
 
-def reset_password(username: str, code: str, new_password: str, new_password_confirm: str) -> dict:
-    username = username.strip() if username else ""
+def reset_password(email: str, code: str, new_password: str, new_password_confirm: str) -> dict:
+    email = email.strip() if email else ""
     code = code.strip() if code else ""
     new_password = new_password or ""
     new_password_confirm = new_password_confirm or ""
 
-    if not username or not code or not new_password:
+    if not email or not code or not new_password:
         return {"success": False, "error": "All fields are required."}
     if new_password != new_password_confirm:
         return {"success": False, "error": "Passwords do not match."}
@@ -580,9 +556,9 @@ def reset_password(username: str, code: str, new_password: str, new_password_con
         return {"success": False, "error": f"Password must be at least {_MIN_PASSWORD_LENGTH} characters long."}
 
     with get_session() as session:
-        user = session.scalar(select(User).where(User.user_name == username))
+        user = _find_user_by_email(session, email)
         if user is None:
-            return {"success": False, "error": "Invalid username or code."}
+            return {"success": False, "error": "Invalid email or code."}
 
         if not user.password_reset_code or not user.password_reset_code_expires_at:
             return {
@@ -599,7 +575,7 @@ def reset_password(username: str, code: str, new_password: str, new_password_con
         user.password_reset_code_expires_at = None
         user.is_verified = True
 
-        return {"success": True, "username": username, "token": _create_player_token(username)}
+        return {"success": True, "user_id": user.id, "email": user.email}
 
 
 # --- Profile management (docs/plans/session-persistence-and-url-routing.md) ---
@@ -607,7 +583,7 @@ def reset_password(username: str, code: str, new_password: str, new_password_con
 # pre-login flows above, which is why each of these re-verifies the current password rather than
 # just trusting the session for anything identity-changing.
 
-def change_password(username: str, current_password: str, new_password: str, new_password_confirm: str) -> dict:
+def change_password(user_id: int, current_password: str, new_password: str, new_password_confirm: str) -> dict:
     current_password = current_password or ""
     new_password = new_password or ""
     new_password_confirm = new_password_confirm or ""
@@ -620,7 +596,7 @@ def change_password(username: str, current_password: str, new_password: str, new
         return {"success": False, "error": f"Password must be at least {_MIN_PASSWORD_LENGTH} characters long."}
 
     with get_session() as session:
-        user = session.scalar(select(User).where(User.user_name == username))
+        user = session.scalar(select(User).where(User.id == user_id))
         if user is None or not verify_password(current_password, user.password_hash):
             return {"success": False, "error": "Current password is incorrect."}
 
@@ -629,8 +605,8 @@ def change_password(username: str, current_password: str, new_password: str, new
     return {"success": True}
 
 
-async def request_email_change(username: str, new_email: str) -> dict:
-    new_email = new_email.strip() if new_email else ""
+async def request_email_change(user_id: int, new_email: str) -> dict:
+    new_email = new_email.strip().lower() if new_email else ""
 
     if not new_email:
         return {"success": False, "error": "A new email address is required."}
@@ -638,12 +614,12 @@ async def request_email_change(username: str, new_email: str) -> dict:
         return {"success": False, "error": "Please enter a valid email address."}
 
     with get_session() as session:
-        user = session.scalar(select(User).where(User.user_name == username))
+        user = session.scalar(select(User).where(User.id == user_id))
         if user is None:
             return {"success": False, "error": "Account not found."}
         if user.email.lower() == new_email.lower():
             return {"success": False, "error": "That's already your current email address."}
-        if session.scalar(select(User).where(User.email == new_email)) is not None:
+        if _find_user_by_email(session, new_email) is not None:
             return {"success": False, "error": "An account with this email already exists."}
 
         code = _generate_code()
@@ -657,7 +633,7 @@ async def request_email_change(username: str, new_email: str) -> dict:
         # Sent to the *new* address, not the old one - that's what actually stops a typo'd or
         # someone-else's address from silently taking over the account: only the person who can
         # read mail at the new address can produce the code that finishes the change.
-        await _send_code_email(new_email, username, code, "email_change")
+        await _send_code_email(new_email, code, "email_change")
     except Exception as e:
         logger.error(f"Could not send email-change verification to {new_email}: {e}")
         return {
@@ -668,13 +644,13 @@ async def request_email_change(username: str, new_email: str) -> dict:
     return {"success": True}
 
 
-def confirm_email_change(username: str, code: str) -> dict:
+def confirm_email_change(user_id: int, code: str) -> dict:
     code = code.strip() if code else ""
     if not code:
         return {"success": False, "error": "A code is required."}
 
     with get_session() as session:
-        user = session.scalar(select(User).where(User.user_name == username))
+        user = session.scalar(select(User).where(User.id == user_id))
         if user is None:
             return {"success": False, "error": "Account not found."}
 
@@ -694,48 +670,3 @@ def confirm_email_change(username: str, code: str) -> dict:
         user.email_change_code_expires_at = None
 
     return {"success": True}
-
-
-def _rename_denormalized_username(session, user_id: int, new_username: str) -> None:
-    """Every per-player table still carries a legacy `user_name`/`player` string column
-    alongside its real `user_id` FK (docs/done/pk-migration.md - kept as write-only debt pending
-    a future drop migration, not the join key). Nothing depends on these being correct - queries
-    all go through user_id - but leaving them stale after a rename would be a confusing landmine
-    for anyone reading the tables directly (admin tooling, ad-hoc queries), so they're kept in
-    sync here at rename time rather than left to silently drift.
-    """
-    for model, column in (
-        (GameProgression, GameProgression.user_name),
-        (GameChallenge, GameChallenge.user_name),
-        (GameSession, GameSession.player),
-        (IntelItem, IntelItem.user_name),
-        (GraphOpLog, GraphOpLog.user_name),
-        (GameEventRow, GameEventRow.user_name),
-        (UserSettings, UserSettings.user_name),
-        (GameResult, GameResult.user_name),
-    ):
-        session.execute(update(model).where(model.user_id == user_id).values({column: new_username}))
-
-
-def change_username(username: str, new_username: str, current_password: str) -> dict:
-    new_username = new_username.strip() if new_username else ""
-    current_password = current_password or ""
-
-    if not new_username or not current_password:
-        return {"success": False, "error": "All fields are required."}
-
-    with get_session() as session:
-        user = session.scalar(select(User).where(User.user_name == username))
-        if user is None or not verify_password(current_password, user.password_hash):
-            return {"success": False, "error": "Current password is incorrect."}
-
-        if new_username == username:
-            return {"success": True, "username": username}
-
-        if session.scalar(select(User).where(User.user_name == new_username)) is not None:
-            return {"success": False, "error": "This username already exists. Please choose another username."}
-
-        user.user_name = new_username
-        _rename_denormalized_username(session, user.id, new_username)
-
-    return {"success": True, "username": new_username}

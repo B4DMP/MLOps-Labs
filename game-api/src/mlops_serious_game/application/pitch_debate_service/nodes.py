@@ -574,12 +574,12 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
     # Never the whole graph — only the handful of components this stakeholder owns.
     owned_components = ""
     card_targets = ""
-    username = state.get("username", "")
-    if username:
+    user_id = state.get("user_id", "")
+    if user_id:
         try:
             from mlops_serious_game.application.pitch_debate_service.store import load_pitch
             tech_graph = GraphFactory.get_graph()
-            graph_state = graph_store.load_state(username).state
+            graph_state = graph_store.load_state(user_id).state
 
             # Owned components with story at current level
             owned = [c for c in tech_graph.components if tech_graph.owner_of(c.id) == st.id]
@@ -592,7 +592,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
                 owned_components = "\n".join(lines)
 
             # Card targets with current level (if a card is being built)
-            pitch_state = load_pitch(username, state.get("phase_id", 0), state.get("challenge_id", 0))
+            pitch_state = load_pitch(user_id, state.get("phase_id", 0), state.get("challenge_id", 0))
             if pitch_state and pitch_state.card_item_ids:
                 all_items = RequirementFactory.get_requirements_for_challenge(state.get("challenge_id", 0))
                 items_by_id = {r.id: r for r in all_items}

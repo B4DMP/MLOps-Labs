@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import styles from "./VerifyEmail.module.css";
 
 interface ResetPasswordProps {
-  username: string;
+  email: string;
   onSubmit: (code: string, newPassword: string, newPasswordConfirm: string) => void;
   onBack: () => void;
   isLoading?: boolean;
@@ -13,7 +13,7 @@ interface ResetPasswordProps {
 }
 
 export function ResetPassword({
-  username,
+  email,
   onSubmit,
   onBack,
   isLoading = false,
@@ -47,7 +47,7 @@ export function ResetPassword({
       >
         <h2 className={styles.cardTitle}>Reset Password</h2>
         <p className={styles.cardSubtitle}>
-          Enter the code we sent for <strong>{username}</strong> along with your new password.
+          Enter the code we sent to <strong>{email}</strong> along with your new password.
         </p>
 
         {errorMessage && (

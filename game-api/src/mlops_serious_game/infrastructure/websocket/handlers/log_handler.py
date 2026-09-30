@@ -20,21 +20,21 @@ def _serialize(event: GameEvent) -> dict:
     return serialize_event(event)
 
 
-async def send_events(websocket: WebSocket, username: str, events: list[GameEvent]) -> list[GameEvent]:
+async def send_events(websocket: WebSocket, user_id: int, events: list[GameEvent]) -> list[GameEvent]:
     """Persists `events` (assigning them their real `seq`) and pushes them as `log:events`.
     A no-op, sending nothing, when there is nothing to log."""
     if not events:
         return []
-    stamped = append_events(username, events)
+    stamped = append_events(user_id, events)
     await manager.send_event(
         websocket=websocket, event="log:events", payload={"events": [_serialize(e) for e in stamped]}
     )
     return stamped
 
 
-async def handle_log_history(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_log_history(websocket: WebSocket, user_id: int, payload: dict) -> None:
     since_seq = payload.get("since_seq", 0)
-    events = load_events(username, since_seq=since_seq)
+    events = load_events(user_id, since_seq=since_seq)
     await manager.send_event(
         websocket=websocket, event="log:history", payload={"events": [_serialize(e) for e in events]}
     )

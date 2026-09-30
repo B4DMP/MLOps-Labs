@@ -104,7 +104,6 @@ def _seed_player(session, *, username: str, campaign_key: str) -> "User":
         session.flush()
 
     user = User(
-        user_name=username,
         campaign_key=campaign_key,
         campaign_id=campaign.id,
         email=f"{username}@example.test",
@@ -116,28 +115,26 @@ def _seed_player(session, *, username: str, campaign_key: str) -> "User":
     session.flush()
 
     session.add(GameProgression(
-        user_name=username, user_id=user.id, game_progress_index=1,
+        user_id=user.id, game_progress_index=1,
         time_stamp=datetime.datetime.utcnow(), additional_data=[],
     ))
     session.add(GameChallenge(
-        user_name=username, user_id=user.id, phase_index=0, challenge_index=0,
+        user_id=user.id, phase_index=0, challenge_index=0,
         challenge_loop_index=0, action_card={}, metric_values=[],
         time_stamp=datetime.datetime.utcnow(), messages=[],
         attention_tokens=20, emotion_values={},
     ))
-    session.add(GameSession(player=username, user_id=user.id, stakeholder_personas={}))
-    session.add(IntelItem(user_name=username, user_id=user.id, intel_item_data={}))
+    session.add(GameSession(user_id=user.id, stakeholder_personas={}))
+    session.add(IntelItem(user_id=user.id, intel_item_data={}))
     session.add(GraphOpLog(
-        user_name=username, user_id=user.id, seq=1, phase_index=0,
+        user_id=user.id, seq=1, phase_index=0,
         challenge_template="t", source_kind="challenge_seed", ops=[],
     ))
     session.add(GameEventRow(
-        user_name=username, user_id=user.id, seq=1, phase_id=0, challenge_id=0,
+        user_id=user.id, seq=1, phase_id=0, challenge_id=0,
         step="offline", kind="intel", direction="none", cause="intel.artifact_filed",
     ))
-    session.add(UserSettings(user_name=username, user_id=user.id, mute_tts=True))
-    # Checkpoint thread ids are keyed by user_id, not username
-    # (docs/plans/session-persistence-and-url-routing.md, D-user-id).
+    session.add(UserSettings(user_id=user.id, mute_tts=True))
     for thread_id in (f"MLOps_Convo_{user.id}", f"Online_Intel_{user.id}"):
         session.execute(
             sqlalchemy.text("INSERT INTO checkpoints (thread_id) VALUES (:t)"), {"t": thread_id}
@@ -152,7 +149,7 @@ def _seed_player(session, *, username: str, campaign_key: str) -> "User":
     return user
 
 
-def _row_counts(session, username: str, user_id: int) -> dict[str, int]:
+def _row_counts(session, user_id: int) -> dict[str, int]:
     from mlops_serious_game.infrastructure.database.models import (
         GameProgression, GameChallenge, GameSession, IntelItem, GraphOpLog, GameEventRow,
         UserSettings,
@@ -161,35 +158,33 @@ def _row_counts(session, username: str, user_id: int) -> dict[str, int]:
     counts = {
         "GameProgression": session.scalar(
             sqlalchemy.select(sqlalchemy.func.count()).select_from(GameProgression)
-            .where(GameProgression.user_name == username)
+            .where(GameProgression.user_id == user_id)
         ),
         "GameChallenge": session.scalar(
             sqlalchemy.select(sqlalchemy.func.count()).select_from(GameChallenge)
-            .where(GameChallenge.user_name == username)
+            .where(GameChallenge.user_id == user_id)
         ),
         "GameSession": session.scalar(
             sqlalchemy.select(sqlalchemy.func.count()).select_from(GameSession)
-            .where(GameSession.player == username)
+            .where(GameSession.user_id == user_id)
         ),
         "IntelItem": session.scalar(
             sqlalchemy.select(sqlalchemy.func.count()).select_from(IntelItem)
-            .where(IntelItem.user_name == username)
+            .where(IntelItem.user_id == user_id)
         ),
         "GraphOpLog": session.scalar(
             sqlalchemy.select(sqlalchemy.func.count()).select_from(GraphOpLog)
-            .where(GraphOpLog.user_name == username)
+            .where(GraphOpLog.user_id == user_id)
         ),
         "GameEventRow": session.scalar(
             sqlalchemy.select(sqlalchemy.func.count()).select_from(GameEventRow)
-            .where(GameEventRow.user_name == username)
+            .where(GameEventRow.user_id == user_id)
         ),
         "UserSettings": session.scalar(
             sqlalchemy.select(sqlalchemy.func.count()).select_from(UserSettings)
-            .where(UserSettings.user_name == username)
+            .where(UserSettings.user_id == user_id)
         ),
     }
-    # Checkpoint thread ids are keyed by user_id, not username
-    # (docs/plans/session-persistence-and-url-routing.md, D-user-id).
     for table in CHECKPOINT_TABLES:
         for thread_id in (f"MLOps_Convo_{user_id}", f"Online_Intel_{user_id}"):
             key = f"{table}:{thread_id}"
@@ -207,13 +202,13 @@ def test_remove_player_clears_every_table(migrated_db):
         alice_id = _seed_player(session, username="alice", campaign_key="camp-1").id
 
     with get_session() as session:
-        before = _row_counts(session, "alice", alice_id)
+        before = _row_counts(session, alice_id)
     assert all(v > 0 for v in before.values()), before
 
-    admin_service.remove_player("alice")
+    admin_service.remove_player("alice@example.test")
 
     with get_session() as session:
-        after = _row_counts(session, "alice", alice_id)
+        after = _row_counts(session, alice_id)
     assert all(v == 0 for v in after.values()), after
 
 
@@ -228,8 +223,8 @@ def test_remove_all_players_clears_every_table(migrated_db):
     admin_service.remove_all_players()
 
     with get_session() as session:
-        after_bob = _row_counts(session, "bob", bob_id)
-        after_carol = _row_counts(session, "carol", carol_id)
+        after_bob = _row_counts(session, bob_id)
+        after_carol = _row_counts(session, carol_id)
     assert all(v == 0 for v in after_bob.values()), after_bob
     assert all(v == 0 for v in after_carol.values()), after_carol
 
@@ -248,9 +243,9 @@ def test_remove_campaign_clears_every_table_for_every_user(migrated_db):
     admin_service.remove_campaign("camp-multi")
 
     with get_session() as session:
-        after_dave = _row_counts(session, "dave", dave_id)
-        after_erin = _row_counts(session, "erin", erin_id)
-        after_frank = _row_counts(session, "frank", frank_id)
+        after_dave = _row_counts(session, dave_id)
+        after_erin = _row_counts(session, erin_id)
+        after_frank = _row_counts(session, frank_id)
 
     assert all(v == 0 for v in after_dave.values()), after_dave
     assert all(v == 0 for v in after_erin.values()), after_erin
@@ -275,16 +270,16 @@ def test_reset_player_clears_every_table_but_recreates_the_user(migrated_db):
         grace_id = _seed_player(session, username="grace", campaign_key="camp-1").id
 
     with get_session() as session:
-        before = _row_counts(session, "grace", grace_id)
+        before = _row_counts(session, grace_id)
     assert all(v > 0 for v in before.values()), before
 
-    admin_service.reset_player("grace")
+    admin_service.reset_player(grace_id)
 
     with get_session() as session:
         # Deliberately re-check against the *pre-reset* user_id: the whole point of this test is
         # that the old identity's checkpoint threads are gone, not the new user's (which has none).
-        after = _row_counts(session, "grace", grace_id)
-        user = session.scalar(sqlalchemy.select(User).where(User.user_name == "grace"))
+        after = _row_counts(session, grace_id)
+        user = session.get(User, grace_id)  # same id, so live sessions stay valid
         assert user is not None
         assert user.campaign_key == "camp-1"
     assert all(v == 0 for v in after.values()), after
@@ -293,7 +288,7 @@ def test_reset_player_clears_every_table_but_recreates_the_user(migrated_db):
 def test_reset_player_for_an_unknown_user_is_a_no_op(migrated_db):
     from mlops_serious_game.application.services import admin_service
 
-    admin_service.reset_player("nobody")  # must not raise
+    admin_service.reset_player(999999)  # must not raise
 
 
 @pytest.fixture
@@ -329,11 +324,11 @@ def test_calculate_metric_sum_per_challenge_uses_played_order(sqlite_db):
         session.flush()
 
         u1 = User(
-            user_name="user1", campaign_key="camp-alpha", campaign_id=c1.id,
+            campaign_key="camp-alpha", campaign_id=c1.id,
             email="user1@example.test", password_hash="hash", users_on_machine=1, is_verified=True,
         )
         u2 = User(
-            user_name="user2", campaign_key="camp-beta", campaign_id=c2.id,
+            campaign_key="camp-beta", campaign_id=c2.id,
             email="user2@example.test", password_hash="hash", users_on_machine=1, is_verified=True,
         )
         session.add_all([u1, u2])
@@ -342,7 +337,7 @@ def test_calculate_metric_sum_per_challenge_uses_played_order(sqlite_db):
         now = datetime.datetime.utcnow()
         # Intro challenge for user1 (phase_index=0) should be ignored
         session.add(GameChallenge(
-            user_name="user1", user_id=u1.id, phase_index=0, challenge_index=0,
+            user_id=u1.id, phase_index=0, challenge_index=0,
             challenge_loop_index=0, action_card={}, metric_values=[],
             time_stamp=now, messages=[],
             attention_tokens=20, emotion_values={},
@@ -350,19 +345,19 @@ def test_calculate_metric_sum_per_challenge_uses_played_order(sqlite_db):
 
         # user1 plays challenge 100 (has an initial loop 0 record, then a loop 3 record)
         session.add(GameChallenge(
-            user_name="user1", user_id=u1.id, phase_index=1, challenge_index=100,
+            user_id=u1.id, phase_index=1, challenge_index=100,
             challenge_loop_index=0, action_card={}, metric_values=[10, 10, 10, 10, 10, 10],
             time_stamp=now, messages=[],
             attention_tokens=20, emotion_values={},
         ))
         session.add(GameChallenge(
-            user_name="user1", user_id=u1.id, phase_index=1, challenge_index=100,
+            user_id=u1.id, phase_index=1, challenge_index=100,
             challenge_loop_index=3, action_card={}, metric_values=[10, 10, 10, 10, 10, 12],
             time_stamp=now, messages=[],
             attention_tokens=20, emotion_values={},
         ))
         session.add(GameChallenge(
-            user_name="user1", user_id=u1.id, phase_index=2, challenge_index=105,
+            user_id=u1.id, phase_index=2, challenge_index=105,
             challenge_loop_index=3, action_card={}, metric_values=[11, 10, 10, 10, 10, 13],
             time_stamp=now, messages=[],
             attention_tokens=20, emotion_values={},
@@ -370,19 +365,19 @@ def test_calculate_metric_sum_per_challenge_uses_played_order(sqlite_db):
 
         # user2 plays challenge 101 first, challenge 102 second, challenge 104 third
         session.add(GameChallenge(
-            user_name="user2", user_id=u2.id, phase_index=1, challenge_index=101,
+            user_id=u2.id, phase_index=1, challenge_index=101,
             challenge_loop_index=3, action_card={}, metric_values=[10, 10, 10, 10, 10, 10],
             time_stamp=now, messages=[],
             attention_tokens=20, emotion_values={},
         ))
         session.add(GameChallenge(
-            user_name="user2", user_id=u2.id, phase_index=2, challenge_index=102,
+            user_id=u2.id, phase_index=2, challenge_index=102,
             challenge_loop_index=3, action_card={}, metric_values=[11, 10, 10, 10, 10, 11],
             time_stamp=now, messages=[],
             attention_tokens=20, emotion_values={},
         ))
         session.add(GameChallenge(
-            user_name="user2", user_id=u2.id, phase_index=3, challenge_index=104,
+            user_id=u2.id, phase_index=3, challenge_index=104,
             challenge_loop_index=3, action_card={}, metric_values=[12, 10, 10, 10, 10, 14],
             time_stamp=now, messages=[],
             attention_tokens=20, emotion_values={},

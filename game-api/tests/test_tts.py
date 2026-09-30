@@ -147,7 +147,6 @@ def logged_in_player(client):
     with get_session() as session:
         campaign = _get_or_create_tts_test_campaign(session)
         session.add(User(
-            user_name=username,
             campaign_key=TEST_CAMPAIGN_KEY,
             campaign_id=campaign.id,
             email=f"{username}@example.test",
@@ -156,7 +155,7 @@ def logged_in_player(client):
             is_verified=True,
         ))
 
-    login = client.post("/api/auth/login", json={"username": username, "password": password})
+    login = client.post("/api/auth/login", json={"email": f"{username}@example.test", "password": password})
     assert login.status_code == 200
     csrf_token = client.cookies.get("mlops_csrf")
     return {"X-CSRF-Token": csrf_token}
@@ -241,18 +240,20 @@ def logged_in_player_with_voice_gender(client):
 
         with get_session() as session:
             campaign = _get_or_create_tts_test_campaign(session)
-            session.add(User(
-                user_name=username,
+            user = User(
                 campaign_key=TEST_CAMPAIGN_KEY,
                 campaign_id=campaign.id,
                 email=f"{username}@example.test",
                 password_hash=hash_password(password),
                 users_on_machine=1,
                 is_verified=True,
-            ))
-        user_settings_service.update_settings(username, {"player_voice_gender": gender})
+            )
+            session.add(user)
+            session.flush()
+            user_id = user.id
+        user_settings_service.update_settings(user_id, {"player_voice_gender": gender})
 
-        login = client.post("/api/auth/login", json={"username": username, "password": password})
+        login = client.post("/api/auth/login", json={"email": f"{username}@example.test", "password": password})
         assert login.status_code == 200
         csrf_token = client.cookies.get("mlops_csrf")
         return {"X-CSRF-Token": csrf_token}
@@ -345,19 +346,21 @@ def test_tts_endpoint_speed_setting_shifts_the_rate(client):
 
     with get_session() as session:
         campaign = _get_or_create_tts_test_campaign(session)
-        session.add(User(
-            user_name=username,
+        user = User(
             campaign_key=TEST_CAMPAIGN_KEY,
             campaign_id=campaign.id,
             email=f"{username}@example.test",
             password_hash=hash_password(password),
             users_on_machine=1,
             is_verified=True,
-        ))
-    user_settings_service.update_settings(username, {"speech_rate": 1.25})
+        )
+        session.add(user)
+        session.flush()
+        user_id = user.id
+    user_settings_service.update_settings(user_id, {"speech_rate": 1.25})
 
     client.cookies.clear()
-    login = client.post("/api/auth/login", json={"username": username, "password": password})
+    login = client.post("/api/auth/login", json={"email": f"{username}@example.test", "password": password})
     assert login.status_code == 200
     headers = {"X-CSRF-Token": client.cookies.get("mlops_csrf")}
 
@@ -384,14 +387,14 @@ async def test_registering_with_a_voice_gender_round_trips_through_settings():
     with get_session() as session:
         _get_or_create_tts_test_campaign(session)
 
-    username = f"tts_register_{uuid.uuid4().hex[:8]}"
+    email = f"tts_register_{uuid.uuid4().hex[:8]}@example.test"
     result = await register_user(
-        username, "", "", "correct-horse-battery-staple", "correct-horse-battery-staple",
+        email, email, "correct-horse-battery-staple", "correct-horse-battery-staple",
         1, TEST_CAMPAIGN_KEY, "female",
     )
 
     assert result["success"] is True
-    assert user_settings_service.get_settings(username)["player_voice_gender"] == "female"
+    assert user_settings_service.get_settings(result["user_id"])["player_voice_gender"] == "female"
 
 
 @pytest.mark.anyio
@@ -400,11 +403,11 @@ async def test_registering_with_an_unset_or_garbage_voice_gender_defaults_to_mal
         _get_or_create_tts_test_campaign(session)
 
     for gender, label in [(None, "unset"), ("nonbinary", "garbage")]:
-        username = f"tts_register_default_{label}_{uuid.uuid4().hex[:8]}"
+        email = f"tts_register_default_{label}_{uuid.uuid4().hex[:8]}@example.test"
         result = await register_user(
-            username, "", "", "correct-horse-battery-staple", "correct-horse-battery-staple",
+            email, email, "correct-horse-battery-staple", "correct-horse-battery-staple",
             1, TEST_CAMPAIGN_KEY, gender,
         )
 
         assert result["success"] is True
-        assert user_settings_service.get_settings(username)["player_voice_gender"] == "male"
+        assert user_settings_service.get_settings(result["user_id"])["player_voice_gender"] == "male"

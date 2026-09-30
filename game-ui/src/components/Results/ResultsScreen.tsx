@@ -129,7 +129,7 @@ export default function ResultsScreen({ metricInfo = {} }: ResultsScreenProps) {
               <Icon icon="ph:warning-circle-bold" aria-hidden />
               <span>
                 <strong>Important notice:</strong> please refrain from participating again with
-                another username, as duplicate sessions would invalidate our empirical research
+                another account, as duplicate sessions would invalidate our empirical research
                 results.
               </span>
             </div>

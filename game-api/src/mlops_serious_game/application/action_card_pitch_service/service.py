@@ -9,11 +9,11 @@ from mlops_serious_game.application.action_card_pitch_service.state import (
     ActionCardPitchState,
     StakeholderPitchContext,
 )
-from mlops_serious_game.infrastructure.database import get_session, get_user_id
+from mlops_serious_game.infrastructure.database import get_session
 
 
 async def run_action_card_pitch_workflow(
-    username: str,
+    user_id: int,
     phase_id: int,
     challenge_id: int,
     challenge_context: str,
@@ -29,7 +29,7 @@ async def run_action_card_pitch_workflow(
     """Runs the dedicated Action Card Pitch LangGraph workflow to generate the player's pitch and stakeholder reactions.
 
     Args:
-        username (str): Player username.
+        user_id (str): Player user_id.
         phase_id (int): Current phase index.
         challenge_id (int): Current challenge index.
         challenge_context (str): Context of the challenge.
@@ -48,11 +48,7 @@ async def run_action_card_pitch_workflow(
     if session_id:
         thread_id = session_id
     else:
-        # Keyed by user_id, not username - see D-user-id in
-        # docs/plans/session-persistence-and-url-routing.md.
-        with get_session() as pitch_session:
-            pitch_user_id = get_user_id(pitch_session, username)
-        thread_id = f"Action_Card_Pitch_{pitch_user_id}_{phase_id}_{challenge_id}_{pitch_attempt}"
+        thread_id = f"Action_Card_Pitch_{user_id}_{phase_id}_{challenge_id}_{pitch_attempt}"
 
     graph_builder = create_action_card_pitch_graph()
     graph = graph_builder.compile()
@@ -61,7 +57,7 @@ async def run_action_card_pitch_workflow(
         project_name="MLOps serious game - Action Card Pitch",
         metadata={
             "thread_id": thread_id,
-            "username": username,
+            "user_id": user_id,
             "phase_id": phase_id,
             "challenge_id": challenge_id,
             "pitch_attempt": pitch_attempt,

@@ -41,7 +41,7 @@ from mlops_serious_game.domain.requirement import (
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.infrastructure.database.run_scope import current_run_index
-from mlops_serious_game.infrastructure.database import GameChallenge, get_session, get_user_id
+from mlops_serious_game.infrastructure.database import GameChallenge, get_session
 from mlops_serious_game.infrastructure.websocket.handlers.log_handler import send_events
 from mlops_serious_game.infrastructure.websocket.manager import manager
 
@@ -98,12 +98,12 @@ def _stakeholder_emotion_meta(st_id: str, emotion_values_map: dict) -> tuple[str
     return emotion_str, emotional_state, facial_expression, ev_dict
 
 
-async def _held_items(username: str, phase_id: int) -> list[StakeholderIntelItem]:
-    return load_known_intel_items(username, up_to_phase=phase_id)
+async def _held_items(user_id: int, phase_id: int) -> list[StakeholderIntelItem]:
+    return load_known_intel_items(user_id, up_to_phase=phase_id)
 
 
 def _options_payload(
-    username: str,
+    user_id: int,
     phase_id: int,
     challenge_id: int,
     conversation: gather.GatherConversation,
@@ -129,7 +129,7 @@ def _options_payload(
             RequirementFactory.get_requirements_for_stakeholder_in_challenge(challenge.id, conversation.stakeholder_id),
         )
 
-    seed = f"{username}|{challenge.id}|{conversation.card_id}|{conversation.stakeholder_id}|{conversation.turns_used}"
+    seed = f"{user_id}|{challenge.id}|{conversation.card_id}|{conversation.stakeholder_id}|{conversation.turns_used}"
     specs = gather.gather_options_for(
         conversation=conversation,
         held=held,
@@ -145,7 +145,7 @@ def _options_payload(
 
 async def _send_conversation(
     websocket: WebSocket,
-    username: str,
+    user_id: int,
     phase_id: int,
     challenge_id: int,
     conversation: gather.GatherConversation,
@@ -168,7 +168,7 @@ async def _send_conversation(
         "turns_left": conversation.turns_left,
         "turns_used": conversation.turns_used,
         "closed": conversation.closed,
-        "options": _options_payload(username, phase_id, challenge_id, conversation, card, held),
+        "options": _options_payload(user_id, phase_id, challenge_id, conversation, card, held),
     }
     payload.update(extra)
     await manager.send_event(websocket=websocket, event="gather:state", payload=payload)
@@ -180,7 +180,7 @@ def _target_room_ids(card, requested: list[str], room_ids: list[str]) -> list[st
     return [st_id for st_id in requested if st_id in room_ids]
 
 
-async def handle_gather_open(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_gather_open(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Plays a card: starts one conversation per target (or whole room for Team Sync-Up)."""
     phase_id, challenge_id = payload.get("phase_id", 0), payload.get("challenge_id", 0)
     card_id = payload.get("card_id")
@@ -202,7 +202,6 @@ async def handle_gather_open(websocket: WebSocket, username: str, payload: dict)
 
     existing_messages = []
     with get_session() as db:
-        user_id = get_user_id(db, username)
         row = db.scalars(
             select(GameChallenge)
             .where(
@@ -245,7 +244,6 @@ async def handle_gather_open(websocket: WebSocket, username: str, payload: dict)
                 },
             }
             row = GameChallenge(
-                user_name=username,
                 user_id=user_id,
                 run_index=current_run_index(db, user_id),
                 phase_index=phase_id,
@@ -269,7 +267,7 @@ async def handle_gather_open(websocket: WebSocket, username: str, payload: dict)
     play_index = len(matching_conv_ids) + 1
     conversation_id = f"{prefix}{play_index}"
 
-    held = await _held_items(username, phase_id)
+    held = await _held_items(user_id, phase_id)
     events: list[GameEvent] = []
     conversations = []
     for target in targets:
@@ -279,7 +277,7 @@ async def handle_gather_open(websocket: WebSocket, username: str, payload: dict)
             stakeholder_id=target,
             turns_left=card.turns,
         )
-        gather_store.save_conversation(username, phase_id, challenge_id, conversation)
+        gather_store.save_conversation(user_id, phase_id, challenge_id, conversation)
         conversations.append(conversation)
         display_name = "Whole Team" if target == "all" else _stakeholder_name(target)
         events.append(GameEvent(
@@ -292,12 +290,12 @@ async def handle_gather_open(websocket: WebSocket, username: str, payload: dict)
             params={"card": card.title, "st": display_name},
         ))
 
-    await send_events(websocket, username, [e.stamped(phase_id=phase_id, challenge_id=challenge_id) for e in events])
+    await send_events(websocket, user_id, [e.stamped(phase_id=phase_id, challenge_id=challenge_id) for e in events])
     for conversation in conversations:
-        await _send_conversation(websocket, username, phase_id, challenge_id, conversation, card, held)
+        await _send_conversation(websocket, user_id, phase_id, challenge_id, conversation, card, held)
 
 
-async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_gather_ask(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Resolves one turn: one option, one target, one outcome."""
     phase_id, challenge_id = payload.get("phase_id", 0), payload.get("challenge_id", 0)
     card_id, stakeholder_id = payload.get("card_id"), payload.get("stakeholder_id")
@@ -305,9 +303,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
     card = EngagementCardFactory.get_card(card_id)
     challenge, room_ids = _challenge_and_room(phase_id, challenge_id)
 
-    conversation = gather_store.load_conversation(username, phase_id, challenge_id, card_id, stakeholder_id)
+    conversation = gather_store.load_conversation(user_id, phase_id, challenge_id, card_id, stakeholder_id)
     if conversation is None and (card_id == "eng_3" or card.stakeholder_selection_amount == -1):
-        conversation = gather_store.load_conversation(username, phase_id, challenge_id, card_id, "all")
+        conversation = gather_store.load_conversation(user_id, phase_id, challenge_id, card_id, "all")
     if conversation is None or not conversation.is_open:
         await manager.send_event(
             websocket=websocket, event="system:error",
@@ -315,16 +313,16 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
         )
         return
 
-    held = await _held_items(username, phase_id)
+    held = await _held_items(user_id, phase_id)
     known_ids = {i.id for i in held} | set(conversation.discovered_item_ids)
-    seed = f"{username}|{challenge.id}|{card_id}|{conversation.stakeholder_id}|{conversation.turns_used}"
+    seed = f"{user_id}|{challenge.id}|{card_id}|{conversation.stakeholder_id}|{conversation.turns_used}"
     graph = None
     try:
         graph = GraphFactory.get_graph()
     except Exception:
         pass
 
-    allowed = _options_payload(username, phase_id, challenge_id, conversation, card, held)
+    allowed = _options_payload(user_id, phase_id, challenge_id, conversation, card, held)
     req_comp = payload.get("component_id")
     matching = next(
         (
@@ -336,7 +334,7 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
     )
     if matching is None:
         await _send_conversation(
-            websocket, username, phase_id, challenge_id, conversation, card, held,
+            websocket, user_id, phase_id, challenge_id, conversation, card, held,
             error="that option is not available here",
         )
         return
@@ -352,7 +350,7 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
             row = db.scalars(
                 select(GameChallenge)
                 .where(
-                    GameChallenge.user_id == get_user_id(db, username),
+                    GameChallenge.user_id == user_id,
                     GameChallenge.phase_index == phase_id,
                     GameChallenge.challenge_index == challenge_id,
                 )
@@ -467,13 +465,13 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
         )
     else:
         await _send_conversation(
-            websocket, username, phase_id, challenge_id, conversation, card, held,
+            websocket, user_id, phase_id, challenge_id, conversation, card, held,
             error="unknown option",
         )
         return
 
     # Persist updated conversation
-    gather_store.save_conversation(username, phase_id, challenge_id, outcome.conversation)
+    gather_store.save_conversation(user_id, phase_id, challenge_id, outcome.conversation)
 
     # If revealed items, persist as Verified and emit stakeholder responses
     held_by_id = {i.id: i for i in held}
@@ -1010,7 +1008,7 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                 row = db.scalars(
                     select(GameChallenge)
                     .where(
-                        GameChallenge.user_id == get_user_id(db, username),
+                        GameChallenge.user_id == user_id,
                         GameChallenge.phase_index == phase_id,
                         GameChallenge.challenge_index == challenge_id,
                     )
@@ -1034,29 +1032,29 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
 
     # Send game events
     await send_events(
-        websocket, username, [e.stamped(phase_id=phase_id, challenge_id=challenge_id) for e in outcome.events]
+        websocket, user_id, [e.stamped(phase_id=phase_id, challenge_id=challenge_id) for e in outcome.events]
     )
 
     # Send updated dossier data
-    held_after = await _held_items(username, phase_id)
+    held_after = await _held_items(user_id, phase_id)
     dossier = await retrieve_dossier_data(challenge, websocket)
     await manager.send_event(websocket=websocket, event="intel:dossier_data", payload={"dossier": dossier})
 
     # Send updated conversation state
     await _send_conversation(
-        websocket, username, phase_id, challenge_id, outcome.conversation, card, held_after, result=outcome.result,
+        websocket, user_id, phase_id, challenge_id, outcome.conversation, card, held_after, result=outcome.result,
     )
 
 
-async def handle_gather_close(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_gather_close(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Ends a conversation early; unused turns are lost."""
     phase_id, challenge_id = payload.get("phase_id", 0), payload.get("challenge_id", 0)
     card_id, stakeholder_id = payload.get("card_id"), payload.get("stakeholder_id")
     card = EngagementCardFactory.get_card(card_id)
 
-    conversation = gather_store.load_conversation(username, phase_id, challenge_id, card_id, stakeholder_id)
+    conversation = gather_store.load_conversation(user_id, phase_id, challenge_id, card_id, stakeholder_id)
     if conversation is None and (card_id == "eng_3" or card.stakeholder_selection_amount == -1):
-        conversation = gather_store.load_conversation(username, phase_id, challenge_id, card_id, "all")
+        conversation = gather_store.load_conversation(user_id, phase_id, challenge_id, card_id, "all")
     if conversation is None:
         await manager.send_event(
             websocket=websocket, event="system:error", payload={"message": "no such conversation"},
@@ -1065,9 +1063,9 @@ async def handle_gather_close(websocket: WebSocket, username: str, payload: dict
 
     st_name = _stakeholder_name(conversation.stakeholder_id) if conversation.stakeholder_id != "all" else "Whole Team"
     outcome = gather.close_conversation(conversation, st_name)
-    gather_store.save_conversation(username, phase_id, challenge_id, outcome.conversation)
+    gather_store.save_conversation(user_id, phase_id, challenge_id, outcome.conversation)
     await send_events(
-        websocket, username, [e.stamped(phase_id=phase_id, challenge_id=challenge_id) for e in outcome.events]
+        websocket, user_id, [e.stamped(phase_id=phase_id, challenge_id=challenge_id) for e in outcome.events]
     )
-    held = await _held_items(username, phase_id)
-    await _send_conversation(websocket, username, phase_id, challenge_id, outcome.conversation, card, held)
+    held = await _held_items(user_id, phase_id)
+    await _send_conversation(websocket, user_id, phase_id, challenge_id, outcome.conversation, card, held)

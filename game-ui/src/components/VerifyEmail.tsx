@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import styles from "./VerifyEmail.module.css";
 
 interface VerifyEmailProps {
-  username: string;
+  email: string;
   onSubmit: (code: string) => void;
   onResend: () => void;
   onBack: () => void;
@@ -15,7 +15,7 @@ interface VerifyEmailProps {
 }
 
 export function VerifyEmail({
-  username,
+  email,
   onSubmit,
   onResend,
   onBack,
@@ -50,7 +50,7 @@ export function VerifyEmail({
       >
         <h2 className={styles.cardTitle}>Verify Your Email</h2>
         <p className={styles.cardSubtitle}>
-          We sent a 6-digit code to the email address for <strong>{username}</strong>. Enter it below to continue.
+          We sent a 6-digit code to <strong>{email}</strong>. Enter it below to continue.
         </p>
 
         {errorMessage && (

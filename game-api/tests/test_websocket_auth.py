@@ -43,7 +43,6 @@ def registered_player():
             session.add(campaign)
             session.flush()
         session.add(User(
-            user_name=username,
             campaign_key=campaign_key,
             campaign_id=campaign.id,
             email=f"{username}@example.test",
@@ -70,7 +69,7 @@ def test_connect_rejected_with_garbage_cookie(client):
 
 def test_connect_rejected_on_origin_mismatch(client, registered_player):
     username, password = registered_player
-    client.post("/api/auth/login", json={"username": username, "password": password})
+    client.post("/api/auth/login", json={"email": f"{username}@example.test", "password": password})
 
     with pytest.raises(WebSocketDisconnect):
         with client.websocket_connect("/ws", headers={"origin": "https://evil.example"}):
@@ -79,7 +78,7 @@ def test_connect_rejected_on_origin_mismatch(client, registered_player):
 
 def test_connect_accepted_with_valid_cookie(client, registered_player):
     username, password = registered_player
-    client.post("/api/auth/login", json={"username": username, "password": password})
+    client.post("/api/auth/login", json={"email": f"{username}@example.test", "password": password})
 
     with client.websocket_connect("/ws", headers={"origin": _ALLOWED_ORIGIN}) as ws:
         ws.send_json({"event": "system:ping", "payload": {}})

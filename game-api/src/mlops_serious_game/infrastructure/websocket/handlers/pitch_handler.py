@@ -35,7 +35,7 @@ from mlops_serious_game.domain.requirement import (
 )
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
-from mlops_serious_game.infrastructure.database import GameChallenge, get_session, get_user_id
+from mlops_serious_game.infrastructure.database import GameChallenge, get_session
 from mlops_serious_game.infrastructure.websocket.handlers.log_handler import send_events
 from mlops_serious_game.infrastructure.websocket.manager import manager
 
@@ -43,15 +43,15 @@ from mlops_serious_game.infrastructure.websocket.manager import manager
 class PitchContext:
     """Everything one pitch message needs, gathered once."""
 
-    def __init__(self, username: str, phase_id: int, challenge_id: int):
-        self.username = username
+    def __init__(self, user_id: int, phase_id: int, challenge_id: int):
+        self.user_id = user_id
         self.challenge = PhaseFactory.translate_challenge_index(
             challenge_index=challenge_id, phase_index=phase_id
         )
         self.phase_id = self.challenge.phase_id if self.challenge else phase_id
         self.challenge_id = self.challenge.id if self.challenge else challenge_id
         self.graph = GraphFactory.get_graph()
-        replay = graph_store.load_state(username)
+        replay = graph_store.load_state(user_id)
         self.state = replay.state
         self.all_intel = RequirementFactory.get_requirements_for_challenge(self.challenge_id)
         self.room = [
@@ -59,7 +59,7 @@ class PitchContext:
             for ps in PhaseFactory.get_phases()[self.phase_id].stakeholders
         ]
         self.room_ids = [st_id for st_id, _, _ in self.room]
-        self.emotions = pitch_store.emotion_values(username, self.room_ids)
+        self.emotions = pitch_store.emotion_values(user_id, self.room_ids)
         self.names = {
             st_id: (StakeholderFactory.get_stakeholder(st_id).name if StakeholderFactory.get_stakeholder(st_id) else st_id)
             for st_id, _, _ in self.room
@@ -69,7 +69,7 @@ class PitchContext:
         """What the player actually holds, across phases."""
         from mlops_serious_game.application.intel_handler import load_known_intel_items
 
-        return load_known_intel_items(self.username, up_to_phase=self.phase_id)
+        return load_known_intel_items(self.user_id, up_to_phase=self.phase_id)
 
     def view(self, state: "pitch.PitchState") -> pitch.CardView:
         current_emotions = dict(self.emotions)
@@ -196,7 +196,7 @@ async def _verify_heard(
     for item_id in dict.fromkeys(item_ids):
         item = held.get(item_id)
         if item is not None and not _is_verified(item):
-            correct_and_verify_intel_item(ctx.username, item_id, ctx.challenge)
+            correct_and_verify_intel_item(ctx.user_id, item_id, ctx.challenge)
             changed = True
 
     if not changed:
@@ -207,7 +207,7 @@ async def _verify_heard(
 
 
 def _load_or_start(ctx: PitchContext) -> "pitch.PitchState":
-    state = pitch_store.load_pitch(ctx.username, ctx.phase_id, ctx.challenge_id)
+    state = pitch_store.load_pitch(ctx.user_id, ctx.phase_id, ctx.challenge_id)
     return state or pitch.start_pitch(ctx.room_ids)
 
 
@@ -277,7 +277,8 @@ def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView,
         "emotion_deltas": state.emotion_deltas,
         "outcome": state.outcome,
         "presentation_count": getattr(state, "presentation_count", 0),
-        "escalation_points": pitch_store.escalation_points(ctx.username),
+        "last_pitched_changes": [c.model_dump() for c in state.last_pitched_changes],
+        "escalation_points": pitch_store.escalation_points(ctx.user_id),
     }
     payload.update(extra)
     return payload
@@ -289,14 +290,14 @@ async def _send(websocket: WebSocket, ctx: PitchContext, state, view, **extra) -
     )
 
 
-async def handle_pitch_state(websocket: WebSocket, username: str, payload: dict) -> None:
-    ctx = PitchContext(username, payload.get("phase_id", 0), payload.get("challenge_id", 0))
+async def handle_pitch_state(websocket: WebSocket, user_id: int, payload: dict) -> None:
+    ctx = PitchContext(user_id, payload.get("phase_id", 0), payload.get("challenge_id", 0))
     state = _load_or_start(ctx)
     await _send(websocket, ctx, state, ctx.view(state))
 
 
-async def handle_pitch_set_card(websocket: WebSocket, username: str, payload: dict) -> None:
-    ctx = PitchContext(username, payload.get("phase_id", 0), payload.get("challenge_id", 0))
+async def handle_pitch_set_card(websocket: WebSocket, user_id: int, payload: dict) -> None:
+    ctx = PitchContext(user_id, payload.get("phase_id", 0), payload.get("challenge_id", 0))
     state = _load_or_start(ctx)
 
     raw_changes = payload.get("atomic_changes", [])
@@ -323,13 +324,13 @@ async def handle_pitch_set_card(websocket: WebSocket, username: str, payload: di
 
     state.atomic_changes = valid_changes
     state.stage = "PREPARE"
-    pitch_store.save_pitch(username, ctx.phase_id, ctx.challenge_id, state)
+    pitch_store.save_pitch(user_id, ctx.phase_id, ctx.challenge_id, state)
     await _send(websocket, ctx, state, ctx.view(state))
 
 
-async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_pitch_evaluate(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Evaluates the pitched Action Card once against all room stakeholders."""
-    ctx = PitchContext(username, payload.get("phase_id", 0), payload.get("challenge_id", 0))
+    ctx = PitchContext(user_id, payload.get("phase_id", 0), payload.get("challenge_id", 0))
     state = _load_or_start(ctx)
 
     if "atomic_changes" in payload:
@@ -355,12 +356,16 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
         await _send(websocket, ctx, state, ctx.view(state), error="Configure at least one atomic graph change first")
         return
 
+    if state.last_pitched_changes and pitch.same_card(state.atomic_changes, state.last_pitched_changes):
+        await _send(websocket, ctx, state, ctx.view(state), error="Change the proposal before pitching it again")
+        return
+
     existing_messages = []
     with get_session() as db:
         row = db.scalars(
             select(GameChallenge)
             .where(
-                GameChallenge.user_id == get_user_id(db, username),
+                GameChallenge.user_id == user_id,
                 GameChallenge.phase_index == ctx.phase_id,
                 GameChallenge.challenge_index == ctx.challenge_id,
             )
@@ -421,8 +426,12 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
     held_map = {i.id: i for i in ctx.held_items()}
     newly_verified_or_stored = False
 
+    silent_ids = pitch.silent_stakeholders(state, new_state.reaction_signatures)
+
     for room_entry in ctx.room:
         st_id = room_entry[0]
+        if st_id in silent_ids:
+            continue
         power = room_entry[1]
         st = StakeholderFactory.get_stakeholder(st_id)
         st_name = ctx.names.get(st_id, st.name if st else st_id)
@@ -501,7 +510,7 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
     addressed_names_str = ", ".join([s["stakeholder_name"] for s in stakeholders_ctx_list])
 
     player_msg, stakeholder_responses, _ = await run_action_card_pitch_workflow(
-        username=username,
+        user_id=user_id,
         phase_id=ctx.phase_id,
         challenge_id=ctx.challenge_id,
         challenge_context=challenge_context,
@@ -576,7 +585,7 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
         row = db.scalars(
             select(GameChallenge)
             .where(
-                GameChallenge.user_id == get_user_id(db, username),
+                GameChallenge.user_id == user_id,
                 GameChallenge.phase_index == ctx.phase_id,
                 GameChallenge.challenge_index == ctx.challenge_id,
             )
@@ -590,14 +599,14 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
             db.commit()
 
     if new_state.emotion_deltas:
-        pitch_store.apply_emotion_deltas(username, new_state.emotion_deltas, ctx.room_ids)
-    pitch_store.save_pitch(username, ctx.phase_id, ctx.challenge_id, new_state)
+        pitch_store.apply_emotion_deltas(user_id, new_state.emotion_deltas, ctx.room_ids)
+    pitch_store.save_pitch(user_id, ctx.phase_id, ctx.challenge_id, new_state)
     await _send(websocket, ctx, new_state, view)
 
 
-async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_pitch_commit(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Locks in the pitch outcome and, on anything but a veto, writes it to the graph."""
-    ctx = PitchContext(username, payload.get("phase_id", 0), payload.get("challenge_id", 0))
+    ctx = PitchContext(user_id, payload.get("phase_id", 0), payload.get("challenge_id", 0))
     state = _load_or_start(ctx)
 
     if "atomic_changes" in payload:
@@ -631,7 +640,7 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
     if view.outcome != "VETO":
         applied = _apply_card(ctx, committed_state, view)
         if committed_state.emotion_deltas:
-            ctx.emotions = pitch_store.apply_emotion_deltas(username, committed_state.emotion_deltas, ctx.room_ids)
+            ctx.emotions = pitch_store.apply_emotion_deltas(user_id, committed_state.emotion_deltas, ctx.room_ids)
     else:
         # 1. Identify high-power vetoing stakeholders
         primary_veto_read = _primary_veto_read(view)
@@ -646,7 +655,7 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
         malus_key = "boundary_veto" if primary_veto_read.boundary_violated else "low_buyin_stalemate"
         veto_malus_delta = VETO_MALUS.get(malus_key, {})
         veto_deltas = {veto_st_id: veto_malus_delta}
-        ctx.emotions = pitch_store.apply_emotion_deltas(username, veto_deltas, ctx.room_ids)
+        ctx.emotions = pitch_store.apply_emotion_deltas(user_id, veto_deltas, ctx.room_ids)
 
         # 3. Retrieve recent pitch chat history for this challenge
         existing_messages = []
@@ -654,7 +663,7 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
             row = db.scalars(
                 select(GameChallenge)
                 .where(
-                    GameChallenge.user_id == get_user_id(db, username),
+                    GameChallenge.user_id == user_id,
                     GameChallenge.phase_index == ctx.phase_id,
                     GameChallenge.challenge_index == ctx.challenge_id,
                 )
@@ -701,7 +710,7 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
 
         # 5. Run dedicated Action Card Veto LangGraph workflow
         veto_message, _ = await run_action_card_veto_workflow(
-            username=username,
+            user_id=user_id,
             phase_id=ctx.phase_id,
             challenge_id=ctx.challenge_id,
             challenge_context=challenge_context,
@@ -751,7 +760,7 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
             row = db.scalars(
                 select(GameChallenge)
                 .where(
-                    GameChallenge.user_id == get_user_id(db, username),
+                    GameChallenge.user_id == user_id,
                     GameChallenge.phase_index == ctx.phase_id,
                     GameChallenge.challenge_index == ctx.challenge_id,
                 )
@@ -770,12 +779,12 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
                 flag_modified(row, "messages")
                 db.commit()
 
-    pitch_store.save_pitch(username, ctx.phase_id, ctx.challenge_id, committed_state)
-    await send_events(websocket, username, [e.stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id) for e in events])
+    pitch_store.save_pitch(user_id, ctx.phase_id, ctx.challenge_id, committed_state)
+    await send_events(websocket, user_id, [e.stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id) for e in events])
     await _send(websocket, ctx, committed_state, view, applied=applied, veto_info=veto_info)
 
 
-async def handle_pitch_veto_breaker(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_pitch_veto_breaker(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Spends an Escalation Point to push a stood veto through anyway (D15).
 
     Only usable on a committed veto - `pitch:commit` must have already landed on VETO, the same
@@ -784,13 +793,13 @@ async def handle_pitch_veto_breaker(websocket: WebSocket, username: str, payload
     one via `pitch:set_card`, free, no escalation needed - the tool exists for when no card would
     ever clear the room, not as a shortcut around building one).
     """
-    ctx = PitchContext(username, payload.get("phase_id", 0), payload.get("challenge_id", 0))
+    ctx = PitchContext(user_id, payload.get("phase_id", 0), payload.get("challenge_id", 0))
     state = _load_or_start(ctx)
     if state.stage != "DONE" or state.outcome != "VETO":
         await _send(websocket, ctx, state, ctx.view(state), error="no veto standing to push through")
         return
 
-    points = pitch_store.escalation_points(username)
+    points = pitch_store.escalation_points(user_id)
     if points <= 0:
         await _send(websocket, ctx, state, ctx.view(state), error="no Escalation Points left")
         return
@@ -800,13 +809,13 @@ async def handle_pitch_veto_breaker(websocket: WebSocket, username: str, payload
     updated_state, events = pitch.veto_breaker(state, overridden, names=ctx.names)
 
     ctx.emotions = pitch_store.apply_emotion_deltas(
-        username, {overridden: EmotionFactory.get_pitch_tuning().emotion_veto_breaker}, ctx.room_ids
+        user_id, {overridden: EmotionFactory.get_pitch_tuning().emotion_veto_breaker}, ctx.room_ids
     )
     applied = _apply_card(ctx, updated_state, view)
-    pitch_store.spend_escalation_point(username)
+    pitch_store.spend_escalation_point(user_id)
 
-    pitch_store.save_pitch(username, ctx.phase_id, ctx.challenge_id, updated_state)
-    await send_events(websocket, username, [e.stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id) for e in events])
+    pitch_store.save_pitch(user_id, ctx.phase_id, ctx.challenge_id, updated_state)
+    await send_events(websocket, user_id, [e.stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id) for e in events])
     # `_payload` fetches escalation_points fresh, so it already reflects the spend above.
     await _send(websocket, ctx, updated_state, view, applied=applied, veto_info=None, veto_broken=True)
 

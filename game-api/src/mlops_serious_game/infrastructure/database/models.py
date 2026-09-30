@@ -14,7 +14,6 @@ class User(Base):
     __tablename__ = settings.POSTGRES_USER_DATA_TABLE
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_name: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     # Real external identity string used by the admin API/UI - kept permanently, not just
     # denormalization of campaign_id (see docs/plans/pk-migration.md).
     campaign_key: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
@@ -115,7 +114,6 @@ class GameProgression(Base):
     __tablename__ = settings.POSTGRES_PROGRESSION_DATA_TABLE
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
     user_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
@@ -138,7 +136,6 @@ class GameChallenge(Base):
     __tablename__ = settings.POSTGRES_GAME_CHALLENGE_DATA_TABLE
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
     user_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
@@ -166,7 +163,6 @@ class GameSession(Base):
     __tablename__ = settings.POSTGRES_GAME_SESSION_DATA_TABLE
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    player: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
     user_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
@@ -189,7 +185,6 @@ class IntelItem(Base):
     __tablename__ = settings.POSTGRES_INTEL_DATA_TABLE
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
     user_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
@@ -207,7 +202,6 @@ class GraphOpLog(Base):
     __tablename__ = settings.POSTGRES_GRAPH_OP_LOG_TABLE
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
     user_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
@@ -239,7 +233,6 @@ class GameEventRow(Base):
     __tablename__ = settings.POSTGRES_GAME_EVENT_TABLE
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
     user_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
@@ -269,8 +262,7 @@ class UserSettings(Base):
 
     The `user_id` FK cascades like every other per-player table, so a reset (which deletes and
     recreates the `User` row) also returns these to their defaults, which is what "as if freshly
-    registered" means. `user_name` rides along the way it does on the other tables, because the
-    websocket only ever knows the username.
+    registered" means.
 
     `voice_*` hold raw `SpeechSynthesisVoice.name` strings. They are OS- and browser-specific, so
     a stored name that no longer resolves is not an error: the client falls back to matching a
@@ -280,7 +272,6 @@ class UserSettings(Base):
     __tablename__ = settings.POSTGRES_USER_SETTINGS_TABLE
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_name: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     user_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
@@ -323,7 +314,6 @@ class GameResult(Base):
     __tablename__ = settings.POSTGRES_GAME_RESULT_TABLE
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
     user_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
@@ -347,7 +337,6 @@ class BugReportRow(Base):
     __tablename__ = settings.POSTGRES_BUG_REPORT_TABLE
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
     user_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),

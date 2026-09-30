@@ -82,6 +82,7 @@ export interface PitchDebateProps {
 interface PitchStatePayload {
   stage: "PREPARE" | "PITCHED" | "DONE" | "OBJECT" | "COMMIT";
   atomic_changes?: AtomicChange[];
+  last_pitched_changes?: AtomicChange[];
   allowed_targets?: string[];
   upstream_map?: Record<string, string[]>;
   card_item_ids: string[];
@@ -1431,6 +1432,7 @@ export default function PitchDebate({
                       currentPhase={currentPhase}
                       currentChallenge={currentChallenge}
                       initialAtomicChanges={atomicChanges}
+                      lastPitchedChanges={pitchState?.last_pitched_changes}
                       initialSelectedTargetId={composerFocusTargetId}
                       onConfirmProposal={handleConfirmMergeProposal}
                       allowedTargets={pitchState?.allowed_targets || []}

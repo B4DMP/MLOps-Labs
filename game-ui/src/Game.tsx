@@ -65,15 +65,14 @@ interface Metric {
 }
 
 interface AppProps {
-  username: string;
   onLogout: () => void;
 }
 
 
 
-function App({ username: _username, onLogout }: AppProps) {
+function App({ onLogout }: AppProps) {
   const debug: boolean = false;
-  const { emit, subscribe, isConnected, username } = useGameWebSocket();
+  const { emit, subscribe, isConnected, userId } = useGameWebSocket();
   const { speak: speakTour } = useSpeech();
 
   const sendJsonMessage = (data: any) => {
@@ -216,7 +215,7 @@ function App({ username: _username, onLogout }: AppProps) {
           // sent right back into it on every refresh. hasSeenBriefing is a best-effort, per-player
           // localStorage mirror (see utils/seenBriefings.ts) - it only suppresses this dialog and
           // never affects which phase/challenge the server thinks the player is in.
-          if (hasSeenBriefing(username, challengeKey)) {
+          if (hasSeenBriefing(userId, challengeKey)) {
             setIsNewChallenge(false);
           } else {
             setIsNewChallenge(true);
@@ -901,7 +900,7 @@ function App({ username: _username, onLogout }: AppProps) {
                       setIsPhaseDialogueOpen(open);
                       if (!open) {
                         setIsBriefingReview(false);
-                        markBriefingSeen(username, `${currentPhase}:${currentChallenge}`);
+                        markBriefingSeen(userId, `${currentPhase}:${currentChallenge}`);
                       }
                     }}
                     isReview={isBriefingReview}

@@ -138,11 +138,11 @@ def _calculate_simulation_emotion_deltas(
     return deltas, buckets
 
 
-async def handle_simulation_run(websocket: WebSocket, username: str, payload: dict) -> None:
-    ctx = PitchContext(username, payload.get("phase_id", 0), payload.get("challenge_id", 0))
-    state = pitch_store.load_pitch(username, ctx.phase_id, ctx.challenge_id) or pitch.start_pitch(ctx.room_ids)
+async def handle_simulation_run(websocket: WebSocket, user_id: int, payload: dict) -> None:
+    ctx = PitchContext(user_id, payload.get("phase_id", 0), payload.get("challenge_id", 0))
+    state = pitch_store.load_pitch(user_id, ctx.phase_id, ctx.challenge_id) or pitch.start_pitch(ctx.room_ids)
     view = ctx.view(state)
-    grudges = [Grudge.model_validate(g) for g in pitch_store.load_grudges(username)]
+    grudges = [Grudge.model_validate(g) for g in pitch_store.load_grudges(user_id)]
     c_items = state.atomic_changes if getattr(state, "atomic_changes", None) else (
         pitch.card_items(list(ctx.all_intel), set(getattr(state, "card_item_ids", [])))
         if getattr(state, "card_item_ids", None)
@@ -150,7 +150,7 @@ async def handle_simulation_run(websocket: WebSocket, username: str, payload: di
     )
 
     result = run_simulation(
-        username,
+        user_id,
         challenge=ctx.challenge,
         outcome=_outcome_for(state),
         card_items=c_items,
@@ -169,29 +169,29 @@ async def handle_simulation_run(websocket: WebSocket, username: str, payload: di
     # them each time (a duplicate gate log line per visit, or emotions shifted again per visit).
     is_first_run = bool(result.events)
 
-    pitch_store.replace_grudges(username, [g.model_dump(mode="json") for g in result.grudges])
+    pitch_store.replace_grudges(user_id, [g.model_dump(mode="json") for g in result.grudges])
     sim_deltas, sim_buckets = _calculate_simulation_emotion_deltas(result.report, c_items, ctx.room_ids, list(ctx.all_intel))
     reaction_events: list = []
     if is_first_run:
         if sim_deltas:
-            pitch_store.apply_emotion_deltas(username, sim_deltas, ctx.room_ids)
+            pitch_store.apply_emotion_deltas(user_id, sim_deltas, ctx.room_ids)
         # What the graph actually did to the metrics, so "proceed to next milestone" applies it
         # later instead of silently dropping it (see `set_metric_changes`).
-        pitch_store.set_metric_changes(username, ctx.phase_id, ctx.challenge_id, result.report.metric_deltas)
+        pitch_store.set_metric_changes(user_id, ctx.phase_id, ctx.challenge_id, result.report.metric_deltas)
         # The missing link the log used to skip straight over: not just "the metrics shifted",
         # but *why the room feels differently about it* - so the commit event ("the room came
         # around on X"), these, and the metric/graph events right after read as one story instead
         # of three disconnected steps.
         reaction_events = [_simulation_reaction_event(st_id, bucket, ctx.names) for st_id, bucket in sim_buckets.items()]
 
-    next_challenge = _next_challenge_name(username, ctx)
+    next_challenge = _next_challenge_name(user_id, ctx)
     # Reaction before the graph/metric events they're a sibling read on (not their cause - both
     # come from the same report): "stakeholder liked us, and A/B/C shifted" is the order the
     # commit's own event already promised, in `_changes_summary`'s wording.
     events = reaction_events + list(result.events) + ([_gate_event(next_challenge)] if is_first_run else [])
     if events:
         await send_events(
-            websocket, username, [e.stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id) for e in events]
+            websocket, user_id, [e.stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id) for e in events]
         )
     await manager.send_event(
         websocket=websocket,
@@ -248,7 +248,7 @@ def _upcoming_world_events(ctx: PitchContext) -> list:
     """What a grudge can pull forward: the next challenge's own world events (plan 07, Q28)."""
     from mlops_serious_game.domain.graph import GraphOp
 
-    nxt = _next_challenge(ctx.username, ctx)
+    nxt = _next_challenge(ctx.user_id, ctx)
     if nxt is None:
         return []
     return [
@@ -257,19 +257,19 @@ def _upcoming_world_events(ctx: PitchContext) -> list:
     ]
 
 
-def _next_challenge(username: str, ctx: PitchContext):
+def _next_challenge(user_id: int, ctx: PitchContext):
     """Step 9: the report ends by naming what comes next, picked from the settled graph."""
     from mlops_serious_game.infrastructure.websocket.handlers.game_handler import select_next_challenge
 
     try:
-        return select_next_challenge(username, ctx.phase_id, ctx.challenge_id)
+        return select_next_challenge(user_id, ctx.phase_id, ctx.challenge_id)
     except Exception as e:  # selection must never block the report
         print(f"[Simulation next challenge error] {e}")
         return None
 
 
-def _next_challenge_name(username: str, ctx: PitchContext) -> Optional[dict]:
-    nxt = _next_challenge(username, ctx)
+def _next_challenge_name(user_id: int, ctx: PitchContext) -> Optional[dict]:
+    nxt = _next_challenge(user_id, ctx)
     if nxt is None:
         return None
     phases = PhaseFactory.get_phases()

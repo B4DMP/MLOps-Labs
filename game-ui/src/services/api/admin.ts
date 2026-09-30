@@ -281,9 +281,9 @@ export async function saveAdminConfigFile(
   return response.json();
 }
 
-export async function fetchGraphDebug(username: string): Promise<GraphDebugPayload> {
+export async function fetchGraphDebug(email: string): Promise<GraphDebugPayload> {
   const response = await fetch(
-    `${BASE_URL}/api/admin/graph-debug?username=${encodeURIComponent(username)}`,
+    `${BASE_URL}/api/admin/graph-debug?email=${encodeURIComponent(email)}`,
     {
       method: "GET",
       credentials: "include",
@@ -459,4 +459,47 @@ export async function updateBugReportRecipients(recipients: string[]): Promise<{
   }
 
   return response.json();
+}
+
+export interface AdminBugReport {
+  id: number;
+  time_stamp: string;
+  email: string;
+  campaign_key: string;
+  message: string;
+  page_url: string | null;
+  user_agent: string | null;
+  debug_info: Record<string, unknown>;
+}
+
+export type BugReportSortKey = "time_stamp" | "email" | "campaign_key" | "phase" | "message";
+
+export interface BugReportQuery {
+  search?: string;
+  email?: string;
+  campaign?: string;
+  /** Local `YYYY-MM-DD` dates, inclusive. */
+  since?: string;
+  until?: string;
+  sort?: BugReportSortKey;
+  order?: "asc" | "desc";
+}
+
+export function fetchAdminBugReports(
+  query: BugReportQuery = {},
+): Promise<{ total: number; reports: AdminBugReport[] }> {
+  const params = new URLSearchParams();
+  if (query.search) params.set("search", query.search);
+  if (query.email) params.set("email", query.email);
+  if (query.campaign) params.set("campaign", query.campaign);
+  if (query.since) params.set("since", `${query.since}T00:00:00`);
+  if (query.until) params.set("until", `${query.until}T23:59:59`);
+  if (query.sort) params.set("sort", query.sort);
+  if (query.order) params.set("order", query.order);
+  const suffix = params.toString() ? `?${params}` : "";
+  return adminGet(`/api/admin/bug-reports${suffix}`, "Failed to fetch bug reports.");
+}
+
+export function deleteAdminBugReport(id: number): Promise<{ success: boolean }> {
+  return adminMutate(`/api/admin/bug-reports/${id}`, "DELETE", "Failed to delete the bug report.");
 }

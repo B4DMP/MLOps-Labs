@@ -4,11 +4,11 @@ from opik.integrations.langchain import OpikTracer
 
 from mlops_serious_game.application.action_card_veto_service.graph import create_action_card_veto_graph
 from mlops_serious_game.application.action_card_veto_service.state import ActionCardVetoState
-from mlops_serious_game.infrastructure.database import get_session, get_user_id
+from mlops_serious_game.infrastructure.database import get_session
 
 
 async def run_action_card_veto_workflow(
-    username: str,
+    user_id: int,
     phase_id: int,
     challenge_id: int,
     challenge_context: str,
@@ -40,11 +40,7 @@ async def run_action_card_veto_workflow(
     if session_id:
         thread_id = session_id
     else:
-        # Keyed by user_id, not username - see D-user-id in
-        # docs/plans/session-persistence-and-url-routing.md.
-        with get_session() as veto_session:
-            veto_user_id = get_user_id(veto_session, username)
-        thread_id = f"Action_Card_Veto_{veto_user_id}_{phase_id}_{challenge_id}_{stakeholder_id}"
+        thread_id = f"Action_Card_Veto_{user_id}_{phase_id}_{challenge_id}_{stakeholder_id}"
 
     graph_builder = create_action_card_veto_graph()
     graph = graph_builder.compile()
@@ -53,7 +49,7 @@ async def run_action_card_veto_workflow(
         project_name="MLOps serious game - Action Card Veto",
         metadata={
             "thread_id": thread_id,
-            "username": username,
+            "user_id": user_id,
             "phase_id": phase_id,
             "challenge_id": challenge_id,
             "stakeholder_id": stakeholder_id,

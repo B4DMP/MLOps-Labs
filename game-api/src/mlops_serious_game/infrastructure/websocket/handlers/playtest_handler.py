@@ -35,7 +35,6 @@ from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.infrastructure.database.connection import get_session
 from mlops_serious_game.infrastructure.database.models import GameChallenge, GameProgression
 from mlops_serious_game.infrastructure.database.run_scope import current_run_index
-from mlops_serious_game.infrastructure.database.user_lookup import get_user_id
 
 from ..manager import manager
 from .game_handler import handle_state_update_request, select_first_challenge, send_progress_index_payload
@@ -59,7 +58,7 @@ async def _allowed(websocket: WebSocket) -> bool:
     return False
 
 
-def _current(username: str) -> Optional[tuple[Challenge, Optional[GameChallenge]]]:
+def _current(user_id: int) -> Optional[tuple[Challenge, Optional[GameChallenge]]]:
     """The challenge the player is on now: the latest row of the current run, and its challenge.
 
     A player who has been handed their first challenge (`game:state_update`, progress index 2 -
@@ -68,11 +67,10 @@ def _current(username: str) -> Optional[tuple[Challenge, Optional[GameChallenge]
     tools would wrongly report "no challenge in progress" for exactly the state a human player is
     already looking at on `/game/offline-intel`. When there is no row, but the player's run has
     reached that state, recompute the same first challenge `handle_progress_update` would have
-    dealt them (deterministic per-username, so it lands on the same one) and report it with no row
+    dealt them (deterministic per-user_id, so it lands on the same one) and report it with no row
     to match, letting the caller fall back to fresh-challenge defaults.
     """
     with get_session() as session:
-        user_id = get_user_id(session, username)
         run_index = current_run_index(session, user_id)
         row = session.scalars(
             select(GameChallenge)
@@ -96,19 +94,19 @@ def _current(username: str) -> Optional[tuple[Challenge, Optional[GameChallenge]
         if reached_game_state is None:
             return None
 
-    challenge = select_first_challenge(username)
+    challenge = select_first_challenge(user_id)
     return (challenge, None) if challenge else None
 
 
-def _prepare(username: str, challenge: Challenge) -> PitchContext:
+def _prepare(user_id: int, challenge: Challenge) -> PitchContext:
     """Fills the dossier, then builds the context the search reads."""
-    service.auto_gather(username, challenge)
-    return PitchContext(username, challenge.phase_id, challenge.id)
+    service.auto_gather(user_id, challenge)
+    return PitchContext(user_id, challenge.phase_id, challenge.id)
 
 
-def _search(username: str, ctx: PitchContext) -> Optional[auto_card.CardSearchResult]:
+def _search(user_id: int, ctx: PitchContext) -> Optional[auto_card.CardSearchResult]:
     with get_session() as session:
-        run = current_run_index(session, get_user_id(session, username))
+        run = current_run_index(session, user_id)
     return auto_card.search_card(
         graph=ctx.graph,
         state=ctx.state,
@@ -117,7 +115,7 @@ def _search(username: str, ctx: PitchContext) -> Optional[auto_card.CardSearchRe
         emotions=ctx.emotions,
         allowed=get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel)),
         # Reproducible for a given player, run and challenge.
-        seed=f"{username}:{run}:{ctx.challenge_id}",
+        seed=f"{user_id}:{run}:{ctx.challenge_id}",
     )
 
 
@@ -125,20 +123,20 @@ def _changes_payload(result: auto_card.CardSearchResult) -> list[dict]:
     return [c.model_dump() for c in result.changes]
 
 
-async def handle_playtest_auto_card(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_playtest_auto_card(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Finds a random card the room will not veto and slots it into the pitch builder."""
     if not await _allowed(websocket):
         return
-    service.taint_user(username)
+    service.taint_user(user_id)
 
-    current = _current(username)
+    current = _current(user_id)
     if current is None:
         await manager.send_error(websocket, "There is no challenge in progress.", code="NO_CHALLENGE")
         return
     challenge, _row = current
 
-    ctx = await asyncio.to_thread(_prepare, username, challenge)
-    result = await asyncio.to_thread(_search, username, ctx)
+    ctx = await asyncio.to_thread(_prepare, user_id, challenge)
+    result = await asyncio.to_thread(_search, user_id, ctx)
 
     if result is None or not result.found_non_veto:
         # Said plainly instead of slotting a card that would be vetoed: there may simply be no
@@ -158,7 +156,7 @@ async def handle_playtest_auto_card(websocket: WebSocket, username: str, payload
 
     await handle_pitch_set_card(
         websocket,
-        username,
+        user_id,
         {"phase_id": challenge.phase_id, "challenge_id": challenge.id, "atomic_changes": _changes_payload(result)},
     )
     await manager.send_event(
@@ -184,7 +182,7 @@ def _metric_values_for(row: Optional[GameChallenge]) -> list:
     return [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()]
 
 
-async def _break_the_stood_veto(websocket: WebSocket, username: str, ids: dict) -> bool:
+async def _break_the_stood_veto(websocket: WebSocket, user_id: int, ids: dict) -> bool:
     """Spends a real Escalation Point (D15) to get past a structural veto - a challenge where the
     search proved no card the room accepts exists, not merely one it failed to find.
 
@@ -194,13 +192,13 @@ async def _break_the_stood_veto(websocket: WebSocket, username: str, ids: dict) 
     way through. Returns whether it actually broke the veto (false only when there are no
     Escalation Points left, at which point this really is the end of the road).
     """
-    if pitch_store.escalation_points(username) <= 0:
+    if pitch_store.escalation_points(user_id) <= 0:
         return False
-    await handle_pitch_veto_breaker(websocket, username, ids)
+    await handle_pitch_veto_breaker(websocket, user_id, ids)
     return True
 
 
-async def handle_playtest_skip_challenge(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_playtest_skip_challenge(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Carries the current challenge to its end through the game's own handlers.
 
     Gather, pitch, simulate, then the same state update the "Proceed" button sends. When no card
@@ -211,21 +209,21 @@ async def handle_playtest_skip_challenge(websocket: WebSocket, username: str, pa
     """
     if not await _allowed(websocket):
         return
-    service.taint_user(username)
+    service.taint_user(user_id)
 
-    current = _current(username)
+    current = _current(user_id)
     if current is None:
         await manager.send_error(websocket, "There is no challenge in progress.", code="NO_CHALLENGE")
         return
     challenge, row = current
     ids = {"phase_id": challenge.phase_id, "challenge_id": challenge.id}
 
-    ctx = await asyncio.to_thread(_prepare, username, challenge)
-    pitched = pitch_store.load_pitch(username, challenge.phase_id, challenge.id)
+    ctx = await asyncio.to_thread(_prepare, user_id, challenge)
+    pitched = pitch_store.load_pitch(user_id, challenge.phase_id, challenge.id)
     already_through = bool(pitched and pitched.stage == "DONE" and pitched.outcome in NON_VETO)
 
     if not already_through:
-        result = await asyncio.to_thread(_search, username, ctx)
+        result = await asyncio.to_thread(_search, user_id, ctx)
         if result is None:
             await manager.send_event(
                 websocket=websocket,
@@ -234,10 +232,10 @@ async def handle_playtest_skip_challenge(websocket: WebSocket, username: str, pa
             )
             return
 
-        await handle_pitch_commit(websocket, username, {**ids, "atomic_changes": _changes_payload(result)})
+        await handle_pitch_commit(websocket, user_id, {**ids, "atomic_changes": _changes_payload(result)})
 
         if not result.found_non_veto:
-            broke_it = await _break_the_stood_veto(websocket, username, ids)
+            broke_it = await _break_the_stood_veto(websocket, user_id, ids)
             if not broke_it:
                 await manager.send_event(
                     websocket=websocket,
@@ -252,13 +250,13 @@ async def handle_playtest_skip_challenge(websocket: WebSocket, username: str, pa
                 )
                 return
 
-    await handle_simulation_run(websocket, username, ids)
-    service.mark_auto_played(username, challenge.phase_id, challenge.id)
+    await handle_simulation_run(websocket, user_id, ids)
+    service.mark_auto_played(user_id, challenge.phase_id, challenge.id)
 
     # The same request the "Proceed to next milestone" button sends.
     await handle_state_update_request(
         websocket,
-        username,
+        user_id,
         {
             **ids,
             "challenge_loop_index": 3,

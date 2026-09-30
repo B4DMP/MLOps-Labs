@@ -820,7 +820,7 @@ def simulate(
 
 
 def run_simulation(
-    username: str,
+    user_id: int,
     *,
     challenge: Any,
     outcome: str = PASS,
@@ -849,10 +849,10 @@ def run_simulation(
     graph = GraphFactory.get_graph()
     source_id = f"sim:{challenge.template_id}:{challenge_loop_index}"
 
-    if store.has_batch(username, source_id):
-        stored_report = store.load_report(username, source_id)
+    if store.has_batch(user_id, source_id):
+        stored_report = store.load_report(user_id, source_id)
         if stored_report is not None:
-            state = store.load_state(username).state
+            state = store.load_state(user_id).state
             return SimulationResult(
                 report=DeltaReport.model_validate(stored_report),
                 state=state,
@@ -863,7 +863,7 @@ def run_simulation(
         # A batch persisted before this column existed has no stored report - fall through and
         # compute one best-effort, but the append below still won't run a second time.
 
-    replay = store.load_state(username)
+    replay = store.load_state(user_id)
     before = replay.state
     result = simulate(
         graph,
@@ -875,15 +875,15 @@ def run_simulation(
         grudges=grudges,
         overridden_stakeholder_id=overridden_stakeholder_id,
         upcoming_world_events=upcoming_world_events,
-        seed=seed if seed is not None else username,
+        seed=seed if seed is not None else user_id,
         names=names,
     )
     result = result.model_copy(update={
         "events": simulation_events(result.report, graph, names)
     })
-    if result.ops and not store.has_batch(username, source_id):
+    if result.ops and not store.has_batch(user_id, source_id):
         store.append_ops(
-            username,
+            user_id,
             result.ops,
             phase_index=challenge.phase_id,
             challenge_template=challenge.template_id,

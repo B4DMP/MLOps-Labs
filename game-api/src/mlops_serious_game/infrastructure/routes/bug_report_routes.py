@@ -19,11 +19,11 @@ class BugReportRequest(BaseModel):
 
 @router.post("")
 async def create_bug_report(
-    req: BugReportRequest, request: Request, username: str = Depends(get_current_player)
+    req: BugReportRequest, request: Request, user_id: int = Depends(get_current_player)
 ):
     try:
         result = await submit_bug_report(
-            username,
+            user_id,
             req.message.strip(),
             req.debug_info,
             page_url=req.page_url,

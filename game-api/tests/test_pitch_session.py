@@ -318,3 +318,16 @@ def test_edge_editing_and_trigger_in_atomic_changes(real):
     assert after.value("e.ingest_validate", "automation") == 3
     assert after.edge_triggers.get("e.ingest_validate") == "on_data_arrival"
 
+
+
+def test_same_card_ignores_slot_order():
+    a = session.AtomicChange(target="c1", axis="automation", value=2)
+    b = session.AtomicChange(target="c2", axis="governance", value=1)
+    assert session.same_card([a, b], [b, a])
+    assert not session.same_card([a], [a, b])
+    assert not session.same_card([a], [session.AtomicChange(target="c1", axis="automation", value=3)])
+
+
+def test_silent_stakeholders_only_when_signature_repeats():
+    state = session.PitchState(reaction_signatures={"s1": {"trust": 0.1}, "s2": {"trust": 0.2}})
+    assert session.silent_stakeholders(state, {"s1": {"trust": 0.1}, "s2": {"trust": 0.3}, "s3": {}}) == {"s1"}

@@ -108,8 +108,8 @@ async def test_a_known_fact_shows_up_under_challenge_intel_and_stances_stay_on_t
 
     ws = AsyncMock()
     username = f"test_offline_intel_deck_{uuid.uuid4()}"
-    ensure_test_user(username)
-    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(username)}
+    user_id = ensure_test_user(username)
+    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(user_id)}
     artifacts = {
         stance.id: _artifact(stance),
         known.id: _artifact(known, "tess_tester").model_copy(update={"is_known": True}),

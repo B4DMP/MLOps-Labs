@@ -42,7 +42,6 @@ def logged_in_player(client):
             session.add(campaign)
             session.flush()
         session.add(User(
-            user_name=username,
             campaign_key=campaign_key,
             campaign_id=campaign.id,
             email=f"{username}@example.test",
@@ -51,13 +50,13 @@ def logged_in_player(client):
             is_verified=True,
         ))
 
-    client.post("/api/auth/login", json={"username": username, "password": password})
+    client.post("/api/auth/login", json={"email": f"{username}@example.test", "password": password})
     return username
 
 
 def test_login_itself_is_exempt_from_csrf(client):
     # No CSRF cookie exists yet on a fresh client - login must still work.
-    response = client.post("/api/auth/login", json={"username": "nobody", "password": "wrong"})
+    response = client.post("/api/auth/login", json={"email": "nobody@example.test", "password": "wrong"})
     # Wrong credentials -> 400 from the auth check, not 403 from CSRF - proves the middleware
     # let the request through to the handler at all.
     assert response.status_code == 400

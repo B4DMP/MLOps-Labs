@@ -18,7 +18,7 @@ from mlops_serious_game.config import settings
 def _player_always_exists(monkeypatch):
     """The default for every test in this file: a token's subject is a real user. Tests of the
     existence gate itself override this per-test."""
-    monkeypatch.setattr(auth_service, "player_exists", lambda username: True)
+    monkeypatch.setattr(auth_service, "player_exists", lambda user_id: True)
 
 
 def _set_cookie_names(response: Response) -> list[str]:
@@ -31,9 +31,9 @@ def _set_cookie_names(response: Response) -> list[str]:
 
 
 def test_decode_token_round_trips_and_rejects_garbage():
-    token = auth_service.create_access_token(data={"sub": "alice", "role": "player"})
+    token = auth_service.create_access_token(data={"sub": "1", "role": "player"})
     payload = auth_service.decode_token(token)
-    assert payload["sub"] == "alice"
+    assert payload["sub"] == "1"
     assert payload["role"] == "player"
 
     assert auth_service.decode_token("not-a-real-token") is None
@@ -43,14 +43,14 @@ def test_decode_token_round_trips_and_rejects_garbage():
 
 def test_decode_token_rejects_expired():
     token = auth_service.create_access_token(
-        data={"sub": "alice", "role": "player"}, expires_delta=timedelta(seconds=-1)
+        data={"sub": "1", "role": "player"}, expires_delta=timedelta(seconds=-1)
     )
     assert auth_service.decode_token(token) is None
 
 
 def test_verify_admin_token():
     admin_token = auth_service.create_access_token(data={"sub": settings.ADMIN_USER})
-    player_token = auth_service.create_access_token(data={"sub": "alice", "role": "player"})
+    player_token = auth_service.create_access_token(data={"sub": "1", "role": "player"})
 
     assert auth_service.verify_admin_token(admin_token) is True
     assert auth_service.verify_admin_token(player_token) is False
@@ -59,11 +59,11 @@ def test_verify_admin_token():
 
 
 def test_verify_player_token():
-    player_token = auth_service.create_access_token(data={"sub": "alice", "role": "player"})
+    player_token = auth_service.create_access_token(data={"sub": "1", "role": "player"})
     admin_token = auth_service.create_access_token(data={"sub": settings.ADMIN_USER})
-    no_role_token = auth_service.create_access_token(data={"sub": "alice"})
+    no_role_token = auth_service.create_access_token(data={"sub": "1"})
 
-    assert auth_service.verify_player_token(player_token) == "alice"
+    assert auth_service.verify_player_token(player_token) == 1
     assert auth_service.verify_player_token(admin_token) is None
     assert auth_service.verify_player_token(no_role_token) is None
     assert auth_service.verify_player_token("garbage") is None
@@ -71,7 +71,7 @@ def test_verify_player_token():
 
 def test_set_player_cookie_sets_player_and_csrf_cookies():
     response = Response()
-    auth_service.set_player_cookie(response, "alice", secure=False)
+    auth_service.set_player_cookie(response, 1, secure=False)
 
     names = _set_cookie_names(response)
     assert auth_service.PLAYER_COOKIE_NAME in names
@@ -80,7 +80,7 @@ def test_set_player_cookie_sets_player_and_csrf_cookies():
 
 def test_set_player_cookie_does_not_reissue_existing_csrf():
     response = Response()
-    auth_service.set_player_cookie(response, "alice", secure=False, existing_csrf="already-set")
+    auth_service.set_player_cookie(response, 1, secure=False, existing_csrf="already-set")
 
     names = _set_cookie_names(response)
     assert auth_service.PLAYER_COOKIE_NAME in names
@@ -89,23 +89,23 @@ def test_set_player_cookie_does_not_reissue_existing_csrf():
 
 def test_sliding_refresh_player_reissues_near_expiry_token():
     near_expiry_token = auth_service.create_access_token(
-        data={"sub": "alice", "role": "player"}, expires_delta=timedelta(minutes=1)
+        data={"sub": "1", "role": "player"}, expires_delta=timedelta(minutes=1)
     )
     response = Response()
 
-    username = auth_service.sliding_refresh_player(near_expiry_token, response, secure=False)
+    user_id = auth_service.sliding_refresh_player(near_expiry_token, response, secure=False)
 
-    assert username == "alice"
+    assert user_id == 1
     assert auth_service.PLAYER_COOKIE_NAME in _set_cookie_names(response)
 
 
 def test_sliding_refresh_player_leaves_fresh_token_alone():
-    fresh_token = auth_service.create_access_token(data={"sub": "alice", "role": "player"})
+    fresh_token = auth_service.create_access_token(data={"sub": "1", "role": "player"})
     response = Response()
 
-    username = auth_service.sliding_refresh_player(fresh_token, response, secure=False)
+    user_id = auth_service.sliding_refresh_player(fresh_token, response, secure=False)
 
-    assert username == "alice"
+    assert user_id == 1
     assert auth_service.PLAYER_COOKIE_NAME not in _set_cookie_names(response)
 
 
@@ -119,20 +119,20 @@ def test_sliding_refresh_player_returns_none_for_invalid_token():
 def test_verify_player_token_rejects_a_signature_valid_token_for_a_user_that_no_longer_exists(monkeypatch):
     """A stale cookie from before a database reset decodes fine but must not authenticate - this
     is what turned a missing `users` row into a raw NOT NULL crash deep in a handler."""
-    monkeypatch.setattr(auth_service, "player_exists", lambda username: False)
-    player_token = auth_service.create_access_token(data={"sub": "alice", "role": "player"})
+    monkeypatch.setattr(auth_service, "player_exists", lambda user_id: False)
+    player_token = auth_service.create_access_token(data={"sub": "1", "role": "player"})
 
     assert auth_service.verify_player_token(player_token) is None
 
 
 def test_sliding_refresh_player_reports_logged_out_for_a_user_that_no_longer_exists(monkeypatch):
-    monkeypatch.setattr(auth_service, "player_exists", lambda username: False)
-    fresh_token = auth_service.create_access_token(data={"sub": "alice", "role": "player"})
+    monkeypatch.setattr(auth_service, "player_exists", lambda user_id: False)
+    fresh_token = auth_service.create_access_token(data={"sub": "1", "role": "player"})
     response = Response()
 
-    username = auth_service.sliding_refresh_player(fresh_token, response, secure=False)
+    user_id = auth_service.sliding_refresh_player(fresh_token, response, secure=False)
 
-    assert username is None
+    assert user_id is None
     assert _set_cookie_names(response) == []
 
 
@@ -147,7 +147,7 @@ def test_sliding_refresh_admin_reissues_near_expiry_token():
 
 
 def test_sliding_refresh_admin_rejects_player_token():
-    player_token = auth_service.create_access_token(data={"sub": "alice", "role": "player"})
+    player_token = auth_service.create_access_token(data={"sub": "1", "role": "player"})
     response = Response()
 
     assert auth_service.sliding_refresh_admin(player_token, response, secure=False) is False

@@ -4,15 +4,14 @@ Reads never write. A player who has never opened the settings panel has no row, 
 their settings must not create one: the row appears on the first actual change. That keeps the
 table a record of deliberate choices rather than a shadow of the user table.
 
-Everything here is keyed by username, because that is all the websocket layer ever knows. The
-`user_id` FK is resolved on write.
+Everything here is keyed by `user_id`, which is what the websocket layer knows.
 """
 
 from typing import Any
 
 from sqlalchemy import select
 
-from mlops_serious_game.infrastructure.database import get_session, get_user_id
+from mlops_serious_game.infrastructure.database import User, get_session
 from mlops_serious_game.infrastructure.database.models import UserSettings
 
 # The shape the client is promised, and the value of every field before a player changes it.
@@ -104,14 +103,14 @@ def sanitize_settings(payload: dict[str, Any]) -> dict[str, Any]:
     return clean
 
 
-def get_settings(user_name: str) -> dict[str, Any]:
+def get_settings(user_id: int) -> dict[str, Any]:
     """The player's settings, or the defaults when they have never changed any. Never writes."""
     with get_session() as session:
-        row = session.scalar(select(UserSettings).where(UserSettings.user_name == user_name))
+        row = session.scalar(select(UserSettings).where(UserSettings.user_id == user_id))
         return _as_dict(row)
 
 
-def update_settings(user_name: str, payload: dict[str, Any]) -> dict[str, Any]:
+def update_settings(user_id: int, payload: dict[str, Any]) -> dict[str, Any]:
     """Applies the usable fields of `payload` and returns the full, merged settings.
 
     Creates the row on first use. Unknown users are a no-op that returns the defaults: the FK
@@ -121,13 +120,12 @@ def update_settings(user_name: str, payload: dict[str, Any]) -> dict[str, Any]:
     clean = sanitize_settings(payload)
 
     with get_session() as session:
-        row = session.scalar(select(UserSettings).where(UserSettings.user_name == user_name))
+        row = session.scalar(select(UserSettings).where(UserSettings.user_id == user_id))
 
         if row is None:
-            user_id = get_user_id(session, user_name)
-            if user_id is None:
+            if session.scalar(select(User.id).where(User.id == user_id)) is None:
                 return dict(DEFAULT_SETTINGS)
-            row = UserSettings(user_name=user_name, user_id=user_id, **DEFAULT_SETTINGS)
+            row = UserSettings(user_id=user_id, **DEFAULT_SETTINGS)
             session.add(row)
 
         for field, value in clean.items():
@@ -137,13 +135,13 @@ def update_settings(user_name: str, payload: dict[str, Any]) -> dict[str, Any]:
         return _as_dict(row)
 
 
-def delete_settings(user_name: str) -> None:
+def delete_settings(user_id: int) -> None:
     """Drops a player's settings row.
 
     The `user_id` FK cascades, so deleting or resetting an account already takes the row with
     it. This exists for call sites that want the settings gone without touching the user.
     """
     with get_session() as session:
-        row = session.scalar(select(UserSettings).where(UserSettings.user_name == user_name))
+        row = session.scalar(select(UserSettings).where(UserSettings.user_id == user_id))
         if row is not None:
             session.delete(row)

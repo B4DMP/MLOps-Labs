@@ -17,8 +17,9 @@ function fakeSocket(overrides: Partial<WebSocketContextValue> = {}) {
   const listeners = new Map<string, EventCallback>();
   const value: WebSocketContextValue = {
     isConnected: true,
-    username: "alice",
-    setUsername: vi.fn(),
+    userId: 1,
+    email: "alice@example.test",
+    setEmail: vi.fn(),
     emit: vi.fn(),
     subscribe: vi.fn((event: string, callback: EventCallback) => {
       listeners.set(event, callback);

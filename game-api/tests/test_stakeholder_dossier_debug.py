@@ -46,8 +46,8 @@ async def _dossier(debug_enabled: bool):
 
     ws = AsyncMock()
     username = f"test_dossier_debug_{uuid.uuid4()}"
-    ensure_test_user(username)
-    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(username)}
+    user_id = ensure_test_user(username)
+    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(user_id)}
 
     with patch.object(settings, "ENABLE_DOSSIER_DEBUG", debug_enabled), \
          patch.object(RequirementFactory, "requirements", pool), \

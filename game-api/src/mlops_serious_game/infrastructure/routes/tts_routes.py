@@ -18,7 +18,7 @@ class TTSRequest(BaseModel):
 
 
 @router.post("")
-async def synthesize_speech(req: TTSRequest, username: str = Depends(get_current_player)):
+async def synthesize_speech(req: TTSRequest, user_id: int = Depends(get_current_player)):
     """Server-side narration (docs/plans/player-settings-and-tts.md). POST, not GET, because
     intel artifacts can be long and this avoids URL-encoding a whole document.
 
@@ -37,7 +37,7 @@ async def synthesize_speech(req: TTSRequest, username: str = Depends(get_current
     # never from the request body - letting the client pass either here would be a pointless
     # attack surface for zero benefit, since the settings system (not this request) is the single
     # source of truth. One lookup covers both, since speed applies to every slot.
-    player_settings = user_settings_service.get_settings(username)
+    player_settings = user_settings_service.get_settings(user_id)
     player_voice_gender = player_settings["player_voice_gender"] if req.slot == "player" else None
     speed = player_settings["speech_rate"]
 

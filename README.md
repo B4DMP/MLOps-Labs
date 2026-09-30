@@ -31,13 +31,13 @@ Each stakeholder's sources are provided as text files in the `game-api\data\stak
 The application uses a unified architecture combining REST endpoints for request-response authentication/admin actions and a single, unified WebSocket connection (`/ws`) for all real-time game interactions.
 
 ### REST Endpoints
-- `POST /api/auth/login`: Authenticate user username.
+- `POST /api/auth/login`: Authenticate a player by email (admin and teacher accounts by name).
 - `POST /api/auth/register`: Register new user or admin.
 - `GET /api/admin/dashboard`: Fetch admin metrics & player progress (requires Admin JWT header).
 - `POST /api/admin/campaigns`: Create campaign.
 - `DELETE /api/admin/campaigns/{key}`: Delete campaign.
 
-### WebSocket Event Catalog (`/ws?username={username}`)
+### WebSocket Event Catalog (`/ws`, authenticated by the player cookie)
 
 | Direction | Event Name | Description | Payload Example |
 | :--- | :--- | :--- | :--- |
