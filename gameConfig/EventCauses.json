@@ -44,6 +44,7 @@
   "emotion.simulation_clean": { "text": "warmer: {st} sees it delivered clean, nothing cut", "group": "emotion" },
   "emotion.simulation_capped": { "text": "colder: {st} sees it came in capped, short of what was promised", "group": "emotion" },
   "emotion.simulation_debt": { "text": "colder: {st} sees the shortcuts it took to get there", "group": "emotion" },
+  "emotion.simulation_overridden": { "text": "colder: {st} was overruled and backs down reluctantly", "group": "emotion" },
 
   "grudge.written": { "text": "{st} will remember this", "group": "grudge" },
   "grudge.fired": { "text": "{st}'s grudge came due", "group": "grudge" },
