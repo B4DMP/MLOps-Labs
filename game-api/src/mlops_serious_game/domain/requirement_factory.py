@@ -17,6 +17,10 @@ class RequirementFactory:
             update["reading"] = personalize(req.reading) if req.reading else req.reading
         if req.gist:
             update["gist"] = personalize(req.gist)
+        for name in ("branch_x", "branch_y"):
+            branch = getattr(req, name)
+            if branch and branch.description:
+                update[name] = branch.model_copy(update={"description": personalize(branch.description)})
         return req.model_copy(update=update)
 
     @classmethod
