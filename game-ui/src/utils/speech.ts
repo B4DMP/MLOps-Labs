@@ -497,6 +497,12 @@ export function speak(text: string, opts: SpeakOptions): () => void {
   return cancel;
 }
 
+/** Identifies the narration currently holding the arbiter, so a caller can tell whether the line
+ * it started is still the one playing before cancelling. */
+export function getSpeechGeneration(): number {
+  return currentGeneration;
+}
+
 /** Stops whatever is currently narrating, wherever it was started from - routes through the
  * module-level arbiter (`currentStop`) rather than reaching for `window.speechSynthesis` directly,
  * since the active narration may instead be backend audio (an `HTMLAudioElement`), which a bare
