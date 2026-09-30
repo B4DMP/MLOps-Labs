@@ -169,7 +169,6 @@ export default function IntelArtifactViewer({
         {/* Body */}
         <div className={styles.wikiBody}>
           <div className={styles.executiveCallout}>
-            <strong>Executive Takeaway / Stance:</strong>
             <div className={styles.markdownContent}>
               {renderContent()}
             </div>

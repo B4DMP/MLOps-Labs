@@ -1527,7 +1527,8 @@ export default function PitchDebate({
                             }`}
                             data-intro-group="introPitch"
                             data-title="The Boardroom"
-                            data-intro="The stakeholder table: play an Engagement Card on someone to talk to them, verify intel you're unsure about, or inspect a component before you commit to changing it. When you're ready to actually propose something, drag a card onto the plaque in the middle instead - talking is free, but only the plaque counts as a pitch."
+                            data-intro="The stakeholder table: play an <mark>Engagement Card</mark> on someone to talk to them, verify intel you're unsure about, or inspect a component before you commit to changing it. When you're ready to propose an action, open the <mark><iconify-icon icon='ph:presentation-chart-duotone'></iconify-icon> Pitch Deck</mark> to compose your proposal."
+                            data-position="left"
                             data-step="2"
                             onDragOver={(e) => {
                               e.preventDefault();
@@ -1644,7 +1645,7 @@ export default function PitchDebate({
                                     }
                                     onBlur={hideInfoTag}
                                   >
-                                    <Icon icon="ph:presentation-chart-bold" className={styles.tableCenterPlaqueIcon} />
+                                    <Icon icon="ph:presentation-chart-duotone" className={styles.tableCenterPlaqueIcon} />
                                     <span>PITCH DECK</span>
                                     <span className={styles.tableCenterPlaqueSub}>Click to compose action proposal</span>
                                     {isPlaqueActive && intelTotalThisPhase > 0 && (
