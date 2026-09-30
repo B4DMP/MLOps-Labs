@@ -452,6 +452,45 @@
     color: var(--secondary-bg);
 }
 
+/* Debug-only answer key (ENABLE_DOSSIER_DEBUG), matching offline_intel_gathering's own
+   answer-key toggle so every debug affordance in the app reads the same way */
+.debugToggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1.5px dashed currentColor;
+    background: #ffffff;
+    color: #a16207;
+    font-size: 0.7rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.debugPanel {
+    background: #fefce8;
+    border: 1.5px dashed #a16207;
+    border-radius: 6px;
+    padding: 0.3rem 0.6rem;
+    margin: 0 0 0.75rem;
+    font-size: 0.75rem;
+    color: #1e293b;
+}
+
+.debugRightText {
+    color: #15803d;
+    font-weight: 700;
+}
+
+.debugCorrect {
+    outline: 2px dashed #a16207;
+    outline-offset: 2px;
+}
+
 .notesWrapper {
     margin-top: 1rem;
     padding-top: 0.75rem;

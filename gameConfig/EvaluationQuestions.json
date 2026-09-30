@@ -331,15 +331,16 @@
     {
       "title": "Stakeholder Perspective",
       "description": "These questions describe how someone in a project might act or think, without naming their job. Pick which role fits best.",
-      "question": "When last Tuesday's numbers don't line up with the week before, they want to know exactly why the input changed, not just whether the forecast at the end still looks reasonable.",
+      "question": "When last Tuesday's numbers don't line up with the week before, they want to know exactly why the input changed, not just whether the results at the end still look reasonable.",
       "layout": "icons",
       "answers": [
         { "id": 0, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 1, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
-        { "id": 2, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
-        { "id": 3, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
-        { "id": 4, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
-        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
+        { "id": 2, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
+        { "id": 3, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
+        { "id": 4, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
+        { "id": 5, "text": "ML Engineer", "icon": "ph:flask-duotone" },
+        { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
       ],
       "notes": false,
       "knowledge_question": true,
@@ -351,12 +352,13 @@
       "question": "When someone proposes a new project, they want to know which number on the weekly report would actually move, and by how much, before agreeing to spend a cent on it.",
       "layout": "icons",
       "answers": [
-        { "id": 0, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
-        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 2, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
-        { "id": 3, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
-        { "id": 4, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
-        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+        { "id": 0, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
+        { "id": 1, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
+        { "id": 2, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
+        { "id": 3, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
+        { "id": 4, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 5, "text": "ML Engineer", "icon": "ph:flask-duotone" },
+        { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
       ],
       "notes": false,
       "knowledge_question": true,
@@ -365,15 +367,16 @@
       "inputField": false
     },
     {
-      "question": "After doing the same release steps by hand for the second time, they start quietly scripting it away, even though nothing has broken yet and nobody asked them to.",
+      "question": "After watching three different teams each hit the same manual release snag in the same week, they're the one who builds a single tool so none of them have to do it by hand again.",
       "layout": "icons",
       "answers": [
-        { "id": 0, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
-        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 2, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
-        { "id": 3, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
-        { "id": 4, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
-        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+        { "id": 0, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" },
+        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
+        { "id": 2, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
+        { "id": 3, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
+        { "id": 4, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
+        { "id": 5, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 6, "text": "ML Engineer", "icon": "ph:flask-duotone" }
       ],
       "notes": false,
       "knowledge_question": true,
@@ -382,15 +385,16 @@
       "inputField": false
     },
     {
-      "question": "Even after everyone agrees the results look good, they still want to see it walked through every rule that was written down months ago before anyone calls it done.",
+      "question": "Before anyone signs off on using this data, they want to know exactly what the agreement with the customer actually permits, not just what the system is technically capable of.",
       "layout": "icons",
       "answers": [
-        { "id": 0, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
-        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 2, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
-        { "id": 3, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
-        { "id": 4, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
-        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+        { "id": 0, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
+        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
+        { "id": 2, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
+        { "id": 3, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
+        { "id": 4, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 5, "text": "ML Engineer", "icon": "ph:flask-duotone" },
+        { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
       ],
       "notes": false,
       "knowledge_question": true,
@@ -399,15 +403,16 @@
       "inputField": false
     },
     {
-      "question": "Even when the input hasn't changed at all, they'll keep adjusting the model's settings until its mistakes stop looking so avoidable.",
+      "question": "Even with the same input, they'll keep comparing new candidate approaches against each other, unwilling to settle until one clearly beats the rest.",
       "layout": "icons",
       "answers": [
-        { "id": 0, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
-        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 2, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
-        { "id": 3, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
-        { "id": 4, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
-        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+        { "id": 0, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
+        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
+        { "id": 2, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
+        { "id": 3, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
+        { "id": 4, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 5, "text": "ML Engineer", "icon": "ph:flask-duotone" },
+        { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
       ],
       "notes": false,
       "knowledge_question": true,
@@ -416,15 +421,34 @@
       "inputField": false
     },
     {
-      "question": "They're the one who finds out, mid-afternoon, that the thing which was fine this morning has quietly stopped working for actual users right now.",
+      "question": "Once a candidate approach is chosen, they're the one who wires it up so the rest of the system can call it on its own, not just watch someone trigger it manually.",
       "layout": "icons",
       "answers": [
-        { "id": 0, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" },
-        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 2, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
-        { "id": 3, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
-        { "id": 4, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
-        { "id": 5, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" }
+        { "id": 0, "text": "ML Engineer", "icon": "ph:flask-duotone" },
+        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
+        { "id": 2, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
+        { "id": 3, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
+        { "id": 4, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
+        { "id": 5, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
+      ],
+      "notes": false,
+      "knowledge_question": true,
+      "taxonomy": "Apply",
+      "construct": "perspective_taking",
+      "inputField": false
+    },
+    {
+      "question": "When a plan satisfies every rule on paper, they're still the one who can tell you it won't survive contact with how people actually do this job day to day.",
+      "layout": "icons",
+      "answers": [
+        { "id": 0, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
+        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
+        { "id": 2, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
+        { "id": 3, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
+        { "id": 4, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 5, "text": "ML Engineer", "icon": "ph:flask-duotone" },
+        { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
       ],
       "notes": false,
       "knowledge_question": true,
@@ -435,12 +459,12 @@
     {
       "title": "Trade-off Scenarios",
       "description": "These describe a disagreement between two roles on a project similar to yours. Pick the best answer for each.",
-      "question": "A regional distributor needs a restocking feature shipped before a two-day cold-chain audit deadline. The production engineer wants to ship now with a manual sign-off instead of the full automated acceptance-test suite. The compliance architect insists every release passes the automated suite first, even if it slips the deadline. Which resolution best matches how such trade-offs are usually handled?",
+      "question": "A regional distributor needs a restocking model shipped before a two-day cold-chain audit deadline. The ML engineer wants to deploy now with a manual sign-off instead of the full data-protection review. The legal expert insists every release passes that review first, even if it slips the deadline. Which resolution best matches how such trade-offs are usually handled?",
       "answers": [
-        { "id": 0, "text": "They agree on an **interim check** now, with the **fuller process** following shortly after." },
-        { "id": 1, "text": "They wait for the **full process** to finish, even past the agreed date." },
-        { "id": 2, "text": "They go ahead **without raising it** with the other side at all." },
-        { "id": 3, "text": "They **leave the call** to someone who wasn't part of the original disagreement." }
+        { "id": 0, "text": "They agree on an **interim check** now, with the **fuller review** following shortly after." },
+        { "id": 1, "text": "They complete the **full review** first, and the **deadline** moves instead." },
+        { "id": 2, "text": "They proceed **without telling** the other side." },
+        { "id": 3, "text": "Someone **outside the disagreement** makes the call instead." }
       ],
       "notes": false,
       "knowledge_question": true,
@@ -449,12 +473,12 @@
       "inputField": false
     },
     {
-      "question": "A cold snap threatens frozen-goods demand forecasts. The business analyst needs a stock decision within the hour. The data engineer wants to pause integrating a new weather feed into the pipeline until it's validated, worried a rushed integration corrupts the pipeline. What is the underlying tension here?",
+      "question": "A cold snap threatens frozen-goods demand forecasts. The business stakeholder needs a stock decision within the hour. The data engineer wants to pause integrating a new weather feed into the pipeline until it's validated, worried a rushed integration corrupts the pipeline. Which of these is the most accurate description of the data engineer's real objection?",
       "answers": [
-        { "id": 0, "text": "**Needing to act** before all the facts are confirmed, against **wanting to confirm** them first." },
-        { "id": 1, "text": "Doing more **by hand** against doing more **automatically**." },
-        { "id": 2, "text": "Whether the newer feed can be **trusted** at all, regardless of timing." },
-        { "id": 3, "text": "Spending **more now** against spending **less later**." }
+        { "id": 0, "text": "Integrating an **unvalidated feed** risks **corrupting the pipeline** for everyone, not just this one decision." },
+        { "id": 1, "text": "The new feed comes from a **vendor** the data engineer personally **distrusts**." },
+        { "id": 2, "text": "**Automating** the integration would take too much **engineering time** this week." },
+        { "id": 3, "text": "The business stakeholder's **timeline** doesn't match the usual **release schedule**." }
       ],
       "notes": false,
       "knowledge_question": true,
@@ -463,12 +487,12 @@
       "inputField": false
     },
     {
-      "question": "Marketing wants a personalized-discount model live before a big promotion week, built on customer loyalty-card data. The DevOps engineer could deploy today by skipping the staged rollout. The compliance architect wants the standard review done first, since loyalty data is personal data under consent rules. Which role is most likely to treat this as non-negotiable regardless of the deadline, and why?",
+      "question": "A demand-forecasting model flags a sudden drop for one product category. The subject matter expert says the drop is expected, a known seasonal pattern the model wasn't around to learn yet. The ML engineer wants to retrain immediately on the new numbers before anyone acts on the forecast. Which resolution best fits how this kind of disagreement usually gets resolved?",
       "answers": [
-        { "id": 0, "text": "The one responsible for **data-handling rules**, not something traded for speed." },
-        { "id": 1, "text": "The one who could **ship it today**, since once something's built, finishing it becomes the priority." },
-        { "id": 2, "text": "The one pushing for the **promotion deadline**, since marketing timing rarely moves." },
-        { "id": 3, "text": "None of them; there's a **workable middle ground** here too." }
+        { "id": 0, "text": "They fold the **seasonal pattern** into the forecast before **retraining** on anything else." },
+        { "id": 1, "text": "They **retrain** on the newest numbers and treat the seasonal explanation as **unconfirmed**." },
+        { "id": 2, "text": "They **leave the forecast as it is**, since revisiting it would cost more time than it's worth." },
+        { "id": 3, "text": "They put the decision in front of whoever manages the model's **overall roadmap**." }
       ],
       "notes": false,
       "knowledge_question": true,
@@ -794,15 +818,16 @@
     {
       "title": "Stakeholder Perspective",
       "description": "These questions describe how someone in a project might act or think, without naming their job. Pick which role fits best.",
-      "question": "When last Tuesday's numbers don't line up with the week before, they want to know exactly why the input changed, not just whether the forecast at the end still looks reasonable.",
+      "question": "When last Tuesday's numbers don't line up with the week before, they want to know exactly why the input changed, not just whether the results at the end still look reasonable.",
       "layout": "icons",
       "answers": [
         { "id": 0, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 1, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
-        { "id": 2, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
-        { "id": 3, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
-        { "id": 4, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
-        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
+        { "id": 2, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
+        { "id": 3, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
+        { "id": 4, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
+        { "id": 5, "text": "ML Engineer", "icon": "ph:flask-duotone" },
+        { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
       ],
       "notes": false,
       "knowledge_question": true,
@@ -814,12 +839,13 @@
       "question": "When someone proposes a new project, they want to know which number on the weekly report would actually move, and by how much, before agreeing to spend a cent on it.",
       "layout": "icons",
       "answers": [
-        { "id": 0, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
-        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 2, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
-        { "id": 3, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
-        { "id": 4, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
-        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+        { "id": 0, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
+        { "id": 1, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
+        { "id": 2, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
+        { "id": 3, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
+        { "id": 4, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 5, "text": "ML Engineer", "icon": "ph:flask-duotone" },
+        { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
       ],
       "notes": false,
       "knowledge_question": true,
@@ -828,15 +854,16 @@
       "inputField": false
     },
     {
-      "question": "After doing the same release steps by hand for the second time, they start quietly scripting it away, even though nothing has broken yet and nobody asked them to.",
+      "question": "After watching three different teams each hit the same manual release snag in the same week, they're the one who builds a single tool so none of them have to do it by hand again.",
       "layout": "icons",
       "answers": [
-        { "id": 0, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
-        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 2, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
-        { "id": 3, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
-        { "id": 4, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
-        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+        { "id": 0, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" },
+        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
+        { "id": 2, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
+        { "id": 3, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
+        { "id": 4, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
+        { "id": 5, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 6, "text": "ML Engineer", "icon": "ph:flask-duotone" }
       ],
       "notes": false,
       "knowledge_question": true,
@@ -845,15 +872,16 @@
       "inputField": false
     },
     {
-      "question": "Even after everyone agrees the results look good, they still want to see it walked through every rule that was written down months ago before anyone calls it done.",
+      "question": "Before anyone signs off on using this data, they want to know exactly what the agreement with the customer actually permits, not just what the system is technically capable of.",
       "layout": "icons",
       "answers": [
-        { "id": 0, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
-        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 2, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
-        { "id": 3, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
-        { "id": 4, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
-        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+        { "id": 0, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
+        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
+        { "id": 2, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
+        { "id": 3, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
+        { "id": 4, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 5, "text": "ML Engineer", "icon": "ph:flask-duotone" },
+        { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
       ],
       "notes": false,
       "knowledge_question": true,
@@ -862,15 +890,16 @@
       "inputField": false
     },
     {
-      "question": "Even when the input hasn't changed at all, they'll keep adjusting the model's settings until its mistakes stop looking so avoidable.",
+      "question": "Even with the same input, they'll keep comparing new candidate approaches against each other, unwilling to settle until one clearly beats the rest.",
       "layout": "icons",
       "answers": [
-        { "id": 0, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
-        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 2, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
-        { "id": 3, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
-        { "id": 4, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" },
-        { "id": 5, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" }
+        { "id": 0, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
+        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
+        { "id": 2, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
+        { "id": 3, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
+        { "id": 4, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 5, "text": "ML Engineer", "icon": "ph:flask-duotone" },
+        { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
       ],
       "notes": false,
       "knowledge_question": true,
@@ -879,15 +908,34 @@
       "inputField": false
     },
     {
-      "question": "They're the one who finds out, mid-afternoon, that the thing which was fine this morning has quietly stopped working for actual users right now.",
+      "question": "Once a candidate approach is chosen, they're the one who wires it up so the rest of the system can call it on its own, not just watch someone trigger it manually.",
       "layout": "icons",
       "answers": [
-        { "id": 0, "text": "Production Engineer (App Reliability)", "icon": "ph:siren-duotone" },
-        { "id": 1, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 2, "text": "ML Engineer / Data Scientist", "icon": "ph:flask-duotone" },
-        { "id": 3, "text": "Compliance & QA Architect", "icon": "ph:shield-check-duotone" },
-        { "id": 4, "text": "Business/Domain Analyst", "icon": "ph:chart-pie-slice-duotone" },
-        { "id": 5, "text": "DevOps/MLOps Engineer", "icon": "ph:gear-six-duotone" }
+        { "id": 0, "text": "ML Engineer", "icon": "ph:flask-duotone" },
+        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
+        { "id": 2, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
+        { "id": 3, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
+        { "id": 4, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
+        { "id": 5, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
+      ],
+      "notes": false,
+      "knowledge_question": true,
+      "taxonomy": "Apply",
+      "construct": "perspective_taking",
+      "inputField": false
+    },
+    {
+      "question": "When a plan satisfies every rule on paper, they're still the one who can tell you it won't survive contact with how people actually do this job day to day.",
+      "layout": "icons",
+      "answers": [
+        { "id": 0, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
+        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
+        { "id": 2, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
+        { "id": 3, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
+        { "id": 4, "text": "Data Engineer", "icon": "ph:database-duotone" },
+        { "id": 5, "text": "ML Engineer", "icon": "ph:flask-duotone" },
+        { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
       ],
       "notes": false,
       "knowledge_question": true,
@@ -898,12 +946,12 @@
     {
       "title": "Trade-off Scenarios",
       "description": "These describe a disagreement between two roles on a project similar to yours. Pick the best answer for each.",
-      "question": "A regional distributor needs a restocking feature shipped before a two-day cold-chain audit deadline. The production engineer wants to ship now with a manual sign-off instead of the full automated acceptance-test suite. The compliance architect insists every release passes the automated suite first, even if it slips the deadline. Which resolution best matches how such trade-offs are usually handled?",
+      "question": "A regional distributor needs a restocking model shipped before a two-day cold-chain audit deadline. The ML engineer wants to deploy now with a manual sign-off instead of the full data-protection review. The legal expert insists every release passes that review first, even if it slips the deadline. Which resolution best matches how such trade-offs are usually handled?",
       "answers": [
-        { "id": 0, "text": "They agree on an **interim check** now, with the **fuller process** following shortly after." },
-        { "id": 1, "text": "They wait for the **full process** to finish, even past the agreed date." },
-        { "id": 2, "text": "They go ahead **without raising it** with the other side at all." },
-        { "id": 3, "text": "They **leave the call** to someone who wasn't part of the original disagreement." }
+        { "id": 0, "text": "They agree on an **interim check** now, with the **fuller review** following shortly after." },
+        { "id": 1, "text": "They complete the **full review** first, and the **deadline** moves instead." },
+        { "id": 2, "text": "They proceed **without telling** the other side." },
+        { "id": 3, "text": "Someone **outside the disagreement** makes the call instead." }
       ],
       "notes": false,
       "knowledge_question": true,
@@ -912,12 +960,12 @@
       "inputField": false
     },
     {
-      "question": "A cold snap threatens frozen-goods demand forecasts. The business analyst needs a stock decision within the hour. The data engineer wants to pause integrating a new weather feed into the pipeline until it's validated, worried a rushed integration corrupts the pipeline. What is the underlying tension here?",
+      "question": "A cold snap threatens frozen-goods demand forecasts. The business stakeholder needs a stock decision within the hour. The data engineer wants to pause integrating a new weather feed into the pipeline until it's validated, worried a rushed integration corrupts the pipeline. Which of these is the most accurate description of the data engineer's real objection?",
       "answers": [
-        { "id": 0, "text": "**Needing to act** before all the facts are confirmed, against **wanting to confirm** them first." },
-        { "id": 1, "text": "Doing more **by hand** against doing more **automatically**." },
-        { "id": 2, "text": "Whether the newer feed can be **trusted** at all, regardless of timing." },
-        { "id": 3, "text": "Spending **more now** against spending **less later**." }
+        { "id": 0, "text": "Integrating an **unvalidated feed** risks **corrupting the pipeline** for everyone, not just this one decision." },
+        { "id": 1, "text": "The new feed comes from a **vendor** the data engineer personally **distrusts**." },
+        { "id": 2, "text": "**Automating** the integration would take too much **engineering time** this week." },
+        { "id": 3, "text": "The business stakeholder's **timeline** doesn't match the usual **release schedule**." }
       ],
       "notes": false,
       "knowledge_question": true,
@@ -926,12 +974,12 @@
       "inputField": false
     },
     {
-      "question": "Marketing wants a personalized-discount model live before a big promotion week, built on customer loyalty-card data. The DevOps engineer could deploy today by skipping the staged rollout. The compliance architect wants the standard review done first, since loyalty data is personal data under consent rules. Which role is most likely to treat this as non-negotiable regardless of the deadline, and why?",
+      "question": "A demand-forecasting model flags a sudden drop for one product category. The subject matter expert says the drop is expected, a known seasonal pattern the model wasn't around to learn yet. The ML engineer wants to retrain immediately on the new numbers before anyone acts on the forecast. Which resolution best fits how this kind of disagreement usually gets resolved?",
       "answers": [
-        { "id": 0, "text": "The one responsible for **data-handling rules**, not something traded for speed." },
-        { "id": 1, "text": "The one who could **ship it today**, since once something's built, finishing it becomes the priority." },
-        { "id": 2, "text": "The one pushing for the **promotion deadline**, since marketing timing rarely moves." },
-        { "id": 3, "text": "None of them; there's a **workable middle ground** here too." }
+        { "id": 0, "text": "They fold the **seasonal pattern** into the forecast before **retraining** on anything else." },
+        { "id": 1, "text": "They **retrain** on the newest numbers and treat the seasonal explanation as **unconfirmed**." },
+        { "id": 2, "text": "They **leave the forecast as it is**, since revisiting it would cost more time than it's worth." },
+        { "id": 3, "text": "They put the decision in front of whoever manages the model's **overall roadmap**." }
       ],
       "notes": false,
       "knowledge_question": true,

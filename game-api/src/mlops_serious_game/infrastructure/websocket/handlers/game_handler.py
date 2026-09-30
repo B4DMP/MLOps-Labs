@@ -94,12 +94,31 @@ def get_stakeholders() -> dict[str, Any]:
     }
 
 
+def _with_answer_key_debug(question: dict) -> dict:
+    """Attaches the answer key for one knowledge question. Only ever called when
+    `ENABLE_DOSSIER_DEBUG` is on - see `_dump_questions` - matching `intel_handler._deck_debug`'s
+    same answer-key-only-in-debug-builds pattern for the offline intel deck."""
+    if not question.get("knowledge_question"):
+        return question
+    correct = next((a for a in question.get("answers", []) if a.get("id") == 0), None)
+    if correct is None:
+        return question
+    return {**question, "debug": {"correct_id": 0, "correct_text": correct.get("text")}}
+
+
+def _dump_questions(questions: list[Any]) -> list[Any]:
+    dumped = [q.model_dump() if hasattr(q, "model_dump") else q for q in questions]
+    if settings.ENABLE_DOSSIER_DEBUG:
+        dumped = [_with_answer_key_debug(q) for q in dumped]
+    return dumped
+
+
 def get_intro_questions() -> list[Any]:
-    return [q.model_dump() if hasattr(q, 'model_dump') else q for q in QuestionFactory.intro_questions]
+    return _dump_questions(QuestionFactory.intro_questions)
 
 
 def get_outro_questions() -> list[Any]:
-    return [q.model_dump() if hasattr(q, 'model_dump') else q for q in QuestionFactory.outro_questions]
+    return _dump_questions(QuestionFactory.outro_questions)
 
 def get_phases() -> list[Any]:
     return [
