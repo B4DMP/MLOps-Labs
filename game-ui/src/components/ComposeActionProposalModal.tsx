@@ -226,6 +226,9 @@ export interface ComposeActionProposalModalProps {
 
 const MAX_ATOMIC_CHANGES = 3;
 
+// Module-level so reopening the modal doesn't replay the demo; only a page reload resets it.
+let introComposeTourStarted = false;
+
 /** One dossier note, carrying who it belongs to so clicking it can jump the dossier there. */
 interface LinkedNote {
   item: IntelEntry;
@@ -731,13 +734,12 @@ export default function ComposeActionProposalModal({
     }
   }, [isOpen, phaseStageId]);
 
-  const introComposeTourStartedRef = useRef(false);
   useEffect(() => {
     // Phase 0 has exactly one challenge, so checking the phase alone is sufficient -
     // `currentChallenge` is the challenge's *global* id (e.g. 113), not a phase-relative index.
     if (!isOpen || currentPhase !== 0) return;
-    if (introComposeTourStartedRef.current) return;
-    introComposeTourStartedRef.current = true;
+    if (introComposeTourStarted) return;
+    introComposeTourStarted = true;
     startTour("introCompose", { narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
   }, [isOpen, currentPhase]);
 
