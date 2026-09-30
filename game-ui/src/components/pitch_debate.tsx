@@ -670,7 +670,7 @@ export default function PitchDebate({
     setGraphState(state);
   });
   useEffect(() => {
-    emit("graph:state_request", { phase_id: currentPhase === 0 ? 1 : currentPhase });
+    emit("graph:state_request", { phase_id: currentPhase });
   }, [emit, currentPhase]);
 
   const introPitchTourStartedRef = useRef(false);

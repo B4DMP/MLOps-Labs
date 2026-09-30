@@ -172,6 +172,12 @@ def _apply_one(
     graph: TechnicalGraph, state: GraphState, op: GraphOp, seq: Optional[int], result: ApplyResult
 ) -> None:
     kind = op.kind
+    if kind == "reset":
+        # Back to the config's starting graph, debt and extra instances included. In place, since
+        # callers hold this state object.
+        for name, value in GraphState.from_config(graph):
+            setattr(state, name, value)
+        return
     if kind not in ("instance_upsert", "set_instance_prop"):
         op = _resolve_target(graph, op)
         if op is None:
@@ -325,7 +331,7 @@ def apply_ops(
     result = ApplyResult(state=state.model_copy(deep=True))
     for item in ops:
         seq, op = (item.seq, item.op) if isinstance(item, LoggedOp) else (None, item)
-        if op.kind not in ("instance_upsert", "set_instance_prop"):
+        if op.kind not in ("instance_upsert", "set_instance_prop", "reset"):
             op = _resolve_target(graph, op)
             if op is None:
                 continue

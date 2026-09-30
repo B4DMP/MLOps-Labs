@@ -383,14 +383,16 @@ async def handle_game_init(
     username: str,
     payload: dict
 ) -> tuple[int, int]| dict[str, str]:
-    # Check campaign questionnaire preference
+    # Check campaign questionnaire/intro-phase preference
     use_questionnaire = True
+    intro_phase_enabled = False
     with get_session() as session:
         user = session.scalar(select(User).where(User.user_name == username))
         if user:
             camp = session.scalar(select(Campaign).where(Campaign.id == user.campaign_id))
             if camp is not None:
                 use_questionnaire = camp.use_questionnaire
+                intro_phase_enabled = camp.intro_phase_enabled
 
     # Send init static configurations
     await manager.send_event(
@@ -403,6 +405,7 @@ async def handle_game_init(
             "phases": get_phases(),
             "emotion_colors": get_emotion_colors(),
             "use_questionnaire": use_questionnaire,
+            "intro_phase_enabled": intro_phase_enabled,
             "settings": {
                 **user_settings_service.get_settings(username),
                 "can_reset_account": settings.ENABLE_RESET_USER,
@@ -535,7 +538,7 @@ async def handle_game_init(
                 emotion_values_dict = inherited_emotions
             # No challenge recorded yet for this run: deal one through the same scheduler
             # every later challenge goes through, so retired/legacy templates are never dealt here.
-            curr_challenge: Challenge = select_first_challenge(username)
+            curr_challenge: Challenge = select_first_challenge(username, intro_phase_enabled=intro_phase_enabled)
             await store_or_update_challenge(
                 challenge=curr_challenge,
                 challenge_loop_id=0,
@@ -646,12 +649,14 @@ async def handle_progress_update(
     additional_data = payload.get("additional_data", [])
 
     use_q = True
+    intro_phase_enabled = False
     with get_session() as session:
         user = session.scalar(select(User).where(User.user_name == username))
         if user:
             camp = session.scalar(select(Campaign).where(Campaign.id == user.campaign_id))
             if camp is not None:
                 use_q = camp.use_questionnaire
+                intro_phase_enabled = camp.intro_phase_enabled
 
     if not use_q:
         if game_progress_index == 0:
@@ -681,7 +686,7 @@ async def handle_progress_update(
         if is_fresh_start:
             # A brand-new player has no challenge yet: deal one through the same scheduler
             # every later challenge goes through, so retired/legacy templates are skipped here too.
-            curr_challenge: Challenge = select_first_challenge(username)
+            curr_challenge: Challenge = select_first_challenge(username, intro_phase_enabled=intro_phase_enabled)
         else:
             curr_challenge: Challenge = PhaseFactory.translate_challenge_index(
                 challenge_index=last_gamestate_id[1],
@@ -729,6 +734,7 @@ async def store_or_update_challenge(
     messages: list[str],
     username: str,
     attention_tokens: int,
+    fresh_room: bool = False,
 ) -> None:
     with get_session() as session:
         user_id = get_user_id(session, username)
@@ -747,6 +753,8 @@ async def store_or_update_challenge(
         )
         prev_session_ev = session.scalars(stmt_ev).first()
         carried_emotion_values = prev_session_ev.emotion_values if prev_session_ev else None
+        if fresh_room:
+            carried_emotion_values = _neutral_room()
 
         stmt = select(GameChallenge).where(
             GameChallenge.user_id == user_id,
@@ -858,29 +866,60 @@ def played_templates(username: str) -> set[str]:
     return templates
 
 
-def select_first_challenge(username: str) -> Challenge | None:
+def select_first_challenge(username: str, intro_phase_enabled: bool = False) -> Challenge | None:
     """Picks the first challenge of a run via the same scheduler as every later pick, so a
     retired/legacy template is never dealt just because it's challenge #1.
 
     The played set is read rather than assumed empty: this runs for the first challenge of a
     *second* game too, which must not re-deal something the player already worked through.
 
+    Phase 0 ("Introduction") is skipped by default - `intro_phase_enabled` is the campaign's
+    own flag (Campaign.intro_phase_enabled) for whether this run should start there instead.
+
     Falls back to plain sequential order if the graph cannot be read, same as select_next_challenge.
     """
+    start_phase_id = 0 if intro_phase_enabled else 1
     try:
         graph = GraphFactory.get_graph()
         replayed = graph_store.load_state(username)
         ctx = evaluate_graph(graph, replayed.state).context(graph, replayed.state)
         return next_challenge(
             PhaseFactory.get_phases(),
-            current_phase_id=1,
+            current_phase_id=start_phase_id,
             played=played_templates(username),
             ctx=ctx,
             seed=username,
         )
     except Exception as e:
         print(f"[Challenge selection error, falling back to sequential] {e}")
-        return _first_non_retired_challenge(1)
+        return _first_non_retired_challenge(start_phase_id)
+
+
+def _neutral_room() -> dict:
+    """Every stakeholder at their default emotion, in the shape a GameChallenge row stores."""
+    return {
+        st.id: dict(EmotionFactory.create_default_emotion_values())
+        for st in StakeholderFactory.stakeholders
+    }
+
+
+def _reset_run_session(username: str) -> None:
+    """Escalation points and grudges are per playthrough, so the demo's do not carry over."""
+    with get_session() as session:
+        rec = get_or_create_game_session(username, session)
+        rec.escalation_points = 3
+        rec.grudges = []
+        flag_modified(rec, "grudges")
+
+
+def _demo_finished(current: Challenge | None, played: set[str]) -> bool:
+    """Whether `current` was the last challenge of a demo phase."""
+    if current is None:
+        return False
+    phase = next((p for p in PhaseFactory.get_phases() if p.id == current.phase_id), None)
+    if phase is None or not phase.demo:
+        return False
+    return sum(1 for c in phase.challenges if c.template_id in played) >= phase.challenge_quota
 
 
 def select_next_challenge(username: str, phase_id: int, challenge_id: int) -> Challenge | None:
@@ -895,6 +934,9 @@ def select_next_challenge(username: str, phase_id: int, challenge_id: int) -> Ch
         played = played_templates(username)
         if current:
             played.add(current.template_id)
+        if _demo_finished(current, played):
+            # Reset before reading the graph: the next pick must not see the demo's leftovers.
+            graph_store.reset_graph(username, phase_index=current.phase_id, challenge_template=current.template_id)
         replayed = graph_store.load_state(username)
         ctx = evaluate_graph(graph, replayed.state).context(graph, replayed.state)
         current_phase = current.phase_id if current else phase_id
@@ -909,6 +951,7 @@ async def handle_state_update_request(
     username: str,
     payload: dict,
 ) -> tuple[int, int, int]:
+    leaving_demo = False
     try:
         # phase_id/challenge_id come from the player's own stored progression, never the client's
         # claim (docs/plans/session-persistence-and-url-routing.md, D-server-truth): a crafted
@@ -1066,6 +1109,16 @@ async def handle_state_update_request(
                     **(action_card.get("metric_changes", {}) if isinstance(action_card, dict) else {}),
                 }
 
+                # Leaving a demo phase: metrics restart too, so none of the demo's score carries over.
+                leaving_demo = _demo_finished(
+                    PhaseFactory.translate_challenge_index(challenge_index=challenge_id, phase_index=phase_id),
+                    played_templates(username),
+                )
+                if leaving_demo:
+                    metric_values = [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()]
+                    ac_changes = {}
+                    _reset_run_session(username)
+
                 for i, m_name in enumerate(MetricFactory.get_available_metrics()):
                     cur_val = metric_values[i] if i < len(metric_values) else 0
                     change = ac_changes.get(m_name, 0) + challenge.metric_changes.get(m_name, 0)
@@ -1085,6 +1138,7 @@ async def handle_state_update_request(
             messages=messages,
             username=username,
             attention_tokens=attention_tokens,
+            fresh_room=leaving_demo,
         )
 
         ev_dict = {

@@ -13,6 +13,7 @@ from mlops_serious_game.domain.graph import (
     TechnicalGraph,
 )
 from mlops_serious_game.application.graph_service.effective import EffectiveView
+from mlops_serious_game.application.graph_service.phase_stage import stage_for_phase
 from mlops_serious_game.application.graph_service.stage_graph import StageGraphView
 from mlops_serious_game.application.graph_service.story import story_for
 from mlops_serious_game.domain.pattern import Pattern
@@ -24,7 +25,6 @@ def _stage_reached(stage: Stage, current_phase_id: Optional[int]) -> bool:
         return True
     if current_phase_id is None:
         return True
-    # Phase 0 is the introduction phase; it is skipped for stage progression calculations (technical stages begin at Phase 1: 'req').
     effective_phase = max(1, current_phase_id)
     return stage.phase_id <= effective_phase
 
@@ -59,9 +59,13 @@ def build_graph_state(
     pat_by_stage = _patterns_by_stage(patterns, active_set)
     sv_by_id = {sv.id: sv for sv in stage_view.stages}
 
+    # The demo phase plays in a later stage than its own id, so stages are reached by that stage.
+    active_stage = stage_for_phase(graph, current_phase_id)
+    reach_phase = active_stage.phase_id if active_stage and active_stage.phase_id else current_phase_id
+
     stages = []
     for s in graph.stages:
-        reached = _stage_reached(s, current_phase_id)
+        reached = _stage_reached(s, reach_phase)
         if not reached:
             stages.append({
                 "id": s.id,
@@ -184,4 +188,5 @@ def build_graph_state(
         "feedback_flows": feedback_flows,
         "technical": technical,
         "system_health": stage_view.system_health,
+        "active_stage_id": active_stage.id if active_stage else None,
     }

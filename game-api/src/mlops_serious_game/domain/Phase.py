@@ -26,6 +26,13 @@ class Phase(BaseModel):
         default=None, description="How many challenges a player plays in this phase; defaults to all of them"
     )
 
+    graph_stage_id: Optional[str] = Field(
+        default=None, description="Graph stage this phase plays in, when it is not the stage sharing its id"
+    )
+    demo: bool = Field(
+        default=False, description="Scratch phase: the graph and metrics restart from scratch once it is done"
+    )
+
     @property
     def challenge_quota(self) -> int:
         return self.challenges_per_phase if self.challenges_per_phase is not None else len(self.challenges)

@@ -371,7 +371,7 @@ def calculate_metric_sum_per_challenge(campaign_key: str | None = None) -> list[
         total_expected_challenges = 0
         try:
             total_expected_challenges = sum(
-                phase.challenge_quota for phase in PhaseFactory.phases if phase.id != 0
+                phase.challenge_quota for phase in PhaseFactory.phases if not phase.demo
             )
         except Exception:
             pass
@@ -390,11 +390,11 @@ def calculate_metric_sum_per_challenge(campaign_key: str | None = None) -> list[
             if not valid_user_ids:
                 return [0.0] * total_expected_challenges
 
-            # Fetch all gameplay challenge records (excluding intro phase 0)
+            # Fetch all gameplay challenge records (excluding the demo phase)
             sessions = session.scalars(
                 select(GameChallenge)
                 .where(
-                    GameChallenge.phase_index != 0,
+                    GameChallenge.phase_index.notin_(PhaseFactory.demo_phase_ids()),
                     GameChallenge.run_index == FIRST_RUN,
                     GameChallenge.user_id.in_(valid_user_ids),
                 )

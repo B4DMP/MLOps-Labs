@@ -306,6 +306,18 @@ def load_known_intel_items_for_challenge(
 # ── Plan 05: Persistent dossier ───────────────────────────────────────────────
 
 
+def _left_behind_demo(item: StakeholderIntelItem, current_phase: int) -> bool:
+    """Whether the note came from a demo phase the player has since moved past. Those rows stay
+    in the database for the results screens, but the dossier starts empty once the demo is over."""
+    phase_id = item.discovered_phase_id
+    if phase_id is None:
+        try:
+            phase_id = PhaseFactory.get_challenge_by_id(item.challenge_id).phase_id
+        except ValueError:
+            return False
+    return phase_id in PhaseFactory.demo_phase_ids() and phase_id < current_phase
+
+
 def load_known_intel_items(username: str, up_to_phase: Optional[int] = None) -> List[StakeholderIntelItem]:
     """Return all intel items the player has ever collected, across all phases.
 
@@ -359,6 +371,8 @@ def load_known_intel_items(username: str, up_to_phase: Optional[int] = None) -> 
             if up_to_phase is not None and item.discovered_phase_id is not None:
                 if item.discovered_phase_id > up_to_phase:
                     continue
+            if up_to_phase is not None and _left_behind_demo(item, up_to_phase):
+                continue
             items.append(item)
         if dirty:
             session.commit()
@@ -1331,6 +1345,10 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
     phase = PhaseFactory.get_phases()[curr_challenge.phase_id]
     ph_st_map = {ps.stakeholder_id: ps for ps in phase.stakeholders}
     active_st_ids = StakeholderFactory.get_active_stakeholders(curr_challenge.phase_id) or StakeholderFactory.get_available_stakeholders()
+    if not phase.demo:
+        # The demo's cast is gone from the dossier once the demo is over.
+        gone = PhaseFactory.demo_only_stakeholder_ids()
+        active_st_ids = [st_id for st_id in active_st_ids if st_id not in gone]
 
     dossier_list = []
     for st_id in active_st_ids:

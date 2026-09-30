@@ -99,7 +99,9 @@ def _room_for_phases(phase_ids: set[int]) -> list[tuple[str, str, str]]:
     return [(st_id, power, interest) for st_id, (power, interest) in best.items()]
 
 
-def _intel_facts(username: str, run_index: Optional[int], challenge_ids: set[int]) -> dict[str, Any]:
+def _intel_facts(
+    username: str, run_index: Optional[int], challenge_ids: set[int], exclude_challenge_ids: set[int] = frozenset()
+) -> dict[str, Any]:
     """How much of the available intel the player found, and how much of it they read correctly.
 
     `available` counts the requirements belonging to the challenges this run actually dealt, not
@@ -115,9 +117,11 @@ def _intel_facts(username: str, run_index: Optional[int], challenge_ids: set[int
         for row in rows:
             if isinstance(row.intel_item_data, dict):
                 try:
-                    items.append(StakeholderIntelItem(**row.intel_item_data))
+                    item = StakeholderIntelItem(**row.intel_item_data)
                 except Exception:
                     continue
+                if item.challenge_id not in exclude_challenge_ids:
+                    items.append(item)
 
     available = 0
     available_by_stakeholder: dict[str, int] = {}
@@ -251,6 +255,9 @@ def build_results(username: str, run_index: Optional[int] = None) -> dict[str, A
         campaign = session.get(Campaign, user.campaign_id) if user else None
         replay_allowed = bool(campaign and campaign.allow_replay)
 
+        # The demo phase is a tutorial: nothing it produced counts towards the results.
+        demo_phases = PhaseFactory.demo_phase_ids()
+        demo_ids = PhaseFactory.demo_challenge_ids()  # events and intel carry a challenge, not a reliable phase
         challenge_rows = [
             {
                 "run_index": int(row.run_index or 1),
@@ -262,6 +269,7 @@ def build_results(username: str, run_index: Optional[int] = None) -> dict[str, A
                 "emotion_values": dict(row.emotion_values or {}),
             }
             for row in challenges
+            if row.phase_index not in demo_phases
         ]
         escalation_left = (
             int(game_session.escalation_points)
@@ -273,7 +281,7 @@ def build_results(username: str, run_index: Optional[int] = None) -> dict[str, A
     challenge_ids = {row["challenge_index"] for row in challenge_rows}
     latest_phase = max(phase_ids) if phase_ids else None
 
-    events = event_store.load_events(username, run_index=run)
+    events = [e for e in event_store.load_events(username, run_index=run) if e.challenge_id not in demo_ids]
     fired_grudges = sum(1 for e in events if e.cause == "grudge.fired")
 
     graph_view = _graph_view(username, run, latest_phase)
@@ -285,7 +293,7 @@ def build_results(username: str, run_index: Optional[int] = None) -> dict[str, A
             final_emotions = row["emotion_values"]
             break
 
-    intel = _intel_facts(username, run, challenge_ids)
+    intel = _intel_facts(username, run, challenge_ids, exclude_challenge_ids=demo_ids)
     counts = intel["counts"]
 
     pillars = [

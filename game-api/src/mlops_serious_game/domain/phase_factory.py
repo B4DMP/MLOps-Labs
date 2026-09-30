@@ -14,6 +14,21 @@ class PhaseFactory:
         return cls.phases
 
     @classmethod
+    def demo_phase_ids(cls) -> set[int]:
+        return {p.id for p in cls.phases if p.demo}
+
+    @classmethod
+    def demo_challenge_ids(cls) -> set[int]:
+        return {c.id for p in cls.phases if p.demo for c in p.challenges}
+
+    @classmethod
+    def demo_only_stakeholder_ids(cls) -> set[str]:
+        """Stakeholders who only ever sit in a demo phase's room."""
+        demo = {ps.stakeholder_id for p in cls.phases if p.demo for ps in p.stakeholders}
+        real = {ps.stakeholder_id for p in cls.phases if not p.demo for ps in p.stakeholders}
+        return demo - real
+
+    @classmethod
     def get_challenge_by_id(cls, challenge_id: int) -> Challenge:
         for phase in cls.phases:
             for challenge in phase.challenges:
@@ -83,6 +98,8 @@ class PhaseFactory:
                 challenges=phase_challenges,
                 stakeholders=phase_stakeholders,
                 challenges_per_phase=p_data.get("challenges_per_phase"),
+                graph_stage_id=p_data.get("graph_stage_id"),
+                demo=p_data.get("demo", False),
             )
             cls.phases.append(p)
 

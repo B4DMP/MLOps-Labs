@@ -16,6 +16,7 @@ from mlops_serious_game.application.action_card_pitch_service import run_action_
 from mlops_serious_game.application.action_card_veto_service import run_action_card_veto_workflow
 from mlops_serious_game.application.graph_service import store as graph_store
 from mlops_serious_game.application.graph_service.apply import apply_ops
+from mlops_serious_game.application.graph_service.phase_stage import stage_for_phase
 from mlops_serious_game.application.pitch_debate_service import session as pitch
 from mlops_serious_game.application.pitch_debate_service import store as pitch_store
 from mlops_serious_game.application.pitch_debate_service.scoring import VETO_THRESHOLD
@@ -150,13 +151,8 @@ def get_allowed_targets(
     """Lifecycle nodes are viewable/editable only in their phase and challenge."""
     allowed: list[str] = []
 
-    # Phase 0 is the introduction phase; it is skipped for stage calculations (maps to Phase 1: 'req')
-    effective_phase = 1 if phase_id == 0 else phase_id
-    phase_stage_id = None
-    for s in graph.stages:
-        if s.phase_id == effective_phase:
-            phase_stage_id = s.id
-            break
+    stage = stage_for_phase(graph, phase_id)
+    phase_stage_id = stage.id if stage else None
 
     if phase_stage_id:
         challenge_targets = set()

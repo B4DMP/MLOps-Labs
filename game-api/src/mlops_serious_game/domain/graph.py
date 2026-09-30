@@ -107,7 +107,7 @@ def narrative_tier(automation: int, governance: int) -> int:
 NON_AUTOMATIC_TRIGGERS = frozenset({"none", "manual_request"})
 
 EdgeKind = Literal["pipeline", "feedback"]
-OpKind = Literal["raise_to", "set_to", "set_trigger", "set_attr", "instance_upsert", "set_instance_prop"]
+OpKind = Literal["raise_to", "set_to", "set_trigger", "set_attr", "instance_upsert", "set_instance_prop", "reset"]
 SourceKind = Literal["intel", "action_card", "world_event", "challenge_seed", "admin"]
 
 

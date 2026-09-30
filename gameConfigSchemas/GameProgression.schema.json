@@ -50,7 +50,9 @@
                     "requirements_reuben",
                     "efficiency_emilia",
                     "automation_alex",
-                    "reliability_ruth"
+                    "reliability_ruth",
+                    "bear_bruce",
+                    "mohawk_mark"
                   ]
                 },
                 "power": {
@@ -77,6 +79,16 @@
             "minimum": 1,
             "title": "Challenges played per phase",
             "description": "Defaults to all challenges in the phase"
+          },
+          "graph_stage_id": {
+            "type": "string",
+            "title": "Graph stage",
+            "description": "Graph stage this phase plays in, when it is not the stage sharing its id"
+          },
+          "demo": {
+            "type": "boolean",
+            "title": "Demo phase",
+            "description": "The graph and metrics restart from scratch once this phase is done"
           }
         }
       }

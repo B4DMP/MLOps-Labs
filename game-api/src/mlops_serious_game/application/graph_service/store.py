@@ -136,6 +136,29 @@ def seed_if_empty(username: str, *, phase_index: int, challenge_template: str) -
     return True
 
 
+def reset_graph(username: str, *, phase_index: int, challenge_template: str) -> bool:
+    """Wipes this run's graph back to the starting one, in the log so replay agrees.
+
+    For a demo phase's aftermath: the next phase starts empty. Once per demo challenge, which is
+    unambiguous because a template is never dealt twice to a player. Returns True when it reset.
+    """
+    source_id = f"reset:{challenge_template}"
+    if has_batch(username, source_id):
+        return False
+    graph = GraphFactory.get_graph()
+    ops = [GraphOp(kind="reset", target="graph", source_kind="challenge_seed", source_id=source_id)]
+    ops += seed_ops(graph)
+    append_ops(
+        username,
+        ops,
+        phase_index=phase_index,
+        challenge_template=challenge_template,
+        source_kind="challenge_seed",
+        source_id=source_id,
+    )
+    return True
+
+
 def clear_graph(username: str) -> None:
     """Deletes a player's whole op log, across every run.
 

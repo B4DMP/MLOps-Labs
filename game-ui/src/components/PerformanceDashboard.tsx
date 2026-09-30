@@ -132,6 +132,7 @@ interface GraphStatePayload {
   feedback_flows: FlowData[];
   technical: Record<string, TechnicalStage>;
   system_health: number;
+  active_stage_id?: string | null;
 }
 
 export interface PerformanceDashboardProps {
@@ -829,16 +830,16 @@ export default function PerformanceDashboard({
   useEffect(() => {
     if (!selectedStage && pipelineStages.length > 0) {
       const unlockedStages = pipelineStages.filter((s) => !s.locked);
-      const effectivePhase = currentPhase === 0 ? 1 : currentPhase;
       const targetStage =
-        pipelineStages.find((s) => s.phase_id === effectivePhase && !s.locked) ||
+        pipelineStages.find((s) => s.id === graphState?.active_stage_id && !s.locked) ||
+        pipelineStages.find((s) => s.phase_id === Math.max(1, currentPhase) && !s.locked) ||
         unlockedStages[0] ||
         pipelineStages[0];
       if (targetStage) {
         setSelectedStage(targetStage.id);
       }
     }
-  }, [selectedStage, pipelineStages, currentPhase]);
+  }, [selectedStage, pipelineStages, currentPhase, graphState?.active_stage_id]);
 
   // A link elsewhere (e.g. the simulation debrief's Component Implementation Log) jumps the
   // dashboard straight to a component - re-jumps whenever the id changes, same "changed since
@@ -1028,7 +1029,7 @@ export default function PerformanceDashboard({
             <span>Performance Dashboard</span>
           </h4>
           <div className={styles.headerPhases}>
-            <PhaseOverview isTourAnchor />
+            <PhaseOverview />
           </div>
           <button
             type="button"

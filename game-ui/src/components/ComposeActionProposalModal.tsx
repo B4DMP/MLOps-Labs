@@ -176,6 +176,7 @@ export interface StageData {
 export interface GraphStatePayload {
   stages: StageData[];
   technical: Record<string, TechnicalStage>;
+  active_stage_id?: string | null;
 }
 
 export interface ComposeActionProposalModalProps {
@@ -708,18 +709,18 @@ export default function ComposeActionProposalModal({
   // Request graph state on open and listen to live updates
   useEffect(() => {
     if (!isOpen) return;
-    emit("graph:state_request", { phase_id: currentPhase === 0 ? 1 : currentPhase });
+    emit("graph:state_request", { phase_id: currentPhase });
     const unsub = subscribe("graph:state", (data: GraphStatePayload) => {
       setLocalGraphState(data);
     });
     return unsub;
   }, [isOpen, currentPhase, emit, subscribe]);
 
-  // Determine active phase stage ID (Phase 0 maps to Phase 1: 'req')
+  // The backend knows which stage a phase plays in (the demo phase is not the first one).
   const phaseStageId = useMemo(() => {
     if (!graphState?.stages) return "req";
-    const effectivePhase = currentPhase === 0 ? 1 : currentPhase;
-    const st = graphState.stages.find((s) => s.phase_id === effectivePhase);
+    if (graphState.active_stage_id) return graphState.active_stage_id;
+    const st = graphState.stages.find((s) => s.phase_id === Math.max(1, currentPhase));
     return st ? st.id : "req";
   }, [graphState, currentPhase]);
 
