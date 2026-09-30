@@ -1127,6 +1127,18 @@ def _resolve_source(item: StakeholderIntelItem) -> IntelSource:
     return source or IntelSource.OFFLINE_ARTIFACT
 
 
+def _branch_payload(branch) -> Optional[Dict[str, Any]]:
+    """A stored trade-off branch for the UI, with name tokens rendered for the current player.
+
+    Rows written before branches were personalized still hold raw `{stakeholder_id}` tokens.
+    """
+    if not branch:
+        return None
+    data = branch.model_dump(mode="json") if hasattr(branch, "model_dump") else dict(branch)
+    data["description"] = personalize(data.get("description"))
+    return data
+
+
 def _artifact_type_for(item: StakeholderIntelItem) -> str:
     """The kind of document the player read this off, for the note's caption.
 
@@ -1319,16 +1331,8 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
                 if item.challenge_id != curr_challenge.id
                 else item_status(item, snapshot)
             ),
-            "branch_x": (
-                getattr(item, "branch_x", None).model_dump(mode="json")
-                if hasattr(getattr(item, "branch_x", None), "model_dump")
-                else getattr(item, "branch_x", None)
-            ) if cat_type_val == "trade_off" else None,
-            "branch_y": (
-                getattr(item, "branch_y", None).model_dump(mode="json")
-                if hasattr(getattr(item, "branch_y", None), "model_dump")
-                else getattr(item, "branch_y", None)
-            ) if cat_type_val == "trade_off" else None,
+            "branch_x": _branch_payload(item.branch_x) if cat_type_val == "trade_off" else None,
+            "branch_y": _branch_payload(item.branch_y) if cat_type_val == "trade_off" else None,
         }
 
     stakeholder_intel_map: Dict[str, List[Dict[str, Any]]] = {}
