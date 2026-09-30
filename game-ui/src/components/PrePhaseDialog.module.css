@@ -577,6 +577,65 @@
   background: var(--secondary-bg);
 }
 
+/* Once the briefing has been fully read out: a slow pulse and a nudging arrow. The delay hides
+   the gap between the narration ending and the first stakeholder bubble opening. */
+.actionButtonNudge {
+  animation: startButtonPulse 2s ease-in-out 0.8s infinite;
+}
+
+.actionButtonNudge .actionButtonArrow {
+  animation: startButtonArrow 2s ease-in-out 0.8s infinite;
+}
+
+@keyframes startButtonPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(46, 122, 158, 0.5);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 8px rgba(46, 122, 158, 0);
+  }
+}
+
+@keyframes startButtonArrow {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+
+/* Phase description is being read aloud: ring around the card so the player sees what the voice
+   is talking about. */
+.missionCardSpeaking {
+  border-color: var(--secondary-bg);
+  animation: missionCardSpeakingRing 1.6s ease-in-out infinite;
+}
+
+.challengeSpeaking {
+  border-radius: 0.375rem;
+  animation: missionCardSpeakingRing 1.6s ease-in-out infinite;
+}
+
+@keyframes missionCardSpeakingRing {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(46, 122, 158, 0.35); }
+  50% { box-shadow: 0 0 0 4px rgba(46, 122, 158, 0.7); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actionButtonNudge,
+  .actionButtonNudge .actionButtonArrow,
+  .missionCardSpeaking,
+  .challengeSpeaking {
+    animation: none;
+  }
+  .actionButtonNudge {
+    box-shadow: 0 0 0 4px rgba(46, 122, 158, 0.4);
+  }
+  .missionCardSpeaking,
+  .challengeSpeaking {
+    box-shadow: 0 0 0 3px rgba(46, 122, 158, 0.6);
+  }
+}
+
 /* Reading-Guidance Keyframe Animations (Zero Glow) */
 @keyframes modalPop {
   from {

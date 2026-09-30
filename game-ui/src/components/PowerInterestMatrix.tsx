@@ -26,6 +26,9 @@ interface PowerInterestMatrixProps {
    * everyone already. Clicking a chip still replays an introduction.
    */
   autoPlayIntroductions?: boolean;
+  /** Fires whenever an introduction bubble opens or closes, so the parent can tell when the
+   * stakeholders have finished talking. */
+  onIntroActiveChange?: (isActive: boolean) => void;
 }
 
 type QuadrantKey = "high-low" | "high-high" | "low-low" | "low-high";
@@ -94,6 +97,7 @@ export default function PowerInterestMatrix({
   isFirstPhase = false,
   bubblePortalTarget = null,
   autoPlayIntroductions = true,
+  onIntroActiveChange,
 }: PowerInterestMatrixProps) {
   const { stakeholders } = useContext(StakeholderContext);
   const { speak: speakTts, cancel: cancelTts } = useSpeech();
@@ -378,6 +382,11 @@ export default function PowerInterestMatrix({
 
     return clearIntroTimers;
   }, [introState?.stakeholderId, introState?.nonce, advanceIntro]);
+
+  const isIntroActive = introState !== null;
+  useEffect(() => {
+    onIntroActiveChange?.(isIntroActive);
+  }, [isIntroActive]);
 
   const activeIntroDetails = introState ? introsById.get(introState.stakeholderId) : undefined;
   const activeIntro =

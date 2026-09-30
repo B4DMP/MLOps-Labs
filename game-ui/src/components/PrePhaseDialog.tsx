@@ -106,6 +106,17 @@ export default function PrePhaseDialog({
   // the highlight.
   const [hasBriefingAudioStarted, setHasBriefingAudioStarted] = useState(false);
 
+  const [isStakeholderIntroActive, setIsStakeholderIntroActive] = useState(false);
+  // Everything has been said: nudge towards the start button. Its CSS animation-delay covers the
+  // frame between narration ending and the first stakeholder bubble opening.
+  const shouldNudgeStart =
+    !isReview && introsUnlocked && !isNarratingBriefing && !isStakeholderIntroActive;
+  // The phase description is the one being read right now (not the challenge card below it).
+  const isReadingPhaseDescription = isNarratingBriefing && activeSentenceIndex !== null;
+  // challengeSentenceIndex is negative while the phase description is still being read.
+  const isReadingChallenge =
+    isNarratingBriefing && challengeSentenceIndex !== null && challengeSentenceIndex >= 0;
+
   const currentPhaseData = phases[currentPhase];
   const phaseIntroductionText = currentPhaseData?.phase_introduction || "";
   const phaseIntroSentenceCount = splitSentences(phaseIntroductionText)
@@ -360,7 +371,7 @@ export default function PrePhaseDialog({
               {/* Left Column: Mission Directive & Objectives */}
               <div className={styles.missionColumn}>
                 <div
-                  className={styles.missionCard}
+                  className={`${styles.missionCard} ${isReadingPhaseDescription ? styles.missionCardSpeaking : ""}`}
                   data-intro-group="intro2"
                   data-title="Phase Objectives"
                   data-intro="This is the phase description: what this phase is about, and the objectives you're expected to deliver on before moving to the next one. Keep them in mind while you dig through intel and pitch - they're what your proposal actually gets judged against; being well-liked is a nice bonus, not a substitute."
@@ -438,6 +449,7 @@ export default function PrePhaseDialog({
                 {/* Minimized Challenge Briefing: the current challenge's story, excluding the stakeholder-specific breakdown */}
                 {challengeTitle && (
                   <div
+                    className={isReadingChallenge ? styles.challengeSpeaking : undefined}
                     data-intro-group="intro2"
                     data-title="This Round's Challenge"
                     data-intro="This is the challenge description: the specific situation you're dropped into this round, and why the stakeholders don't agree about it. Whatever you pitch later has to actually resolve that disagreement, not just please one side of it - reread it if you have to, nobody's timing you."
@@ -485,6 +497,7 @@ export default function PrePhaseDialog({
                   previousStakeholders={previousStakeholders}
                   isFirstPhase={isFirstPhase}
                   bubblePortalTarget={bubbleLayer}
+                  onIntroActiveChange={setIsStakeholderIntroActive}
                   // wasReviewRef, not the live isReview prop: the reopened-from-dossier overlay
                   // never unmounts on close (it just toggles a CSS class), and the parent flips
                   // isReview back to false the instant it closes - reading it live here would
@@ -505,9 +518,12 @@ export default function PrePhaseDialog({
                 </span>
               </div>
               <div className={styles.actions}>
-                <button className={styles.actionButton} onClick={handleClose}>
+                <button
+                  className={`${styles.actionButton} ${shouldNudgeStart ? styles.actionButtonNudge : ""}`}
+                  onClick={handleClose}
+                >
                   <span>{isReview ? "Back to the Phase" : "Enter Phase & Begin Round"}</span>
-                  <Icon icon="ph:arrow-right-bold" />
+                  <Icon icon="ph:arrow-right-bold" className={styles.actionButtonArrow} />
                 </button>
               </div>
             </div>
