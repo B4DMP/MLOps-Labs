@@ -45,7 +45,8 @@ Reference for the animated (Lordicon) icons used across the UI, and how to add m
 | `VetoDialog.tsx` | Header, every veto | `road-barrier` |
 | `IntelVerificationDialog.tsx` | Stance verification result | `puzzle-square` (correct), `warning-triangle` (corrected/incorrect) |
 | `ac_simulation.tsx` (Rollout Debrief) | Executive Directive Banner hero, one random icon per outcome tone, re-rolled every time the debrief is shown (`OUTCOME_HERO_ICONS`) | `firework`/`shooting-stars`/`confetti`/`disco-ball` (PASS), `wrench`/`warning-triangle`/`alarm` (SOFT_PASS), `ball-bowling`/`no-entry`/`stop` (VETO_BROKEN), `trash-bin`/`road-barrier`/`truck`/`person-protesting` (STALEMATE) |
-| `BriefingPage.tsx` | Header hero icon, continuous ambient motion (not `OnceIcon`, self-looped via `onComplete`) | `truck` (`state="loop-cycle"`) |
+| `BriefingPage.tsx` | Header hero icon, continuous ambient motion (not `OnceIcon`, self-looped via `onComplete`) - real briefing, the default | `truck` (`state="loop-cycle"`) |
+| `BriefingPage.tsx` | Header hero icon, one-shot (`OnceIcon`, no loop) - demo briefing only, passed via `heroIcon={{ icon, loop: false }}` | `honeycombs` |
 
 Only 4 of the 9 `ArtifactType` values (`email`, `slack_message`, `meeting_notes`, `document`) are
 ever assigned by the real content pipeline (`content_gen/stages/artifacts.py`'s `ARTIFACT_TYPES`);
@@ -92,6 +93,7 @@ from `https://cdn.lordicon.com/{key}.json` (no API key or auth needed for free i
 | `trash-bin.json` | Trash Bin | `sxhqklqh` |
 | `truck.json` | Truck Delivery | `tpxyzdfc` |
 | `disco-ball.json` | Disco Ball | `yaqcbfgd` |
+| `honeycombs.json` | Honeycombs | `rjsgdzbc` |
 
 ## Adding a new icon
 
