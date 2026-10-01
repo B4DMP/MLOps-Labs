@@ -12,11 +12,13 @@ from mlops_serious_game.domain.graph import (
     Stage,
     TechnicalGraph,
 )
+from mlops_serious_game.application.graph_service.demo_owner_overrides import DEMO_OWNER_OVERRIDES
 from mlops_serious_game.application.graph_service.effective import EffectiveView
 from mlops_serious_game.application.graph_service.phase_stage import stage_for_phase
 from mlops_serious_game.application.graph_service.stage_graph import StageGraphView
 from mlops_serious_game.application.graph_service.story import story_for
 from mlops_serious_game.domain.pattern import Pattern
+from mlops_serious_game.domain.phase_factory import PhaseFactory
 
 
 def _stage_reached(stage: Stage, current_phase_id: Optional[int]) -> bool:
@@ -99,6 +101,8 @@ def build_graph_state(
         for f in stage_view.feedback_flows
     ]
 
+    is_demo_phase = current_phase_id in PhaseFactory.demo_phase_ids()
+
     # Technical: one entry per stage, every target with full data.
     technical: dict[str, dict] = {}
     for s in graph.stages:
@@ -107,6 +111,8 @@ def build_graph_state(
             if c.stage_id != s.id:
                 continue
             owner = graph.owner_of(c.id)
+            if is_demo_phase and c.id in DEMO_OWNER_OVERRIDES:
+                owner = DEMO_OWNER_OVERRIDES[c.id]
             nom_auto, nom_gov = state.component_automation[c.id], state.component_governance[c.id]
             eff_auto, eff_gov = effective.automation[c.id], effective.governance[c.id]
 

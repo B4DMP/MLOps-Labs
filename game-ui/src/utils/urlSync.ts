@@ -34,7 +34,9 @@ export function pushScreen(path: ScreenPath): void {
  * the raw phase/challenge/loop indices, which are meaningless to look at in an address bar. */
 export type GamePhaseLabel =
   | "intro-questionnaire"
+  | "demo-briefing"
   | "briefing"
+  | "phase-briefing"
   | "offline-intel"
   | "pitch"
   | "simulation"

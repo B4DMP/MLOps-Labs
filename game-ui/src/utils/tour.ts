@@ -64,11 +64,19 @@ export function startTour(group: string, options: StartTourOptions = {}): void {
 
   let finished = false;
   let observer: MutationObserver | null = null;
+  // Watches whichever element is currently highlighted for size changes - a hero icon/lottie
+  // animation, an async image, or anything else inside it that finishes loading/laying out after
+  // intro.js already measured and drew the highlight box around it. Re-attached to the new target
+  // on every step change by `sync()` below; the fixed-delay `refresh(true)` further down covers
+  // the gap before this observer's first callback can fire, not a substitute for it.
+  let resizeObserver: ResizeObserver | null = null;
+  let resizeObservedElement: Element | null = null;
   const finish = () => {
     if (finished) return;
     finished = true;
     stopNarration();
     observer?.disconnect();
+    resizeObserver?.disconnect();
     options.onFinish?.();
   };
 
@@ -99,6 +107,15 @@ export function startTour(group: string, options: StartTourOptions = {}): void {
       stopNarration();
       if (options.narrate) narrationCancel = options.narrate(text);
     }
+
+    if (activeElement && activeElement !== resizeObservedElement) {
+      resizeObserver?.disconnect();
+      resizeObservedElement = activeElement;
+      resizeObserver = new ResizeObserver(() => {
+        if (!finished) tour.refresh(true);
+      });
+      resizeObserver.observe(activeElement);
+    }
   };
 
   tour.setOptions({
@@ -125,6 +142,16 @@ export function startTour(group: string, options: StartTourOptions = {}): void {
   if (firstText && options.narrate) {
     lastNarratedText = firstText;
     narrationCancel = options.narrate(firstText);
+  }
+
+  // intro.js's `.start()` resolves even when `group` matches nothing, but never calls
+  // onComplete/onExit in that case (there is nothing to complete or exit from) - so without this,
+  // a caller whose own UI is gated on `onFinish` (narration unlocking only after the tour, e.g.
+  // PrePhaseDialog) stays blocked forever. Finishing immediately here covers that race without
+  // waiting on intro.js to ever call back.
+  if (steps.length === 0) {
+    finish();
+    return;
   }
 
   tour.start().then(() => {

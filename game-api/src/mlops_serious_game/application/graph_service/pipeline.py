@@ -24,10 +24,12 @@ from typing import Any, Iterable, Optional, Sequence
 from pydantic import BaseModel, Field
 
 from mlops_serious_game.application.graph_service.apply import ApplyResult, apply_ops, pick_neglect_target
+from mlops_serious_game.application.graph_service.demo_owner_overrides import DEMO_OWNER_OVERRIDES
 from mlops_serious_game.application.graph_service.scheduler import stable_rank
 from mlops_serious_game.application.graph_service.view import GraphEvaluation, evaluate_graph
 from mlops_serious_game.domain.event import GameEvent
 from mlops_serious_game.domain.graph import Axis, DebtEntry, GraphOp, GraphState, TechnicalGraph
+from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.grudge import (
     GRUDGE_EFFECTS,
     GRUDGE_LIFETIME,
@@ -471,8 +473,10 @@ def _target_deltas(
     degraded_by: dict[tuple[str, Axis], Optional[str]],
     debt_created: Optional[Sequence[Any]] = None,
     names: Optional[dict[str, str]] = None,
+    phase_id: Optional[int] = None,
 ) -> list[TargetDelta]:
     names = names or {}
+    is_demo_phase = phase_id in PhaseFactory.demo_phase_ids()
     debt_touches = {
         (d.target_id, d.axis) for d in (debt_created or []) if getattr(d, "target_id", None)
     }
@@ -483,6 +487,8 @@ def _target_deltas(
         capped = _capped_by(graph, after, target, axis)
         degraded = degraded_by.get((target, axis))
         owner_id = graph.owner_of(target)
+        if is_demo_phase and target in DEMO_OWNER_OVERRIDES:
+            owner_id = DEMO_OWNER_OVERRIDES[target]
         # None (not owner_id) on a miss - `names` is empty in the production call path (nothing
         # currently threads a stakeholder id -> display name map through), and the frontend's own
         # `stakeholders` context always has the real name for every owner role; falling back to
@@ -798,6 +804,7 @@ def simulate(
             degraded_by,
             applied.debt_created,
             names,
+            phase_id=getattr(challenge, "phase_id", None),
         ),
         debt_created=applied.debt_created,
         debt_cleared=applied.debt_cleared,

@@ -1,6 +1,6 @@
 import { Icon } from "@iconify/react";
 import styles from "./PrePhaseDialog.module.css";
-import { PhasesContext, isFirstPlayablePhase } from "./PhaseProvider";
+import { PhasesContext, isFirstPlayablePhase, hasIntroPhase as computeHasIntroPhase } from "./PhaseProvider";
 import { useSettings } from "./SettingsProvider";
 import { useSpeech } from "./useSpeech";
 import { cancelSpeech, splitSentences, TOUR_GUIDE_SEED } from "../utils/speech";
@@ -119,6 +119,18 @@ export default function PrePhaseDialog({
 
   const currentPhaseData = phases[currentPhase];
   const phaseIntroductionText = currentPhaseData?.phase_introduction || "";
+  const hasIntroPhase = computeHasIntroPhase(phases);
+  // Phase 0 is a throwaway demo (see PhaseProvider's isFirstPlayablePhase doc comment) with its
+  // own silly honey-vault storyline, disconnected from the real project - a player landing on
+  // phase 1 right after it needs telling that the practice run is over before reading a brief
+  // that otherwise gives no sign anything just changed.
+  const isPostDemoTransition = hasIntroPhase && currentPhase === 1 && !isReview;
+  // Not folded into buildBriefingNarration: that string's sentence count drives the
+  // phase-description/challenge highlight split (phaseIntroSentenceCount below), and prepending
+  // text here would shift every later index. Shown as a plain visual card instead.
+  const bootstrapAlertText = isPostDemoTransition
+    ? "That was the practice round - nothing from it carries over. From here on you're running the real project, and every choice counts toward your evaluation."
+    : "";
   const phaseIntroSentenceCount = splitSentences(phaseIntroductionText)
     .map((s) => s.trim())
     .filter(Boolean).length;
@@ -254,10 +266,6 @@ export default function PrePhaseDialog({
     return () => window.removeEventListener("keydown", onKey);
   }, [isOpen, isReview]);
 
-  const hasIntroPhase =
-    phases.length > 0 &&
-    phases[0]?.id === 0 &&
-    phases[0]?.phase_name?.toLowerCase() === "introduction";
   const isFirstPhase = isFirstPlayablePhase(phases, currentPhase);
   const previousPhaseData = isFirstPhase ? null : (currentPhase > 0 ? phases[currentPhase - 1] : null);
 
@@ -339,6 +347,16 @@ export default function PrePhaseDialog({
 
           {/* Modal Body */}
           <div className={styles.modalBody}>
+            {/* Shown once, on the first real briefing right after the phase-0 demo ends */}
+            {isPostDemoTransition && (
+              <div className={styles.bootstrapAlert}>
+                <Icon icon="ph:rocket-launch-bold" className={styles.bootstrapAlertIcon} />
+                <div>
+                  <p className={styles.bootstrapAlertTitle}>Demo complete - the real project starts now</p>
+                  <p className={styles.bootstrapAlertText}>{bootstrapAlertText}</p>
+                </div>
+              </div>
+            )}
             {/* Horizontal Directive Banner: full width across top of modal body */}
             <div className={styles.directiveBanner}>
               <div className={styles.directiveBannerHeader}>

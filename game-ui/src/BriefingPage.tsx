@@ -3,6 +3,7 @@ import type { Briefing } from "./types/Briefing";
 import { Icon } from "@iconify/react";
 import { Player } from "@lordicon/react";
 import truckIcon from "./components/Results/icons/truck.json";
+import OnceIcon from "./components/Results/OnceIcon";
 import { useSettings } from "./components/SettingsProvider";
 import { useSpeech } from "./components/useSpeech";
 import { cancelSpeech } from "./utils/speech";
@@ -15,6 +16,10 @@ import styles from "./BriefingPage.module.css";
 interface BriefingProps {
   onBriefingCompleted: () => void;
   briefing: Briefing;
+  /** Header hero icon. Defaults to the truck, looped continuously (see `HeaderIcon` below) - pass
+   *  `loop: false` for a one-shot icon (`OnceIcon`, docs/plans/lordicon-icons.md) instead, e.g. the
+   *  demo briefing's honeycombs. */
+  heroIcon?: { icon: object; loop?: boolean };
 }
 
 /**
@@ -41,17 +46,17 @@ const NARRATOR_AVATAR: StakeholderAvatar = {
  * built-in loop trigger, just play()/onComplete, so continuous motion means driving that loop by
  * hand. The header keeps this small ambient flourish; the avatar below is the page's actual hero.
  */
-function HeaderIcon() {
+function HeaderIcon({ icon }: { icon: object }) {
   const ref = useRef<Player>(null);
 
   useEffect(() => {
     ref.current?.playFromBeginning();
-  }, []);
+  }, [icon]);
 
   return (
     <Player
       ref={ref}
-      icon={truckIcon}
+      icon={icon}
       state="loop-cycle"
       onComplete={() => ref.current?.playFromBeginning()}
     />
@@ -61,6 +66,7 @@ function HeaderIcon() {
 export default function BriefingPage({
   onBriefingCompleted,
   briefing,
+  heroIcon = { icon: truckIcon, loop: true },
 }: BriefingProps) {
   const { settings } = useSettings();
   const { speak: speakTts } = useSpeech();
@@ -70,6 +76,10 @@ export default function BriefingPage({
   const [isNarrating, setIsNarrating] = useState(false);
   const [hasAudioStarted, setHasAudioStarted] = useState(false);
   const [activeSentenceIndex, setActiveSentenceIndex] = useState<number | null>(null);
+  // Nudge towards "Continue" once narration is done talking - distinct from `isNarrating` so a
+  // manual "Play again" replay can turn the nudge back off, same idiom as ac_simulation's
+  // directiveNarrationDone.
+  const [narrationDone, setNarrationDone] = useState(false);
   const cancelRef = useRef<() => void>(() => {});
 
   const startNarration = () => {
@@ -78,6 +88,7 @@ export default function BriefingPage({
     setIsNarrating(true);
     setHasAudioStarted(false);
     setActiveSentenceIndex(null);
+    setNarrationDone(false);
     cancelRef.current = speakTts(text, {
       slot: "narrator",
       onSentence: ({ index }) => {
@@ -88,6 +99,7 @@ export default function BriefingPage({
         setIsNarrating(false);
         setHasAudioStarted(false);
         setActiveSentenceIndex(null);
+        setNarrationDone(true);
       },
     });
   };
@@ -97,7 +109,13 @@ export default function BriefingPage({
     setIsNarrating(false);
     setHasAudioStarted(false);
     setActiveSentenceIndex(null);
+    setNarrationDone(true);
   };
+
+  // Nudges Continue once there's nothing left to listen to: narration finished, there was never
+  // anything to narrate, or the player has conversations on auto-skip (which never calls
+  // startNarration in the first place, so narrationDone would otherwise never flip).
+  const shouldNudgeContinue = !isNarrating && (narrationDone || !text || settings.auto_skip_conversations);
 
   // Auto-narrates once on arrival, same as PrePhaseDialog's phase introduction - skipped
   // entirely when the player has auto-skip on, so it never queues audio nobody asked for.
@@ -123,9 +141,13 @@ export default function BriefingPage({
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerTitleGroup}>
-            <span className={styles.headerIcon} aria-hidden="true">
-              <HeaderIcon />
-            </span>
+            {heroIcon.loop ? (
+              <span className={styles.headerIcon} aria-hidden="true">
+                <HeaderIcon icon={heroIcon.icon} />
+              </span>
+            ) : (
+              <OnceIcon icon={heroIcon.icon} className={styles.headerIcon} />
+            )}
             <div>
               <p className={styles.headerEyebrow}>Mission Briefing</p>
               <h2 className={styles.headerTitle}>{briefing.briefing_title}</h2>
@@ -177,7 +199,6 @@ export default function BriefingPage({
                   isFramed={false}
                   isSpeaking={isSpeaking}
                   play_blink_animation
-                  hoverToSuspicious={false}
                   size="100%"
                   title={NARRATOR_NAME}
                 />
@@ -201,11 +222,13 @@ export default function BriefingPage({
           {/* Actions */}
           <div className={styles.actionArea}>
             <button
-              className={`d-flex align-items-center justify-content-center gap-2 ${styles.actionButton}`}
+              className={`d-flex align-items-center justify-content-center gap-2 ${styles.actionButton} ${
+                shouldNudgeContinue ? styles.actionButtonNudge : ""
+              }`}
               onClick={handleContinue}
             >
               <span>Continue</span>
-              <Icon icon="ph:arrow-right-bold" />
+              <Icon icon="ph:arrow-right-bold" className={styles.actionButtonArrow} />
             </button>
           </div>
         </div>

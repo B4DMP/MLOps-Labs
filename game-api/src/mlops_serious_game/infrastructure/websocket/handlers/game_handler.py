@@ -423,6 +423,12 @@ async def handle_game_init(
             "stakeholders": get_stakeholders(),
             "phases": get_phases(),
             "emotion_colors": get_emotion_colors(),
+            # Static content, not tied to progressionIndex 1's own event: a session resumed
+            # straight into progressionIndex 2 (reload after the demo, or after the real briefing
+            # was already dismissed in an earlier session) never replays that event, and the
+            # post-demo "real briefing" screen (Game.tsx's isRealBriefingOpen) needs this content
+            # whether or not it did.
+            "briefing": BriefingFactory.briefing,
             "use_questionnaire": use_questionnaire,
             "intro_phase_enabled": intro_phase_enabled,
             "settings": {
