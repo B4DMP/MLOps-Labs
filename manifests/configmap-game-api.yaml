@@ -9,6 +9,13 @@ metadata:
 data:
   PYTHONUNBUFFERED: "1"
 
+  # -- CORS / websocket origin check (router.py rejects any WS handshake whose Origin header
+  # isn't in this list, defaulting to just http://localhost:5173 if unset - which silently
+  # 403'd every real player's websocket connection in the cluster). Must be a JSON array, not a
+  # plain/comma string: pydantic-settings JSON-decodes list-typed env vars before config.py's own
+  # comma-split validator ever runs, and crashes hard on a value that isn't valid JSON.
+  FRONTEND_ORIGINS: '["https://public.cluster.dbis.rwth-aachen.de"]'
+
   # -- PostgreSQL (internal k8s service, non-sensitive) --
   POSTGRES_URI: "postgresql+psycopg://mlops_labs:mlops_labs@mlops-game-postgres:5432/mlops_labs"
   POSTGRES_ASYNC_URI: "postgresql+asyncpg://mlops_labs:mlops_labs@mlops-game-postgres:5432/mlops_labs"
