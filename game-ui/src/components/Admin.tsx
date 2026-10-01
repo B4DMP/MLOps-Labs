@@ -189,6 +189,34 @@ export function Admin({
     }
   }, [activeSubpage, adminToken]);
 
+  // Right after a restart, the old pod can already be gone while the new one isn't routable yet
+  // (we've seen this gap cause a transient fetch failure / 502 during manual testing) - retry a
+  // few times with a short delay instead of making the admin click Refresh themselves.
+  const pollDeployVersionAfterRestart = async () => {
+    setVersionLoading(true);
+    setVersionError(null);
+    const attempts = 6;
+    const delayMs = 5000;
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        const res = await fetchDeployVersion();
+        setRunningGitSha(res.git_sha);
+        setVersionLoading(false);
+        return;
+      } catch (err: any) {
+        if (attempt === attempts) {
+          setVersionError(
+            (err.message || "Failed to fetch the running build version.") +
+            " The rollout may still be in progress - try Refresh again in a moment."
+          );
+          setVersionLoading(false);
+          return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+  };
+
   const handleRestartDeployment = async () => {
     setShowDeployConfirm(false);
     setDeployLoading(true);
@@ -197,9 +225,9 @@ export function Admin({
     try {
       const res = await restartDeployment();
       setDeploySuccessMessage(
-        `Restarted: ${res.restarted.map((r) => r.deployment).join(", ")}. Pods are rolling now - ` +
-        `give it a few seconds, then hit "Refresh" below to confirm the build version changed.`
+        `Restarted: ${res.restarted.map((r) => r.deployment).join(", ")}. Verifying the new build version...`
       );
+      await pollDeployVersionAfterRestart();
     } catch (err: any) {
       setDeployErrorMessage(err.message || "Failed to restart the deployment.");
     } finally {
