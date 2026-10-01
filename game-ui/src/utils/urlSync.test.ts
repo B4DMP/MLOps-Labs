@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { currentScreenPath, pushScreen, replaceProgress } from "./urlSync";
+import { currentScreenPath, pushScreen, replaceProgress, withBase, stripBase } from "./urlSync";
 
 function setPath(path: string): void {
   window.history.replaceState({}, "", path);
@@ -94,5 +94,38 @@ describe("currentScreenPath", () => {
 
     setPath("/something-unrecognized");
     expect(currentScreenPath()).toBe("/");
+  });
+});
+
+// Production (VITE_BASE_PATH="/mlops-lab/") vs local dev (default "/") - the actual bug this
+// pins: pushScreen/currentScreenPath used to ignore the base path entirely, so navigating under
+// a deployed sub-path rewrote the URL back to root and broke refresh/deep-links.
+describe("withBase / stripBase under a non-root deployment base path", () => {
+  const base = "/mlops-lab";
+
+  it("withBase prefixes a screen path with the deployment base", () => {
+    expect(withBase("/admin", base)).toBe("/mlops-lab/admin");
+    expect(withBase("/", base)).toBe("/mlops-lab/");
+  });
+
+  it("stripBase recovers the screen path from a prefixed pathname", () => {
+    expect(stripBase("/mlops-lab/admin", base)).toBe("/admin");
+    expect(stripBase("/mlops-lab/game/pitch", base)).toBe("/game/pitch");
+  });
+
+  it("stripBase treats the bare base path as root", () => {
+    expect(stripBase("/mlops-lab", base)).toBe("/");
+    expect(stripBase("/mlops-lab/", base)).toBe("/");
+  });
+
+  it("round-trips through withBase then stripBase", () => {
+    for (const path of ["/", "/admin", "/login", "/game"]) {
+      expect(stripBase(withBase(path, base), base)).toBe(path);
+    }
+  });
+
+  it("is a no-op for the default root base, matching local dev", () => {
+    expect(withBase("/admin", "")).toBe("/admin");
+    expect(stripBase("/admin", "")).toBe("/admin");
   });
 });
