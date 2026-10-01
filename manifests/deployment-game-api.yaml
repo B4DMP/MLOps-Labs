@@ -18,7 +18,7 @@ spec:
       serviceAccountName: mlops-game-api
       containers:
       - name: mlops-game-api
-        image: registry.git.rwth-aachen.de/i5/theses/bachelor-thesis-bela-veltrup/mlops-game/game-api:latest
+        image: ghcr.io/b4dmp/mlops-labs-game-api:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -28,7 +28,7 @@ spec:
         - secretRef:
             name: mlops-game-api-secrets
       imagePullSecrets:
-        - name: regcred
+        - name: ghcr-regcred
 ---
 apiVersion: v1
 kind: Service

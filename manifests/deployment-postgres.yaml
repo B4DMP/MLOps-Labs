@@ -42,6 +42,10 @@ spec:
           value: "mlops_labs"
         - name: POSTGRES_DB
           value: "mlops_labs"
+        # node-storage PVCs mount with a pre-existing lost+found dir, which initdb refuses to
+        # initialize into - give postgres its own subdirectory instead.
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
         volumeMounts:
         - name: postgres-storage
           mountPath: /var/lib/postgresql/data

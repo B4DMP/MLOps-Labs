@@ -17,12 +17,12 @@ spec:
     spec:
       containers:
       - name: mlops-game-ui
-        image: registry.git.rwth-aachen.de/i5/theses/bachelor-thesis-bela-veltrup/mlops-game/game-ui:latest
+        image: ghcr.io/b4dmp/mlops-labs-game-ui:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80
       imagePullSecrets:
-        - name: regcred
+        - name: ghcr-regcred
 ---
 apiVersion: v1
 kind: Service
