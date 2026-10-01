@@ -1,6 +1,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import type { Question } from "./types/Question";
 import { Icon } from "@iconify/react";
+import { useSettings } from "./components/SettingsProvider";
 import styles from "./Questionaire.module.css";
 
 interface QuestionaireProps {
@@ -201,6 +202,7 @@ export default function Questionaire({
   answers,
   setAnswers,
 }: QuestionaireProps) {
+  const { canPlaytest } = useSettings();
   const [step, setStep] = useState(0);
   // Dev builds only (`ENABLE_DOSSIER_DEBUG`) - `question.debug` is absent entirely otherwise, so
   // this state has nothing to toggle in a normal build. Several can be open at once, since a
@@ -580,25 +582,37 @@ export default function Questionaire({
             {isLastStep ? (
               <button
                 type="button"
-                className={`d-flex align-items-center justify-content-center gap-2 ${styles.actionButton}`}
+                className={`d-flex align-items-center justify-content-center gap-2 ${styles.actionButton} ${
+                  allComplete ? styles.actionButtonNudge : ""
+                }`}
                 onClick={onQuestionaireCompleted}
                 disabled={!allComplete}
               >
                 <span>Submit Questionnaire</span>
-                <Icon icon="ph:check-circle-duotone" />
+                <Icon icon="ph:check-circle-duotone" className={styles.actionButtonArrow} />
               </button>
             ) : (
               <button
                 type="button"
-                className={`d-flex align-items-center justify-content-center gap-2 ${styles.actionButton}`}
+                className={`d-flex align-items-center justify-content-center gap-2 ${styles.actionButton} ${
+                  currentSectionComplete ? styles.actionButtonNudge : ""
+                }`}
                 onClick={() => setStep((s) => Math.min(sections.length - 1, s + 1))}
                 disabled={!currentSectionComplete}
               >
                 <span>Next</span>
-                <Icon icon="ph:arrow-right-duotone" />
+                <Icon icon="ph:arrow-right-duotone" className={styles.actionButtonArrow} />
               </button>
             )}
           </div>
+
+          {canPlaytest && (
+            <div className={styles.actionArea}>
+              <button type="button" className={styles.linkButton} onClick={onQuestionaireCompleted}>
+                Skip questionnaire (playtest)
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

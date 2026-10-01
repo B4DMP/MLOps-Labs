@@ -558,6 +558,39 @@
     cursor: not-allowed;
 }
 
+/* Once the current page is fully answered: a slow pulse nudges towards Next/Submit, same
+   idiom as PrePhaseDialog's startButtonPulse/-Arrow. */
+.actionButtonNudge {
+    animation: questionnaireActionButtonPulse 2s ease-in-out infinite;
+}
+
+.actionButtonNudge .actionButtonArrow {
+    animation: questionnaireActionButtonArrow 2s ease-in-out infinite;
+}
+
+@keyframes questionnaireActionButtonPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(38, 102, 130, 0.45);
+    }
+    50% {
+        transform: scale(1.03);
+        box-shadow: 0 0 0 8px rgba(38, 102, 130, 0);
+    }
+}
+
+@keyframes questionnaireActionButtonArrow {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(5px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .actionButtonNudge,
+    .actionButtonNudge .actionButtonArrow {
+        animation: none;
+    }
+}
+
 .validationHint {
     display: flex;
     align-items: center;
