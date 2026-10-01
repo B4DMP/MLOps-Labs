@@ -16,11 +16,28 @@ jobs:
   test-game-api:
     runs-on: ubuntu-latest
     # config.Settings requires these with no default (normally read from a local .env, which
-    # doesn't exist in CI) - dummy values are fine, the suite doesn't hit real auth or a real DB.
+    # doesn't exist in CI) - dummy values are fine, the suite doesn't hit real auth.
     env:
       ADMIN_USER: test-admin
       ADMIN_KEY: test-admin-key
       SECRET_KEY: test-secret-key-at-least-32-bytes-long
+    # TestClient(app) runs the app's startup lifecycle (AUTO_MIGRATE applies alembic revisions
+    # on boot), so some tests need a real Postgres - same image/creds as manifests/docker-compose,
+    # reachable at the Settings defaults (localhost:5432, mlops_labs/mlops_labs) with no extra env.
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: mlops_labs
+          POSTGRES_PASSWORD: mlops_labs
+          POSTGRES_DB: mlops_labs
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
