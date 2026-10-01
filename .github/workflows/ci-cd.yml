@@ -62,9 +62,6 @@ jobs:
         working-directory: game-ui
       - run: npm test
         working-directory: game-ui
-      # eslint is deliberately non-blocking - see game-ui's own lint debt note in the old CI config.
-      - run: npx eslint . || true
-        working-directory: game-ui
 
   build-game-api:
     needs: [test-game-api, test-game-ui]
@@ -93,10 +90,16 @@ jobs:
           cache-from: type=gha,scope=game-api
           cache-to: type=gha,mode=max,scope=game-api
       - name: Validate game content
+        # Same required-with-no-default Settings fields as the pytest job - the container has no
+        # .env, so config.Settings() blows up on import before content_gen even runs.
+        env:
+          ADMIN_USER: test-admin
+          ADMIN_KEY: test-admin-key
+          SECRET_KEY: test-secret-key-at-least-32-bytes-long
         run: |
-          docker run --rm ${{ env.GAME_API_IMAGE }}:latest sh -c "PYTHONPATH=/app/tools python -m content_gen --scope tier0 validate"
-          docker run --rm ${{ env.GAME_API_IMAGE }}:latest sh -c "PYTHONPATH=/app/tools python -m content_gen --scope tier1 validate"
-          docker run --rm ${{ env.GAME_API_IMAGE }}:latest sh -c "PYTHONPATH=/app/tools python -m content_gen --scope dialogue0 validate"
+          docker run --rm -e ADMIN_USER -e ADMIN_KEY -e SECRET_KEY ${{ env.GAME_API_IMAGE }}:latest sh -c "PYTHONPATH=/app/tools python -m content_gen --scope tier0 validate"
+          docker run --rm -e ADMIN_USER -e ADMIN_KEY -e SECRET_KEY ${{ env.GAME_API_IMAGE }}:latest sh -c "PYTHONPATH=/app/tools python -m content_gen --scope tier1 validate"
+          docker run --rm -e ADMIN_USER -e ADMIN_KEY -e SECRET_KEY ${{ env.GAME_API_IMAGE }}:latest sh -c "PYTHONPATH=/app/tools python -m content_gen --scope dialogue0 validate"
       - name: Push
         if: github.event_name == 'push'
         run: docker push ${{ env.GAME_API_IMAGE }}:latest
