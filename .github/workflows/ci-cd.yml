@@ -27,6 +27,11 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install --no-cache-dir uv
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ hashFiles('game-api/pyproject.toml') }}
+          restore-keys: uv-${{ runner.os }}-
       - run: uv pip install --system -r pyproject.toml pytest
         working-directory: game-api
       # Dependencies alone don't make `mlops_serious_game` importable - pyproject.toml's
@@ -43,6 +48,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: "npm"
+          cache-dependency-path: game-ui/package-lock.json
       - run: npm ci
         working-directory: game-ui
       # Non-blocking, like eslint below: ~20 pre-existing type errors unrelated to any given
@@ -80,6 +87,8 @@ jobs:
           load: true
           push: false
           tags: ${{ env.GAME_API_IMAGE }}:latest
+          cache-from: type=gha,scope=game-api
+          cache-to: type=gha,mode=max,scope=game-api
       - name: Validate game content
         run: |
           docker run --rm ${{ env.GAME_API_IMAGE }}:latest sh -c "PYTHONPATH=/app/tools python -m content_gen --scope tier0 validate"
@@ -113,3 +122,5 @@ jobs:
             VITE_BASE_PATH=/mlops-lab/
           push: ${{ github.event_name == 'push' }}
           tags: ${{ env.GAME_UI_IMAGE }}:latest
+          cache-from: type=gha,scope=game-ui
+          cache-to: type=gha,mode=max,scope=game-ui
