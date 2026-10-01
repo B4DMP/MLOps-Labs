@@ -35,6 +35,7 @@ import {
   fetchBugReportRecipients,
   updateBugReportRecipients,
   restartDeployment,
+  fetchDeployVersion,
   type AdminEmailStatus,
   type AdminTestEmailTemplate,
 } from "../services/api/admin";
@@ -165,6 +166,28 @@ export function Admin({
   const [deploySuccessMessage, setDeploySuccessMessage] = useState<string | null>(null);
   const [deployErrorMessage, setDeployErrorMessage] = useState<string | null>(null);
   const [showDeployConfirm, setShowDeployConfirm] = useState(false);
+  const [runningGitSha, setRunningGitSha] = useState<string | null>(null);
+  const [versionLoading, setVersionLoading] = useState(false);
+  const [versionError, setVersionError] = useState<string | null>(null);
+
+  const loadDeployVersion = async () => {
+    setVersionLoading(true);
+    setVersionError(null);
+    try {
+      const res = await fetchDeployVersion();
+      setRunningGitSha(res.git_sha);
+    } catch (err: any) {
+      setVersionError(err.message || "Failed to fetch the running build version.");
+    } finally {
+      setVersionLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeSubpage === "deploy" && runningGitSha === null && !versionLoading) {
+      loadDeployVersion();
+    }
+  }, [activeSubpage, adminToken]);
 
   const handleRestartDeployment = async () => {
     setShowDeployConfirm(false);
@@ -174,7 +197,8 @@ export function Admin({
     try {
       const res = await restartDeployment();
       setDeploySuccessMessage(
-        `Restarted: ${res.restarted.map((r) => r.deployment).join(", ")}. Pods are rolling now - this takes a few seconds.`
+        `Restarted: ${res.restarted.map((r) => r.deployment).join(", ")}. Pods are rolling now - ` +
+        `give it a few seconds, then hit "Refresh" below to confirm the build version changed.`
       );
     } catch (err: any) {
       setDeployErrorMessage(err.message || "Failed to restart the deployment.");
@@ -2163,7 +2187,45 @@ export function Admin({
                       deployed cluster, not local development.
                     </p>
                   </div>
+                  <button
+                    type="button"
+                    className={styles.outlineButton}
+                    onClick={loadDeployVersion}
+                    disabled={versionLoading}
+                  >
+                    <Icon
+                      icon={versionLoading ? "ph:spinner-bold" : "ph:arrows-clockwise-bold"}
+                      className={versionLoading ? styles.spinner : ""}
+                    />
+                    <span>Refresh</span>
+                  </button>
                 </div>
+
+                <div className={styles.kpiGrid} style={{ marginBottom: "1rem" }}>
+                  <div className={styles.kpiCard}>
+                    <div className={styles.kpiHeader}>
+                      <span className={styles.kpiLabel}>Running Build (game-api)</span>
+                      <Icon icon="ph:tag-bold" className={styles.kpiIcon} />
+                    </div>
+                    {versionLoading && runningGitSha === null ? (
+                      <div className="fs-6 text-muted">Loading...</div>
+                    ) : runningGitSha ? (
+                      <code className="fs-6 fw-bold text-dark">{runningGitSha.slice(0, 12)}</code>
+                    ) : (
+                      <div className="fs-6 text-danger">Unknown</div>
+                    )}
+                    <small className="text-muted mt-1">
+                      Commit SHA baked into the image at build time - compare against the latest
+                      commit on main to confirm a restart actually picked up a new image.
+                    </small>
+                  </div>
+                </div>
+                {versionError && (
+                  <div className="alert alert-danger d-flex align-items-center gap-2 mb-3" role="alert">
+                    <Icon icon="ph:warning-octagon-bold" />
+                    <div className="small">{versionError}</div>
+                  </div>
+                )}
 
                 <div className="alert alert-light border small text-muted mb-3" role="note">
                   <Icon icon="ph:info-bold" className="me-1" />

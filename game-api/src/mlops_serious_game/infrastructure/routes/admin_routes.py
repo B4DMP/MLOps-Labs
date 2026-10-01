@@ -428,6 +428,13 @@ async def update_bug_report_recipients_route(
     return {"recipients": update_bug_report_recipients(req.recipients)}
 
 
+@router.get("/deploy/version")
+async def get_deploy_version(_: str = Depends(check_admin_token)):
+    """What build is actually running right now - the direct way to confirm a restart/repull
+    picked up a new image, rather than just that *a* container is up."""
+    return {"git_sha": settings.GIT_SHA}
+
+
 @router.post("/deploy/restart")
 async def restart_deployment(_: str = Depends(check_admin_token)):
     """Rollout-restart the game-api and game-ui Deployments: re-pulls the latest pushed image

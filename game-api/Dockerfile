@@ -19,6 +19,11 @@ COPY alembic.ini ./
 COPY alembic alembic/
 COPY --from=gameconfig . /gameConfig
 
+# So the admin panel can show which build is actually running (verifying a restart/repull
+# actually picked up a new image), not just that *a* container is up.
+ARG GIT_SHA=unknown
+ENV GIT_SHA=$GIT_SHA
+
 # Install current package without reinstalling dependencies.
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system --no-deps -e .

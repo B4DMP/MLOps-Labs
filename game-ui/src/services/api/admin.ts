@@ -450,6 +450,12 @@ export interface DeployRestartResult {
   restarted: { deployment: string; restarted_at: string }[];
 }
 
+/** Which build the game-api pod is actually running - proves a restart/repull picked up a new
+ * image, since this value only changes when the image actually changed. */
+export function fetchDeployVersion(): Promise<{ git_sha: string }> {
+  return adminGet("/api/admin/deploy/version", "Failed to fetch the running build version.");
+}
+
 /** Rollout-restarts the game-api and game-ui Deployments in the cluster: re-pulls the latest
  * pushed image and reloads any changed Secret/ConfigMap values. Only works in the deployed
  * cluster, not local dev. */

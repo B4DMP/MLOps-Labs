@@ -84,6 +84,8 @@ jobs:
           file: game-api/Dockerfile
           build-contexts: |
             gameconfig=gameConfig
+          build-args: |
+            GIT_SHA=${{ github.sha }}
           push: ${{ github.event_name == 'push' }}
           tags: ${{ env.GAME_API_IMAGE }}:latest
           cache-from: type=gha,scope=game-api
