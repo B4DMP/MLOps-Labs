@@ -19,6 +19,11 @@ from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder import Stakeholder
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
+# Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
+# runs locally/in docker-compose where Postgres is actually available.
+pytestmark = pytest.mark.db
+
+
 
 def _requirement(req_id: str, **kw) -> StakeholderRequirement:
     fields = {

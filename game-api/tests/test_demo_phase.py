@@ -19,6 +19,11 @@ from mlops_serious_game.domain.graph import GraphOp, GraphState, LoggedOp
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 
+# Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
+# runs locally/in docker-compose where Postgres is actually available.
+pytestmark = pytest.mark.db
+
+
 
 @pytest.fixture(scope="module")
 def phases(config_dir, real):

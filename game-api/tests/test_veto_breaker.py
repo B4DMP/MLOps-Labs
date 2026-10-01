@@ -32,6 +32,11 @@ from mlops_serious_game.domain.phase_factory import PhaseFactory
 
 from test_run_scope import _seed_user, _start_run, migrated_db  # noqa: F401  (fixture used by name)
 
+# Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
+# runs locally/in docker-compose where Postgres is actually available.
+pytestmark = pytest.mark.db
+
+
 # The challenge this mechanic exists for. Automation_alex, high-power, has two Trade-off items
 # whose branches both resolve on `deploy.shadow`: 4 (governed, what Ruth's boundary needs) or 2
 # (manual, his own stated position in the challenge's conflict block) either satisfies him. A card

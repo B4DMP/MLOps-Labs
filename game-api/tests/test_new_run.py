@@ -27,6 +27,11 @@ from test_run_scope import (  # noqa: F401  (migrated_db is a fixture, used by n
     migrated_db,
 )
 
+# Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
+# runs locally/in docker-compose where Postgres is actually available.
+pytestmark = pytest.mark.db
+
+
 
 # A challenge that exists in the config (phase 1's first), so the scheduler can resolve it as played.
 PLAYED_PHASE, PLAYED_CHALLENGE = 1, 110

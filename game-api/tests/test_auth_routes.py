@@ -19,6 +19,11 @@ from mlops_serious_game.config import settings
 from mlops_serious_game.infrastructure.api import app
 from mlops_serious_game.infrastructure.database import Campaign, User, get_session
 
+# Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
+# runs locally/in docker-compose where Postgres is actually available.
+pytestmark = pytest.mark.db
+
+
 
 @pytest.fixture(scope="module")
 def client():

@@ -3,6 +3,11 @@ from mlops_serious_game.application.online_intel_service.nodes import _format_re
 from mlops_serious_game.domain.prompts import STAKEHOLDER_CHARACTER_CARD, ONLINE_INTEL_STAKEHOLDER_PROMPT
 from mlops_serious_game.domain.requirement import IntelTag, describe_tag
 
+# Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
+# runs locally/in docker-compose where Postgres is actually available.
+pytestmark = pytest.mark.db
+
+
 
 @pytest.mark.parametrize(
     "tag, label",
