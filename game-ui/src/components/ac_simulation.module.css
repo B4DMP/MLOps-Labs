@@ -497,6 +497,10 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  /* `overflow: hidden` zeroes a flex item's automatic min-height (spec behaviour), so without
+     this, `.modalBody`'s column flex would crush a card short instead of scrolling once total
+     content outgrows the viewport - same guard `.directiveBanner` already has. */
+  flex-shrink: 0;
 }
 
 .cardHeader {
@@ -839,6 +843,89 @@
   border-radius: 0 0.3rem 0.3rem 0;
   font-style: italic;
   line-height: 1.35;
+}
+
+/* ── Round Highlights (Good vs. Bad Scorecard) ──
+   Two columns of short, icon-led bullets - every line restates a fact some section further
+   down the page already covers in full, so this never becomes a second source of truth. */
+.highlightsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .highlightsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.highlightsCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.highlightsColLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.highlightsColLabelGood {
+  color: #166534;
+}
+
+.highlightsColLabelBad {
+  color: #991b1b;
+}
+
+.highlightsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.highlightsItemGood,
+.highlightsItemBad {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.4rem;
+}
+
+.highlightsItemGood {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.highlightsItemBad {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.highlightsItemGood svg,
+.highlightsItemBad svg {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  font-size: 0.9rem;
+}
+
+.highlightsEmpty {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  padding: 0.35rem 0.5rem;
 }
 
 /* ── Project Dimensions Shifts (6 Metrics) ──

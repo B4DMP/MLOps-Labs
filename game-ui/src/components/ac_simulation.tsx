@@ -231,6 +231,26 @@ function stakeholderName(id: string, stakeholders: Record<string, Stakeholder>):
   return stakeholders[id]?.name || prettifyLabel(id);
 }
 
+/** Same priority order the Component Implementation Log's per-row callout uses below: a row
+ *  that is both degraded and capped reads as degraded first, since owner pushback is the more
+ *  serious story. Shared with the Round Highlights summary so the two never disagree about a
+ *  given component's status. */
+function classifyTarget(target: TargetDelta): "flawless" | "degraded" | "capped" | "delayed" {
+  if (target.status === "degraded" || target.degraded_by) return "degraded";
+  if (target.status === "capped" || (target.capped_by && target.nominal.after !== target.effective.after)) {
+    return "capped";
+  }
+  if (target.status === "delayed") return "delayed";
+  return "flawless";
+}
+
+/** Joins up to `max` names, folding the rest into a "+N more" tail - keeps a Highlights bullet
+ *  readable when a rollout touches a dozen components instead of two or three. */
+function joinNames(names: string[], max = 3): string {
+  if (names.length <= max) return names.join(", ");
+  return `${names.slice(0, max).join(", ")} +${names.length - max} more`;
+}
+
 /** A graph target (component or edge) mentioned in prose - e.g. "X moved from broken to
  *  manual" in the Ripple Effects list. Carries the same icon as its row in the Component
  *  Implementation Log (rather than a raw id-derived label), and is the same jump-to-
@@ -487,6 +507,76 @@ export default function AcSimulation({
   const shortcutCount = report?.debt_created.length || 0;
   const grudgeCount = report?.grudges.created.length || 0;
 
+  // A synthesized "what mattered" scorecard, read right after the headline and before the
+  // full per-component/per-stakeholder log below - the player gets the gist in one glance,
+  // then can drill into the detailed sections for the why. Every line here points at data a
+  // section further down already shows in full; this never introduces a new fact.
+  const highlights = useMemo(() => {
+    const wins: { icon: string; text: string }[] = [];
+    const concerns: { icon: string; text: string }[] = [];
+    if (!report) return { wins, concerns };
+
+    const byStatus: Record<string, TargetDelta[]> = { flawless: [], degraded: [], capped: [], delayed: [] };
+    for (const t of report.targets) byStatus[classifyTarget(t)].push(t);
+    const targetNames = (arr: TargetDelta[]) => arr.map((t) => t.name || formatComponentId(t.id));
+
+    if (byStatus.flawless.length > 0) {
+      wins.push({ icon: "ph:check-circle-bold", text: `Flawless delivery: ${joinNames(targetNames(byStatus.flawless))}` });
+    }
+    if (byStatus.degraded.length > 0) {
+      concerns.push({ icon: "ph:hand-palm-bold", text: `Degraded by owner pushback: ${joinNames(targetNames(byStatus.degraded))}` });
+    }
+    if (byStatus.capped.length > 0) {
+      concerns.push({ icon: "ph:lock-key-bold", text: `Capped by an upstream bottleneck: ${joinNames(targetNames(byStatus.capped))}` });
+    }
+    if (byStatus.delayed.length > 0) {
+      concerns.push({ icon: "ph:clock-countdown-bold", text: `Delayed, shortcut left behind: ${joinNames(targetNames(byStatus.delayed))}` });
+    }
+
+    const improvedNames = changedMetrics.filter((m) => m.afterFilled > m.beforeFilled).map((m) => m.mObj.name || m.mId);
+    const declinedNames = changedMetrics.filter((m) => m.afterFilled < m.beforeFilled).map((m) => m.mObj.name || m.mId);
+    if (improvedNames.length > 0) wins.push({ icon: "ph:trend-up-bold", text: `Metrics up: ${joinNames(improvedNames)}` });
+    if (declinedNames.length > 0) concerns.push({ icon: "ph:trend-down-bold", text: `Metrics down: ${joinNames(declinedNames)}` });
+
+    if (report.patterns.gained.length > 0) {
+      wins.push({ icon: "ph:sparkle-bold", text: `New pattern adopted: ${joinNames(report.patterns.gained)}` });
+    }
+    if (report.patterns.anti_resolved.length > 0) {
+      wins.push({ icon: "ph:wrench-bold", text: `Antipattern cleared: ${joinNames(report.patterns.anti_resolved)}` });
+    }
+    if (report.debt_cleared.length > 0) {
+      wins.push({ icon: "ph:check-circle-bold", text: `${report.debt_cleared.length} technical shortcut(s) cleaned up` });
+    }
+
+    if (report.patterns.anti_created.length > 0) {
+      concerns.push({ icon: "ph:bug-beetle-bold", text: `New antipattern: ${joinNames(report.patterns.anti_created)}` });
+    }
+    if (report.patterns.lost.length > 0) {
+      concerns.push({ icon: "ph:warning-bold", text: `Pattern lost: ${joinNames(report.patterns.lost)}` });
+    }
+    if (report.debt_created.length > 0) {
+      concerns.push({ icon: "ph:warning-octagon-bold", text: `${report.debt_created.length} technical shortcut(s) left behind` });
+    }
+
+    const byStakeholderStatus = (status: string) =>
+      (report.stakeholders || [])
+        .filter((s) => s.status === status)
+        .map((s) => s.name || stakeholderName(s.stakeholder_id, stakeholders));
+    const committed = byStakeholderStatus("committed");
+    const resistant = byStakeholderStatus("resistant");
+    const overridden = byStakeholderStatus("overridden");
+    if (committed.length > 0) wins.push({ icon: "ph:handshake-bold", text: `Fully on board: ${joinNames(committed)}` });
+    if (resistant.length > 0) concerns.push({ icon: "ph:warning-circle-bold", text: `Pushed back: ${joinNames(resistant)}` });
+    if (overridden.length > 0) concerns.push({ icon: "ph:lightning-bold", text: `Overruled via escalation: ${joinNames(overridden)}` });
+
+    if (report.grudges.created.length > 0) {
+      const grudgeNames = report.grudges.created.map((g) => stakeholderName(g.stakeholder_id, stakeholders));
+      concerns.push({ icon: "ph:bookmark-simple-bold", text: `New grudge(s) recorded: ${joinNames(grudgeNames)}` });
+    }
+
+    return { wins, concerns };
+  }, [report, changedMetrics, stakeholders]);
+
   return (
     <div className={styles.pageWrapper}>
       {/* ── Top Header Strip ── */}
@@ -665,6 +755,63 @@ export default function AcSimulation({
               </div>
             )}
 
+            {/* Round Highlights: the good/bad scorecard, read before the detailed log below */}
+            {(highlights.wins.length > 0 || highlights.concerns.length > 0) && (
+              <div
+                className={styles.surfaceCard}
+                data-intro-group="introSimulate"
+                data-title="Round Highlights"
+                data-intro="A quick good/bad scorecard for this round, distilled from everything below - read this first, then drill into the sections underneath for the why."
+                data-step="1.5"
+              >
+                <div className={styles.cardHeader}>
+                  <h3 className={styles.cardTitle}>
+                    <Icon icon="ph:list-magnifying-glass-bold" />
+                    <span>Round Highlights</span>
+                  </h3>
+                  <span className="text-muted small">What went well vs. what went wrong</span>
+                </div>
+                <div className={styles.cardBody}>
+                  <div className={styles.highlightsGrid}>
+                    <div className={styles.highlightsCol}>
+                      <span className={`${styles.highlightsColLabel} ${styles.highlightsColLabelGood}`}>
+                        <Icon icon="ph:thumbs-up-bold" /> What went well
+                      </span>
+                      {highlights.wins.length === 0 ? (
+                        <div className={styles.highlightsEmpty}>Nothing stood out as a clear win this round.</div>
+                      ) : (
+                        <ul className={styles.highlightsList}>
+                          {highlights.wins.map((w, i) => (
+                            <li key={i} className={styles.highlightsItemGood}>
+                              <Icon icon={w.icon} />
+                              <span>{w.text}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <div className={styles.highlightsCol}>
+                      <span className={`${styles.highlightsColLabel} ${styles.highlightsColLabelBad}`}>
+                        <Icon icon="ph:thumbs-down-bold" /> What went wrong
+                      </span>
+                      {highlights.concerns.length === 0 ? (
+                        <div className={styles.highlightsEmpty}>No real concerns flagged this round.</div>
+                      ) : (
+                        <ul className={styles.highlightsList}>
+                          {highlights.concerns.map((c, i) => (
+                            <li key={i} className={styles.highlightsItemBad}>
+                              <Icon icon={c.icon} />
+                              <span>{c.text}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* 2. Main Layout: narrative (what happened) reads before the abstract summary */}
             <div className={styles.mainGrid}>
               {/* Main Column: Component Implementation Log & Human Sentiments */}
@@ -703,11 +850,11 @@ export default function AcSimulation({
                           const stCtx = stakeholders[ownerId] || {};
                           const ownerName = target.owner_name || (ownerId ? stakeholderName(ownerId, stakeholders) : "System Lead");
 
-                          const isCapped = target.status === "capped" || (target.capped_by && target.nominal.after !== target.effective.after);
-                          const isDegraded = target.status === "degraded" || Boolean(target.degraded_by);
-                          const isDelayed = target.status === "delayed";
-
-                          const isFlawless = !isDegraded && !isCapped && !isDelayed;
+                          const targetStatus = classifyTarget(target);
+                          const isDegraded = targetStatus === "degraded";
+                          const isCapped = targetStatus === "capped";
+                          const isDelayed = targetStatus === "delayed";
+                          const isFlawless = targetStatus === "flawless";
 
                           let statusCalloutClass = styles.statusFlawless;
                           let statusIcon = "ph:check-circle-bold";
