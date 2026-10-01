@@ -327,6 +327,7 @@ export default function OfflineIntelGathering({
     if (currentArtifact.is_known) return; // already on the record, not the player's call to make
     const artKey = currentArtifact.id;
 
+    setIsNudging(false);
     setTaggedTypes((prev) => ({
       ...prev,
       [artKey]: categorizedType,
@@ -381,6 +382,7 @@ export default function OfflineIntelGathering({
       clearTimeout(transitionTimeoutRef.current);
       transitionTimeoutRef.current = null;
     }
+    setIsNudging(false);
     setDirection(1);
     if (currentIndex < artifacts.length - 1) {
       setCurrentIndex((prev) => prev + 1);
@@ -454,6 +456,22 @@ export default function OfflineIntelGathering({
   // never briefly highlights the wrong one after paging to a new card.
   const [narratingArtifactKey, setNarratingArtifactKey] = useState<string | null>(null);
   const [activeSentenceIndex, setActiveSentenceIndex] = useState<number | null>(null);
+  // Nudges the player toward their next move once the artifact has finished reading itself
+  // aloud (or immediately, when there was never going to be a reading to wait for). Cleared
+  // the moment they act - tag a category or advance - so it never pulses stale.
+  const [isNudging, setIsNudging] = useState(false);
+  const latestArtifactKeyRef = useRef(currentArtifactKey);
+  useEffect(() => {
+    latestArtifactKeyRef.current = currentArtifactKey;
+  }, [currentArtifactKey]);
+  useEffect(() => {
+    setIsNudging(false);
+    if (!currentArtifactKey) return;
+    const alreadyNarrated = narratedArtifactKeysRef.current.has(currentArtifactKey);
+    if (settings.mute_tts || !currentArtifact?.content || alreadyNarrated) {
+      setIsNudging(true);
+    }
+  }, [currentArtifactKey, settings.mute_tts, currentArtifact?.content]);
 
   // `markKey` is only recorded as narrated once the reading actually completes - not when it
   // starts - so React StrictMode's dev-only double-invoke (mount, cleanup, mount again) can't
@@ -479,6 +497,7 @@ export default function OfflineIntelGathering({
         setNarratingArtifactKey(null);
         setActiveSentenceIndex(null);
         if (markKey) narratedArtifactKeysRef.current.add(markKey);
+        if (latestArtifactKeyRef.current === artifact.id) setIsNudging(true);
       },
     });
   };
@@ -488,6 +507,7 @@ export default function OfflineIntelGathering({
     setIsNarrating(false);
     setNarratingArtifactKey(null);
     setActiveSentenceIndex(null);
+    setIsNudging(true); // player cut the reading short themselves - they're ready to act now too
   };
 
   useEffect(() => {
@@ -1018,7 +1038,7 @@ export default function OfflineIntelGathering({
                               setDirection(targetIdx >= currentIndex ? 1 : -1);
                               setCurrentIndex(targetIdx);
                             }}
-                            className={`${styles.actionButton} ${styles.btnAutoWidth} shadow-sm d-inline-flex align-items-center justify-content-center gap-2`}
+                            className={`${styles.actionButton} ${styles.btnAutoWidth} ${styles.actionButtonNudge} shadow-sm d-inline-flex align-items-center justify-content-center gap-2`}
                           >
                             <Icon icon="ph:arrow-circle-right-bold" className={styles.btnIcon} />
                             <span>Categorize Remaining ({totalArtifactsCount - taggedArtifactsCount} Left)</span>
@@ -1027,7 +1047,9 @@ export default function OfflineIntelGathering({
                           <button
                             onClick={handleFinalContinue}
                             disabled={isSubmitting}
-                            className={`${styles.actionButton} ${styles.btnAutoWidth} shadow-sm d-inline-flex align-items-center justify-content-center gap-2`}
+                            className={`${styles.actionButton} ${styles.btnAutoWidth} ${
+                              isSubmitting ? "" : styles.actionButtonNudge
+                            } shadow-sm d-inline-flex align-items-center justify-content-center gap-2`}
                           >
                             {isSubmitting ? (
                               <>
@@ -1250,7 +1272,9 @@ export default function OfflineIntelGathering({
                             )}
                             <button
                               onClick={handleNextItem}
-                              className={styles.navButton}
+                              className={`${styles.navButton} ${
+                                isNudging && isOnKnownArtifact ? styles.navButtonNudge : ""
+                              }`}
                               title={currentIndex < artifacts.length - 1 ? "Next Intel Artifact" : "Finish / View Summary"}
                               aria-label={currentIndex < artifacts.length - 1 ? "Next Intel Artifact" : "Finish / View Summary"}
                             >
@@ -1351,7 +1375,7 @@ export default function OfflineIntelGathering({
                                 title={isOnKnownArtifact ? "Already on record, nothing to change here" : undefined}
                                 className={`btn ${styles.tagButton} ${sizeClass} ${isSelected ? styles.tagButtonSelected : ""} ${
                                   isOnKnownArtifact ? styles.tagButtonLocked : ""
-                                }`}
+                                } ${isNudging && !isOnKnownArtifact ? styles.tagButtonNudge : ""}`}
                                 style={{ borderColor: tag.color }}
                               >
                                 <div className={styles.tagButtonHeader}>

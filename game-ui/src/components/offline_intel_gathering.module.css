@@ -44,6 +44,34 @@
     font-size: 1.05rem;
 }
 
+/* Nudges the player toward the only valid move once an artifact has finished reading itself
+   (or had nothing to read): "Next" on an on-record item, or every category choice otherwise -
+   same idiom/timing as ac_simulation's actionButtonNudge. */
+.navButtonNudge,
+.tagButtonNudge,
+.actionButtonNudge {
+    animation: intelNudgePulse 2s ease-in-out infinite;
+}
+
+@keyframes intelNudgePulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(15, 24, 38, 0.45);
+    }
+    50% {
+        transform: scale(1.03);
+        box-shadow: 0 0 0 8px rgba(15, 24, 38, 0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .navButtonNudge,
+    .tagButtonNudge,
+    .actionButtonNudge {
+        animation: none;
+    }
+}
+
 .secondaryButton {
     padding: 0.7rem 1.6rem;
     border-radius: 0.75rem;
