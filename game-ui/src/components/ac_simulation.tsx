@@ -412,17 +412,19 @@ export default function AcSimulation({
   // description joined into one pass and split back out below (see headlineSentenceCount) so the
   // headline gets its own caret and the description gets full SpokenText treatment.
   const [isNarratingDirective, setIsNarratingDirective] = useState(false);
-  // Separate from isNarratingDirective on purpose: the tour-trigger effect below and this
-  // narration's own effect both fire in the same commit the moment `report` first arrives, so the
-  // tour effect would otherwise read isNarratingDirective from before this effect's own
-  // setIsNarratingDirective(true) had taken effect - a stale `false` that let the tour start
-  // immediately anyway, racing this narration on the shared speech arbiter and losing (a
-  // preemption never fires onEnd, so isNarratingDirective got stuck true and the debrief was
-  // never actually read). Set only from onEnd/onFailure paths, never read mid-render, so the tour
-  // effect always sees this narration's real, settled state instead of a same-commit snapshot.
   const [directiveNarrationDone, setDirectiveNarrationDone] = useState(false);
+  // Same introTourPending idiom as PrePhaseDialog: true only while phase 0's introSimulate tour
+  // still has to run and hasn't finished yet, so the directive narration effect below can wait
+  // for it - on every other phase this is false from the start, so narration there is never
+  // held up by a tour that was never going to happen.
+  const [introSimulateTourDone, setIntroSimulateTourDone] = useState(false);
+  const introSimulatePending = currentPhase === 0 && !introSimulateTourDone;
+  // Nudge towards "Proceed" once the debrief has loaded and its own auto-narration is done
+  // talking over it - same gating idiom as PrePhaseDialog's shouldNudgeStart.
+  const shouldNudgeProceed = Boolean(payload?.report) && !loading && directiveNarrationDone;
   const [directiveSentenceIndex, setDirectiveSentenceIndex] = useState<number | null>(null);
   const directiveCancelRef = useRef<() => void>(() => {});
+  const directiveBannerRef = useRef<HTMLDivElement>(null);
   const headlineSentenceCount = splitSentences(outcomeInfo.headline)
     .map((s) => s.trim())
     .filter(Boolean).length;
@@ -435,6 +437,10 @@ export default function AcSimulation({
     directiveCancelRef.current();
     setIsNarratingDirective(true);
     setDirectiveSentenceIndex(null);
+    // The introSimulate tour (when it runs first) can leave the page scrolled down at whichever
+    // card its last step highlighted - bring the banner this narration is about to read back
+    // into view instead of leaving the player reading nothing while it plays off-screen.
+    directiveBannerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     directiveCancelRef.current = speakTts(`${outcomeInfo.headline}. ${outcomeInfo.description}`, {
       slot: "narrator",
       onSentence: ({ index }) => setDirectiveSentenceIndex(index),
@@ -456,7 +462,7 @@ export default function AcSimulation({
   };
 
   useEffect(() => {
-    if (!report) return;
+    if (!report || introSimulatePending) return;
     setDirectiveNarrationDone(false);
     playDirectiveNarration();
     return () => {
@@ -465,22 +471,27 @@ export default function AcSimulation({
       setDirectiveSentenceIndex(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [payload]);
+  }, [payload, introSimulatePending]);
 
-  // Waits for the directive banner's own auto-narration to finish (or resolve instantly, if
-  // muted/nothing to say) before starting the tour - both go through the same speech arbiter,
-  // so starting any earlier would cut the debrief's headline off mid-sentence. Gated on
-  // directiveNarrationDone rather than isNarratingDirective - see where that state is declared.
+  // The introSimulate tour walks the debrief's chrome *before* any of it is narrated - it runs
+  // first (as soon as the report arrives, not after the headline narration), then unblocks the
+  // directive narration effect above via introSimulateTourDone. Both go through the same speech
+  // arbiter, so running them at once would just have one cut the other off mid-sentence. Phases
+  // other than 0 never set introSimulatePending in the first place, so narration there starts
+  // immediately and is never held up waiting on a tour that was never going to run.
   const introSimulateTourStartedRef = useRef(false);
   useEffect(() => {
-    if (!report || !directiveNarrationDone) return;
+    if (!report) return;
     // Phase 0 has exactly one challenge, so checking the phase alone is sufficient -
     // `currentChallenge` is the challenge's *global* id (e.g. 113), not a phase-relative index.
     if (currentPhase !== 0) return;
     if (introSimulateTourStartedRef.current) return;
     introSimulateTourStartedRef.current = true;
-    startTour("introSimulate", { narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
-  }, [report, directiveNarrationDone, currentPhase]);
+    startTour("introSimulate", {
+      narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }),
+      onFinish: () => setIntroSimulateTourDone(true),
+    });
+  }, [report, currentPhase]);
 
   // Same 10-notch scale MetricTab uses in the Performance Dashboard header - these are that
   // exact metric, not a separate "project health" abstraction, so this card has to look like
@@ -513,7 +524,7 @@ export default function AcSimulation({
   // section further down already shows in full; this never introduces a new fact.
   const highlights = useMemo(() => {
     const wins: { icon: string; text: string }[] = [];
-    const concerns: { icon: string; text: string }[] = [];
+    const concerns: { icon: string; text: string; hint?: string }[] = [];
     if (!report) return { wins, concerns };
 
     const byStatus: Record<string, TargetDelta[]> = { flawless: [], degraded: [], capped: [], delayed: [] };
@@ -524,19 +535,37 @@ export default function AcSimulation({
       wins.push({ icon: "ph:check-circle-bold", text: `Flawless delivery: ${joinNames(targetNames(byStatus.flawless))}` });
     }
     if (byStatus.degraded.length > 0) {
-      concerns.push({ icon: "ph:hand-palm-bold", text: `Degraded by owner pushback: ${joinNames(targetNames(byStatus.degraded))}` });
+      concerns.push({
+        icon: "ph:hand-palm-bold",
+        text: `Degraded by owner pushback: ${joinNames(targetNames(byStatus.degraded))}`,
+        hint: "Bring the owner into the pitch next time. A proposal they help shape won't get quietly undercut in execution.",
+      });
     }
     if (byStatus.capped.length > 0) {
-      concerns.push({ icon: "ph:lock-key-bold", text: `Capped by an upstream bottleneck: ${joinNames(targetNames(byStatus.capped))}` });
+      concerns.push({
+        icon: "ph:lock-key-bold",
+        text: `Capped by an upstream bottleneck: ${joinNames(targetNames(byStatus.capped))}`,
+        hint: "This component can't outrun what feeds it. Raise the upstream dependency's own maturity first, or the cap just reappears next round.",
+      });
     }
     if (byStatus.delayed.length > 0) {
-      concerns.push({ icon: "ph:clock-countdown-bold", text: `Delayed, shortcut left behind: ${joinNames(targetNames(byStatus.delayed))}` });
+      concerns.push({
+        icon: "ph:clock-countdown-bold",
+        text: `Delayed, shortcut left behind: ${joinNames(targetNames(byStatus.delayed))}`,
+        hint: "A rushed handoff now is technical debt later. Budget the time this actually needs, or plan to come back and pay it down.",
+      });
     }
 
     const improvedNames = changedMetrics.filter((m) => m.afterFilled > m.beforeFilled).map((m) => m.mObj.name || m.mId);
     const declinedNames = changedMetrics.filter((m) => m.afterFilled < m.beforeFilled).map((m) => m.mObj.name || m.mId);
     if (improvedNames.length > 0) wins.push({ icon: "ph:trend-up-bold", text: `Metrics up: ${joinNames(improvedNames)}` });
-    if (declinedNames.length > 0) concerns.push({ icon: "ph:trend-down-bold", text: `Metrics down: ${joinNames(declinedNames)}` });
+    if (declinedNames.length > 0) {
+      concerns.push({
+        icon: "ph:trend-down-bold",
+        text: `Metrics down: ${joinNames(declinedNames)}`,
+        hint: "Weigh what this rollout traded away against what it bought. A card that helps everywhere else isn't free if it quietly erodes this.",
+      });
+    }
 
     if (report.patterns.gained.length > 0) {
       wins.push({ icon: "ph:sparkle-bold", text: `New pattern adopted: ${joinNames(report.patterns.gained)}` });
@@ -549,13 +578,25 @@ export default function AcSimulation({
     }
 
     if (report.patterns.anti_created.length > 0) {
-      concerns.push({ icon: "ph:bug-beetle-bold", text: `New antipattern: ${joinNames(report.patterns.anti_created)}` });
+      concerns.push({
+        icon: "ph:bug-beetle-bold",
+        text: `New antipattern: ${joinNames(report.patterns.anti_created)}`,
+        hint: "Antipatterns compound the longer they sit. Look for a card that directly targets this before building more on top of it.",
+      });
     }
     if (report.patterns.lost.length > 0) {
-      concerns.push({ icon: "ph:warning-bold", text: `Pattern lost: ${joinNames(report.patterns.lost)}` });
+      concerns.push({
+        icon: "ph:warning-bold",
+        text: `Pattern lost: ${joinNames(report.patterns.lost)}`,
+        hint: "Whatever kept this pattern in place got traded away this round. Re-establish the governance or practice behind it before it's missed.",
+      });
     }
     if (report.debt_created.length > 0) {
-      concerns.push({ icon: "ph:warning-octagon-bold", text: `${report.debt_created.length} technical shortcut(s) left behind` });
+      concerns.push({
+        icon: "ph:warning-octagon-bold",
+        text: `${report.debt_created.length} technical shortcut(s) left behind`,
+        hint: "Debt left unpaid tends to resurface as a cap or a delay somewhere downstream. Prioritize clearing it before it's forced on you.",
+      });
     }
 
     const byStakeholderStatus = (status: string) =>
@@ -566,12 +607,28 @@ export default function AcSimulation({
     const resistant = byStakeholderStatus("resistant");
     const overridden = byStakeholderStatus("overridden");
     if (committed.length > 0) wins.push({ icon: "ph:handshake-bold", text: `Fully on board: ${joinNames(committed)}` });
-    if (resistant.length > 0) concerns.push({ icon: "ph:warning-circle-bold", text: `Pushed back: ${joinNames(resistant)}` });
-    if (overridden.length > 0) concerns.push({ icon: "ph:lightning-bold", text: `Overruled via escalation: ${joinNames(overridden)}` });
+    if (resistant.length > 0) {
+      concerns.push({
+        icon: "ph:warning-circle-bold",
+        text: `Pushed back: ${joinNames(resistant)}`,
+        hint: "Resistance you don't address doesn't go away. Address their concern directly next pitch, or expect the same friction again.",
+      });
+    }
+    if (overridden.length > 0) {
+      concerns.push({
+        icon: "ph:lightning-bold",
+        text: `Overruled via escalation: ${joinNames(overridden)}`,
+        hint: "Escalation gets the card through, but it spends this stakeholder's goodwill. Save it for proposals you can't afford to lose.",
+      });
+    }
 
     if (report.grudges.created.length > 0) {
       const grudgeNames = report.grudges.created.map((g) => stakeholderName(g.stakeholder_id, stakeholders));
-      concerns.push({ icon: "ph:bookmark-simple-bold", text: `New grudge(s) recorded: ${joinNames(grudgeNames)}` });
+      concerns.push({
+        icon: "ph:bookmark-simple-bold",
+        text: `New grudge(s) recorded: ${joinNames(grudgeNames)}`,
+        hint: "A grudge makes this stakeholder warier of your next proposal. A clean, low-friction win with them is the fastest way to earn it back.",
+      });
     }
 
     return { wins, concerns };
@@ -581,7 +638,13 @@ export default function AcSimulation({
     <div className={styles.pageWrapper}>
       {/* ── Top Header Strip ── */}
       <div className={styles.header}>
-        <div className={styles.headerTitleBlock}>
+        <div
+          className={styles.headerTitleBlock}
+          data-intro-group="introSimulate"
+          data-title="Rollout Debrief"
+          data-intro="Welcome to the Rollout Debrief. Every round ends here: a full report on what your pitch actually did, the engineering outcome and the human cost both, read top to bottom before you move on."
+          data-step="1"
+        >
           <h1 className={styles.headerTitle}>
             <Icon icon="ph:rocket-launch-bold" className={styles.headerIcon} />
             <span>Rollout Debrief</span>
@@ -664,13 +727,16 @@ export default function AcSimulation({
           <>
             {/* 1. Executive Directive Banner */}
             <div
-              className={styles.directiveBanner}
-              data-intro-group="introSimulate"
-              data-title="Rollout Outcome"
-              data-intro="This is the rollout outcome: how your pitched proposal actually landed, in one headline. Below it, a full breakdown of what happened and why - read it closely, it's the closest thing to feedback the simulation ever gives you."
-              data-step="1"
+              ref={directiveBannerRef}
+              className={`${styles.directiveBanner} ${isNarratingDirective ? styles.directiveBannerSpeaking : ""}`}
             >
-              <div className={styles.directiveBannerRow}>
+              <div
+                className={styles.directiveBannerRow}
+                data-intro-group="introSimulate"
+                data-title="Rollout Outcome"
+                data-intro="This is the rollout outcome: how your pitched proposal actually landed, in one headline. Below it, a full breakdown of what happened and why - read it closely, it's the closest thing to feedback the simulation ever gives you."
+                data-step="2"
+              >
                 {heroIcon && <OnceIcon icon={heroIcon} className={styles.directiveHeroIcon} />}
                 <div className={styles.directiveBannerContent}>
                   <div className={styles.directiveBannerHeader}>
@@ -761,8 +827,8 @@ export default function AcSimulation({
                 className={styles.surfaceCard}
                 data-intro-group="introSimulate"
                 data-title="Round Highlights"
-                data-intro="A quick good/bad scorecard for this round, distilled from everything below - read this first, then drill into the sections underneath for the why."
-                data-step="1.5"
+                data-intro="A quick good/bad scorecard for this round, distilled from everything below. Read this first, then drill into the sections underneath for the why."
+                data-step="3"
               >
                 <div className={styles.cardHeader}>
                   <h3 className={styles.cardTitle}>
@@ -801,7 +867,15 @@ export default function AcSimulation({
                           {highlights.concerns.map((c, i) => (
                             <li key={i} className={styles.highlightsItemBad}>
                               <Icon icon={c.icon} />
-                              <span>{c.text}</span>
+                              <span className={styles.highlightsItemTextCol}>
+                                <span>{c.text}</span>
+                                {c.hint && (
+                                  <span className={styles.highlightsHint}>
+                                    <Icon icon="ph:lightbulb-bold" />
+                                    <span>{c.hint}</span>
+                                  </span>
+                                )}
+                              </span>
                             </li>
                           ))}
                         </ul>
@@ -821,8 +895,8 @@ export default function AcSimulation({
                   className={styles.surfaceCard}
                   data-intro-group="introSimulate"
                   data-title="What Actually Happened"
-                  data-intro="A row per component your proposal touched: flawless, capped by an upstream bottleneck, degraded by stakeholder pushback, or delayed. This is where you learn what your pitch actually cost - a bill the simulation writes up whether or not you asked for it."
-                  data-step="2"
+                  data-intro="A row per component your proposal touched: flawless, capped by an upstream bottleneck, degraded by stakeholder pushback, or delayed. This is where you learn what your pitch actually implemented."
+                  data-step="4"
                 >
                   <div className={styles.cardHeader}>
                     <h3 className={styles.cardTitle}>
@@ -1003,7 +1077,13 @@ export default function AcSimulation({
                 </div>
 
                 {/* ── Stakeholder Sentiments & Human Realities ── */}
-                <div className={styles.surfaceCard}>
+                <div
+                  className={styles.surfaceCard}
+                  data-intro-group="introSimulate"
+                  data-title="Stakeholder Realities"
+                  data-intro="How the people in the room reacted: who stayed on board, who pushed back, who got overruled, and the emotional cost each paid in stress, trust, and grudges. Good execution on paper doesn't always mean a happy room."
+                  data-step="5"
+                >
                   <div className={styles.cardHeader}>
                     <h3 className={styles.cardTitle}>
                       <Icon icon="ph:users-three-bold" />
@@ -1406,10 +1486,10 @@ export default function AcSimulation({
           <button
             onClick={handleContinueClick}
             disabled={loading || !report}
-            className={styles.actionButton}
+            className={`${styles.actionButton} ${shouldNudgeProceed ? styles.actionButtonNudge : ""}`}
           >
             <span>{loading ? "Advancing..." : "Proceed to Next Milestone"}</span>
-            <Icon icon="ph:arrow-right-bold" />
+            <Icon icon="ph:arrow-right-bold" className={styles.actionButtonArrow} />
           </button>
         </div>
       </div>
