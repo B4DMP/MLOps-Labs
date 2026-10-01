@@ -34,6 +34,7 @@ import {
   sendAdminTestEmail,
   fetchBugReportRecipients,
   updateBugReportRecipients,
+  restartDeployment,
   type AdminEmailStatus,
   type AdminTestEmailTemplate,
 } from "../services/api/admin";
@@ -128,7 +129,7 @@ export function Admin({
   questionaire_results,
 }: AdminProps) {
   // Navigation
-  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis" | "results" | "graph_debug" | "teachers" | "email">("config");
+  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis" | "results" | "graph_debug" | "teachers" | "email" | "deploy">("config");
 
   // Email / SMTP state
   const [emailStatus, setEmailStatus] = useState<AdminEmailStatus | null>(null);
@@ -158,6 +159,29 @@ export function Admin({
       loadEmailStatus();
     }
   }, [activeSubpage, adminToken]);
+
+  // Deployment restart/repull
+  const [deployLoading, setDeployLoading] = useState(false);
+  const [deploySuccessMessage, setDeploySuccessMessage] = useState<string | null>(null);
+  const [deployErrorMessage, setDeployErrorMessage] = useState<string | null>(null);
+  const [showDeployConfirm, setShowDeployConfirm] = useState(false);
+
+  const handleRestartDeployment = async () => {
+    setShowDeployConfirm(false);
+    setDeployLoading(true);
+    setDeploySuccessMessage(null);
+    setDeployErrorMessage(null);
+    try {
+      const res = await restartDeployment();
+      setDeploySuccessMessage(
+        `Restarted: ${res.restarted.map((r) => r.deployment).join(", ")}. Pods are rolling now - this takes a few seconds.`
+      );
+    } catch (err: any) {
+      setDeployErrorMessage(err.message || "Failed to restart the deployment.");
+    } finally {
+      setDeployLoading(false);
+    }
+  };
 
   // Bug report notification recipients
   const [bugReportRecipients, setBugReportRecipients] = useState<string[] | null>(null);
@@ -682,6 +706,14 @@ export function Admin({
               <Icon icon="ph:envelope-simple-bold" />
               <span>SMTP Email</span>
             </button>
+            <button
+              type="button"
+              className={`${styles.navTab} ${activeSubpage === "deploy" ? styles.navTabActive : ""}`}
+              onClick={() => setActiveSubpage("deploy")}
+            >
+              <Icon icon="ph:rocket-launch-bold" />
+              <span>Deployment</span>
+            </button>
           </div>
 
           <div className="text-muted small d-none d-md-block">
@@ -692,6 +724,7 @@ export function Admin({
             {activeSubpage === "graph_debug" && "Inspect the MLOps pipeline graph state per player"}
             {activeSubpage === "teachers" && "Manage teacher accounts and their live monitoring access"}
             {activeSubpage === "email" && "Inspect SMTP configuration and send test emails"}
+            {activeSubpage === "deploy" && "Restart the live deployment to pull the latest image and config"}
           </div>
         </div>
 
@@ -2111,9 +2144,121 @@ export function Admin({
               </div>
             </div>
           )}
+
+          {/* ======================================================== */}
+          {/* SUBPAGE: DEPLOYMENT                                      */}
+          {/* ======================================================== */}
+          {activeSubpage === "deploy" && (
+            <div className="d-flex flex-column gap-4">
+              <div className={styles.cardSurface}>
+                <div className={styles.sectionHeader}>
+                  <div>
+                    <h2 className={styles.sectionTitle}>
+                      <Icon icon="ph:rocket-launch-bold" />
+                      <span>Restart & Repull</span>
+                    </h2>
+                    <p className={styles.sectionSubtitle}>
+                      Rolls the live game-api and game-ui pods: re-pulls the latest image pushed
+                      by CI and reloads any changed secrets or config. Only works against the
+                      deployed cluster, not local development.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="alert alert-light border small text-muted mb-3" role="note">
+                  <Icon icon="ph:info-bold" className="me-1" />
+                  Code or <code>gameConfig/*.json</code> changes only take effect after the CI
+                  pipeline has built and pushed a new image. Check the pipeline has finished
+                  before restarting, or this will just reload the current image.
+                </div>
+
+                {deploySuccessMessage && (
+                  <div className="alert alert-success d-flex align-items-center gap-2 mb-3" role="alert">
+                    <Icon icon="ph:check-circle-bold" className="fs-5 flex-shrink-0" />
+                    <div className="small">{deploySuccessMessage}</div>
+                  </div>
+                )}
+                {deployErrorMessage && (
+                  <div className="alert alert-danger d-flex align-items-start gap-2 mb-3" role="alert">
+                    <Icon icon="ph:warning-octagon-bold" className="fs-5 flex-shrink-0 mt-1" />
+                    <div className="small">{deployErrorMessage}</div>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  style={{ maxWidth: "260px" }}
+                  disabled={deployLoading}
+                  onClick={() => setShowDeployConfirm(true)}
+                >
+                  {deployLoading ? (
+                    <span className="d-flex align-items-center justify-content-center gap-2">
+                      <Icon icon="ph:spinner-bold" className={styles.spinner} />
+                      <span>Restarting...</span>
+                    </span>
+                  ) : (
+                    <span className="d-flex align-items-center justify-content-center gap-2">
+                      <Icon icon="ph:rocket-launch-bold" />
+                      <span>Restart & Repull</span>
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
+      {/* Restart & Repull Confirmation Modal */}
+      {showDeployConfirm && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center p-3"
+          style={{
+            backgroundColor: "rgba(10, 25, 34, 0.75)",
+            backdropFilter: "blur(4px)",
+            zIndex: 9999,
+          }}
+          onClick={() => setShowDeployConfirm(false)}
+        >
+          <div
+            className="card border-0 rounded-4 shadow-lg overflow-hidden"
+            style={{ maxWidth: "500px", width: "100%", background: "#ffffff" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="p-3 d-flex align-items-center gap-2 text-white"
+              style={{ backgroundColor: "#dc2626" }}
+            >
+              <Icon icon="ph:warning-octagon-bold" style={{ fontSize: "1.75rem" }} />
+              <h5 className="mb-0 fw-bold">Restart the live deployment?</h5>
+            </div>
+            <div className="p-4">
+              <p className="text-secondary small mb-3">
+                This briefly interrupts traffic to both the game UI and API while pods roll. Any
+                player mid-session may see a short disconnect.
+              </p>
+              <div className="d-flex justify-content-end gap-2">
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary btn-sm px-3"
+                  onClick={() => setShowDeployConfirm(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger btn-sm px-3 fw-bold d-inline-flex align-items-center gap-1"
+                  onClick={handleRestartDeployment}
+                >
+                  <Icon icon="ph:rocket-launch-bold" />
+                  <span>Yes, Restart</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Campaign Confirmation Modal */}
       {campaignToDelete && (

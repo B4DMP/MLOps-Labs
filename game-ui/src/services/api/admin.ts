@@ -445,6 +445,18 @@ export function fetchBugReportRecipients(): Promise<{ recipients: string[] }> {
   return adminGet("/api/admin/bug-reports/recipients", "Failed to fetch bug report recipients.");
 }
 
+export interface DeployRestartResult {
+  type: string;
+  restarted: { deployment: string; restarted_at: string }[];
+}
+
+/** Rollout-restarts the game-api and game-ui Deployments in the cluster: re-pulls the latest
+ * pushed image and reloads any changed Secret/ConfigMap values. Only works in the deployed
+ * cluster, not local dev. */
+export function restartDeployment(): Promise<DeployRestartResult> {
+  return adminMutate("/api/admin/deploy/restart", "POST", "Failed to restart the deployment.");
+}
+
 export async function updateBugReportRecipients(recipients: string[]): Promise<{ recipients: string[] }> {
   const response = await fetch(`${BASE_URL}/api/admin/bug-reports/recipients`, {
     method: "POST",

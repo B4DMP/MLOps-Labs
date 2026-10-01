@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  namespace: ma-bela-veltrup
+  namespace: mlops-lab
   name: mlops-game-postgres-pvc
 spec:
   accessModes:
@@ -14,7 +14,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: ma-bela-veltrup
+  namespace: mlops-lab
   name: mlops-game-postgres
   labels:
     app: mlops-game-postgres
@@ -61,7 +61,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mlops-game-postgres
-  namespace: ma-bela-veltrup
+  namespace: mlops-lab
 spec:
   selector:
     app: mlops-game-postgres

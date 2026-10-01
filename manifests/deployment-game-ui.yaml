@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: ma-bela-veltrup
+  namespace: mlops-lab
   name: mlops-game-ui
   labels:
     app: mlops-game-ui
@@ -28,7 +28,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mlops-game-ui
-  namespace: ma-bela-veltrup
+  namespace: mlops-lab
 spec:
   selector:
     app: mlops-game-ui

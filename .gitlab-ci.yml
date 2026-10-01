@@ -134,30 +134,6 @@ push-game-images:
     - did
   when: on_success
 
-deploy-game-to-k8s:
-  stage: deploy
-  image: alpine:3.19
-  tags:
-    - did
-  before_script:
-    - apk add --no-cache kubectl gettext  # provides envsubst
-  script:
-    - kubectl config use-context i5/infrastructure/kubernetes:housekeeping
-    # Apply templated manifests (substitute GitLab CI/CD variables)
-    - envsubst < "$GAME_DIR/manifests/configmap-game-api.yaml" | kubectl apply -f -
-    - envsubst < "$GAME_DIR/manifests/deployment-mongo-express.yaml" | kubectl apply -f -
-    # Apply static manifests
-    - kubectl apply -f "$GAME_DIR/manifests/deployment-mongodb.yaml"
-    - kubectl apply -f "$GAME_DIR/manifests/deployment-game-api.yaml"
-    - kubectl apply -f "$GAME_DIR/manifests/deployment-game-ui.yaml"
-    - kubectl apply -f "$GAME_DIR/manifests/ingress-game-api.yaml"
-    - kubectl apply -f "$GAME_DIR/manifests/ingress-game-ui.yaml"
-    - kubectl apply -f "$GAME_DIR/manifests/ingress-mongo-express.yaml"
-    # Restart deployments to pick up latest images
-    - kubectl rollout -n ma-bela-veltrup restart deployment mlops-game-api
-    - kubectl rollout -n ma-bela-veltrup restart deployment mlops-game-ui
-  needs:
-    - job: push-game-images
-      artifacts: false
-  only:
-    - main
+# No automatic k8s deploy job: the `mlops-lab` namespace is set up and updated manually via
+# `kubectl` (docs/plans/k8s-redeploy-and-self-service-updates.md). After this stage pushes a new
+# `:latest` image, use the admin panel's "Restart & Repull" button to roll it out.

@@ -33,6 +33,7 @@ from mlops_serious_game.application.services.teacher_service import (
     update_teacher_password,
 )
 from mlops_serious_game.config import settings
+from mlops_serious_game.infrastructure.k8s_deploy import NotInClusterError, restart_deployments
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
@@ -425,4 +426,17 @@ async def update_bug_report_recipients_route(
     req: BugReportRecipientsUpdateRequest, _: str = Depends(check_admin_token)
 ):
     return {"recipients": update_bug_report_recipients(req.recipients)}
+
+
+@router.post("/deploy/restart")
+async def restart_deployment(_: str = Depends(check_admin_token)):
+    """Rollout-restart the game-api and game-ui Deployments: re-pulls the latest pushed image
+    (imagePullPolicy: Always) and reloads any changed Secret/ConfigMap values."""
+    try:
+        results = await restart_deployments()
+        return {"type": "deploy_restart_success", "restarted": results}
+    except NotInClusterError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to restart deployments: {e}")
 

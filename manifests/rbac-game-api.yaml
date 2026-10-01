@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: mlops-lab
+  name: mlops-game-api
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: mlops-lab
+  name: deployment-restarter
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "patch"]
+    resourceNames: ["mlops-game-api", "mlops-game-ui"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: mlops-lab
+  name: mlops-game-api-deployment-restarter
+subjects:
+  - kind: ServiceAccount
+    name: mlops-game-api
+    namespace: mlops-lab
+roleRef:
+  kind: Role
+  name: deployment-restarter
+  apiGroup: rbac.authorization.k8s.io

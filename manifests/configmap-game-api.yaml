@@ -1,23 +1,27 @@
-# TEMPLATE: Processed by envsubst in CI pipeline.
-# Sensitive values are substituted from GitLab CI/CD protected variables.
+# Applied directly with `kubectl apply` - no CI templating. Secrets live in the
+# `mlops-game-api-secrets` Secret instead (created from game-api/.env.deploy, see
+# docs/plans/k8s-redeploy-and-self-service-updates.md).
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  namespace: ma-bela-veltrup
+  namespace: mlops-lab
   name: mlops-game-api-config
 data:
+  PYTHONUNBUFFERED: "1"
+
   # -- PostgreSQL (internal k8s service, non-sensitive) --
   POSTGRES_URI: "postgresql+psycopg://mlops_labs:mlops_labs@mlops-game-postgres:5432/mlops_labs"
   POSTGRES_ASYNC_URI: "postgresql+asyncpg://mlops_labs:mlops_labs@mlops-game-postgres:5432/mlops_labs"
-  PYTHONUNBUFFERED: "1"
 
-  # -- Security & Admin Configuration (from GitLab CI/CD variables) --
-  ADMIN_USER: "${GAME_ADMIN_USER}"
-  ADMIN_KEY: "${GAME_ADMIN_KEY}"
-  SECRET_KEY: "${GAME_SECRET_KEY}"
+  # -- SMTP (RWTH mail relay) --
+  SMTP_HOST: "mail.rwth-aachen.de"
+  SMTP_PORT: "587"
+  SMTP_FROM_EMAIL: "mlops-labs@dbis.rwth-aachen.de"
+  SMTP_USE_TLS: "true"
 
-  # -- API Keys (from GitLab CI/CD variables) --
-  GROQ_API_KEY: "${GAME_GROQ_API_KEY}"
-  OPENAI_API_KEY: "${GAME_OPENAI_API_KEY}"
-  WESTAI_API_KEY: "${GAME_WESTAI_API_KEY}"
-  MISTRAL_API_KEY: "${GAME_MISTRAL_API_KEY}"
+  # -- Feature flags (leave off in production) --
+  ENABLE_GRAPH_DEBUG: "false"
+  ENABLE_DOSSIER_DEBUG: "false"
+  ENABLE_RESET_USER: "false"
+  ENABLE_PLAYTEST_TOOLS: "false"
+  ENABLE_DEV_ACCOUNTS: "false"

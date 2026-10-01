@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: ma-bela-veltrup
+  namespace: mlops-lab
   name: mlops-game-api
   labels:
     app: mlops-game-api
@@ -15,6 +15,7 @@ spec:
       labels:
         app: mlops-game-api
     spec:
+      serviceAccountName: mlops-game-api
       containers:
       - name: mlops-game-api
         image: registry.git.rwth-aachen.de/i5/theses/bachelor-thesis-bela-veltrup/mlops-game/game-api:latest
@@ -24,6 +25,8 @@ spec:
         envFrom:
         - configMapRef:
             name: mlops-game-api-config
+        - secretRef:
+            name: mlops-game-api-secrets
       imagePullSecrets:
         - name: regcred
 ---
@@ -31,7 +34,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mlops-game-api
-  namespace: ma-bela-veltrup
+  namespace: mlops-lab
 spec:
   selector:
     app: mlops-game-api
