@@ -222,6 +222,7 @@ async def test_generate_stakeholder_pitch_responses_node_single_response_per_sta
 
 
 @pytest.mark.anyio
+@pytest.mark.db  # the workflow's checkpointer opens a real Postgres connection
 async def test_run_action_card_pitch_workflow_end_to_end():
     stakeholders: list[StakeholderPitchContext] = [
         {
