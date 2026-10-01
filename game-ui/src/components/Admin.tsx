@@ -36,8 +36,10 @@ import {
   updateBugReportRecipients,
   restartDeployment,
   fetchDeployVersion,
+  fetchDeployLogs,
   type AdminEmailStatus,
   type AdminTestEmailTemplate,
+  type LoggableApp,
 } from "../services/api/admin";
 
 export interface Campaign {
@@ -234,6 +236,38 @@ export function Admin({
       setDeployLoading(false);
     }
   };
+
+  // Deployment log viewer - the same thing `kubectl logs` would show, for debugging a live
+  // issue (a stuck game, a slow request) without needing cluster access.
+  const [logApp, setLogApp] = useState<LoggableApp>("mlops-game-api");
+  const [logLines, setLogLines] = useState(500);
+  const [logText, setLogText] = useState<string | null>(null);
+  const [logPodName, setLogPodName] = useState<string | null>(null);
+  const [logLoading, setLogLoading] = useState(false);
+  const [logError, setLogError] = useState<string | null>(null);
+  const [logFilter, setLogFilter] = useState("");
+
+  const handleFetchLogs = async () => {
+    setLogLoading(true);
+    setLogError(null);
+    try {
+      const res = await fetchDeployLogs(logApp, logLines);
+      setLogText(res.logs);
+      setLogPodName(res.pod);
+    } catch (err: any) {
+      setLogError(err.message || "Failed to fetch logs.");
+    } finally {
+      setLogLoading(false);
+    }
+  };
+
+  const filteredLogLines = useMemo(() => {
+    if (!logText) return [];
+    const lines = logText.split("\n");
+    if (!logFilter.trim()) return lines;
+    const needle = logFilter.toLowerCase();
+    return lines.filter((l) => l.toLowerCase().includes(needle));
+  }, [logText, logFilter]);
 
   // Bug report notification recipients
   const [bugReportRecipients, setBugReportRecipients] = useState<string[] | null>(null);
@@ -2294,6 +2328,118 @@ export function Admin({
                     </span>
                   )}
                 </button>
+              </div>
+
+              {/* Log Viewer */}
+              <div className={styles.cardSurface}>
+                <div className={styles.sectionHeader}>
+                  <div>
+                    <h2 className={styles.sectionTitle}>
+                      <Icon icon="ph:terminal-window-bold" />
+                      <span>Log Viewer</span>
+                    </h2>
+                    <p className={styles.sectionSubtitle}>
+                      Tails the live pod's container log - the same thing <code>kubectl logs</code>{" "}
+                      would show, for debugging something happening right now (a stuck game, a
+                      slow request) without needing cluster access.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="d-flex flex-wrap align-items-end gap-2 mb-3">
+                  <div>
+                    <label className="form-label small fw-semibold text-secondary mb-1">
+                      Component
+                    </label>
+                    <select
+                      className="form-select form-select-sm"
+                      value={logApp}
+                      onChange={(e) => setLogApp(e.target.value as LoggableApp)}
+                      style={{ minWidth: "180px" }}
+                    >
+                      <option value="mlops-game-api">game-api</option>
+                      <option value="mlops-game-ui">game-ui</option>
+                      <option value="mlops-game-postgres">postgres</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label small fw-semibold text-secondary mb-1">
+                      Lines
+                    </label>
+                    <select
+                      className="form-select form-select-sm"
+                      value={logLines}
+                      onChange={(e) => setLogLines(Number(e.target.value))}
+                      style={{ minWidth: "110px" }}
+                    >
+                      <option value={200}>200</option>
+                      <option value={500}>500</option>
+                      <option value={1000}>1,000</option>
+                      <option value={5000}>5,000</option>
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.actionButton}
+                    style={{ padding: "0.45rem 1.1rem" }}
+                    onClick={handleFetchLogs}
+                    disabled={logLoading}
+                  >
+                    <Icon
+                      icon={logLoading ? "ph:spinner-bold" : "ph:terminal-window-bold"}
+                      className={logLoading ? styles.spinner : ""}
+                    />
+                    <span>{logLoading ? "Fetching..." : "Fetch Logs"}</span>
+                  </button>
+                  <div className="flex-grow-1" style={{ minWidth: "200px" }}>
+                    <label className="form-label small fw-semibold text-secondary mb-1">
+                      Filter (e.g. a username)
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      placeholder="Only show lines containing..."
+                      value={logFilter}
+                      onChange={(e) => setLogFilter(e.target.value)}
+                      disabled={!logText}
+                    />
+                  </div>
+                </div>
+
+                {logError && (
+                  <div className="alert alert-danger d-flex align-items-center gap-2 mb-3" role="alert">
+                    <Icon icon="ph:warning-octagon-bold" />
+                    <div className="small">{logError}</div>
+                  </div>
+                )}
+
+                {logText !== null && (
+                  <>
+                    <div className="d-flex justify-content-between align-items-center mb-1 text-muted small">
+                      <span>
+                        {logPodName ? <>Pod: <code>{logPodName}</code></> : "No pod found"} -{" "}
+                        showing {filteredLogLines.length} of {logText.split("\n").length} lines
+                      </span>
+                    </div>
+                    <pre
+                      style={{
+                        background: "#0a1922",
+                        color: "#d7e5ec",
+                        borderRadius: "0.5rem",
+                        padding: "1rem",
+                        maxHeight: "480px",
+                        overflow: "auto",
+                        fontSize: "0.78rem",
+                        lineHeight: 1.5,
+                        marginBottom: 0,
+                      }}
+                    >
+                      {filteredLogLines.length > 0
+                        ? filteredLogLines.join("\n")
+                        : "(no lines match the filter)"}
+                    </pre>
+                  </>
+                )}
               </div>
             </div>
           )}
