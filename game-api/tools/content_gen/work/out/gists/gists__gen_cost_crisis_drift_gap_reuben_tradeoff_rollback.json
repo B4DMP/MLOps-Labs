@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_reuben_tradeoff_rollback",
+  "stage": "gists",
+  "input_hash": "b4739019998a873348d97d89010eac916c0249465c30c45c5d140f52e1329c14",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_reuben_tradeoff_rollback",
+    "fact": "{requirements_reuben} noted the rollback mechanism as a compliance risk.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "The compliance implications of the rollback mechanism for model deployments have been raised by {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions that compliance implications were raised as a topic but does not specify a direction, refusal, trade-off, or simple fact about the metric itself."
+  }
+}

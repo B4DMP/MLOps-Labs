@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_monica_driver_edge_perf",
+  "stage": "gists",
+  "input_hash": "67c7c90dd76042edc166248b1b6bb22fb6c9710b6df4ad50c126a9505813ba44",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_monica_driver_edge_perf",
+    "fact": "{model_monica} asked for the hand-over from observability to performance monitoring to be automated.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "The model's transition from observability to performance monitoring is the specific topic {model_monica} keeps raising in reviews.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a recurring topic in reviews regarding the model's monitoring transition but does not express a stance, desire, refusal, or trade-off regarding that topic."
+  }
+}

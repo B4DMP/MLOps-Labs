@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_override_blind_spot_reuben_boundary_registry",
+  "stage": "objections",
+  "input_hash": "8bf284b61a0f3662aeba5a5530bca560648d9ae9ff4bbb232905de5f619d98f7",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_override_blind_spot_reuben_boundary_registry",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} insisted on keeping the model registry process manual to ensure compliance. {requirements_reuben} will not allow the model registry to be automated without a manual, documented review.",
+      "fact": "{requirements_reuben} insisted on keeping the model registry process manual to ensure compliance.",
+      "reading": "{requirements_reuben} will not allow the model registry to be automated without a manual, documented review.",
+      "metric_id": "requirements",
+      "suggested": null,
+      "holds": {
+        "component": "model.registry",
+        "axis": "automation",
+        "op": "lte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "axis": "automation",
+          "value": 2
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "I am not signing off on automating the model registry without a documented manual review. That process is a compliance control, not a convenience feature.",
+    "correction": "I did not say the registry is broken or that we should abandon it. I said it must remain a governed, manual step to satisfy our audit requirements."
+  }
+}

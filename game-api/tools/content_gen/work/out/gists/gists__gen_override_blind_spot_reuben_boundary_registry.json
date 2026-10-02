@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_reuben_boundary_registry",
+  "stage": "gists",
+  "input_hash": "f941a1243106f39e111bcb19c97598dab735839a071c61cd3daedd6872054caf",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_reuben_boundary_registry",
+    "fact": "{requirements_reuben} insisted on keeping the model registry process manual to ensure compliance.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The compliance posture of the manual model registry process keeps coming up in discussions with {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a compliance issue with the current process but does not specify whether it is a driver for change, a boundary, a trade-off, or a neutral fact."
+  }
+}

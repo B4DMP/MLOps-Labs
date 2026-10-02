@@ -1,0 +1,55 @@
+{
+  "item_id": "objections:gen_heatwave_forecast_gap_monica_composite_pipeline",
+  "stage": "objections",
+  "input_hash": "af7468e30b36e4f29e7185e99f6018369c142908d32043ee2293caa68c8605e9",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_monica_composite_pipeline",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} asked for the entire model training and evaluation flow to run on its own from feature arrival to registry entry. {model_monica.first} needs the whole chain to be automated to test weather features without waiting for manual triggers at each step.",
+      "fact": "{model_monica} asked for the entire model training and evaluation flow to run on its own from feature arrival to registry entry.",
+      "reading": "{model_monica.first} needs the whole chain to be automated to test weather features without waiting for manual triggers at each step.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "e.fs_train",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.eval_registry",
+          "axis": "automation",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(e.fs_train, 3)",
+        "raise_to(e.eval_registry, 3)"
+      ],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "You are only wiring up the registry step, but I need the entire training and evaluation loop to run automatically from the moment features arrive. I cannot test new weather features if I have to manually trigger each intermediate part.",
+    "correction": "This is a request for full pipeline automation, not just a governance review of the final model artifact. I am asking for the technical flow to be continuous so I can iterate on performance without waiting for human triggers."
+  }
+}

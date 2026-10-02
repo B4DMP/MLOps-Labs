@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_ingestion_failure_reuben_boundary_gov_versioning",
+  "stage": "gists",
+  "input_hash": "548d598f43647d7bbc5ae4afc45980920c4758fce1812d524c7c2f9e01c98b8d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_silent_ingestion_failure_reuben_boundary_gov_versioning",
+    "fact": "{requirements_reuben} proposed that versioning must be fully governed.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Store Gap"
+  },
+  "output": {
+    "gist": "Versioning governance for the Shelfcast pipeline keeps coming up in discussions with {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes that versioning governance is a recurring topic in discussions with a requirements stakeholder, but it does not specify whether this is a driver, boundary, trade-off, or mere fact."
+  }
+}

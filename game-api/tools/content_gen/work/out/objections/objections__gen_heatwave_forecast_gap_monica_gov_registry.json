@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_heatwave_forecast_gap_monica_gov_registry",
+  "stage": "objections",
+  "input_hash": "012dcce724ea1c11c86b222cc2d9e2e8619df6cc740ddf8dde58c25ce1e2ab84",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_monica_gov_registry",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} mentioned that the model registry does not require formal sign-off before a model is promoted. {model_monica.first} would accept full governance on the registry if it does not block the rapid iteration on evaluation.",
+      "fact": "{model_monica} mentioned that the model registry does not require formal sign-off before a model is promoted.",
+      "reading": "{model_monica.first} would accept full governance on the registry if it does not block the rapid iteration on evaluation.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.registry",
+        "axis": "governance",
+        "accepts_max_level": 3
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "I did not ask you to lock down the registry with a formal sign off, I only said we need a way to evaluate models fast without waiting for a committee. You are reading a governance demand into a comment about iteration speed, and that is not what I said.",
+    "correction": "You filed this under governance when I was talking about the friction in the evaluation pipeline. I am not asking for a new approval step, I am saying the current process is too slow for the weekly retraining cycle we run."
+  }
+}

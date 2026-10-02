@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_consent_gap_emilia_boundary",
+  "stage": "gists",
+  "input_hash": "5b1e48d5f91b44b02474191895995badc31321fbee6d05c72519054f9009abf7",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_loyalty_consent_gap_emilia_boundary",
+    "fact": "{efficiency_emilia} proposed that the hand-off into ingestion carry a formal sign off.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Loyalty Data Audit"
+  },
+  "output": {
+    "gist": "The hand off into ingestion for loyalty data keeps coming up in efficiency discussions.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the hand-off process is a recurring topic in efficiency discussions, which is a factual observation about the state of the project without expressing a desire for change, a refusal, or an accepted trade-off."
+  }
+}

@@ -92,6 +92,16 @@ def candidate_changes(
             higher = [level for level in graph.allowed_for(target, axis) if level > state.value(target, axis)]
             if higher:
                 consider(target, min(higher), axis)
+
+    # A governance raise on an unimplemented target needs its implementing automation step as a
+    # candidate too, or `_implementation_pairs` has nothing to pair it with (the next step may be < MANUAL).
+    for change in list(candidates):
+        current = state.value(change.target, "automation")
+        if change.axis == "governance" and current < AutomationState.MANUAL:
+            implementing = [lv for lv in graph.allowed_for(change.target, "automation")
+                            if lv >= AutomationState.MANUAL and lv > current]
+            if implementing:
+                consider(change.target, min(implementing), "automation")
     return candidates
 
 

@@ -1,0 +1,52 @@
+{
+  "item_id": "artifacts:gen_nightly_window_miss_fact_ver_missing",
+  "stage": "artifacts",
+  "input_hash": "d58da1cbd9b21b09e812928ecf6deac8c6557f5842e988f9a628c0f9702cf53c",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_nightly_window_miss_fact_ver_missing",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The data versioning step is missing from the pipeline. That is simply how the versioning setup works today.",
+      "fact": "The data versioning step is missing from the pipeline.",
+      "reading": "That is simply how the versioning setup works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "data.versioning",
+        "axis": "automation",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "narrator": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    },
+    "challenge": {
+      "name": "The Midnight Deadline",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "During the pipeline review, {data_dave} noted that the nightly ingestion jobs pull raw scan lines and stock receipts directly from the source systems without tagging a specific dataset version. When the weekly model retraining begins, the process simply loads the most recent files available in the shared storage bucket. There is no metadata layer recording which snapshot of the point of sale data corresponds to a specific forecast run. The infrastructure team confirmed that the current workflow relies on file timestamps to distinguish between yesterday's data and today's, and no separate registry exists to track historical data states for the distribution centre allocations.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the current state of the data pipeline and infrastructure without expressing any wishes, refusals, or explicit trade-offs."
+  }
+}

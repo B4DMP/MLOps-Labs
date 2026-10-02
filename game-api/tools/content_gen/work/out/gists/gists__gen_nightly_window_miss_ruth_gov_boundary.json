@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_ruth_gov_boundary",
+  "stage": "gists",
+  "input_hash": "0213e57323444863e260090f4157ddd6b713230de6ee071ff3b722100b9e55c6",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_ruth_gov_boundary",
+    "fact": "{reliability_ruth} noted that the validation step has no formal review process.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "The validation step's review process keeps coming up whenever the team talks to {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies that the validation review process is a recurring topic in discussions with a specific stakeholder, but it does not indicate whether this process is desired, refused, traded off, or simply a neutral fact about operations."
+  }
+}

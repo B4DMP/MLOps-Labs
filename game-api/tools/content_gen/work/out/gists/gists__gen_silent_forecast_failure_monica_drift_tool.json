@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_forecast_failure_monica_drift_tool",
+  "stage": "gists",
+  "input_hash": "ff54768f56be5d69a583f53042369bd27e2e5eb0a93d2c82a80da1f7d03b2005",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_silent_forecast_failure_monica_drift_tool",
+    "fact": "{model_monica} asked for the production drift monitoring to be automated with a dedicated tool.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Warehouse Flood"
+  },
+  "output": {
+    "gist": "Drift detection for the forecast model in production is the subject of a note from {model_monica}.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist merely identifies drift detection for a forecast model as the subject of a note without expressing a stance, direction, or commitment to any specific reading."
+  }
+}

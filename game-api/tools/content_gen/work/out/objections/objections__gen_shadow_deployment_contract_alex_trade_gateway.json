@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_shadow_deployment_contract_alex_trade_gateway",
+  "stage": "objections",
+  "input_hash": "c9a944418701abc958facc8158db44bc98aaf4f85a80166fdadde0cb004c96d9",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_alex_trade_gateway",
+      "challenge_id": -1,
+      "stakeholder_id": "automation_alex",
+      "type": "trade_off",
+      "description": "{automation_alex} proposed leaving the hand-off into the gateway exactly as it runs today. He would accept that hand-off staying as it runs today if the shadow chain moves instead.",
+      "fact": "{automation_alex} proposed leaving the hand-off into the gateway exactly as it runs today.",
+      "reading": "He would accept that hand-off staying as it runs today if the shadow chain moves instead.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "e.serving_gateway",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "automation_alex",
+      "name": "Automation Alex",
+      "role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling."
+    }
+  },
+  "output": {
+    "objection": "I proposed keeping the gateway hand-off exactly as it runs today, not removing it. If you move the shadow chain, I will accept that trade-off, but you must acknowledge that the current manual step stays in place.",
+    "correction": "You filed this under infrastructure risk, but I was talking about the deployment boundary. I am not asking to change the tooling, I am asking you to recognize that the gateway hand-off remains a manual step in this plan."
+  }
+}

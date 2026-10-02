@@ -1,7 +1,7 @@
 {
   "item_id": "artifacts:gen_silent_ingestion_failure_dave_driver_validation",
   "stage": "artifacts",
-  "input_hash": "c851c200c2d304ef1204a971836d31b9ac0f5937b0d207719725de6cf446e330",
+  "input_hash": "a960973be1a2a782c37fb6e86f1d04c2f10235c557e1a6722d3f560dc0c0a67e",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -10,12 +10,13 @@
       "challenge_id": -1,
       "stakeholder_id": "data_dave",
       "type": "driver",
-      "description": "{data_dave} asked for automated data validation to improve data quality. The more automated the validation, the fewer data errors reach the model.",
-      "fact": "{data_dave} asked for automated data validation to improve data quality.",
-      "reading": "The more automated the validation, the fewer data errors reach the model.",
+      "description": "{data_dave} asked for automated data validation on the incoming scan lines. He wants to automate validation to catch errors early.",
+      "fact": "{data_dave} asked for automated data validation on the incoming scan lines.",
+      "reading": "He wants to automate validation to catch errors early.",
       "metric_id": "data",
       "suggested": {
         "target": "data.validation",
+        "axis": "automation",
         "level": 3
       },
       "holds": null,
@@ -41,10 +42,8 @@
     }
   },
   "output": {
-    "content": "I need the ingestion pipeline to handle validation automatically for every store batch. Right now, if a northern store drops its till scan lines, the feature store just accepts the gap as zero demand. I want the system to flag missing or malformed records before they reach the model, without waiting for a human to check the logs. The more of this process that runs on its own, the fewer bad data points slip through to the forecast. I am looking for a setup where the pipeline itself catches the errors, so we stop relying on manual spot checks to keep the data clean.",
+    "content": "I want to automate the validation checks on the incoming till scan lines. Right now, catching a missing batch from the northern stores relies on someone noticing the gap in the feature store, which is too slow. I need a system that flags anomalies automatically the moment data lands. The more stores and articles we process, the more critical this becomes. I am looking for a solution that scales with our volume, so that every single scan line is verified before it touches the model. The goal is to eliminate the blind spots that let a silent ingestion failure slip through to the forecast job.",
     "reclassified_as": "driver",
-    "reclassify_reason": "The author explicitly states that increasing the level of automated validation will result in fewer bad data points, indicating that doing more than the minimum requested (full automation) directly increases their satisfaction.",
-    "humor_status": "selected",
-    "humor_archetype": "Silence mistaken for testimony"
+    "reclassify_reason": "The author explicitly states a need for automated, scalable validation to eliminate blind spots, and would be happier with a solution that scales with volume to ensure every scan line is verified, indicating a desire for more than the minimum asked."
   }
 }

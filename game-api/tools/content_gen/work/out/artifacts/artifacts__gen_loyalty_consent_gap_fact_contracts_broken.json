@@ -1,18 +1,18 @@
 {
   "item_id": "artifacts:gen_loyalty_consent_gap_fact_contracts_broken",
   "stage": "artifacts",
-  "input_hash": "3c96059100a5f3d36347ed139191cc399eefbc198c192ff2eea4ead4a5c120d8",
+  "input_hash": "e5b30bb8441a887ca264e475c58778ee06a66f4e8dd728e023b0c0ad9a7deecc",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 1,
+  "attempts": 2,
   "inputs": {
     "requirement": {
       "id": "gen_loyalty_consent_gap_fact_contracts_broken",
       "challenge_id": -1,
       "stakeholder_id": null,
       "type": "fact",
-      "description": "The data contracts are broken and do not validate consent records. The data contracts exist but the validation logic for consent records has stopped working.",
-      "fact": "The data contracts are broken and do not validate consent records.",
-      "reading": "The data contracts exist but the validation logic for consent records has stopped working.",
+      "description": "Data contracts are broken; the consent fields are gone from the schema. That is simply the state the data contracts schema is in right now.",
+      "fact": "Data contracts are broken; the consent fields are gone from the schema.",
+      "reading": "That is simply the state the data contracts schema is in right now.",
       "metric_id": null,
       "suggested": null,
       "holds": null,
@@ -45,8 +45,8 @@
     "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "The consent record validation module in the data contracts is currently non functional. It used to flag missing consent flags before loyalty basket data entered the pipeline, but the checks have stopped executing. The team now runs a manual script every morning to sample a small batch of incoming records and visually confirm the consent fields are present. This manual spot check is the only active control right now. The automated validation logic remains in the codebase but fails silently when it encounters the new data schema. We are relying on this manual process to catch obvious gaps before the data reaches the feature store.",
+    "content": "I was checking the loyalty basket feed this morning and noticed the consent fields are no longer present in the incoming schema. The data contracts that used to validate those columns are currently broken, so the automated checks just skip them without flagging an error. The team has started manually reviewing the raw payloads before they hit the staging area to see if the consent flags are still there. This manual step depends on whoever is on shift at the time. I am just noting that the validation layer is not catching the missing fields right now, and the manual spot checks are the only thing standing between the raw feed and the downstream models.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text describes the current operational state of the validation module and the reliance on manual checks without expressing a wish, refusal, or explicit trade-off."
+    "reclassify_reason": "The text explicitly states the author is 'just noting' the current state of the validation layer and the reliance on manual checks, without expressing a wish, refusal, or specific need that would change with additional effort."
   }
 }

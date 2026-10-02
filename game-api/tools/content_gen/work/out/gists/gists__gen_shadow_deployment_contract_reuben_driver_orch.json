@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_reuben_driver_orch",
+  "stage": "gists",
+  "input_hash": "66010f8b8b206e0ae4df9ac986d0928d86e5ac1133bed2ec579eb35193d1a70a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_reuben_driver_orch",
+    "fact": "{requirements_reuben} proposed moving the hand-off into orchestration off manual triggering.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "Requirements for the orchestration hand-off process are the subject of the current proposal discussion.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the subject of discussion as requirements for the orchestration hand-off process but does not commit to a specific stance such as wanting more, refusing, trading off, or stating a fact about the current state."
+  }
+}

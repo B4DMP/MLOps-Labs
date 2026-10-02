@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_reuben_lv_tradeoff",
+  "stage": "gists",
+  "input_hash": "d939eb498c19d08f8f129220cd0c5ad069dedae60b39476f0e5cc02a21032525",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_reuben_lv_tradeoff",
+    "fact": "{requirements_reuben} mentioned that the hand-over from labeling to versioning is done by hand.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "The manual hand-over from labeling to versioning keeps coming up in discussions with {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a specific process issue (manual hand-over) in discussions with a requirements stakeholder, but it does not state a direction, refusal, trade-off, or factual commitment regarding the metric itself."
+  }
+}

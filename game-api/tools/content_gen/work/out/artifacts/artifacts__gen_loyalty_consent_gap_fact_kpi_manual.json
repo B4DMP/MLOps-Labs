@@ -1,0 +1,52 @@
+{
+  "item_id": "artifacts:gen_loyalty_consent_gap_fact_kpi_manual",
+  "stage": "artifacts",
+  "input_hash": "740c12f02933424be34f77740dc61d975465386308ca64ab4c0803dae4f95ad5",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_loyalty_consent_gap_fact_kpi_manual",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "KPI definitions are still agreed on by hand each cycle. That is simply how the KPI definitions get agreed on today.",
+      "fact": "KPI definitions are still agreed on by hand each cycle.",
+      "reading": "That is simply how the KPI definitions get agreed on today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "req.kpi_definition",
+        "axis": "automation",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "narrator": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    },
+    "challenge": {
+      "name": "The Loyalty Data Audit",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "During the sprint review, {requirements_reuben.first} walked through the data pipeline for the loyalty basket feed. He noted that the definition of a valid basket transaction is not stored in the configuration repository. Instead, the team meets every two weeks to discuss edge cases, such as split receipts or returns. These decisions are typed into a shared document by hand. The document is then pasted into the validation script for the next cycle. {requirements_reuben.first} pointed to the script, which contains no reference to a versioned policy file. The process relies entirely on the manual update to the script to reflect the latest consensus from the meeting.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the current manual process for updating validation scripts and notes the absence of a versioned policy file, without expressing any wishes, refusals, or stated needs."
+  }
+}

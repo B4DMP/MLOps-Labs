@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_committed_pallets_emilia_risk_trade",
+  "stage": "objections",
+  "input_hash": "ad269f5e4d9a7c5b1c3b158751356543c34511ebc677fc9f85778335653ad658",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_committed_pallets_emilia_risk_trade",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} proposed that the risk assessment can remain manual for this specific high risk scenario. She would accept the risk assessment staying manual if the criteria are governed.",
+      "fact": "{efficiency_emilia} proposed that the risk assessment can remain manual for this specific high risk scenario.",
+      "reading": "She would accept the risk assessment staying manual if the criteria are governed.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "req.risk_assessment",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are treating my manual risk assessment as a cost saving, but it is a deliberate control for high risk scenarios. I need that trade off explicitly acknowledged in the project plan so we do not lose the governance layer.",
+    "correction": "I did not say the process should stay manual because it is cheaper or easier. I said the criteria must be governed, even if the execution remains manual for now."
+  }
+}

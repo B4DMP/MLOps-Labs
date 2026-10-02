@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_data_deployment_block_emilia_orch_trade",
+  "stage": "gists",
+  "input_hash": "6238ff48f20e17b93fe7411958f2e409ae66440193db60dfb9955db99190ec38",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_loyalty_data_deployment_block_emilia_orch_trade",
+    "fact": "{efficiency_emilia} mentioned that the orchestration layer can be kept manual if it reduces the complexity of the deployment.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Gap"
+  },
+  "output": {
+    "gist": "The orchestration layer and its deployment complexity keep coming up in talks with {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies deployment complexity as a recurring topic of discussion but does not specify whether it is viewed as a driver for improvement, a boundary to avoid, a trade-off to accept, or a simple fact."
+  }
+}

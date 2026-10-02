@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_emilia_driver_gateway",
+  "stage": "gists",
+  "input_hash": "99f6482cb73910a5518e7fc9c214f684ee5ff12983a974c93d6664beafa4484d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_emilia_driver_gateway",
+    "fact": "{efficiency_emilia} proposed giving the gateway its own automatic handling instead of leaving it as is.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The gateway's manual processing workflow has been raised by {efficiency_emilia} as a topic for discussion.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist merely states that a manual workflow was raised as a topic for discussion, without indicating any specific stance, direction, or commitment to change."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_alex_trade_automation_metric",
+  "stage": "gists",
+  "input_hash": "2b13bb2b9e896abd732fad2c65724cbc8f5676951134f7e8c10ee4739b321ab8",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_alex_trade_automation_metric",
+    "fact": "{automation_alex} proposed trading part of his automation budget for faster progress on the shadow hand-off.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The shadow hand-off process and its place in the automation budget keeps coming up in planning discussions.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes that the shadow hand-off process and its automation budget are recurring topics in planning, but it does not express a desire for more automation, a refusal, a trade-off, or a definitive factual statement about the current state, merely highlighting its prominence in discussions."
+  }
+}

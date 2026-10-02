@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_override_blind_spot_monica_driver_registry",
+  "stage": "objections",
+  "input_hash": "1f543ab23adfbbb874c847603eb4208764f046912b33e7cb2b1bc35cf8a3bdaa",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_override_blind_spot_monica_driver_registry",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} asked for the model registry to be fully automated to ensure traceability. {model_monica} wants the registry to be automated so that every deployment is traceable and reproducible.",
+      "fact": "{model_monica} asked for the model registry to be fully automated to ensure traceability.",
+      "reading": "{model_monica} wants the registry to be automated so that every deployment is traceable and reproducible.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "model.registry",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "I need the registry to automate every deployment step so I can trace exactly which model version produced each forecast. The current plan leaves too much manual logging for me to rely on it for reproducibility.",
+    "correction": "I am not asking for a human approval gate on every model push, but I do need the tooling to handle the versioning and metadata automatically. Please file this under automation, not governance, because the issue is the lack of tooling, not the lack of review."
+  }
+}

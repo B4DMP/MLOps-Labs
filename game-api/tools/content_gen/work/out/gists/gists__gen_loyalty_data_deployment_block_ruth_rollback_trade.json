@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_data_deployment_block_ruth_rollback_trade",
+  "stage": "gists",
+  "input_hash": "ebbe088ebb691bca10373d79527ff3438131bacc95fbd81e68febf0b74bd450a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_loyalty_data_deployment_block_ruth_rollback_trade",
+    "fact": "{reliability_ruth} mentioned that the rollback process can remain manual if the serving endpoint is stable.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Gap"
+  },
+  "output": {
+    "gist": "The manual rollback process for the serving endpoint keeps coming up in reliability reviews.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a specific process issue within the context of reliability reviews but does not explicitly demand a change, refuse a constraint, accept a trade-off, or state a neutral fact about the current state beyond its existence in reviews."
+  }
+}

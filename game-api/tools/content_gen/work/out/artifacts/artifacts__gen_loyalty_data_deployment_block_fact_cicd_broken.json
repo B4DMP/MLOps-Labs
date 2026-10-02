@@ -1,18 +1,18 @@
 {
   "item_id": "artifacts:gen_loyalty_data_deployment_block_fact_cicd_broken",
   "stage": "artifacts",
-  "input_hash": "ff9194476f2fdf714767d02baec10334d8b5f27c854c99f54a9492f662a243e1",
+  "input_hash": "8e82a94828687cb6499c66458d95d456e375cf869e415334f658c8e9f1971250",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 1,
+  "attempts": 2,
   "inputs": {
     "requirement": {
       "id": "gen_loyalty_data_deployment_block_fact_cicd_broken",
       "challenge_id": -1,
       "stakeholder_id": null,
       "type": "fact",
-      "description": "The CI/CD pipeline is broken. That is simply how the CI/CD pipeline is working today.",
-      "fact": "The CI/CD pipeline is broken.",
-      "reading": "That is simply how the CI/CD pipeline is working today.",
+      "description": "The CI/CD pipeline is currently broken and cannot deploy new model versions. That is simply how the pipeline is functioning right now.",
+      "fact": "The CI/CD pipeline is currently broken and cannot deploy new model versions.",
+      "reading": "That is simply how the pipeline is functioning right now.",
       "metric_id": null,
       "suggested": null,
       "holds": null,
@@ -45,8 +45,8 @@
     "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "{automation_alex} noted that the CI/CD pipeline for the Shelfcast forecasting service is currently broken. The automated build and deployment steps stopped functioning after the last infrastructure update. The team no longer relies on the pipeline to push model updates. Instead, engineers manually trigger the build process from their local machines and copy the resulting artifacts to the staging environment by hand. This manual procedure is the standard practice for releasing new model versions right now. The pipeline remains configured in the repository, but no automated runs have completed successfully since the incident. {automation_alex.first} confirmed that the workaround is stable for the immediate term, though it requires direct intervention from the engineering staff for every single deployment.",
+    "content": "During the infrastructure sync, {automation_alex} mentioned that the CI/CD pipeline for model deployment is currently broken. The automated build and release steps have stalled, so the team cannot push new model versions through the usual tooling. To keep the nightly forecast running, the engineers are manually copying the trained model artifacts to the serving environment and restarting the containers by hand. This manual workaround is how the weekly retraining cycle currently proceeds. {automation_alex.first} noted that the underlying scripts exist but fail at the final deployment stage, forcing the team to bypass the automated checks entirely to get the new weights live.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The artifact describes the current operational state and manual workaround without expressing any wishes, refusals, or stated trade-offs regarding what the team is willing to give up or accept."
+    "reclassify_reason": "The text describes the current operational state of the CI/CD pipeline and the manual workaround being used, without expressing any wishes, refusals, or stated trade-offs."
   }
 }

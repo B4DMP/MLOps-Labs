@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_ruth_boundary_shadow",
+  "stage": "gists",
+  "input_hash": "eec37e28f5f17821a1185439ee54055ad386f6f8dfce13cd0f067202155eb84b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_ruth_boundary_shadow",
+    "fact": "{reliability_ruth} proposed that shadow deployment carry a formal sign off before anything ships through it.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "Shadow deployment reliability and the formal sign off required before shipping have been raised.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions that reliability concerns and sign-off requirements have been raised, but it does not indicate a specific stance such as demanding more reliability, refusing a trade-off, or accepting a loss."
+  }
+}

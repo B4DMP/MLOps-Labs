@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_consent_gap_ruth_boundary",
+  "stage": "gists",
+  "input_hash": "ca391fff0c35c39b7ee3beca8fb083e3edb1fd4366718199f45e4782727943dd",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_loyalty_consent_gap_ruth_boundary",
+    "fact": "{reliability_ruth} proposed that the hand-off into model evaluation carry a formal sign off.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Loyalty Data Audit"
+  },
+  "output": {
+    "gist": "The reliability of the hand-off into model evaluation is the subject of a note from {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies reliability as the subject of a note but does not express a stance, demand, refusal, or acceptance regarding it."
+  }
+}

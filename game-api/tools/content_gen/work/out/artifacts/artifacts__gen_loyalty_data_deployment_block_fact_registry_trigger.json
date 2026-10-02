@@ -1,18 +1,18 @@
 {
   "item_id": "artifacts:gen_loyalty_data_deployment_block_fact_registry_trigger",
   "stage": "artifacts",
-  "input_hash": "b103bbb5f19cfd53172f39b140094756b576b862f1ef31a7f002af261dd4070a",
+  "input_hash": "062f4407e90590390cc754261f5652fc0e05dc1dc1ca66e6c0de292599b1a615",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 5,
+  "attempts": 3,
   "inputs": {
     "requirement": {
       "id": "gen_loyalty_data_deployment_block_fact_registry_trigger",
       "challenge_id": -1,
       "stakeholder_id": null,
       "type": "fact",
-      "description": "The hand-over from the model registry to the CI/CD pipeline is triggered by a manual request. That is simply how the hand-over from the model registry to the CI/CD pipeline is triggered today.",
+      "description": "The hand-over from the model registry to the CI/CD pipeline is triggered by a manual request. That is simply how the hand-over is set up today.",
       "fact": "The hand-over from the model registry to the CI/CD pipeline is triggered by a manual request.",
-      "reading": "That is simply how the hand-over from the model registry to the CI/CD pipeline is triggered today.",
+      "reading": "That is simply how the hand-over is set up today.",
       "metric_id": null,
       "suggested": null,
       "holds": null,
@@ -44,8 +44,8 @@
     }
   },
   "output": {
-    "content": "I was checking the build logs for the last three forecast model releases. The hand-over from the model registry to the CI/CD pipeline is triggered by a manual request. An engineer initiates the process by hand after the model is registered. There is no automated hook moving the artifact into the deployment pipeline. The timing of the deployment depends on when someone clicks the button.",
+    "content": "I was tracing the deployment logs for the nightly forecast job and noticed the hand-over between the model registry and the CI/CD pipeline. The registry does not push the new artifact directly to the pipeline. Instead, the pipeline waits for a manual request to start the integration. Someone has to go into the interface and click the button to trigger the build. It is a human action sitting between the model being ready and the pipeline picking it up. The connection is set up this way in the current setup, right in the middle of the automated flow.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text objectively describes the current manual workflow for model deployment without expressing any wishes, refusals, or stated needs."
+    "reclassify_reason": "The text describes the current operational state of the deployment pipeline, specifically noting the existence of a manual trigger, without expressing any wishes, refusals, or stated trade-offs."
   }
 }

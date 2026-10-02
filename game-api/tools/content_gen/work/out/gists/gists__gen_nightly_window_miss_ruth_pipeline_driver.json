@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_ruth_pipeline_driver",
+  "stage": "gists",
+  "input_hash": "f16fb65399353b90b2142deb52d84e59aec938357aa574599ba2a977c174f45a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_ruth_pipeline_driver",
+    "fact": "{reliability_ruth} asked for the nightly data pipeline to run on its own.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "The unattended operation of the nightly data pipeline keeps coming up whenever you talk to {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a topic (unattended operation of the pipeline) associated with a stakeholder but does not express a specific stance, direction, or commitment to a reading."
+  }
+}

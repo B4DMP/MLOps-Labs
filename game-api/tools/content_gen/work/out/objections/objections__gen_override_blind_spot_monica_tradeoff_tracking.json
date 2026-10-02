@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_override_blind_spot_monica_tradeoff_tracking",
+  "stage": "objections",
+  "input_hash": "cdb5688d534b137a5b3c65c72473d7145c9cbc072c6adcb8fb3b4127df35e35f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_override_blind_spot_monica_tradeoff_tracking",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} suggested keeping experiment tracking without formal review to focus on registry automation. {model_monica} is willing to keep experiment tracking without formal review to prioritize registry automation.",
+      "fact": "{model_monica} suggested keeping experiment tracking without formal review to focus on registry automation.",
+      "reading": "{model_monica} is willing to keep experiment tracking without formal review to prioritize registry automation.",
+      "metric_id": "model",
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.experiment_tracking",
+        "axis": "governance",
+        "accepts_max_level": 0
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "You are treating my request to skip formal review on experiment tracking as a free pass to ignore governance, but I am only asking to focus our limited effort on automating the registry first. Please acknowledge that I am explicitly choosing to leave that specific step manual for now so we can ship the automation.",
+    "correction": "You have filed this under a governance failure, but I am talking about prioritizing automation of the model registry. I am not refusing to review the models, I am simply saying we will not build a formal sign off process for every single experiment run right now."
+  }
+}

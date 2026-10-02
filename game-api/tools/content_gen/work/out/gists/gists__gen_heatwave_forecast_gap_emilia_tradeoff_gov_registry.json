@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_emilia_tradeoff_gov_registry",
+  "stage": "gists",
+  "input_hash": "99a26addd501ef1bbe579646c9026240335abedf7430ba10b9b210e38990582a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_emilia_tradeoff_gov_registry",
+    "fact": "{efficiency_emilia} suggested that the model registry could be left without formal sign-off to speed up deployment.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "Formal sign-off for the model registry has been raised as a potential bottleneck for deployment speed.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a process step as a potential bottleneck affecting speed, which relates to efficiency, but it does not commit to a specific stance such as demanding more speed, refusing the bottleneck, accepting a trade-off, or stating a definitive fact about its current impact."
+  }
+}

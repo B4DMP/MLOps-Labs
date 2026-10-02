@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_reuben_boundary_gov_eval",
+  "stage": "gists",
+  "input_hash": "a6d1a29a81ca7bf6e9a7202d2714753337c0dec108f4b97a56ffe3ebfec4fe61",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_reuben_boundary_gov_eval",
+    "fact": "{requirements_reuben} noted that the model evaluation harness has no formal review process.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "The model evaluation harness and its formal review process have been raised by {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a specific stakeholder and process but does not indicate a directional stance, preference, or constraint regarding the metric."
+  }
+}

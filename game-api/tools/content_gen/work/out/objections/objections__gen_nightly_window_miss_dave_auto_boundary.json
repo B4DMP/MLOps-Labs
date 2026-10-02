@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_nightly_window_miss_dave_auto_boundary",
+  "stage": "objections",
+  "input_hash": "59975dbfb826151cfcf1706416240df7e6830586505f9cb9f6c01fa88caa964e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_nightly_window_miss_dave_auto_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "data_dave",
+      "type": "boundary",
+      "description": "{data_dave} insisted on keeping the validation process manual for now. He will not allow the validation step to be automated because the infrastructure costs are too high.",
+      "fact": "{data_dave} insisted on keeping the validation process manual for now.",
+      "reading": "He will not allow the validation step to be automated because the infrastructure costs are too high.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "data.validation",
+        "axis": "automation",
+        "op": "lte",
+        "level": 1
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.validation",
+          "axis": "automation",
+          "value": 1
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "objection": "I am not automating the validation step because the infrastructure costs are too high. We will keep this process manual for now.",
+    "correction": "I am not refusing to improve data quality, I am refusing to pay for that specific automation right now. Do not misread my cost constraint as a lack of interest in robust operations."
+  }
+}

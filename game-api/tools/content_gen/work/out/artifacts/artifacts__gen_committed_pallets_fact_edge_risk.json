@@ -1,0 +1,52 @@
+{
+  "item_id": "artifacts:gen_committed_pallets_fact_edge_risk",
+  "stage": "artifacts",
+  "input_hash": "947adfc424751f519c9a373dd8d44e1cd2a116a9ba606278028fc9015f68e1fb",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_committed_pallets_fact_edge_risk",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The hand over from risk assessment to acceptance criteria is missing. That is simply how the hand over setup works today.",
+      "fact": "The hand over from risk assessment to acceptance criteria is missing.",
+      "reading": "That is simply how the hand over setup works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.risk_acceptance",
+        "axis": "automation",
+        "level": 1,
+        "trigger": "none"
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "narrator": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    },
+    "challenge": {
+      "name": "The Committed Pallets",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "During the latest sprint review, I observed the workflow between the security team and the development leads. The risk assessment document is finalized and stored in the compliance repository. Separately, the acceptance criteria for the new feature are drafted in the project management tool. There is no automated link or shared template connecting these two artifacts. Engineers currently copy and paste relevant risk notes into the acceptance criteria by hand. I counted the time spent on this manual transcription during the last two sprints. It averaged forty five minutes per feature. The process relies entirely on individual memory to ensure every identified risk has a corresponding test case. No system prompt or validation step exists to catch a missing criterion before the code is merged.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text consists entirely of objective observations regarding the current workflow, specific time measurements, and the absence of automation, without expressing any wishes, refusals, or stated trade-offs."
+  }
+}

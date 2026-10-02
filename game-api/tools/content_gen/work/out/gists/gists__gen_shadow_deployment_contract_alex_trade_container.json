@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_alex_trade_container",
+  "stage": "gists",
+  "input_hash": "aacd40832ac53ea8a1d56db058cb2fc64e3dcf0883f374a3ef9c20f463b3944d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_alex_trade_container",
+    "fact": "{automation_alex} proposed keeping containerization capped at its current hands on setup for now.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The current hands on containerization setup is the specific topic {automation_alex} has brought to the team discussion.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a specific topic (containerization) brought to discussion but does not indicate whether the stakeholder wants to increase automation, refuses it, accepts a trade-off, or is simply stating a fact about the current state."
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_override_blind_spot_emilia_tradeoff_cost",
+  "stage": "objections",
+  "input_hash": "ceae5799829631aef64ee744e96072958b8f09ce9771e3cf040d2c550defab23",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_override_blind_spot_emilia_tradeoff_cost",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} suggested keeping the training pipeline without formal review to reduce costs. {efficiency_emilia} is willing to keep the training pipeline without formal review to reduce costs.",
+      "fact": "{efficiency_emilia} suggested keeping the training pipeline without formal review to reduce costs.",
+      "reading": "{efficiency_emilia} is willing to keep the training pipeline without formal review to reduce costs.",
+      "metric_id": "efficiency",
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.training_pipeline",
+        "axis": "governance",
+        "accepts_max_level": 0
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are framing my cost saving as a blind spot, but I am deliberately choosing to skip the formal sign off to keep the weekly retraining cheap and fast. I need you to acknowledge that this is a calculated trade off against our budget, not a gap in your process.",
+    "correction": "Stop treating my position as a lack of awareness; I fully understand the risk of an unreviewed training pipeline. I am simply prioritizing operational speed and cost efficiency over that specific layer of governance for the training pipeline."
+  }
+}

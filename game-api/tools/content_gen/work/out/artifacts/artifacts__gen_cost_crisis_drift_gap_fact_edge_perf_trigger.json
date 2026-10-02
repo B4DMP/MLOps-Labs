@@ -1,0 +1,52 @@
+{
+  "item_id": "artifacts:gen_cost_crisis_drift_gap_fact_edge_perf_trigger",
+  "stage": "artifacts",
+  "input_hash": "b4ca86448e8366f94e0bd145e362850bd146a17083fe9a40101199c43e7d794b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_fact_edge_perf_trigger",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The hand-over from observability to performance monitoring has no trigger. The hand-over is currently set to wait for a manual request before it runs.",
+      "fact": "The hand-over from observability to performance monitoring has no trigger.",
+      "reading": "The hand-over is currently set to wait for a manual request before it runs.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.observe_perf",
+        "axis": "automation",
+        "level": 1,
+        "trigger": "none"
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "narrator": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Cost Cliff",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "The transition from the observability phase to active performance monitoring does not start on its own. It sits idle until a human sends a request. I watched the system during last Tuesday's deployment. The observability checks finished at 14:00, but the performance monitoring suite did not begin until 16:30. The gap existed because no one had triggered the switch. The logs show a manual command entered by an engineer at that time. Without that specific input, the monitoring tools remain in a waiting state. The system does not detect the completion of observability tasks and initiate the next step by itself. It relies entirely on an external signal to proceed.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the system's operational behavior and a specific observed event without expressing any wishes, refusals, or trade-offs."
+  }
+}

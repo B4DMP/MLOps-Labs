@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_dave_vv_tradeoff",
+  "stage": "gists",
+  "input_hash": "3c0103271b6bb90b2263df8191c31f60ec1763e02634daffd5ff5fedf5616ac4",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_dave_vv_tradeoff",
+    "fact": "{data_dave} brought up that the hand-over from validation to versioning is done by hand.",
+    "metric_id": "data",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "The data hand-over from validation to versioning keeps coming up whenever you talk to {data_dave}.",
+    "verdict_metric_id": "data",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a recurring topic in discussions with a data stakeholder but does not express a stance, preference, or constraint regarding the data process."
+  }
+}

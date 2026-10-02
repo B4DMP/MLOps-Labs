@@ -1,18 +1,18 @@
 {
   "item_id": "artifacts:gen_cost_crisis_drift_gap_fact_drift_broken",
   "stage": "artifacts",
-  "input_hash": "0772abbb33c6a36cf3b1f2c9cc8243f2919c3e9e261bd44d82ff6ef32bb9d148",
+  "input_hash": "e007c5ea9852cfaf283c1a324b7397fe5e8f8d06284c1af7b114687ab603d294",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 2,
+  "attempts": 1,
   "inputs": {
     "requirement": {
       "id": "gen_cost_crisis_drift_gap_fact_drift_broken",
       "challenge_id": -1,
       "stakeholder_id": null,
       "type": "fact",
-      "description": "The production drift monitoring is broken. The tool exists but has stopped working and is not producing any output.",
+      "description": "The production drift monitoring is broken. The drift monitoring tool exists but is currently not producing any output.",
       "fact": "The production drift monitoring is broken.",
-      "reading": "The tool exists but has stopped working and is not producing any output.",
+      "reading": "The drift monitoring tool exists but is currently not producing any output.",
       "metric_id": null,
       "suggested": null,
       "holds": null,
@@ -45,8 +45,8 @@
     "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "The drift monitoring service for the nightly forecast job is currently silent. The process is running, but no metrics are being written to the dashboard. The team is checking prediction variance by hand. We pull the last two weeks of forecast errors for a sample of stores and compare them against the baseline. This manual check happens before the weekly retraining cycle.",
+    "content": "The drift monitor on the production forecast stopped producing its nightly comparison three weeks ago. The job still starts on schedule, but it exits halfway through and writes an empty report. Since then I open the store-level forecast logs every Monday morning and compare last week's predicted sales against the till totals in a spreadsheet. When a store's numbers differ by more than about ten percent, I post the store number in the forecast channel and {model_monica} takes a look. Last Monday that was four stores in the northern region. The broken job is still listed in the scheduler, and its last full report is dated the first week of the month.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text describes the current operational status and the manual workaround procedure without expressing any wishes, refusals, or explicit trade-offs."
+    "reclassify_reason": "The text describes the current operational status of a broken job and the manual workaround being used, without expressing a wish, refusal, acceptance, or stated need for change."
   }
 }

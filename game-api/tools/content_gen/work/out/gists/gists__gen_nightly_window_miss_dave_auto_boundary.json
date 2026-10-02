@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_dave_auto_boundary",
+  "stage": "gists",
+  "input_hash": "40cb734868e8b0e56635bfe54143bd673fff318d71d925b09c19fd55125c38de",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_dave_auto_boundary",
+    "fact": "{data_dave} insisted on keeping the validation process manual for now.",
+    "metric_id": "data",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "The manual validation process for data has been raised by {data_dave}.",
+    "verdict_metric_id": "data",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a specific process (manual validation) related to data but does not indicate whether this is a desired driver, a boundary, a trade-off, or a neutral fact without further context on the stakeholder's intent or evaluation."
+  }
+}

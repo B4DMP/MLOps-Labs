@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_alex_composite_driver",
+  "stage": "gists",
+  "input_hash": "bd7e71c7ff6e738ad6751f26003903eaece358211dc9a570370fe11421ab5db0",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_alex_composite_driver",
+    "fact": "{automation_alex} proposed wiring the registry hand-off straight through containerization into the shadow hand-off.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The registry hand-off through containerization into the shadow hand-off has been raised as a topic.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a specific process topic regarding registry and containerization hand-offs but does not express a stance, desire, refusal, or trade-off regarding it."
+  }
+}

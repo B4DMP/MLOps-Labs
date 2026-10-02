@@ -220,12 +220,14 @@ def assemble(ctx, dry_run: bool = False) -> dict:
         })
 
     objections = {"stance": [], "technical": []}
+    # Approved objections of retired item ids stay in the ledger; only ship those for assembled intel.
+    assembled_ids = {req.id for _, req in data["requirements"]}
     for key, rec in sorted(data["objections"].items()):
         out, i = rec["output"], rec["inputs"]
         if i["kind"] == "technical":
             objections["technical"].append({"component_id": i["component"]["id"], "stakeholder_id": i["speaker"]["id"],
                                             "text": out["line"]})
-        else:
+        elif i["requirement"]["id"] in assembled_ids:
             objections["stance"].append({"intel_id": i["requirement"]["id"], "stakeholder_id": i["speaker"]["id"],
                                          "kind": i["kind"], "text": out["objection"], "correction": out["correction"]})
 

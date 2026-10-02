@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_consent_gap_ruth_driver",
+  "stage": "gists",
+  "input_hash": "fbee52d27918a54d9af429619eb4945faa1ae74c22f489ba09f4e343b8e64c65",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_loyalty_consent_gap_ruth_driver",
+    "fact": "{reliability_ruth} proposed moving acceptance criteria checks off manual handling.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Loyalty Data Audit"
+  },
+  "output": {
+    "gist": "The reliability of loyalty data acceptance checks has been raised as a topic for review.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that reliability is a topic for review but does not specify whether it is a driver, boundary, trade-off, or fact, nor does it indicate a direction or commitment."
+  }
+}

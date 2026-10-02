@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_ruth_fs_tradeoff",
+  "stage": "gists",
+  "input_hash": "2100381d57841ee7944f036601b276b5942b633744a6b7bf30b3c25142b2a096",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_ruth_fs_tradeoff",
+    "fact": "{reliability_ruth} mentioned that the hand-over from versioning to the feature store is done by hand.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "The manual hand over from versioning to the feature store has been raised by {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a specific process gap (manual handover) raised by a stakeholder but does not explicitly state whether this is a driver for improvement, a boundary, a trade-off, or a neutral fact, nor does it explicitly link the manual process to a reliability concern in the text itself, though the stakeholder name suggests the context."
+  }
+}

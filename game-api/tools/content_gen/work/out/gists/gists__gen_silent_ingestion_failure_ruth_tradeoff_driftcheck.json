@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_ingestion_failure_ruth_tradeoff_driftcheck",
+  "stage": "gists",
+  "input_hash": "1d1025a3df053578a7506b68813a69c7d3518e13cb8df82ac57c2f5a362ae001",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_silent_ingestion_failure_ruth_tradeoff_driftcheck",
+    "fact": "{reliability_ruth} suggested keeping the drift check done by hand.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Store Gap"
+  },
+  "output": {
+    "gist": "The manual drift check for the nightly forecast job has been raised as a topic.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The statement identifies a manual reliability check as a topic but does not indicate whether it is a driver, boundary, trade-off, or fact."
+  }
+}

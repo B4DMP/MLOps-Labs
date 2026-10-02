@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_reuben_tradeoff_eval",
+  "stage": "gists",
+  "input_hash": "f3f756e418200ba098cd4275b4373168a6bbcdb3cd013a7449f7a75193f0435d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_reuben_tradeoff_eval",
+    "fact": "{requirements_reuben} suggested keeping model evaluation done by hand to ensure thorough review.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The question of who reviews model evaluation results and how that review is conducted has been raised by {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a specific governance question regarding the review process for model evaluations, which falls under requirements, but it does not express a stance, preference, or constraint, only noting that the question was raised."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_data_deployment_block_ruth_serving_driver",
+  "stage": "gists",
+  "input_hash": "2ae88a49cd1932ae32e4fde4ae476016d94b0e64c50a43bc3affe4e85fd6eb4c",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_loyalty_data_deployment_block_ruth_serving_driver",
+    "fact": "{reliability_ruth} proposed automating the hand-over from the serving endpoint to the API gateway.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Gap"
+  },
+  "output": {
+    "gist": "The hand over from the serving endpoint to the API gateway has been raised by {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that a reliability concern has been raised but does not specify whether it is a driver, boundary, trade-off, or simple fact about the current state."
+  }
+}

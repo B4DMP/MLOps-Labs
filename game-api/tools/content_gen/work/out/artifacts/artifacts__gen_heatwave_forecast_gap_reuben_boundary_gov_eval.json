@@ -1,0 +1,57 @@
+{
+  "item_id": "artifacts:gen_heatwave_forecast_gap_reuben_boundary_gov_eval",
+  "stage": "artifacts",
+  "input_hash": "9f78b626626a8c522d3ad5f9596a706e5cdbd3a8713abd9adfea1ac7627a11ea",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_reuben_boundary_gov_eval",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} noted that the model evaluation harness has no formal review process. {requirements_reuben.first} will not allow any model to be considered for deployment unless the evaluation harness has full formal governance.",
+      "fact": "{requirements_reuben} noted that the model evaluation harness has no formal review process.",
+      "reading": "{requirements_reuben.first} will not allow any model to be considered for deployment unless the evaluation harness has full formal governance.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "model.evaluation",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.evaluation",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "author": {
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    },
+    "challenge": {
+      "name": "The Heatwave Blind Spot",
+      "description": "A sudden heatwave has shifted demand for seasonal articles, and the current forecast is missing the mark. #model_monica# wants to automate the evaluation harness to test new weather features rapidly, while #requirements_reuben# wants to keep it manual to ensure every test case is rigorously documented before any model change is considered."
+    }
+  },
+  "output": {
+    "content": "I have reviewed the current workflow for the model evaluation harness. Right now, we run tests without any formal sign off. The logs sit in a shared drive, and nobody verifies that the weather feature cases were actually checked against the baseline. That is a gap I will not close by simply automating the pipeline. My line is firm. I will not allow any model to be considered for deployment unless the evaluation harness has full formal governance. If the documentation is not rigorous and the review is not strict, the change does not happen. I am not interested in speed if it means we lose the audit trail. We need to fix the process before we touch the code.",
+    "reclassified_as": "boundary",
+    "reclassify_reason": "The author explicitly defines a non-negotiable line where the lack of formal governance and audit trails constitutes a refusal to proceed, regardless of speed or other factors."
+  }
+}

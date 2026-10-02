@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_nightly_window_miss_emilia_lab_tradeoff",
+  "stage": "objections",
+  "input_hash": "25c1233ddf7bae27f160670afe01ab2ad1e8c2078101e7250c8b589259fb2a67",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_nightly_window_miss_emilia_lab_tradeoff",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted that the labeling pipeline is done by hand. She would accept the labeling remaining manual if the cost of automation exceeds the savings in labor.",
+      "fact": "{efficiency_emilia} noted that the labeling pipeline is done by hand.",
+      "reading": "She would accept the labeling remaining manual if the cost of automation exceeds the savings in labor.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "data.labeling",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are framing my labor cost analysis as a technical constraint when it is actually a strategic decision about resource allocation. I need the record to reflect that I am willing to keep this manual process if the automation spend does not justify the operational savings.",
+    "correction": "I did not say the labeling is broken or that we cannot afford the tools. I am evaluating whether the capital expenditure for automation yields a better return than the current manual effort within our broader efficiency roadmap."
+  }
+}

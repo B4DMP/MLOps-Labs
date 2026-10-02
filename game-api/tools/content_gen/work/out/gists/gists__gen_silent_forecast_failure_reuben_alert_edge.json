@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_forecast_failure_reuben_alert_edge",
+  "stage": "gists",
+  "input_hash": "5b1fa0ad328ea77e543c8ad9c6536b9cf9fa0d8eb562418b29f7ee91a80f2885",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_silent_forecast_failure_reuben_alert_edge",
+    "fact": "{requirements_reuben} mentioned that the hand-over from alerting to the rollback mechanism can remain manual if the full sign off is delayed.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Warehouse Flood"
+  },
+  "output": {
+    "gist": "Governance of the hand-over from alerting to the rollback mechanism is the subject of a note from {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a specific topic (governance of hand-over) as the subject of a note but does not express a stance, desire, or fact about the metric itself."
+  }
+}

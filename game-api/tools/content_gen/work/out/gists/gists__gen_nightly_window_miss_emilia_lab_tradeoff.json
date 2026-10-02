@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_emilia_lab_tradeoff",
+  "stage": "gists",
+  "input_hash": "1052f2fb3e7818e93cfb7ce8620fc981d8bbeccbd9182c6a29eb983b922f6bf0",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_emilia_lab_tradeoff",
+    "fact": "{efficiency_emilia} noted that the labeling pipeline is done by hand.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "The manual labeling pipeline has been raised by {efficiency_emilia} as a recurring topic in recent meetings.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist merely states that the manual labeling pipeline is a recurring topic raised by a stakeholder, without indicating a specific direction, refusal, or acceptance of loss regarding efficiency."
+  }
+}

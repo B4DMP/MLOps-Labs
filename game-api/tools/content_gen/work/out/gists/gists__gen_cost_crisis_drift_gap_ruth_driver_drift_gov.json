@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_ruth_driver_drift_gov",
+  "stage": "gists",
+  "input_hash": "6994f5532d14783316187d540cfa8c141645d4435eaba5cd3b0f0acaaaef24f4",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_ruth_driver_drift_gov",
+    "fact": "{reliability_ruth} asked for the drift monitoring to be governed.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "The governance status of drift monitoring keeps coming up in conversations with {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions that the governance status of drift monitoring is a recurring topic in conversations, but it does not express a desire for more monitoring (driver), a refusal (boundary), an accepted loss (trade_off), or a specific factual state of the system itself, making the reading neutral."
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_heatwave_forecast_gap_monica_auto_eval",
+  "stage": "objections",
+  "input_hash": "aa704d0c0d9403d2e2e1bec39badbea87708f73953f7fcb1acf1887cff4255b5",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_monica_auto_eval",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} asked for the model evaluation harness to run automatically when a new model version is ready. Rapid iteration on weather features is impossible if the evaluation step requires a human to trigger it every time.",
+      "fact": "{model_monica} asked for the model evaluation harness to run automatically when a new model version is ready.",
+      "reading": "Rapid iteration on weather features is impossible if the evaluation step requires a human to trigger it every time.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "model.evaluation",
+        "axis": "automation",
+        "level": 1
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "I need the evaluation harness to trigger automatically the moment a new model version is ready. If I have to wait for a human to click a button, I cannot iterate on the weather features fast enough.",
+    "correction": "You are treating this as a general reporting gap, but I am specifically asking for automated execution of the evaluation pipeline. The goal is to remove the manual trigger from the model deployment workflow entirely."
+  }
+}

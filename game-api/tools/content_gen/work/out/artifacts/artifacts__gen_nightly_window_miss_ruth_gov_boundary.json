@@ -1,0 +1,57 @@
+{
+  "item_id": "artifacts:gen_nightly_window_miss_ruth_gov_boundary",
+  "stage": "artifacts",
+  "input_hash": "ff855307b6c29dbf2c9a8b181a57c23126bcc9164aac79352de6982fde2553e0",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_nightly_window_miss_ruth_gov_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} noted that the validation step has no formal review process. She will not sign off on the forecast service if the validation rules are not formally reviewed.",
+      "fact": "{reliability_ruth} noted that the validation step has no formal review process.",
+      "reading": "She will not sign off on the forecast service if the validation rules are not formally reviewed.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "data.validation",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.validation",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "author": {
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Midnight Deadline",
+      "description": "The nightly data job is failing to finish before the store managers open the ordering app. #reliability_ruth# demands an automated validation layer to catch bad data instantly so the morning window is never missed again. #data_dave# insists on keeping the process manual for now, arguing that the infrastructure costs are too high and the current manual checks are sufficient to manage the risk."
+    }
+  },
+  "output": {
+    "content": "The nightly job is still missing the morning window, and I am not going to ship the new integration until we fix it. I need an automated validation layer that catches bad point of sale scans the moment they land. Manual checks are too slow and too error prone for a service that feeds every store order. But here is the line: I will not sign off on the forecast service if the validation rules are not formally reviewed. I need a documented approval process for any new rule before it goes live. Without that formal review, I am not touching the deployment. The current lack of governance is a blocker, not a detail, and it stays that way until it is resolved.",
+    "reclassified_as": "boundary",
+    "reclassify_reason": "The author explicitly defines the formal review and documented approval process as a non-negotiable line, stating they will refuse to sign off or deploy without it."
+  }
+}

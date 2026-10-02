@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_heatwave_forecast_gap_emilia_tradeoff_gov_registry",
+  "stage": "artifacts",
+  "input_hash": "4e309e42a97923cc098784c22d30280d411a7cfce31ca9fe54fe0f9f672e9cef",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_emilia_tradeoff_gov_registry",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} suggested that the model registry could be left without formal sign-off to speed up deployment. {efficiency_emilia.first} would accept a lack of governance on the registry if the deployment is fast.",
+      "fact": "{efficiency_emilia} suggested that the model registry could be left without formal sign-off to speed up deployment.",
+      "reading": "{efficiency_emilia.first} would accept a lack of governance on the registry if the deployment is fast.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.registry",
+        "axis": "governance",
+        "accepts_max_level": 0
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "author": {
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    },
+    "challenge": {
+      "name": "The Heatwave Blind Spot",
+      "description": "A sudden heatwave has shifted demand for seasonal articles, and the current forecast is missing the mark. #model_monica# wants to automate the evaluation harness to test new weather features rapidly, while #requirements_reuben# wants to keep it manual to ensure every test case is rigorously documented before any model change is considered."
+    }
+  },
+  "output": {
+    "content": "We can accept running the model registry without formal sign-off if it cuts the deployment window by half. The speed gain lets us test weather feature variations during the heatwave before the next leaflet prints. I am willing to let the registry stay ungoverned for this sprint to keep the pipeline moving. The trade is clear: we lose the strict documentation trail on the registry, but we gain the ability to iterate on allocation logic while the seasonal demand is still shifting. If we insist on full review before every registry entry, we miss the promotion week entirely and the residual stock hits the margin targets hard. I am comfortable taking that governance gap now to protect the commercial outcome.",
+    "reclassified_as": "trade_off",
+    "reclassify_reason": "The author explicitly accepts losing the strict documentation trail (governance) in exchange for gaining speed to meet commercial targets, which fits the definition of stating something they are willing to give up."
+  }
+}

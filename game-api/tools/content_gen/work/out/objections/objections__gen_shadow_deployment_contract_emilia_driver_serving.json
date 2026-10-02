@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_shadow_deployment_contract_emilia_driver_serving",
+  "stage": "objections",
+  "input_hash": "6d0104fd59ca36fa8df22448b8dca5c8ca1c47a040d2005666b72ac20b691d09",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_emilia_driver_serving",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} proposed moving model serving fully onto automatic handling. The less anyone has to touch serving by hand, the sooner promotion traffic gets handled.",
+      "fact": "{efficiency_emilia} proposed moving model serving fully onto automatic handling.",
+      "reading": "The less anyone has to touch serving by hand, the sooner promotion traffic gets handled.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "deploy.serving",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are treating serving latency as the only risk, but I care about the cost of that automation. We need the full operational picture before we commit to removing manual checks.",
+    "correction": "I did not just want speed, I wanted a business case that proves the automated serving is cheaper to run than the current manual process. You filed this as a technical preference, but it is a strategic cost decision."
+  }
+}

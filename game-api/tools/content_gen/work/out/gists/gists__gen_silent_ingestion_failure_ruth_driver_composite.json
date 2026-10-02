@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_ingestion_failure_ruth_driver_composite",
+  "stage": "gists",
+  "input_hash": "ba5dba149fecd0c07f2ba88fb2effa9295ab772fa9d2fae30b6795a9e1e3854d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_silent_ingestion_failure_ruth_driver_composite",
+    "fact": "{reliability_ruth} asked for the whole data pipeline to run on its own.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Store Gap"
+  },
+  "output": {
+    "gist": "The data pipeline's autonomous operation has been raised in recent reliability discussions.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the topic was raised in discussions, which is a neutral observation of fact without committing to a specific stance, preference, or constraint."
+  }
+}

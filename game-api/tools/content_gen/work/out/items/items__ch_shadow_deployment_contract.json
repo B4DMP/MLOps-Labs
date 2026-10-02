@@ -1,7 +1,7 @@
 {
   "item_id": "items:ch_shadow_deployment_contract",
   "stage": "items",
-  "input_hash": "3f7a3415c2066aa5043e337504d9308eb2066ec0c9aea824999d4d06a91aa675",
+  "input_hash": "aeb39ee6dfb351288b6ef4b51312b369a90d21f20e7ff4f319f86d05ed996521",
   "model": "manual-patch",
   "attempts": 1,
   "inputs": {

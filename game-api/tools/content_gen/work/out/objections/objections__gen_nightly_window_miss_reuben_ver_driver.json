@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_nightly_window_miss_reuben_ver_driver",
+  "stage": "objections",
+  "input_hash": "6489ac7301eb0cc0598f7abef7d393df5dcb34ec77e894ba659cff7fa0e9bac1",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_nightly_window_miss_reuben_ver_driver",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "driver",
+      "description": "{requirements_reuben} proposed adding a formal review to the data versioning step. A formal review would ensure that the data versions used for training are auditable.",
+      "fact": "{requirements_reuben} proposed adding a formal review to the data versioning step.",
+      "reading": "A formal review would ensure that the data versions used for training are auditable.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "data.versioning",
+        "axis": "governance",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "A formal review is the bare minimum I am asking for on the data versioning step. I need a strict sign off that documents exactly which loyalty basket snapshots were used, not just a check that the files exist.",
+    "correction": "I am not talking about the model retraining pipeline, I am talking about the data lineage for the loyalty app feeds. You cannot audit a forecast if you do not know which consent window the training data came from."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_reuben_driver_composite_gov",
+  "stage": "gists",
+  "input_hash": "f892f679eac712dda1d2d95f58b1c3ed7e1809bf087f5adafa6bb7919a0c1196",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_reuben_driver_composite_gov",
+    "fact": "{requirements_reuben} asked for the monitoring hand-overs to be governed.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "Governance of the hand-overs around drift monitoring is the subject of a note from {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the subject of a note regarding governance of hand-overs but does not express a stance, preference, or direction regarding the metric."
+  }
+}

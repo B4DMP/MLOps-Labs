@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_shadow_deployment_contract_emilia_driver_gateway",
+  "stage": "objections",
+  "input_hash": "bedc09dcd84cbabdbd36db866cb31401d8c3830bce0b45fe63cb06114291b002",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_emilia_driver_gateway",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} proposed giving the gateway its own automatic handling instead of leaving it as is. The sooner that hand-off runs on its own, the faster traffic moves through the gateway.",
+      "fact": "{efficiency_emilia} proposed giving the gateway its own automatic handling instead of leaving it as is.",
+      "reading": "The sooner that hand-off runs on its own, the faster traffic moves through the gateway.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "deploy.api_gateway",
+        "axis": "automation",
+        "level": 2
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "I want the gateway to clear the backlog on its own, not just sit there waiting for a human to clear the jam. You are not meeting the operational speed I need for the morning order window.",
+    "correction": "I am not asking for a full rewrite of the system, I am asking for the hand off to run without a manual step. Do not misread my push for automation as a refusal to work with the current setup."
+  }
+}

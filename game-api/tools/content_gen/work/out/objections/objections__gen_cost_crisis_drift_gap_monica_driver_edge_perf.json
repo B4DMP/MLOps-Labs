@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_cost_crisis_drift_gap_monica_driver_edge_perf",
+  "stage": "objections",
+  "input_hash": "a1e84bb1beb9830714755c3cd79e8f76f1bc52d2ae4632d6cd901aa8ccec33e6",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_monica_driver_edge_perf",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} asked for the hand-over from observability to performance monitoring to be automated. She wants the performance monitoring to start automatically after the forecast job so she can track accuracy without manual intervention.",
+      "fact": "{model_monica} asked for the hand-over from observability to performance monitoring to be automated.",
+      "reading": "She wants the performance monitoring to start automatically after the forecast job so she can track accuracy without manual intervention.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "e.observe_perf",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "Automating the hand-over is just the plumbing, not the full ask. I need the monitoring to actually start and log accuracy the moment the forecast job finishes, without me touching a terminal.",
+    "correction": "You filed that as a general automation request, but I specifically asked for the trigger to link the job completion directly to the monitoring start."
+  }
+}

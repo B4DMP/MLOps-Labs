@@ -1,0 +1,49 @@
+{
+  "item_id": "artifacts:gen_heatwave_forecast_gap_monica_auto_eval",
+  "stage": "artifacts",
+  "input_hash": "de04ba2ae9c4ac3d80c20a1674f65fbe08311771eb95ff3f123736e39e53447c",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_monica_auto_eval",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} asked for the model evaluation harness to run automatically when a new model version is ready. Rapid iteration on weather features is impossible if the evaluation step requires a human to trigger it every time.",
+      "fact": "{model_monica} asked for the model evaluation harness to run automatically when a new model version is ready.",
+      "reading": "Rapid iteration on weather features is impossible if the evaluation step requires a human to trigger it every time.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "model.evaluation",
+        "axis": "automation",
+        "level": 1
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "slack_message",
+    "author": {
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Heatwave Blind Spot",
+      "description": "A sudden heatwave has shifted demand for seasonal articles, and the current forecast is missing the mark. #model_monica# wants to automate the evaluation harness to test new weather features rapidly, while #requirements_reuben# wants to keep it manual to ensure every test case is rigorously documented before any model change is considered."
+    }
+  },
+  "output": {
+    "content": "I need the evaluation harness to trigger automatically the moment a new model version is ready. Right now, I am waiting on a human to remember to start the run, which kills the momentum. I want to test weather features rapidly because the heatwave has shifted demand for seasonal articles and the current forecast is missing the mark. If I can iterate quickly, I can find the right feature set before the next promotion week. The more runs I can squeeze into a day, the better the model becomes. I am not asking for a new tool, just for the pipeline to wake itself up so I can stop babysitting the process.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The statement expresses a need for automated triggering to enable rapid iteration, and doing more (increasing the frequency of runs) directly aligns with the goal of improving the model before the promotion week, making the user happier."
+  }
+}

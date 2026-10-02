@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_cost_crisis_drift_gap_ruth_driver_drift_gov",
+  "stage": "objections",
+  "input_hash": "cfb29d1a9b158d70c1fd55110a8e1055a96b384dabdd1c121185a0d49726dd5c",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_ruth_driver_drift_gov",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} asked for the drift monitoring to be governed. She wants the drift monitoring to have a formal sign-off so the signal is trusted during promotion weeks.",
+      "fact": "{reliability_ruth} asked for the drift monitoring to be governed.",
+      "reading": "She wants the drift monitoring to have a formal sign-off so the signal is trusted during promotion weeks.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "ops.production_drift_monitoring",
+        "axis": "governance",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "I need a formal sign off on the drift alerts before we trust them during a promotion week. The current manual review is too slow for the middle aisle allocation cycle.",
+    "correction": "I am talking about the governance of the monitoring signal, not the automation of the detection itself. You filed this under tooling, but I am asking for a strict review process."
+  }
+}

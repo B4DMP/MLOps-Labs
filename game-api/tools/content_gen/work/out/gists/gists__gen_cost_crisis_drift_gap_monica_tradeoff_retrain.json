@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_monica_tradeoff_retrain",
+  "stage": "gists",
+  "input_hash": "6adb17c474fd8c2b0e2ca85e3f2d9c51146f5a6ede2890608c38148166eff122",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_monica_tradeoff_retrain",
+    "fact": "{model_monica} suggested the retraining trigger is a bottleneck.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "The retraining trigger for the forecast model is the subject of a note from {model_monica}.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist merely identifies the retraining trigger as a subject of discussion without expressing a stance, direction, or commitment regarding it."
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "item_id": "artifacts:gen_committed_pallets_fact_kpi_missing",
+  "stage": "artifacts",
+  "input_hash": "34498203a06fc9db7889c2a61cbe4416c55bfa1ca96db3d04bef89ab817d6506",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_committed_pallets_fact_kpi_missing",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The KPI definition for the promotion week is missing. That is simply how the KPI setup works today.",
+      "fact": "The KPI definition for the promotion week is missing.",
+      "reading": "That is simply how the KPI setup works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "req.kpi_definition",
+        "axis": "automation",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "narrator": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    },
+    "challenge": {
+      "name": "The Committed Pallets",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "I checked the configuration files for the promotion week KPIs during the latest audit. There is no entry defining how the metric is calculated. The pipeline currently skips the validation step because the reference table is empty. The reporting dashboard shows a null value for the promotion week score in every regional view. The nightly job logs confirm that the KPI calculation module is not invoked. No threshold or formula exists in the codebase for this specific metric. The system proceeds to generate the standard availability and waste reports without attempting to compute the promotion week figure. The data warehouse contains no historical values for this KPI, as it has never been populated. The current state is simply that the metric is absent from the operational workflow.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text exclusively reports the current operational status and absence of the KPI without expressing any wishes, refusals, trade-offs, or specific needs."
+  }
+}

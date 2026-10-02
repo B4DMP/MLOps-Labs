@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_override_blind_spot_registry_no_governance",
+  "stage": "artifacts",
+  "input_hash": "075bf5ef6786ce05e3af8f7a458bb6acd948c4982fa708e4a0502406f672a806",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_override_blind_spot_registry_no_governance",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "No formal review process exists for models entering the registry. The registry has never had a defined review step for incoming models.",
+      "fact": "No formal review process exists for models entering the registry.",
+      "reading": "The registry has never had a defined review step for incoming models.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "model.registry",
+        "axis": "governance",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "narrator": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Override Blind Spot",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "New model versions go into the registry as soon as a training run finishes and its metrics file is written. Whoever ran the training tags the version with the date and the store region, and it shows up in the list straight away. Nobody signs anything off before that happens, and there is no checklist or approval field attached to the entry. Last month eleven versions were registered this way, three of them by {data_dave} during the promotion-week reruns. When a store manager overrides an order, the override is logged in the ordering system, but nothing in the registry links it to the model version that produced that forecast.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the current operational workflow, including the lack of sign-offs and the specific number of versions registered last month, without expressing any wishes, refusals, or stated trade-offs."
+  }
+}

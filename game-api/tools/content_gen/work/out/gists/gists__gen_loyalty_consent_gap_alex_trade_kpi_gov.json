@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_consent_gap_alex_trade_kpi_gov",
+  "stage": "gists",
+  "input_hash": "392297be3471dc3fe2dc52ab986368758b1da28794e2699c420c4b33be5a0b62",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_loyalty_consent_gap_alex_trade_kpi_gov",
+    "fact": "{automation_alex} proposed leaving KPI governance exactly as relaxed as it is today.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Loyalty Data Audit"
+  },
+  "output": {
+    "gist": "The level of automation applied to KPI checks during the loyalty data audit keeps coming up.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions that the level of automation is a recurring topic of discussion but does not specify whether the stakeholder wants more automation, is refusing it, accepting a trade-off, or stating it as a neutral fact."
+  }
+}

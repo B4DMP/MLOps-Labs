@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_monica_composite_pipeline",
+  "stage": "gists",
+  "input_hash": "d8e5bd7751ae44c9cf336c8b9c89b98fa4f4d0f24a3157a098a3817c964f856b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_monica_composite_pipeline",
+    "fact": "{model_monica} asked for the entire model training and evaluation flow to run on its own from feature arrival to registry entry.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "The forecasting model's training and evaluation process is the subject of {model_monica}'s recent note.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the topic as the forecasting model's training and evaluation process but does not express a stance, preference, or specific reading regarding it."
+  }
+}

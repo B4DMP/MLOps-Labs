@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_dave_tradeoff_gov_tracking",
+  "stage": "gists",
+  "input_hash": "65a828d9bcdcb5e693e7bd66dee20bb310fcdfac4300a5959a3f52777f69fe1b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_dave_tradeoff_gov_tracking",
+    "fact": "{data_dave} mentioned that experiment tracking is done by hand without any formal review.",
+    "metric_id": "data",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "Experiment tracking records for the training data sets are the subject of a note from {data_dave}.",
+    "verdict_metric_id": "data",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the subject as data tracking but does not express a stance, preference, or specific operational direction regarding it."
+  }
+}

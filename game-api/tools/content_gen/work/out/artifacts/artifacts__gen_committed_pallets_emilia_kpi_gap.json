@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_committed_pallets_emilia_kpi_gap",
+  "stage": "artifacts",
+  "input_hash": "0a74a91649496bda65fcc885f86993871b393622cf25ac981d591e344a2d2112",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_committed_pallets_emilia_kpi_gap",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted that the KPI definition for the promotion week is missing. She would accept leaving the KPI definition absent if the allocation logic is auditable.",
+      "fact": "{efficiency_emilia} noted that the KPI definition for the promotion week is missing.",
+      "reading": "She would accept leaving the KPI definition absent if the allocation logic is auditable.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "req.kpi_definition",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "author": {
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    },
+    "challenge": {
+      "name": "The Committed Pallets",
+      "description": "A supplier has confirmed a bulk order for a middle aisle promotion that ships next week, leaving no room for model error. #requirements_reuben# insists the acceptance criteria must be fully governed to guarantee the allocation logic is auditable before the trucks leave. #reliability_ruth# argues the criteria are sufficient as manual checks because the physical stock is already committed and the team needs to ship the feature immediately to handle the live orders."
+    }
+  },
+  "output": {
+    "content": "The promotion week KPI definition is currently missing from our tracking sheets. I am willing to accept that gap for this cycle. My priority is ensuring the allocation logic is fully auditable before the trucks leave the distribution centre. If the audit trail is solid, I can live without the formal KPI definition until the next planning phase. The physical stock is committed, so the risk of an untracked metric is lower than the risk of an unverified allocation. Let us focus on the auditability of the order suggestions. The missing definition does not block the immediate release if the governance checks are in place. I am trading the metric clarity for the compliance safety of the bulk order.",
+    "reclassified_as": "trade_off",
+    "reclassify_reason": "The author explicitly states they are willing to accept the gap in KPI definitions and are trading metric clarity for the compliance safety of the bulk order."
+  }
+}

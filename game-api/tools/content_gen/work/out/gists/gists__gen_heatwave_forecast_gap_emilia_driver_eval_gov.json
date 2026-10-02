@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_emilia_driver_eval_gov",
+  "stage": "gists",
+  "input_hash": "4ce3e0cef7e0ca6dac32fdfc5dd13cdc704d806b9131d85b9277f145c8777755",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_emilia_driver_eval_gov",
+    "fact": "{efficiency_emilia} asked for the model evaluation harness to have full formal governance to ensure compliance.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "The formal governance status of the model evaluation harness keeps surfacing in efficiency reviews with {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the governance status of the model evaluation harness 'keeps surfacing' in efficiency reviews, which describes an observation of where the topic appears (a fact) but does not commit to a specific stance like demanding more, refusing, or accepting a trade-off regarding the efficiency metric itself."
+  }
+}

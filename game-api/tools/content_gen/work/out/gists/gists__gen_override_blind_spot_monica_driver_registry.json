@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_monica_driver_registry",
+  "stage": "gists",
+  "input_hash": "0304d5e0aff51da02b0c2bacc1a46a6be0998159ce7d017ad38f22aca6c91920",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_monica_driver_registry",
+    "fact": "{model_monica} asked for the model registry to be fully automated to ensure traceability.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The model registry and its traceability have been raised by {model_monica} during the recent planning session.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the model registry and traceability were raised as a topic, but it does not indicate whether this is a demand for improvement, a constraint, a trade-off, or a neutral fact about the current state."
+  }
+}

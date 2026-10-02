@@ -1,18 +1,18 @@
 {
   "item_id": "artifacts:gen_heatwave_forecast_gap_fact_registry_absent",
   "stage": "artifacts",
-  "input_hash": "0af75d72222f4bac2450594c5bf4be6c34635f331b4f4b1150caa7f3b4fa5940",
+  "input_hash": "492a68d9bfb5c84f777415a8997b3d8ededc45ee540797ba7bf89f4a17c6ea03",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 1,
+  "attempts": 4,
   "inputs": {
     "requirement": {
       "id": "gen_heatwave_forecast_gap_fact_registry_absent",
       "challenge_id": -1,
       "stakeholder_id": null,
       "type": "fact",
-      "description": "The model registry is missing. Model versions are tracked in a shared spreadsheet.",
-      "fact": "The model registry is missing.",
-      "reading": "Model versions are tracked in a shared spreadsheet.",
+      "description": "The model registry is missing and does not exist. No model registry has ever been implemented.",
+      "fact": "The model registry is missing and does not exist.",
+      "reading": "No model registry has ever been implemented.",
       "metric_id": null,
       "suggested": null,
       "holds": null,
@@ -45,8 +45,8 @@
     "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "When we need to compare the current weekly retrain against the previous iteration, I open the shared spreadsheet in the team drive. It lists the training run identifier, the date, and the root mean squared error for the fourteen day horizon. I manually copy the relevant row into the notebook to load the archived weights from the object storage bucket. There is no central service that maps a store or article to the specific model version currently serving its forecast. If a discrepancy appears in the morning order window, I check the spreadsheet to see which build was deployed the night before. The file is updated by hand after each successful retrain cycle, and I keep a local backup of the last three versions on my workstation.",
+    "content": "The weekly retraining job pushes new model weights to the shared storage bucket every Sunday night. I note the training date and feature list in a local spreadsheet. When the morning order window opens, the serving container pulls the file from that bucket. I check the file timestamp against my notes on Tuesday mornings. If the timestamp is older than the last training run, I flag it for a manual redeploy. The storage bucket holds the current and previous three versions, but there is no index linking a specific prediction to the exact weights used to generate it.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text describes the current manual workflow and existing gaps in the MLOps process without expressing a wish, refusal, or explicit trade-off."
+    "reclassify_reason": "The text describes the current operational workflow and a specific technical limitation regarding version tracking without expressing any wishes, refusals, or stated trade-offs."
   }
 }

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_consent_gap_reuben_trade_kpi",
+  "stage": "gists",
+  "input_hash": "d34695529105cd2ae87748af995b51f4b585964eb9307292cf4e3bd74bff50bb",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_loyalty_consent_gap_reuben_trade_kpi",
+    "fact": "{requirements_reuben} proposed leaving the KPI definitions exactly as hand reviewed as they are today.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Loyalty Data Audit"
+  },
+  "output": {
+    "gist": "The current state of KPI definition review practices keeps coming up whenever the loyalty data audit is discussed.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes a correlation between KPI definition reviews and loyalty data audits without expressing a stance, preference, or specific constraint regarding either."
+  }
+}

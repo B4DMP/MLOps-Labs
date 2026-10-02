@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_monica_auto_eval",
+  "stage": "gists",
+  "input_hash": "e603eac097cceb6eed686624b44ee898286c159d5ce46e8faf6d588b97431f7f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_monica_auto_eval",
+    "fact": "{model_monica} asked for the model evaluation harness to run automatically when a new model version is ready.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "How model versions get evaluated before release is the subject of this note.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the subject as the evaluation process for model versions but does not express a stance, preference, or specific reading regarding that process."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_ingestion_failure_emilia_tradeoff_efficiency",
+  "stage": "gists",
+  "input_hash": "8371e95e41eb4e4482e3bbd2e638ff78e921ecf52a9cda1488db6892a7a106c0",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_silent_ingestion_failure_emilia_tradeoff_efficiency",
+    "fact": "{efficiency_emilia} suggested keeping the pipeline manual to save costs.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Store Gap"
+  },
+  "output": {
+    "gist": "The running cost of the ingestion pipeline is the subject of a note from {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the running cost of the pipeline as a topic but does not express a stance on whether it should be reduced, increased, or accepted as a trade-off."
+  }
+}

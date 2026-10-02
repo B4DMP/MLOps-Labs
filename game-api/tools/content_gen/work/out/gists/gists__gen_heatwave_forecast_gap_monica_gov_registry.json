@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_monica_gov_registry",
+  "stage": "gists",
+  "input_hash": "42450ec5e569c65592a03e11d5c1919d25a458ded516e106ee2c067556a85f83",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_monica_gov_registry",
+    "fact": "{model_monica} mentioned that the model registry does not require formal sign-off before a model is promoted.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "The governance of model registry promotion and sign-off has been raised by {model_monica}.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions that the topic of model registry governance was raised, but it does not indicate a specific stance, preference, or commitment regarding how that governance should be handled."
+  }
+}

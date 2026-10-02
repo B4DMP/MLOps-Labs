@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_cost_crisis_drift_gap_emilia_tradeoff_alert",
+  "stage": "objections",
+  "input_hash": "460e0670bca9f9675a55cc7650c7d9c657128d24b0580253847232e539a58a85",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_emilia_tradeoff_alert",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted the alerting system as a recurring expense. She would accept a manual alerting process if it avoids the cost of a new tooling license.",
+      "fact": "{efficiency_emilia} noted the alerting system as a recurring expense.",
+      "reading": "She would accept a manual alerting process if it avoids the cost of a new tooling license.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "ops.alerting",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are not removing the alerting step, you are just swapping a tool license for my team's unpaid overtime. I need that operational cost acknowledged in the proposal, not hidden behind a lower software line item.",
+    "correction": "I am not rejecting the alerting function because I dislike it, I am rejecting the cost of a new vendor license. If you automate the checks without buying new software, I will support the plan, but do not frame this as a reduction in scope."
+  }
+}

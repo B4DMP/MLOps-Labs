@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_committed_pallets_emilia_risk_trade",
+  "stage": "artifacts",
+  "input_hash": "6ef2bf8c024b4d107033485e507b75005750abff7e0adeb2571b59da68d220dd",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_committed_pallets_emilia_risk_trade",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} proposed that the risk assessment can remain manual for this specific high risk scenario. She would accept the risk assessment staying manual if the criteria are governed.",
+      "fact": "{efficiency_emilia} proposed that the risk assessment can remain manual for this specific high risk scenario.",
+      "reading": "She would accept the risk assessment staying manual if the criteria are governed.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "req.risk_assessment",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "author": {
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    },
+    "challenge": {
+      "name": "The Committed Pallets",
+      "description": "A supplier has confirmed a bulk order for a middle aisle promotion that ships next week, leaving no room for model error. #requirements_reuben# insists the acceptance criteria must be fully governed to guarantee the allocation logic is auditable before the trucks leave. #reliability_ruth# argues the criteria are sufficient as manual checks because the physical stock is already committed and the team needs to ship the feature immediately to handle the live orders."
+    }
+  },
+  "output": {
+    "content": "The committed pallets for next week's middle aisle promotion are a hard constraint. We cannot delay the rollout to build full automation for the risk assessment. {efficiency_emilia} is willing to accept the risk assessment remaining a manual process for this specific high risk scenario. She will trade that operational friction for the assurance that the acceptance criteria themselves are fully governed. This ensures the allocation logic is auditable before the trucks leave the distribution centre. The manual check is the cost we pay to keep the feature live and handle the immediate order surge without waiting for tooling maturity.",
+    "reclassified_as": "trade_off",
+    "reclassify_reason": "The text explicitly states that the author accepts the operational friction of a manual process in exchange for the assurance of governed acceptance criteria and auditability."
+  }
+}

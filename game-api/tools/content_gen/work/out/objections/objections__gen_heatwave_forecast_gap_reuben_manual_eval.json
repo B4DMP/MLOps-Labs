@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_heatwave_forecast_gap_reuben_manual_eval",
+  "stage": "objections",
+  "input_hash": "c6a8216ad132e2d88a089d9d6281831793d905c33fd4709ea68b7c577a52477b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_reuben_manual_eval",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "trade_off",
+      "description": "{requirements_reuben} proposed keeping the model evaluation harness manual to ensure every test case is documented. {requirements_reuben.first} would accept a higher level of automation for the evaluation harness if the documentation of test cases is preserved.",
+      "fact": "{requirements_reuben} proposed keeping the model evaluation harness manual to ensure every test case is documented.",
+      "reading": "{requirements_reuben.first} would accept a higher level of automation for the evaluation harness if the documentation of test cases is preserved.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.evaluation",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "You are proposing to strip the manual review from the evaluation harness without acknowledging that we lose the documented test case trail. I need you to state clearly that you are trading our governance control for speed.",
+    "correction": "I did not say we would accept full automation of the harness, only that we could allow more tooling if the documentation remains intact. You have misread my condition as a waiver of our privacy compliance checks."
+  }
+}

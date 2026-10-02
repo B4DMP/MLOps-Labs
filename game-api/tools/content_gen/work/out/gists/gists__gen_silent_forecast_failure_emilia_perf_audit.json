@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_forecast_failure_emilia_perf_audit",
+  "stage": "gists",
+  "input_hash": "0dab7855d54f0efec20d7a69b221f871ec0428ebbb5f4dfdb389558726142ec1",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_silent_forecast_failure_emilia_perf_audit",
+    "fact": "{efficiency_emilia} proposed keeping the performance monitoring logs reviewed by hand once a month.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Warehouse Flood"
+  },
+  "output": {
+    "gist": "Manual review of monthly performance monitoring logs keeps coming up in discussions with {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes that manual review is a recurring topic in discussions but does not express a desire to change it, refuse it, accept a trade-off, or define it as a fixed fact."
+  }
+}

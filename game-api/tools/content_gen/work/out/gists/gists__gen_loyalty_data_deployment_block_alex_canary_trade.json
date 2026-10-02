@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_data_deployment_block_alex_canary_trade",
+  "stage": "gists",
+  "input_hash": "6422bf26cd0c8868b55289fdbbf58468e7ced684259977ce86790e4b39aa3a55",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_loyalty_data_deployment_block_alex_canary_trade",
+    "fact": "{automation_alex} suggested that the canary testing process can be skipped for this release to save time.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Gap"
+  },
+  "output": {
+    "gist": "The degree of automation applied to the canary testing step in the release workflow is the topic.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the degree of automation in canary testing as the topic but does not express a stance, preference, or factual claim about it."
+  }
+}

@@ -1,7 +1,7 @@
 {
   "item_id": "artifacts:gen_loyalty_consent_gap_fact_risk_manual",
   "stage": "artifacts",
-  "input_hash": "d0a857af367ad05c647c9d0cdf8c1b3eec01f1cbd995cf595af5c30e9b21eb9d",
+  "input_hash": "1a6f81172a7ee5b91e75b6a913f2b0ed9487c2a190a4f46a62aae2eaa9095ac9",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 2,
   "inputs": {
@@ -10,9 +10,9 @@
       "challenge_id": -1,
       "stakeholder_id": null,
       "type": "fact",
-      "description": "The risk assessment is done by hand. The risk assessment process is currently performed manually by the team.",
-      "fact": "The risk assessment is done by hand.",
-      "reading": "The risk assessment process is currently performed manually by the team.",
+      "description": "Risk assessment for new data sources is still done by hand. That is simply how new data sources get reviewed today.",
+      "fact": "Risk assessment for new data sources is still done by hand.",
+      "reading": "That is simply how new data sources get reviewed today.",
       "metric_id": null,
       "suggested": null,
       "holds": null,
@@ -45,8 +45,8 @@
     "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "I observed the current workflow for validating loyalty basket data access. A team member opens a spreadsheet to check consent status and retention limits. They manually cross reference user identifiers against the consent database entries. This manual check takes several hours per request. The spreadsheet serves as the record of who approved the access and when. No automated tooling validates these access rights before the data pipeline runs. The next feature request is queued for next week, and the same manual steps will be performed again.",
+    "content": "I pulled the intake logs for the last six months of new data source requests. Each entry shows the same pattern. A requester submits a form, and a team member opens it manually. They check the source against the privacy policy, verify the retention limits, and confirm the access controls. There is no automated flag or system alert. The reviewer writes their notes directly into the ticket. The average time from submission to a completed review is four days. I saw no instances where a tool pre validated the metadata before a human looked at it. The individual checks each field by hand before the ticket moves to the next stage.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text consists entirely of objective observations regarding the current manual workflow, its duration, and the lack of automated tooling, without expressing any personal wishes, refusals, or stated trade-offs."
+    "reclassify_reason": "The text describes the observed workflow and metrics (such as the four-day average review time and lack of automation) without expressing any wishes, refusals, or stated trade-offs."
   }
 }

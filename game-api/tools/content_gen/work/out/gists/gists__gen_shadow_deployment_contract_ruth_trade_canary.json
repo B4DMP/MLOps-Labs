@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_ruth_trade_canary",
+  "stage": "gists",
+  "input_hash": "66b4ce859c081b85ad6ba4d9bfa0b6def6c5866119cb59338f778bd466ad33e0",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_ruth_trade_canary",
+    "fact": "{reliability_ruth} proposed leaving canary testing exactly as it stands today.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "Canary testing for the forecast pipeline has been raised as a topic for the current reliability review.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that canary testing is a topic for a reliability review, which identifies the subject but does not express a preference for more testing, a refusal, a trade-off, or a descriptive fact about current status."
+  }
+}

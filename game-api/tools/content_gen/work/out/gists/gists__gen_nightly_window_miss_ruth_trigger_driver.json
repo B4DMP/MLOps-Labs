@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_ruth_trigger_driver",
+  "stage": "gists",
+  "input_hash": "3d679a6b4ca6126f5e0d4a47b609731e04fc49cc2c0a2188bceaf74ddb498fe9",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_ruth_trigger_driver",
+    "fact": "{reliability_ruth} proposed that the hand-over from ingestion to validation should start as soon as the data arrives.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "The timing of the hand-over from ingestion to validation keeps coming up whenever you talk to {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes a recurring topic regarding the timing of the hand-over but does not indicate whether the stakeholder wants it changed, is refusing a change, accepting a trade-off, or stating it as a neutral fact."
+  }
+}

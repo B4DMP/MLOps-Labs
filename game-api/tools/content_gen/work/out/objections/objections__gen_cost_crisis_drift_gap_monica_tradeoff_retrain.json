@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_cost_crisis_drift_gap_monica_tradeoff_retrain",
+  "stage": "objections",
+  "input_hash": "d696d747aedddbf0b0030e24228ec7efb8734de876a741f8399a5eaf2340e1e3",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_monica_tradeoff_retrain",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} suggested the retraining trigger is a bottleneck. She would accept a scheduled manual retraining if it happens on a fixed weekly cycle.",
+      "fact": "{model_monica} suggested the retraining trigger is a bottleneck.",
+      "reading": "She would accept a scheduled manual retraining if it happens on a fixed weekly cycle.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "ops.retraining_trigger",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "You are treating my offer of a scheduled manual retraining as a concession on model quality, which it is not. I am asking you to acknowledge that this is a deliberate trade off between automation and stability, not a failure of the pipeline.",
+    "correction": "I did not suggest the retraining trigger is a bottleneck in the code, I suggested the current logic is brittle. We need to agree that a fixed weekly cycle is a governance choice, not a technical limitation."
+  }
+}

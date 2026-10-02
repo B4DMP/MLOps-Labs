@@ -1,0 +1,59 @@
+{
+  "item_id": "artifacts:gen_heatwave_forecast_gap_monica_composite_pipeline",
+  "stage": "artifacts",
+  "input_hash": "a8294e2fa5f526ff3a3829683aaef723ef8362a0cac98656fdd17b876a1653c1",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_monica_composite_pipeline",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} asked for the entire model training and evaluation flow to run on its own from feature arrival to registry entry. {model_monica.first} needs the whole chain to be automated to test weather features without waiting for manual triggers at each step.",
+      "fact": "{model_monica} asked for the entire model training and evaluation flow to run on its own from feature arrival to registry entry.",
+      "reading": "{model_monica.first} needs the whole chain to be automated to test weather features without waiting for manual triggers at each step.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "e.fs_train",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.eval_registry",
+          "axis": "automation",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(e.fs_train, 3)",
+        "raise_to(e.eval_registry, 3)"
+      ],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "slack_message",
+    "author": {
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Heatwave Blind Spot",
+      "description": "A sudden heatwave has shifted demand for seasonal articles, and the current forecast is missing the mark. #model_monica# wants to automate the evaluation harness to test new weather features rapidly, while #requirements_reuben# wants to keep it manual to ensure every test case is rigorously documented before any model change is considered."
+    }
+  },
+  "output": {
+    "content": "The current bottleneck is the manual handoff between feature arrival and registry entry. I need the entire training and evaluation flow to run automatically so I can iterate on weather features without waiting for human triggers at each step. Right now, testing a single new feature takes days because someone has to manually kick off the pipeline and then manually log the results. If the harness runs itself, I can test dozens of variations in an afternoon. The more automated this chain is, the faster we can close the gap on heatwave demand shifts. I am not asking for a partial fix. I need the full end to end pipeline to execute without intervention so I can actually measure performance improvements in real time.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The author explicitly states that increasing the level of automation (from partial to full end-to-end) directly increases their ability to iterate and measure performance, indicating that doing more than a minimal fix would make them happier."
+  }
+}

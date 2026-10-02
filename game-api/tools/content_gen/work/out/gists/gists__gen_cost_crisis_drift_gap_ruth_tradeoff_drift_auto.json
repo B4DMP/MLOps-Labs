@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_ruth_tradeoff_drift_auto",
+  "stage": "gists",
+  "input_hash": "e20ea7e9865bc09a4a449198ff9f7db2b94d89650fe30ede03d4b03802f00910",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_ruth_tradeoff_drift_auto",
+    "fact": "{reliability_ruth} mentioned the state of the drift monitoring automation.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "The state of the drift monitoring automation is the subject of {reliability_ruth}'s note.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the subject of the note as drift monitoring automation, which relates to system reliability, but it does not express a stance, desire, or fact about the state of that automation."
+  }
+}

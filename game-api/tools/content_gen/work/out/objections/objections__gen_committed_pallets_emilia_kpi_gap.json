@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_committed_pallets_emilia_kpi_gap",
+  "stage": "objections",
+  "input_hash": "9dd62975483ec69dcbe5d5ad34892268295f1f2df380a5b2a72db9cef24a5ce4",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_committed_pallets_emilia_kpi_gap",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted that the KPI definition for the promotion week is missing. She would accept leaving the KPI definition absent if the allocation logic is auditable.",
+      "fact": "{efficiency_emilia} noted that the KPI definition for the promotion week is missing.",
+      "reading": "She would accept leaving the KPI definition absent if the allocation logic is auditable.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "req.kpi_definition",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are stripping the promotion week KPI from the dashboard without flagging it as a loss. I will only accept that gap if the allocation logic remains fully auditable for the finance team.",
+    "correction": "Stop framing this as a technical oversight, it is a strategic trade off. I am not asking for the metric back, I am demanding that the audit trail covers the gap."
+  }
+}

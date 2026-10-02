@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_loyalty_consent_gap_emilia_boundary",
+  "stage": "objections",
+  "input_hash": "8c48b987f5e352cfa92984eb456e2a80e4793ac9cec7e05b15107d006674b9ac",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_loyalty_consent_gap_emilia_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "boundary",
+      "description": "{efficiency_emilia} proposed that the hand-off into ingestion carry a formal sign off. She will not accept that hand-off shipping data without that formal sign off in place.",
+      "fact": "{efficiency_emilia} proposed that the hand-off into ingestion carry a formal sign off.",
+      "reading": "She will not accept that hand-off shipping data without that formal sign off in place.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "edge": "e.contracts_ingest",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.contracts_ingest",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "I will not let that hand-off ship without a formal sign off, so the proposal is rejected. We need that strict gate in place before any data moves.",
+    "correction": "You filed that under cost concerns, but I was talking about governance. I am setting a hard requirement for formal approval, not estimating a budget."
+  }
+}

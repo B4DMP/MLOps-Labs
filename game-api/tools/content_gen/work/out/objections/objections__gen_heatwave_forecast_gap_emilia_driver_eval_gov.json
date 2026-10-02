@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_heatwave_forecast_gap_emilia_driver_eval_gov",
+  "stage": "objections",
+  "input_hash": "0e6caff92d81456a53c4745925fcb7e97e09d667abdae69914da5e42727fe1e7",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_emilia_driver_eval_gov",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} asked for the model evaluation harness to have full formal governance to ensure compliance. {efficiency_emilia.first} wants full governance on the evaluation harness to meet compliance requirements.",
+      "fact": "{efficiency_emilia} asked for the model evaluation harness to have full formal governance to ensure compliance.",
+      "reading": "{efficiency_emilia.first} wants full governance on the evaluation harness to meet compliance requirements.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "model.evaluation",
+        "axis": "governance",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are treating my request for formal sign off on the evaluation harness as a checkbox, but I need strict governance to prove we are compliant with our data obligations. We cannot accept a system where the model validation process is just a loose suggestion without a documented audit trail.",
+    "correction": "You are misreading my focus on governance as a demand for more manual work, when I am actually asking for a formal framework that makes the process auditable and consistent. I want the compliance structure to be built into the tooling, not added as a separate burden for the team."
+  }
+}

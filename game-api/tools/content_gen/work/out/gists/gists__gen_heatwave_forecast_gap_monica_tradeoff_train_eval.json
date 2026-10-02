@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_monica_tradeoff_train_eval",
+  "stage": "gists",
+  "input_hash": "3a940a55bfd0c46bcfa0a48acd05341451a8d27042560bf005be184ae4c40cee",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_monica_tradeoff_train_eval",
+    "fact": "{model_monica} noted that the hand-over from training to evaluation is triggered manually.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "The hand-over between model training and evaluation keeps coming up in the team's discussions.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the hand-over between training and evaluation as a recurring topic but does not express a preference for change, a refusal, or a trade-off, nor does it state a specific factual attribute about the metric itself."
+  }
+}

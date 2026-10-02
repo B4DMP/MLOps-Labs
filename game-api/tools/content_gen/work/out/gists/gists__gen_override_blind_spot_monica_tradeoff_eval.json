@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_monica_tradeoff_eval",
+  "stage": "gists",
+  "input_hash": "1018511d55329bc2d33e89ac4a1769a421f6a8bfeac7d0caa033fcd18ff38222",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_monica_tradeoff_eval",
+    "fact": "{model_monica} proposed accepting manual evaluation steps to ensure model quality before deployment.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The question of how the model is evaluated before deployment keeps coming up in team discussions.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions that model evaluation is a recurring topic in discussions but does not express a desire for more, a refusal, an accepted trade-off, or a definitive fact about the current state."
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "item_id": "artifacts:gen_nightly_window_miss_ruth_pipeline_driver",
+  "stage": "artifacts",
+  "input_hash": "8c881970f301e64506f19dc8977f3746780348a05d27cdb500ecc4f495dae700",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_nightly_window_miss_ruth_pipeline_driver",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} asked for the nightly data pipeline to run on its own. The more of the pipeline that runs without a human, the fewer times the store managers see stale numbers.",
+      "fact": "{reliability_ruth} asked for the nightly data pipeline to run on its own.",
+      "reading": "The more of the pipeline that runs without a human, the fewer times the store managers see stale numbers.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "data.validation",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.ingest_validate",
+          "axis": "automation",
+          "value": 3
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.validate_version",
+          "axis": "automation",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(data.validation, 3)",
+        "raise_to(e.ingest_validate, 3)",
+        "raise_to(e.validate_version, 3)"
+      ],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "author": {
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Midnight Deadline",
+      "description": "The nightly data job is failing to finish before the store managers open the ordering app. #reliability_ruth# demands an automated validation layer to catch bad data instantly so the morning window is never missed again. #data_dave# insists on keeping the process manual for now, arguing that the infrastructure costs are too high and the current manual checks are sufficient to manage the risk."
+    }
+  },
+  "output": {
+    "content": "I need the nightly data pipeline to run on its own. Right now, a human has to check the job status, which means if someone is off, the store managers open the app to stale numbers. I want automated validation that catches bad data instantly. The more of the pipeline that runs without a human, the fewer times we miss the morning window. I am not asking for a perfect system, but I am asking for one that does not depend on a person being awake at two in the morning. If we automate the checks, we reduce the risk of a silent failure. I would rather have a tool that flags a bad feed than a manager guessing at last week’s sales. Please prioritize this so we can stop relying on manual oversight for a critical path.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The request states a need for automated validation to eliminate manual oversight, and the explicit statement that 'the more of the pipeline that runs without a human, the fewer times we miss the morning window' indicates that exceeding the baseline request (by automating more than just the checks) would make the author happier."
+  }
+}

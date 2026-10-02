@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_committed_pallets_emilia_kpi_gap",
+  "stage": "gists",
+  "input_hash": "ab437e1ff14591973cb401fa898e049064db8dcc9e4abed71d4f5ea2e59acc26",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_committed_pallets_emilia_kpi_gap",
+    "fact": "{efficiency_emilia} noted that the KPI definition for the promotion week is missing.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Committed Pallets"
+  },
+  "output": {
+    "gist": "The definition of the promotion week efficiency metric has been raised as a gap in the current reporting.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a gap in the definition of the efficiency metric but does not express a desire to change it, refuse it, accept a trade-off, or simply state a neutral fact about its value."
+  }
+}

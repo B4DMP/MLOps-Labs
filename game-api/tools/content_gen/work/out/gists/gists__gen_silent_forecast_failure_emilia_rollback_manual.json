@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_forecast_failure_emilia_rollback_manual",
+  "stage": "gists",
+  "input_hash": "04ecedfd4575219d58d1879d05826ca9f1eab266139341aac752e908dae02634",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_silent_forecast_failure_emilia_rollback_manual",
+    "fact": "{efficiency_emilia} mentioned that the rollback mechanism can remain a manual procedure for now.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Warehouse Flood"
+  },
+  "output": {
+    "gist": "The manual rollback procedure for the forecast job has been raised as an efficiency topic by {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist simply states that the manual rollback procedure was raised as an efficiency topic, without indicating whether it is a driver, boundary, trade-off, or factual observation."
+  }
+}

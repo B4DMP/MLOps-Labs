@@ -1,0 +1,55 @@
+{
+  "item_id": "objections:gen_override_blind_spot_monica_driver_composite",
+  "stage": "objections",
+  "input_hash": "b4b5218b71e2019fb47c815f976ea90e74c31188c83d868b115b42fcdbc5d3c0",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_override_blind_spot_monica_driver_composite",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} proposed automating the entire model promotion pipeline from evaluation to deployment. {model_monica} wants the evaluation to registry hand-over and registry to CI/CD hand-over to be automated to speed up deployment.",
+      "fact": "{model_monica} proposed automating the entire model promotion pipeline from evaluation to deployment.",
+      "reading": "{model_monica} wants the evaluation to registry hand-over and registry to CI/CD hand-over to be automated to speed up deployment.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "e.eval_registry",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.registry_cicd",
+          "axis": "automation",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(e.eval_registry, 3)",
+        "raise_to(e.registry_cicd, 3)"
+      ],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "You are missing the point, I need the evaluation to registry and registry to CI/CD handovers fully automated to speed up deployment. I am not asking for a human review gate at every single step of that specific pipeline.",
+    "correction": "I am talking about the technical workflow between the model evaluation and the deployment tools, not about business approval processes. Do not confuse my request for technical speed with a lack of respect for governance."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_ingestion_failure_reuben_driver_gov_ingest",
+  "stage": "gists",
+  "input_hash": "b2f852a0e817f0dd7fe2fa1bca07f16689807807fbcae1f7ea7ba477cf810692",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_silent_ingestion_failure_reuben_driver_gov_ingest",
+    "fact": "{requirements_reuben} asked for full governance on the ingestion pipeline.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Store Gap"
+  },
+  "output": {
+    "gist": "The governance of the ingestion pipeline has been raised by {requirements_reuben} in requirements discussions.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that a topic was raised in discussions but does not indicate any specific stance, preference, or commitment regarding the metric."
+  }
+}

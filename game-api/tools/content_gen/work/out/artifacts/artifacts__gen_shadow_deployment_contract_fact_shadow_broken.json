@@ -1,7 +1,7 @@
 {
   "item_id": "artifacts:gen_shadow_deployment_contract_fact_shadow_broken",
   "stage": "artifacts",
-  "input_hash": "5fffb81ca9b47c168ccba54aad099cfe55f2839c5bf14aaef6ccd58d2e635d46",
+  "input_hash": "97202457afde2a7c6eeead41228d74c1228900a7727889d95b9ce8395d9beaf8",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -10,9 +10,9 @@
       "challenge_id": -1,
       "stakeholder_id": null,
       "type": "fact",
-      "description": "The shadow deployment environment is broken and has not been running. That is simply the current state of the shadow deployment environment.",
-      "fact": "The shadow deployment environment is broken and has not been running.",
-      "reading": "That is simply the current state of the shadow deployment environment.",
+      "description": "Shadow deployment is broken; nothing has used it in weeks. That is simply the state shadow deployment is in right now.",
+      "fact": "Shadow deployment is broken; nothing has used it in weeks.",
+      "reading": "That is simply the state shadow deployment is in right now.",
       "metric_id": null,
       "suggested": null,
       "holds": null,
@@ -45,8 +45,8 @@
     "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "During the infrastructure sync, {automation_alex} noted that the shadow deployment environment is currently broken and has not been running. The pipeline steps that should validate new model versions in a mirrored production setting are stalled. Because the environment is down, the team is not using it for any recent releases. Instead, they are manually verifying the integration points in the staging cluster before pushing to production. This manual check has become the standard workaround for the last few sprints. {automation_alex.first} confirmed that the underlying compute resources are allocated, but the orchestration scripts fail to initialize the necessary service containers. No new deployments have passed through the shadow environment since the issue began.",
+    "content": "The shadow deployment pipeline for the nightly forecast job is currently non functional. It has not executed a successful run in over three weeks. The last time it processed a live data stream, the output logs were empty and the comparison metrics never populated. Because the automated check fails, the team bypasses the shadow stage entirely during the weekly retraining cycle. Instead, engineers manually trigger a test run against a static historical dataset to verify the model code before pushing it to production. This manual verification step takes about an hour and requires a human to confirm the results visually before the deployment proceeds.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text reports the current status of the broken shadow environment and the resulting manual workaround without expressing any specific wish, refusal, acceptance, or stated trade-off by the author."
+    "reclassify_reason": "The text describes the current operational state of the pipeline and the existing manual workaround without expressing any wishes, refusals, or stated trade-offs."
   }
 }

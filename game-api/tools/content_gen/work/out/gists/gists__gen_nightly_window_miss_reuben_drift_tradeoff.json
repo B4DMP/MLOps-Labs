@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_reuben_drift_tradeoff",
+  "stage": "gists",
+  "input_hash": "6db35c54d89f95b265cd471c3c79e86b98ad42b09912c48fa343b83d30137e27",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_reuben_drift_tradeoff",
+    "fact": "{requirements_reuben} noted that the training data drift check is missing from the pipeline.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "Governance and sign-off for the training data drift check is the subject of a note from {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a specific governance and sign-off process for data drift checks, which falls under requirements, but it does not indicate whether this is a driver, boundary, trade-off, or simple fact."
+  }
+}

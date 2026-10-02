@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_reuben_tradeoff_alert_gov",
+  "stage": "gists",
+  "input_hash": "f3b81eb9a4a559696c4c78253dc59dba265199881a18d7b87ddd03b587827eab",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_reuben_tradeoff_alert_gov",
+    "fact": "{requirements_reuben} mentioned the alerting system as a security gap.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "Governance and sign-off for the alerting system is the subject of a note from {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies governance and sign-off as the subject of a note but does not specify whether this is a driver, boundary, trade-off, or fact."
+  }
+}

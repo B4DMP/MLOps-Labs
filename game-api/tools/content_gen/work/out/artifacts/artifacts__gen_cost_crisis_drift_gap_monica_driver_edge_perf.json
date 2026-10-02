@@ -1,0 +1,49 @@
+{
+  "item_id": "artifacts:gen_cost_crisis_drift_gap_monica_driver_edge_perf",
+  "stage": "artifacts",
+  "input_hash": "0ca98cb82fd54d525876ebd85da9ad26dabd2a281176377fff918686a4151ac3",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_monica_driver_edge_perf",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} asked for the hand-over from observability to performance monitoring to be automated. She wants the performance monitoring to start automatically after the forecast job so she can track accuracy without manual intervention.",
+      "fact": "{model_monica} asked for the hand-over from observability to performance monitoring to be automated.",
+      "reading": "She wants the performance monitoring to start automatically after the forecast job so she can track accuracy without manual intervention.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "e.observe_perf",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "author": {
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Cost Cliff",
+      "description": "The infrastructure bill for the monitoring stack has doubled, and #efficiency_emilia# has drawn a hard line: she will not fund automated drift monitoring, insisting it is a luxury the business cannot afford. #reliability_ruth# argues that without automated and governed drift checks, the team is flying blind during promotion weeks, and she refuses to accept a manual process as a substitute for reliable signal."
+    }
+  },
+  "output": {
+    "content": "I need the performance monitoring pipeline to trigger automatically the moment the nightly forecast job completes. Right now, I am waiting for a manual signal from the observability team before I can start evaluating model accuracy. This delay forces me to sit idle while the morning order window approaches, and it breaks the continuous feedback loop I need to tune the models effectively. Automating this hand over is essential for me to track drift and accuracy in real time. The more immediate the monitoring starts, the better I can iterate on the feature sets and retraining schedules. I am looking for a seamless, automated start to the monitoring phase so I can focus entirely on optimizing the predictive performance without administrative friction.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The text states a need for immediate, automated monitoring to enable effective model iteration, and explicitly notes that the more immediate the start, the better the outcome, indicating that exceeding the basic request for automation would increase satisfaction."
+  }
+}

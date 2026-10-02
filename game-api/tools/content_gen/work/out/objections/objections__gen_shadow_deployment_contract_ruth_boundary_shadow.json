@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_shadow_deployment_contract_ruth_boundary_shadow",
+  "stage": "objections",
+  "input_hash": "7257efe673187ac5545375e494ff75b999486db2aa9a4f14bc167392d170f63c",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_ruth_boundary_shadow",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} proposed that shadow deployment carry a formal sign off before anything ships through it. She will not accept shadow deployment shipping without that formal sign off in place.",
+      "fact": "{reliability_ruth} proposed that shadow deployment carry a formal sign off before anything ships through it.",
+      "reading": "She will not accept shadow deployment shipping without that formal sign off in place.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "deploy.shadow",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.shadow",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "I am not signing off on shadow deployment without a formal approval process in place first. That is a hard no for me.",
+    "correction": "I am talking about the governance layer, not the automation level. You cannot automate the ship without a human gate."
+  }
+}

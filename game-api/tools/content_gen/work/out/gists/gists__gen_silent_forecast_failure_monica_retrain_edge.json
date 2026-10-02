@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_forecast_failure_monica_retrain_edge",
+  "stage": "gists",
+  "input_hash": "185ee06978ea895ef03105cf3143c327a8b6bf1d2b53842e98249e7ff8512f2f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_silent_forecast_failure_monica_retrain_edge",
+    "fact": "{model_monica} suggested that the hand-over from alerting to the retraining trigger be automated to speed up model updates.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Warehouse Flood"
+  },
+  "output": {
+    "gist": "The model retraining trigger and its alerting hand-over keeps coming up in {model_monica} meetings.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The statement identifies a recurring topic in meetings but does not express a desire to change it, a refusal, a trade-off, or a definitive fact about its status, making the direction ambiguous."
+  }
+}

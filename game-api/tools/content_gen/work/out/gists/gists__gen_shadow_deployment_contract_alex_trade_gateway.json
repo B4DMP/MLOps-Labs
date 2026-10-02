@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_alex_trade_gateway",
+  "stage": "gists",
+  "input_hash": "3b6a2923f190f09e848f7428bfee22eccfb20e072497378d4943c730f4c71a88",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_alex_trade_gateway",
+    "fact": "{automation_alex} proposed leaving the hand-off into the gateway exactly as it runs today.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The hand-off into the gateway keeps coming up whenever you talk to {automation_alex}.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states a recurring topic in conversations with a stakeholder but does not express a stance, desire, refusal, or factual constraint regarding the automation process itself."
+  }
+}

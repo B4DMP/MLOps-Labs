@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_committed_pallets_reuben_composite_driver",
+  "stage": "gists",
+  "input_hash": "b1b1aaa8d0f883057f69bcb40060c9a1e1faa95f7c008aaf4c52dd16410f3c8b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_committed_pallets_reuben_composite_driver",
+    "fact": "{requirements_reuben} asked for the risk to acceptance hand over and the acceptance to evaluation hand over to be automated.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Committed Pallets"
+  },
+  "output": {
+    "gist": "The chain of hand-overs from risk assessment through acceptance criteria to evaluation is the subject of a note from {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the chain of hand-overs (risk, acceptance, evaluation) as the subject of a note, which is a descriptive statement of what is being discussed rather than a commitment to a specific stance like a driver, boundary, trade-off, or fact about the system's state."
+  }
+}

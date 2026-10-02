@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_silent_forecast_failure_emilia_rollback_manual",
+  "stage": "objections",
+  "input_hash": "0b46dd111df59fc90fe071b04ce46472f11530939dbca1972f1584eeb5c8279d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_silent_forecast_failure_emilia_rollback_manual",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} mentioned that the rollback mechanism can remain a manual procedure for now. She would accept keeping the rollback done by hand if it avoids the cost of a new deployment tool.",
+      "fact": "{efficiency_emilia} mentioned that the rollback mechanism can remain a manual procedure for now.",
+      "reading": "She would accept keeping the rollback done by hand if it avoids the cost of a new deployment tool.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "ops.rollback",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are not just saving money on a deployment tool, you are quietly accepting a longer outage window for every store manager in the chain. I need that operational risk acknowledged in the KPIs before we sign off on this trade off.",
+    "correction": "I did not say the manual process is safe, I said it is affordable for the current quarter while we fix the underlying drift issues. Do not file this as a technical limitation, file it as a conscious cost decision with a known risk."
+  }
+}

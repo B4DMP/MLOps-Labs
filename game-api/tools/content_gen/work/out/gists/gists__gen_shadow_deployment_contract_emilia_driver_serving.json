@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_emilia_driver_serving",
+  "stage": "gists",
+  "input_hash": "7e8771641c1245cf1c8814a222ec14949d6e1f8f80ef6675fbc14bc4149f4a0e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_emilia_driver_serving",
+    "fact": "{efficiency_emilia} proposed moving model serving fully onto automatic handling.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The nightly forecast job and its serving speed keep coming up in talks with {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes that efficiency topics (serving speed) are frequently discussed with a stakeholder but does not indicate whether the stakeholder wants more speed, sets a limit, accepts a trade-off, or is merely stating a fact."
+  }
+}

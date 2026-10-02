@@ -1,0 +1,49 @@
+{
+  "item_id": "artifacts:gen_cost_crisis_drift_gap_ruth_driver_drift_gov",
+  "stage": "artifacts",
+  "input_hash": "2ddd8bcf44c09e01abe3146e27475532ea077bbc46abd66437e28396c37a0e8a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_ruth_driver_drift_gov",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} asked for the drift monitoring to be governed. She wants the drift monitoring to have a formal sign-off so the signal is trusted during promotion weeks.",
+      "fact": "{reliability_ruth} asked for the drift monitoring to be governed.",
+      "reading": "She wants the drift monitoring to have a formal sign-off so the signal is trusted during promotion weeks.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "ops.production_drift_monitoring",
+        "axis": "governance",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "author": {
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Cost Cliff",
+      "description": "The infrastructure bill for the monitoring stack has doubled, and #efficiency_emilia# has drawn a hard line: she will not fund automated drift monitoring, insisting it is a luxury the business cannot afford. #reliability_ruth# argues that without automated and governed drift checks, the team is flying blind during promotion weeks, and she refuses to accept a manual process as a substitute for reliable signal."
+    }
+  },
+  "output": {
+    "content": "We need the drift monitoring to be governed with a formal sign off before any alert triggers a model retrain. Right now the signal is just a number on a dashboard, and nobody trusts it enough to act on it during a promotion week. If we add a strict review step, the team will actually rely on the alerts instead of guessing. I want that governance layer built in from the start, not bolted on later. The more rigorous the sign off, the more confidence the buyers and store managers will have in the order suggestions we push to them.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The text explicitly states that increasing the rigor of the sign-off process will increase user confidence, indicating that doing more than the minimum requested (a strict review) would make the stakeholders happier."
+  }
+}

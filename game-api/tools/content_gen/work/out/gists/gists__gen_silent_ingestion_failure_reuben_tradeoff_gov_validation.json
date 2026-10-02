@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_ingestion_failure_reuben_tradeoff_gov_validation",
+  "stage": "gists",
+  "input_hash": "24f9aacc9738ee7d4743f07cd8404ccfa8a5ba5163e551903e65b04ac59eb4a6",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_silent_ingestion_failure_reuben_tradeoff_gov_validation",
+    "fact": "{requirements_reuben} suggested keeping governance on validation manual.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Store Gap"
+  },
+  "output": {
+    "gist": "Validation governance practices keep coming up whenever the team talks to {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The statement notes that validation governance (a requirements topic) is frequently discussed, but it does not indicate whether this is a driver, boundary, trade-off, or simple fact about the current state."
+  }
+}

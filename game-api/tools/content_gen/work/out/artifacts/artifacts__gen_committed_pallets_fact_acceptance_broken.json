@@ -1,18 +1,18 @@
 {
   "item_id": "artifacts:gen_committed_pallets_fact_acceptance_broken",
   "stage": "artifacts",
-  "input_hash": "17d196864b397c1c7cbff9b8cd00753159ad163defae660758e28c468453e319",
+  "input_hash": "411c55477ce60d96c8c43103a211764b0aaa582d694f7765e48fd8f50d488f99",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 1,
+  "attempts": 3,
   "inputs": {
     "requirement": {
       "id": "gen_committed_pallets_fact_acceptance_broken",
       "challenge_id": -1,
       "stakeholder_id": null,
       "type": "fact",
-      "description": "The acceptance criteria for the allocation module are broken. The criteria exist but stopped working before this promotion week.",
-      "fact": "The acceptance criteria for the allocation module are broken.",
-      "reading": "The criteria exist but stopped working before this promotion week.",
+      "description": "The acceptance criteria are broken and have stopped working. That is simply how the acceptance setup works today.",
+      "fact": "The acceptance criteria are broken and have stopped working.",
+      "reading": "That is simply how the acceptance setup works today.",
       "metric_id": null,
       "suggested": null,
       "holds": null,
@@ -45,8 +45,8 @@
     "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "I checked the allocation module during the morning order window. The acceptance criteria for the middle aisle allocation are broken. They exist in the configuration file but stopped working before this promotion week. The system no longer validates the suggested quantities against the supplier minimum order quantities. The team is currently running a manual spreadsheet check to catch impossible orders before they reach the distribution centre. This workaround happens every time a buyer locks a promotion. The criteria file has not been updated since the last retraining cycle. The validation step simply fails silently and the suggested orders proceed without any automated check.",
+    "content": "The automated consent validation scripts for the loyalty basket feeds are currently failing. They used to flag mismatches before the data reached the feature store, but the pipeline has stalled. The team now manually extracts a small sample of raw scan lines each morning. They cross reference these entries against the retention log by hand to verify the personal data fields. This manual check happens every morning before the nightly batch processes the new data. It is the only way the data gets through to the forecast job right now.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The artifact describes the current state of the allocation module, the nature of the bug, and the manual workaround in use, without expressing any wishes, refusals, or stated trade-offs."
+    "reclassify_reason": "The text describes the current operational state of the pipeline failure and the manual workaround without expressing any wishes, refusals, or explicit trade-offs."
   }
 }

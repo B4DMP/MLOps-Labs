@@ -1,7 +1,7 @@
 {
   "item_id": "artifacts:gen_shadow_deployment_contract_fact_canary_absent",
   "stage": "artifacts",
-  "input_hash": "f3d11a282e21a3a68c3f96ea77917fe8da51f7419ba4297d4d42d23eb2d31965",
+  "input_hash": "5a4f0f10471b5ff583cac6860ac85ae74fe294f2060cf80d553a0de5d1c0f08e",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -10,9 +10,9 @@
       "challenge_id": -1,
       "stakeholder_id": null,
       "type": "fact",
-      "description": "The canary testing setup is currently absent from the deployment process. That is simply the current state of the canary testing setup.",
-      "fact": "The canary testing setup is currently absent from the deployment process.",
-      "reading": "That is simply the current state of the canary testing setup.",
+      "description": "Canary testing does not exist yet for the forecast model. That is simply where canary testing stands today, not yet built.",
+      "fact": "Canary testing does not exist yet for the forecast model.",
+      "reading": "That is simply where canary testing stands today, not yet built.",
       "metric_id": null,
       "suggested": null,
       "holds": null,
@@ -45,8 +45,8 @@
     "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "During the pipeline review, I walked through the current deployment steps for the Shelfcast forecast service. The release process moves code from the staging environment directly to production. There is no intermediate phase where a subset of stores receives the new version before the full rollout. The deployment script pushes the updated container image to all regional distribution centres simultaneously. I checked the configuration files and the infrastructure as code templates. No flags or routing rules exist to divert traffic to a limited group of stores for validation. The logs show a single batch deployment event per release cycle, affecting every store in the chain at once. The current state is that the entire fleet updates in one go, with no gradual rollout mechanism in place.",
+    "content": "During the infrastructure sync, {automation_alex} outlined the current deployment flow for the nightly forecast job. The pipeline currently pushes the updated model weights directly to the production serving cluster after the weekly retraining step completes. There is no intermediate stage where a subset of stores or a small percentage of traffic receives the new model before the full rollout. The deployment script executes a single atomic switch, replacing the live model artifact with the new version. This means that when the weekly retrain finishes, the change is visible to all one thousand two hundred stores immediately. No gradual rollout or partial exposure mechanism is in place to test the new weights against a limited set of order suggestions before they reach the entire network.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text describes the current technical state of the deployment process without expressing any wishes, refusals, or accepted trade-offs."
+    "reclassify_reason": "The text describes the current state of the deployment pipeline and its lack of gradual rollout mechanisms without expressing any wishes, refusals, or stated trade-offs."
   }
 }

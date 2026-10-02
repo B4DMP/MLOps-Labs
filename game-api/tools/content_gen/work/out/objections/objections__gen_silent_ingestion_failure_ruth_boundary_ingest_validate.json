@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_silent_ingestion_failure_ruth_boundary_ingest_validate",
+  "stage": "objections",
+  "input_hash": "63ae5271cbdad17b4474de0fa83b04ea3b80565c0b72f3f7065635a469766f65",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_silent_ingestion_failure_ruth_boundary_ingest_validate",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} proposed that the hand-over from ingestion to validation must be reviewed. She will not accept a hand-over without a review step.",
+      "fact": "{reliability_ruth} proposed that the hand-over from ingestion to validation must be reviewed.",
+      "reading": "She will not accept a hand-over without a review step.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "edge": "e.ingest_validate",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.ingest_validate",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "I did not say we should skip the review; I said we must not proceed without one. You cannot automate the hand-over until someone signs off on the validation results.",
+    "correction": "You are misreading my stance on automation. I am not blocking the tooling, I am blocking the deployment of that tooling until the governance gap is closed."
+  }
+}

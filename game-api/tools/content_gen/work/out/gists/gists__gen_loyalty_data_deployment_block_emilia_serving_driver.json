@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_data_deployment_block_emilia_serving_driver",
+  "stage": "gists",
+  "input_hash": "d5f6d93e7d48c9662d08f56bccd06f1219c6bebcb6fa0d566386cf014b7df0c1",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_loyalty_data_deployment_block_emilia_serving_driver",
+    "fact": "{efficiency_emilia} asked for the model serving endpoint to be optimized for faster response times.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Gap"
+  },
+  "output": {
+    "gist": "Response times on the model serving endpoint keep coming up whenever you talk to {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies response times as a recurring topic of discussion but does not specify whether the stakeholder wants them improved, accepts them as a trade-off, or views them as a fixed boundary."
+  }
+}

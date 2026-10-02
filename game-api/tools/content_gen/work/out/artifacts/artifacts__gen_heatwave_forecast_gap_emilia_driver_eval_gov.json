@@ -1,0 +1,49 @@
+{
+  "item_id": "artifacts:gen_heatwave_forecast_gap_emilia_driver_eval_gov",
+  "stage": "artifacts",
+  "input_hash": "b1187ebf5e0fe9dad2a2238b30b8c00f52182315c92140981e30f8db53944384",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_emilia_driver_eval_gov",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} asked for the model evaluation harness to have full formal governance to ensure compliance. {efficiency_emilia.first} wants full governance on the evaluation harness to meet compliance requirements.",
+      "fact": "{efficiency_emilia} asked for the model evaluation harness to have full formal governance to ensure compliance.",
+      "reading": "{efficiency_emilia.first} wants full governance on the evaluation harness to meet compliance requirements.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "model.evaluation",
+        "axis": "governance",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "author": {
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    },
+    "challenge": {
+      "name": "The Heatwave Blind Spot",
+      "description": "A sudden heatwave has shifted demand for seasonal articles, and the current forecast is missing the mark. #model_monica# wants to automate the evaluation harness to test new weather features rapidly, while #requirements_reuben# wants to keep it manual to ensure every test case is rigorously documented before any model change is considered."
+    }
+  },
+  "output": {
+    "content": "We need to close the gap in our seasonal demand forecasting. The recent heatwave exposed how fragile our current weather inputs are, and we cannot afford to miss on promotion week availability again. I am pushing for a fully automated evaluation harness that lets us test new weather features rapidly. Speed is critical here. Every day we spend manually reviewing test cases is a day we are not improving the model. I want the team to focus on iterating quickly so we can capture those demand shifts before the next seasonal spike hits the shelves.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The author explicitly prioritizes speed and rapid iteration to capture demand shifts, indicating that accelerating the evaluation process would increase their satisfaction and align with their strategic goals."
+  }
+}

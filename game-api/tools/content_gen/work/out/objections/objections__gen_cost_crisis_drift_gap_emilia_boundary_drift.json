@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_cost_crisis_drift_gap_emilia_boundary_drift",
+  "stage": "objections",
+  "input_hash": "a2310576bda65621de6596c7957a75d28288cb1d289f4fad720ac194f2f5a3e0",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_emilia_boundary_drift",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "boundary",
+      "description": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero. She will not fund the drift monitoring stack again if it stays at its current cost level.",
+      "fact": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero.",
+      "reading": "She will not fund the drift monitoring stack again if it stays at its current cost level.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "ops.production_drift_monitoring",
+        "axis": "automation",
+        "op": "lte",
+        "level": 1
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.production_drift_monitoring",
+          "axis": "automation",
+          "value": 1
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "I am not cutting the drift monitoring budget to zero, I am refusing to pay for a stack that costs too much for the value it delivers. We need to fix the price before I release any further funds for the drift monitoring.",
+    "correction": "You filed this under a complete shutdown, but I only set a hard cap on the cost. I am still buying the capability, I just will not approve the current invoice."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_data_deployment_block_reuben_registry_driver",
+  "stage": "gists",
+  "input_hash": "00ac5769910b3a87d72e0f409142467864e1796f94494f59c82ddaa394589cd1",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_loyalty_data_deployment_block_reuben_registry_driver",
+    "fact": "{requirements_reuben} asked for a full review of the hand-over from the model registry to the CI/CD pipeline.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Gap"
+  },
+  "output": {
+    "gist": "Governance of the hand-over from the model registry to the CI/CD pipeline is the subject of a note from {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the topic (governance of the hand-over) and the source, but does not express a stance, preference, or commitment regarding that topic."
+  }
+}

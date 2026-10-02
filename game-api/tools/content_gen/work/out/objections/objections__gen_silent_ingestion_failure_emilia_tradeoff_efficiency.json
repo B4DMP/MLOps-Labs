@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_silent_ingestion_failure_emilia_tradeoff_efficiency",
+  "stage": "objections",
+  "input_hash": "a18a9374e7eb7f660604125ab6503a7b3d1c991f447526056e84915169a1ffda",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_silent_ingestion_failure_emilia_tradeoff_efficiency",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} suggested keeping the pipeline manual to save costs. She would accept a manual pipeline if it saves costs.",
+      "fact": "{efficiency_emilia} suggested keeping the pipeline manual to save costs.",
+      "reading": "She would accept a manual pipeline if it saves costs.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": "efficiency",
+        "loss": 5,
+        "target": null,
+        "axis": null,
+        "accepts_max_level": null
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are framing my cost constraint as a refusal to modernize, which ignores the real budget ceiling we operate under. I am asking you to acknowledge that manual steps are a deliberate trade for capital efficiency, not a failure of vision.",
+    "correction": "I never said we should keep the pipeline manual forever; I said we need to prove the automation pays for itself before we spend the money. You filed this as a technical blocker when it is purely a financial decision point."
+  }
+}

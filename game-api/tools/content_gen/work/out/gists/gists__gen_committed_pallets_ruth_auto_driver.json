@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_committed_pallets_ruth_auto_driver",
+  "stage": "gists",
+  "input_hash": "0a3318baecd841ebbe6c4b5ee7893e15265f0a75043295f22ec07be6a2fb4674",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_committed_pallets_ruth_auto_driver",
+    "fact": "{reliability_ruth} proposed that the acceptance criteria should be automated.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Committed Pallets"
+  },
+  "output": {
+    "gist": "Reliability of the forecast pipeline is the topic when {reliability_ruth} discusses acceptance criteria automation.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies reliability as the topic of discussion regarding acceptance criteria automation but does not express a stance, commitment, or direction regarding it."
+  }
+}

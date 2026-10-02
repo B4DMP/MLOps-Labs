@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_consent_gap_alex_trade_metric",
+  "stage": "gists",
+  "input_hash": "75a84dfeaa847516e196570f9d162a5daaf91d081b5dd1bcaaba4e33153dbe0f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_loyalty_consent_gap_alex_trade_metric",
+    "fact": "{automation_alex} proposed shifting some of his automation budget toward the audit work instead.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Loyalty Data Audit"
+  },
+  "output": {
+    "gist": "Shifting automation budget toward the loyalty data audit keeps coming up in planning discussions.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes that shifting the automation budget is a recurring topic in planning discussions, but it does not indicate a decision to increase, decrease, or refuse the change, nor does it frame it as a trade-off or established fact."
+  }
+}

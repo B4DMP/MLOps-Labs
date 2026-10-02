@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_emilia_driver_monitoring",
+  "stage": "gists",
+  "input_hash": "0e1731e86ba38b12825e2a782c6d17db4f51e297f2e339da6c79d7a799a41140",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_emilia_driver_monitoring",
+    "fact": "{efficiency_emilia} proposed improving the automation of the drift check to training pipeline hand-over to catch issues early.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The hand-over from drift checks to training pipelines has been raised in efficiency discussions.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the topic was raised in discussions but does not express a preference, refusal, or acceptance of a trade-off, nor does it assert a specific operational fact about the current state of the pipelines."
+  }
+}

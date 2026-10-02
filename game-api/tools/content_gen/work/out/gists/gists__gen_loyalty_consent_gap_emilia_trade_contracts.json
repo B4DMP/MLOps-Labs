@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_consent_gap_emilia_trade_contracts",
+  "stage": "gists",
+  "input_hash": "33081913b0dcefb4c5ef22ad4536144378c66618b8e567e9ba6c369dfb27a08e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_loyalty_consent_gap_emilia_trade_contracts",
+    "fact": "{efficiency_emilia} proposed a middle ground on how far the data contracts audit goes.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Loyalty Data Audit"
+  },
+  "output": {
+    "gist": "The cost and effort of the data contracts audit is the subject of a note from {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions the cost and effort of an audit but does not specify whether this is a driver, a boundary, a trade-off, or a simple fact."
+  }
+}

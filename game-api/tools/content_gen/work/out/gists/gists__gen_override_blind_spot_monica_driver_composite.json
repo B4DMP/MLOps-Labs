@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_monica_driver_composite",
+  "stage": "gists",
+  "input_hash": "311891f22812b0f018cab3f97c611619a35586cc97fdffbb3c9fc74261e06a8d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_monica_driver_composite",
+    "fact": "{model_monica} proposed automating the entire model promotion pipeline from evaluation to deployment.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The model promotion pipeline, from evaluation to deployment, keeps coming up in {model_monica}'s notes.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the model promotion pipeline as a recurring topic in notes but does not express a desire for change, a refusal, an accepted trade-off, or a definitive fact about its performance."
+  }
+}

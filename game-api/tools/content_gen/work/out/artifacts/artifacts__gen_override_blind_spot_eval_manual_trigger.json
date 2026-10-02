@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_override_blind_spot_eval_manual_trigger",
+  "stage": "artifacts",
+  "input_hash": "9535f8b3ed046bc0c820d76bcf608d705feaf400084434f82a7c5bd492a7c9f4",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_override_blind_spot_eval_manual_trigger",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The hand-over from evaluation to registry is triggered manually and runs by hand. The current process requires a human to request the move from evaluation to registry.",
+      "fact": "The hand-over from evaluation to registry is triggered manually and runs by hand.",
+      "reading": "The current process requires a human to request the move from evaluation to registry.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.eval_registry",
+        "axis": "automation",
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "narrator": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Override Blind Spot",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "I was digging through the recent retraining logs for the northern stores and noticed a pattern in the timestamps. The evaluation phase finishes cleanly, but the subsequent move to the registry sits idle for several hours. I checked the pipeline definitions and confirmed there is no automated trigger bridging these two stages. A human operator has to manually request that transition before the model version becomes available for serving. This manual step introduces a variable delay that is not captured in the standard deployment metrics. I am just flagging the current mechanism as I see it in the codebase, without suggesting any changes to the workflow or the tooling setup.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The artifact describes an observed mechanism in the codebase and explicitly states that no changes or suggestions are being made, meaning it contains no wishes, refusals, or stated trade-offs."
+  }
+}

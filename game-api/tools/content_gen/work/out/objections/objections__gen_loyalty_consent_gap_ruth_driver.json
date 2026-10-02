@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_loyalty_consent_gap_ruth_driver",
+  "stage": "objections",
+  "input_hash": "0587bb175dfd54b87e62d60b5b245fa7f474e855e81d961afbee02bd9eb0309c",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_loyalty_consent_gap_ruth_driver",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} proposed moving acceptance criteria checks off manual handling. The less anyone has to check that by hand, the sooner feedback reaches the team.",
+      "fact": "{reliability_ruth} proposed moving acceptance criteria checks off manual handling.",
+      "reading": "The less anyone has to check that by hand, the sooner feedback reaches the team.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "req.acceptance_criteria",
+        "axis": "automation",
+        "level": 2
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "I am not asking for a full automation of the acceptance criteria yet, just to stop the manual bottleneck so we get faster feedback. I want the checks to run automatically, but I still need a human to sign off on the results before we deploy.",
+    "correction": "You are mixing up the automation of the check with the governance of the approval. I am moving the execution to a tool, but the decision to accept the model remains a manual, governed step."
+  }
+}

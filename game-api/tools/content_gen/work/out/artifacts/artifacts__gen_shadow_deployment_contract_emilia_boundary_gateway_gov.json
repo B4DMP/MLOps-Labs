@@ -1,0 +1,57 @@
+{
+  "item_id": "artifacts:gen_shadow_deployment_contract_emilia_boundary_gateway_gov",
+  "stage": "artifacts",
+  "input_hash": "52c75051fd463d065dad15d98fcf7153b789d4e6f65403a1235af67a7f593d15",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_emilia_boundary_gateway_gov",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "boundary",
+      "description": "{efficiency_emilia} proposed that the gateway carry a formal sign off before traffic reaches it. She will not accept the gateway shipping traffic without that formal sign off in place.",
+      "fact": "{efficiency_emilia} proposed that the gateway carry a formal sign off before traffic reaches it.",
+      "reading": "She will not accept the gateway shipping traffic without that formal sign off in place.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "deploy.api_gateway",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.api_gateway",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "author": {
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    },
+    "challenge": {
+      "name": "The Locked Shadow",
+      "description": "A supplier contract for the next promotion week is already signed, and the team cannot deploy the new model without a shadow run to verify it. #reliability_ruth# demands a fully automated and governed shadow environment to protect the live forecast, while #automation_alex# insists on keeping it manual to avoid breaking the current pipeline stability."
+    }
+  },
+  "output": {
+    "content": "{efficiency_emilia} has set a non negotiable condition for the upcoming gateway release. She states that no traffic may be routed through the new gateway unless a formal sign off process is fully established and documented beforehand. This requirement is absolute. She will not approve any deployment that bypasses this governance step, regardless of the urgency of the promotion week or the pressure from supply chain planners to reduce residual stock. The sign off must verify that the allocation logic respects supplier minimum order quantities and lead times before a single order suggestion is generated. Without this strict control, the project does not move forward.",
+    "reclassified_as": "boundary",
+    "reclassify_reason": "The text explicitly defines a non-negotiable condition and a line whose crossing results in refusal, stating that the project will not move forward without the established sign-off process regardless of external pressure."
+  }
+}

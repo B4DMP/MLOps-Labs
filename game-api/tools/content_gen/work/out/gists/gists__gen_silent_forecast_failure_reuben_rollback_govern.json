@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_forecast_failure_reuben_rollback_govern",
+  "stage": "gists",
+  "input_hash": "411bbc5d6d833c0a9949cac62d3a99da67c77b8a87f6f938b8c682fc01aaacae",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_silent_forecast_failure_reuben_rollback_govern",
+    "fact": "{requirements_reuben} brought up that the rollback mechanism must be governed with full sign off.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Warehouse Flood"
+  },
+  "output": {
+    "gist": "Governance and sign-off of the rollback mechanism is the subject of a note from {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a specific governance topic (rollback sign-off) but does not express a stance, preference, or commitment to any specific reading."
+  }
+}

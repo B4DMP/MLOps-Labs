@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_shadow_deployment_contract_emilia_boundary_gateway_gov",
+  "stage": "objections",
+  "input_hash": "dc8e843bb511e2cf94239fdac53bba98fa1b46ac25b06a23f13c07a04ef172f2",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_emilia_boundary_gateway_gov",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "boundary",
+      "description": "{efficiency_emilia} proposed that the gateway carry a formal sign off before traffic reaches it. She will not accept the gateway shipping traffic without that formal sign off in place.",
+      "fact": "{efficiency_emilia} proposed that the gateway carry a formal sign off before traffic reaches it.",
+      "reading": "She will not accept the gateway shipping traffic without that formal sign off in place.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "deploy.api_gateway",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.api_gateway",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "I will not let us route live traffic through that gateway without a formal sign off in place. That is a hard line for me, and we need to respect the compliance boundary before we talk about speed.",
+    "correction": "You are misreading my stance as a preference when it is actually a strict requirement. I am not asking for a review, I am demanding a formal gate that blocks deployment until it is passed."
+  }
+}

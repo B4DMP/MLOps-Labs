@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_cost_crisis_drift_gap_emilia_driver_edge_retrain",
+  "stage": "objections",
+  "input_hash": "be2971faa31a3bc29077e436261dffb9a58e9596d5204a13b026b36ba3798699",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_emilia_driver_edge_retrain",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} asked for the hand-over from alerting to retraining to be automated. She wants the retraining trigger to fire automatically when an alert is raised to avoid manual scheduling overhead.",
+      "fact": "{efficiency_emilia} asked for the hand-over from alerting to retraining to be automated.",
+      "reading": "She wants the retraining trigger to fire automatically when an alert is raised to avoid manual scheduling overhead.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "e.alert_retrain",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are still leaving a human in the loop to schedule the retraining, which defeats the purpose of cutting operational overhead. I need the trigger to fire the moment the alert lands so we stop paying for idle cycles.",
+    "correction": "I did not ask for a full unmonitored pipeline, I asked for the scheduling step to be removed from the manual queue. You are confusing my request for speed with a demand to drop all governance controls."
+  }
+}

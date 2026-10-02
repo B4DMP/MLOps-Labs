@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_forecast_failure_emilia_alert_edge",
+  "stage": "gists",
+  "input_hash": "b22399bfbbe1f1dc30e5e8cba916b9b60cb9dd4976b184c99c8797bef3bd1398",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_silent_forecast_failure_emilia_alert_edge",
+    "fact": "{efficiency_emilia} noted that the hand-over from performance monitoring to alerting can remain disconnected to save on integration costs.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Warehouse Flood"
+  },
+  "output": {
+    "gist": "The hand over from performance monitoring to alerting has been raised as a potential integration cost saving.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a potential cost saving (efficiency) from integration but presents it as a raised topic rather than a committed driver, boundary, trade-off, or established fact."
+  }
+}

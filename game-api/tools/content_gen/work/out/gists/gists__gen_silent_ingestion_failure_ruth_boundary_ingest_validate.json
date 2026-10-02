@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_ingestion_failure_ruth_boundary_ingest_validate",
+  "stage": "gists",
+  "input_hash": "a05d3ffce3c3887614262a05e5866f44eb9c0acd44ccdad4591b728d291362df",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_silent_ingestion_failure_ruth_boundary_ingest_validate",
+    "fact": "{reliability_ruth} proposed that the hand-over from ingestion to validation must be reviewed.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Store Gap"
+  },
+  "output": {
+    "gist": "The hand-over from ingestion to validation has been raised by {reliability_ruth} for review.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that a specific hand-over process was raised for review but does not indicate whether the stakeholder wants to improve it, refuses it, accepts a trade-off, or is simply stating a status, nor does it explicitly link the review to a reliability commitment beyond the tag."
+  }
+}

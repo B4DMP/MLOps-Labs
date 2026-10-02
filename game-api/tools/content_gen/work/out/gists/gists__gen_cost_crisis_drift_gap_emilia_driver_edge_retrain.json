@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_emilia_driver_edge_retrain",
+  "stage": "gists",
+  "input_hash": "145a12018a8c59c6386d4d244637c785092913cfaba809a844e2089ebbf6fb86",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_emilia_driver_edge_retrain",
+    "fact": "{efficiency_emilia} asked for the hand-over from alerting to retraining to be automated.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "The hand-over from alerting to retraining keeps coming up whenever you talk to {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a recurring topic (the hand-over process) associated with the efficiency stakeholder but does not specify whether this is a demand for improvement, a constraint, a trade-off, or a neutral observation of current state."
+  }
+}

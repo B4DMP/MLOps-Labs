@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_emilia_boundary_gateway_gov",
+  "stage": "gists",
+  "input_hash": "780f5a262173b29fec9f52aabe2c4ce033532a73b435beeea28ce582162e80d7",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_emilia_boundary_gateway_gov",
+    "fact": "{efficiency_emilia} proposed that the gateway carry a formal sign off before traffic reaches it.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The gateway sign off process keeps coming up whenever you talk to {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes a recurring topic associated with a specific stakeholder but does not specify whether the gateway sign-off is seen as a driver, a boundary, a trade-off, or a simple fact."
+  }
+}

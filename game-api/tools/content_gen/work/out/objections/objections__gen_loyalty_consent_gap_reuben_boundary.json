@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_loyalty_consent_gap_reuben_boundary",
+  "stage": "objections",
+  "input_hash": "d109a753eb7cc49d6ca16920050ea29f53e76b9faf6ed4cba7d05536fbc6591f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_loyalty_consent_gap_reuben_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} proposed that data contracts carry a formal sign off before anything uses them. He will not accept data contracts being used without that formal sign off in place.",
+      "fact": "{requirements_reuben} proposed that data contracts carry a formal sign off before anything uses them.",
+      "reading": "He will not accept data contracts being used without that formal sign off in place.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "req.data_contracts",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.data_contracts",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "I am not accepting data contracts that go live without a formal sign off. That is a hard no, and I will not debate it.",
+    "correction": "You are confusing my security requirement with a general process preference. I specifically require a formal sign off on the data contracts themselves before any model consumes them."
+  }
+}

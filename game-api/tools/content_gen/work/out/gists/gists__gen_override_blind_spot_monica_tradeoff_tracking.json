@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_monica_tradeoff_tracking",
+  "stage": "gists",
+  "input_hash": "ecc6418b95dafe55213bbc4d1ab680657400dc3f67b023312ffd0cc5124c60e9",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_monica_tradeoff_tracking",
+    "fact": "{model_monica} suggested keeping experiment tracking without formal review to focus on registry automation.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "Experiment tracking practices within the model registry are the specific topic under discussion.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies experiment tracking within the model registry as the topic but does not express a stance, preference, or fact about it."
+  }
+}

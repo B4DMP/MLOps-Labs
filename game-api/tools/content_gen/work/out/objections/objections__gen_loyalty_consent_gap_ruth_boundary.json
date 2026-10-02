@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_loyalty_consent_gap_ruth_boundary",
+  "stage": "objections",
+  "input_hash": "35a14a3ab46266e57d4f96439a2969c08b63917ef046ed3e45c9baee93928a2a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_loyalty_consent_gap_ruth_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} proposed that the hand-off into model evaluation carry a formal sign off. She will not accept that hand-off shipping an evaluation without that formal sign off in place.",
+      "fact": "{reliability_ruth} proposed that the hand-off into model evaluation carry a formal sign off.",
+      "reading": "She will not accept that hand-off shipping an evaluation without that formal sign off in place.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "edge": "e.acceptance_eval",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.acceptance_eval",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "I will not sign off on an evaluation hand-off that lacks formal governance. We need that strict sign off before anything ships to the stores.",
+    "correction": "I am not talking about the code deployment pipeline, but the evaluation workflow itself. The issue is the missing formal review gate, not the automation level of the serving layer."
+  }
+}

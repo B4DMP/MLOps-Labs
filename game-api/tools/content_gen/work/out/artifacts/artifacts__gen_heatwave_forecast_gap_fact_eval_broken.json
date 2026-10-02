@@ -1,18 +1,18 @@
 {
   "item_id": "artifacts:gen_heatwave_forecast_gap_fact_eval_broken",
   "stage": "artifacts",
-  "input_hash": "308fc63b3cd789895fb497273a2767dd0984cc994edfa095b3480e6e83b786ae",
+  "input_hash": "4880f77efaa3921ff6ca055c7a508fb164b3a6caa93b2bf66601ea1106793b88",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 2,
+  "attempts": 1,
   "inputs": {
     "requirement": {
       "id": "gen_heatwave_forecast_gap_fact_eval_broken",
       "challenge_id": -1,
       "stakeholder_id": null,
       "type": "fact",
-      "description": "The model evaluation harness is broken. The harness stopped working before the heatwave hit.",
-      "fact": "The model evaluation harness is broken.",
-      "reading": "The harness stopped working before the heatwave hit.",
+      "description": "The model evaluation harness is broken and does not run. The evaluation harness exists but has stopped working.",
+      "fact": "The model evaluation harness is broken and does not run.",
+      "reading": "The evaluation harness exists but has stopped working.",
       "metric_id": null,
       "suggested": null,
       "holds": null,
@@ -45,8 +45,8 @@
     "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "The evaluation harness for the weekly model retraining stopped working before the heatwave began. It used to run automatically after the nightly data load, but now it stalls before it finishes scoring the new weights against the holdout set. Because the automated pipeline is stuck, I pull the validation metrics by hand. I run a small script on my local machine to check the mean absolute error for the northern stores, then copy the results into the shared spreadsheet. This manual step takes about forty minutes each Tuesday morning. The new model goes live without a documented performance check, and the team has to rely on the forecast hitting the ordering system to see if the numbers look reasonable.",
+    "content": "The evaluation harness for the forecast model has not completed a run since the feature schema changed in July. It starts, loads the test weeks, and then fails on a missing column before any scores are written. Each new model version is checked by hand instead: I export the predictions for the last six weeks, join them with the actual sales in a notebook, and compute the error per product group. The results go into a shared sheet next to the previous version's numbers. Two retrained versions have gone through this route so far this summer. The harness code is still in the repository, unchanged since its last successful run.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text describes the current operational state, the manual workaround, and the resulting lack of documented performance checks without expressing a wish, refusal, acceptance, or explicit trade-off."
+    "reclassify_reason": "The text describes the current operational state of the evaluation harness and the manual workaround being used, without expressing any wishes, refusals, or stated trade-offs."
   }
 }

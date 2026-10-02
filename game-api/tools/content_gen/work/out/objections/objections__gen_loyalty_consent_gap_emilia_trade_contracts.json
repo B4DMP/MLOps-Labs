@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_loyalty_consent_gap_emilia_trade_contracts",
+  "stage": "objections",
+  "input_hash": "6554f9799503686acc0966d3ed5b78ec7f7b17927484ed463c20be48b9887d2a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_loyalty_consent_gap_emilia_trade_contracts",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} proposed a middle ground on how far the data contracts audit goes. She would accept the audit staying partial if the leaflet planning cycle keeps moving.",
+      "fact": "{efficiency_emilia} proposed a middle ground on how far the data contracts audit goes.",
+      "reading": "She would accept the audit staying partial if the leaflet planning cycle keeps moving.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "req.data_contracts",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are treating my concession on the audit scope as a free pass to ignore the cost of rework. If we slow the leaflet cycle to satisfy a full audit, the margin loss on the promotion week will dwarf any compliance gain.",
+    "correction": "I did not say the audit is optional, I said the current partial review is the ceiling we can afford without breaking the buyer schedule. Do not file this as a request to cut corners, it is a hard constraint on our operational tempo."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_ingestion_failure_ruth_tradeoff_version_fs",
+  "stage": "gists",
+  "input_hash": "8be532b83979f979244d01ea7de2c6762de8dc1fec5f896c848349e77e644157",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_silent_ingestion_failure_ruth_tradeoff_version_fs",
+    "fact": "{reliability_ruth} mentioned the hand-over from versioning to the feature store.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Store Gap"
+  },
+  "output": {
+    "gist": "The hand-over from versioning to the feature store keeps coming up in conversations with {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes a recurring topic in conversations with a stakeholder associated with reliability but does not express a preference, refusal, trade-off, or definitive fact about the metric itself."
+  }
+}

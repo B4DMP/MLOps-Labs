@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_override_blind_spot_monica_tradeoff_eval",
+  "stage": "objections",
+  "input_hash": "456749d02061b5e8f6140da6cd36ebdb51d4d11f165e4902f43e9d1e375e7f5a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_override_blind_spot_monica_tradeoff_eval",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} proposed accepting manual evaluation steps to ensure model quality before deployment. {model_monica} is willing to keep model evaluation manual to ensure thorough quality checks.",
+      "fact": "{model_monica} proposed accepting manual evaluation steps to ensure model quality before deployment.",
+      "reading": "{model_monica} is willing to keep model evaluation manual to ensure thorough quality checks.",
+      "metric_id": "model",
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.evaluation",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "I did not agree to skip the quality gates, I am asking for the time to run them by hand so we do not ship a broken forecast. You cannot treat my caution as a lack of ambition.",
+    "correction": "You are reading my request for manual checks as a rejection of automation, which is not what I said. I am simply refusing to let a model go live until I have verified the metrics myself."
+  }
+}
