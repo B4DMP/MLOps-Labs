@@ -1,3 +1,4 @@
+
 import introJs from "intro.js";
 
 /**
@@ -55,11 +56,11 @@ function makeControlButton(label: string, title: string, onClick: () => void): H
  */
 export function startTour(group: string, options: StartTourOptions = {}): void {
   const tour = introJs.tour();
-  let narrationCancel: () => void = () => {};
+  let narrationCancel: () => void = () => { };
   let lastNarratedText: string | null = null;
   const stopNarration = () => {
     narrationCancel();
-    narrationCancel = () => {};
+    narrationCancel = () => { };
   };
 
   let finished = false;
