@@ -1,9 +1,9 @@
 {
   "item_id": "items:ch_nightly_window_miss",
   "stage": "items",
-  "input_hash": "53d85f47c272c5c71cad0e6f231c7c787e16abe59db7175aec3467ac65cf08d2",
+  "input_hash": "a574cd92b0e1d51e6703a20aa257b1d2daa50aec16fd1c29d53c2f807ab09600",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 4,
+  "attempts": 3,
   "inputs": {
     "challenge": {
       "phase_id": 2,
@@ -622,18 +622,18 @@
     },
     "stance_mix": {
       "trade_off_min_share": 0.4,
-      "trade_off_max_share": 0.55,
+      "trade_off_max_share": 0.6,
       "driver_min_share": 0.25,
       "boundary_max_share": 0.34,
       "driver_min": 1,
       "boundary_min": 1
     },
     "stance_shape": {
-      "edge_min_share": 0.3,
-      "composite_min": 2,
+      "edge_min_share": 0.25,
+      "composite_min": 1,
       "composite_atoms": [
-        3,
-        5
+        2,
+        4
       ],
       "boundary_per_stakeholder_max": 1
     }
@@ -641,15 +641,15 @@
   "output": {
     "items": [
       {
-        "key": "ruth_nightly_pipeline",
+        "key": "ruth_pipeline_driver",
         "tag": "driver",
         "stakeholder_id": "reliability_ruth",
         "fact": "{reliability_ruth} asked for the nightly data pipeline to run on its own.",
         "readings": {
-          "driver": "She wants the whole stretch from ingestion to validation to be automated so the forecast job starts on time.",
-          "boundary": "She will not accept a pipeline that requires manual intervention at any step.",
-          "trade_off": "She would accept a manual hand-over if the rest of the pipeline is automated.",
-          "fact": "That is simply how the pipeline works today."
+          "driver": "The more of the pipeline that runs without a human, the fewer times the store managers see stale numbers.",
+          "boundary": "She will not accept a setup where the forecast job can start before the data is fully checked.",
+          "trade_off": "She would drop the requirement for full automation if the manual checks are guaranteed to finish in time.",
+          "fact": "That is simply how the pipeline is configured today."
         },
         "metric_id": "reliability",
         "suggested_target": "data.validation",
@@ -666,7 +666,7 @@
           },
           {
             "kind": "raise_to",
-            "target": "data.ingestion",
+            "target": "e.validate_version",
             "axis": "automation",
             "value": 3,
             "attr": null
@@ -693,15 +693,15 @@
         "branch_y_ops": []
       },
       {
-        "key": "ruth_ingest_trigger",
+        "key": "ruth_trigger_driver",
         "tag": "driver",
         "stakeholder_id": "reliability_ruth",
-        "fact": "{reliability_ruth} proposed that the hand-over from ingestion to validation should start on data arrival.",
+        "fact": "{reliability_ruth} proposed that the hand-over from ingestion to validation should start as soon as the data arrives.",
         "readings": {
-          "driver": "She wants the validation to trigger the moment the till scan lines land, so there is no gap before the forecast job.",
-          "boundary": "She will not accept a manual request trigger for the validation hand-over.",
-          "trade_off": "She would accept a scheduled trigger if it runs frequently enough to catch late data.",
-          "fact": "That is simply how the hand-over works today."
+          "driver": "Waiting for a manual request is the main reason the validation step gets skipped when the data is late.",
+          "boundary": "She will not let the pipeline run if the hand-over depends on someone remembering to click a button.",
+          "trade_off": "She would accept a scheduled trigger if it runs more frequently than once a night.",
+          "fact": "That is simply how the hand-over is set up today."
         },
         "metric_id": "reliability",
         "suggested_target": "e.ingest_validate",
@@ -738,51 +738,14 @@
         "branch_y_ops": []
       },
       {
-        "key": "ruth_version_trigger",
-        "tag": "trade_off",
-        "stakeholder_id": "reliability_ruth",
-        "fact": "{reliability_ruth} mentioned that the hand-over from validation to versioning could be done by hand if needed.",
-        "readings": {
-          "driver": "She wants the versioning hand-over to run automatically so the data is ready for the feature store.",
-          "boundary": "She will not accept a manual versioning hand-over during the nightly job.",
-          "trade_off": "She would accept a manual versioning hand-over if the validation step is fully automated and reliable.",
-          "fact": "That is simply how the hand-over works today."
-        },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_axis": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": "e.validate_version",
-        "concedes_axis": "automation",
-        "concedes_max_level": 2,
-        "asserts_target": null,
-        "asserts_axis": null,
-        "asserts_level": null,
-        "asserts_trigger": null,
-        "branch_x_description": null,
-        "branch_x_target": null,
-        "branch_x_axis": null,
-        "branch_x_level": null,
-        "branch_x_ops": [],
-        "branch_y_description": null,
-        "branch_y_target": null,
-        "branch_y_axis": null,
-        "branch_y_level": null,
-        "branch_y_ops": []
-      },
-      {
-        "key": "ruth_validation_governance",
+        "key": "ruth_gov_boundary",
         "tag": "boundary",
         "stakeholder_id": "reliability_ruth",
-        "fact": "{reliability_ruth} brought up the need for a formal sign-off on the validation rules.",
+        "fact": "{reliability_ruth} noted that the validation step has no formal review process.",
         "readings": {
-          "driver": "She wants the validation rules to be reviewed and approved before they go live.",
-          "boundary": "She will not accept a validation setup without a formal sign-off on the rules.",
-          "trade_off": "She would accept a partial review if the sign-off is done within the nightly window.",
+          "driver": "Adding a review step would make the validation rules more trustworthy for the forecast team.",
+          "boundary": "She will not sign off on the forecast service if the validation rules are not formally reviewed.",
+          "trade_off": "She would accept a partial review if it happens before the morning order window opens.",
           "fact": "That is simply how the validation setup works today."
         },
         "metric_id": null,
@@ -825,14 +788,51 @@
         "branch_y_ops": []
       },
       {
-        "key": "dave_validation_manual",
+        "key": "ruth_fs_tradeoff",
+        "tag": "trade_off",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} mentioned that the hand-over from versioning to the feature store is done by hand.",
+        "readings": {
+          "driver": "Automating the hand-over would ensure the feature store always has the latest data for the forecast job.",
+          "boundary": "She will not accept the feature store receiving data manually if the morning window is at risk.",
+          "trade_off": "She would accept the hand-over remaining manual if the feature store is guaranteed to be populated before the order window opens.",
+          "fact": "That is simply how the hand-over is configured today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "e.version_fs",
+        "concedes_axis": "automation",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "dave_auto_boundary",
         "tag": "boundary",
         "stakeholder_id": "data_dave",
         "fact": "{data_dave} insisted on keeping the validation process manual for now.",
         "readings": {
-          "driver": "He wants the validation to be automated to reduce the risk of bad data reaching the forecast.",
-          "boundary": "He will not accept an automated validation layer because the infrastructure costs are too high.",
-          "trade_off": "He would accept an automated validation if the costs are covered by a separate budget.",
+          "driver": "Automating the validation would reduce the risk of bad data reaching the forecast job.",
+          "boundary": "He will not allow the validation step to be automated because the infrastructure costs are too high.",
+          "trade_off": "He would accept automation if the cost is covered by a separate budget line.",
           "fact": "That is simply how the validation setup works today."
         },
         "metric_id": null,
@@ -875,15 +875,15 @@
         "branch_y_ops": []
       },
       {
-        "key": "dave_ingest_cost",
+        "key": "dave_vv_tradeoff",
         "tag": "trade_off",
         "stakeholder_id": "data_dave",
-        "fact": "{data_dave} noted that the ingestion pipeline costs are a concern for the team.",
+        "fact": "{data_dave} brought up that the hand-over from validation to versioning is done by hand.",
         "readings": {
-          "driver": "He wants the ingestion pipeline to be more efficient to reduce costs.",
-          "boundary": "He will not accept a new ingestion tool if it increases the infrastructure costs.",
-          "trade_off": "He would accept a manual ingestion step if it saves money on the infrastructure.",
-          "fact": "That is simply how the ingestion setup works today."
+          "driver": "Automating the hand-over would reduce the risk of data getting stuck between steps.",
+          "boundary": "He will not automate the hand-over if it requires new infrastructure costs.",
+          "trade_off": "He would accept automating the hand-over if it uses existing tooling without new licensing fees.",
+          "fact": "That is simply how the hand-over is configured today."
         },
         "metric_id": null,
         "suggested_target": null,
@@ -891,11 +891,11 @@
         "suggested_level": null,
         "holds": null,
         "ops": [],
-        "concedes_metric": "data",
-        "concedes_loss": 3,
-        "concedes_target": null,
-        "concedes_axis": null,
-        "concedes_max_level": null,
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "e.validate_version",
+        "concedes_axis": "automation",
+        "concedes_max_level": 3,
         "asserts_target": null,
         "asserts_axis": null,
         "asserts_level": null,
@@ -912,37 +912,22 @@
         "branch_y_ops": []
       },
       {
-        "key": "reuben_drift_pipeline",
+        "key": "reuben_ver_driver",
         "tag": "driver",
         "stakeholder_id": "requirements_reuben",
-        "fact": "{requirements_reuben} asked for the drift check pipeline to be governed.",
+        "fact": "{requirements_reuben} proposed adding a formal review to the data versioning step.",
         "readings": {
-          "driver": "He wants the drift check and its hand-overs to be reviewed so that data changes are controlled.",
-          "boundary": "He will not accept a drift check without a formal review process.",
-          "trade_off": "He would accept a partial review if the drift check is automated.",
-          "fact": "That is simply how the drift check works today."
+          "driver": "A formal review would ensure that the data versions used for training are auditable.",
+          "boundary": "He will not approve the model release if the data versioning is not reviewed.",
+          "trade_off": "He would accept a partial review if it is documented in the compliance log.",
+          "fact": "That is simply how the versioning setup works today."
         },
         "metric_id": "requirements",
-        "suggested_target": "data.training_drift_check",
+        "suggested_target": "data.versioning",
         "suggested_axis": "governance",
         "suggested_level": 3,
         "holds": null,
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "e.version_driftcheck",
-            "axis": "governance",
-            "value": 3,
-            "attr": null
-          },
-          {
-            "kind": "raise_to",
-            "target": "e.driftcheck_train",
-            "axis": "governance",
-            "value": 3,
-            "attr": null
-          }
-        ],
+        "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
         "concedes_target": null,
@@ -964,15 +949,15 @@
         "branch_y_ops": []
       },
       {
-        "key": "reuben_versioning_gov",
+        "key": "reuben_drift_tradeoff",
         "tag": "trade_off",
         "stakeholder_id": "requirements_reuben",
-        "fact": "{requirements_reuben} mentioned that the data versioning step could be done by hand if needed.",
+        "fact": "{requirements_reuben} noted that the training data drift check is missing from the pipeline.",
         "readings": {
-          "driver": "He wants the versioning step to be automated to reduce the risk of errors.",
-          "boundary": "He will not accept a manual versioning step if it increases the risk of data loss.",
-          "trade_off": "He would accept a manual versioning step if the data is backed up and recoverable.",
-          "fact": "That is simply how the versioning setup works today."
+          "driver": "Adding the drift check would catch data quality issues before they affect the model.",
+          "boundary": "He will not allow the model to train if the drift check is not in place.",
+          "trade_off": "He would accept the drift check remaining missing if the validation step is fully automated.",
+          "fact": "That is simply how the drift check is configured today."
         },
         "metric_id": null,
         "suggested_target": null,
@@ -982,7 +967,44 @@
         "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
-        "concedes_target": "data.versioning",
+        "concedes_target": "data.training_drift_check",
+        "concedes_axis": "automation",
+        "concedes_max_level": 1,
+        "asserts_target": null,
+        "asserts_axis": null,
+        "asserts_level": null,
+        "asserts_trigger": null,
+        "branch_x_description": null,
+        "branch_x_target": null,
+        "branch_x_axis": null,
+        "branch_x_level": null,
+        "branch_x_ops": [],
+        "branch_y_description": null,
+        "branch_y_target": null,
+        "branch_y_axis": null,
+        "branch_y_level": null,
+        "branch_y_ops": []
+      },
+      {
+        "key": "reuben_lv_tradeoff",
+        "tag": "trade_off",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} mentioned that the hand-over from labeling to versioning is done by hand.",
+        "readings": {
+          "driver": "Automating the hand-over would reduce the risk of labeling errors entering the training data.",
+          "boundary": "He will not accept the labeling data entering versioning without a review.",
+          "trade_off": "He would accept the hand-over remaining manual if the labeling step is fully governed.",
+          "fact": "That is simply how the hand-over is configured today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_axis": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "e.label_version",
         "concedes_axis": "automation",
         "concedes_max_level": 2,
         "asserts_target": null,
@@ -1001,15 +1023,15 @@
         "branch_y_ops": []
       },
       {
-        "key": "reuben_feature_store_gov",
+        "key": "emilia_ver_tradeoff",
         "tag": "trade_off",
-        "stakeholder_id": "requirements_reuben",
-        "fact": "{requirements_reuben} brought up the need to review the feature store access controls.",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} brought up that the data versioning step is missing from the pipeline.",
         "readings": {
-          "driver": "He wants the feature store to have strict access controls to protect the data.",
-          "boundary": "He will not accept a feature store without access controls.",
-          "trade_off": "He would accept a lack of formal sign-off on the feature store if the data is encrypted and access is restricted.",
-          "fact": "That is simply how the feature store works today."
+          "driver": "Adding versioning would make it easier to reproduce past forecasts.",
+          "boundary": "She will not approve the project if the versioning is not in place.",
+          "trade_off": "She would accept the versioning remaining missing if the forecast accuracy improves by ten percent.",
+          "fact": "That is simply how the versioning setup works today."
         },
         "metric_id": null,
         "suggested_target": null,
@@ -1019,9 +1041,9 @@
         "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
-        "concedes_target": "data.feature_store",
-        "concedes_axis": "governance",
-        "concedes_max_level": 0,
+        "concedes_target": "data.versioning",
+        "concedes_axis": "automation",
+        "concedes_max_level": 1,
         "asserts_target": null,
         "asserts_axis": null,
         "asserts_level": null,
@@ -1038,67 +1060,15 @@
         "branch_y_ops": []
       },
       {
-        "key": "emilia_forecast_speed",
-        "tag": "driver",
-        "stakeholder_id": "efficiency_emilia",
-        "fact": "{efficiency_emilia} proposed that the forecast job should run faster to meet the morning window.",
-        "readings": {
-          "driver": "She wants the forecast job to run faster so that the store managers have the order suggestions in time.",
-          "boundary": "She will not accept a forecast job that misses the morning window.",
-          "trade_off": "She would accept a slower forecast job if it is more accurate.",
-          "fact": "That is simply how the forecast job works today."
-        },
-        "metric_id": "efficiency",
-        "suggested_target": "data.ingestion",
-        "suggested_axis": "automation",
-        "suggested_level": 3,
-        "holds": null,
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "data.validation",
-            "axis": "automation",
-            "value": 1,
-            "attr": null
-          },
-          {
-            "kind": "raise_to",
-            "target": "e.ingest_validate",
-            "axis": "automation",
-            "value": 3,
-            "attr": null
-          }
-        ],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_axis": null,
-        "concedes_max_level": null,
-        "asserts_target": null,
-        "asserts_axis": null,
-        "asserts_level": null,
-        "asserts_trigger": null,
-        "branch_x_description": null,
-        "branch_x_target": null,
-        "branch_x_axis": null,
-        "branch_x_level": null,
-        "branch_x_ops": [],
-        "branch_y_description": null,
-        "branch_y_target": null,
-        "branch_y_axis": null,
-        "branch_y_level": null,
-        "branch_y_ops": []
-      },
-      {
-        "key": "emilia_cost_savings",
+        "key": "emilia_lab_tradeoff",
         "tag": "trade_off",
         "stakeholder_id": "efficiency_emilia",
-        "fact": "{efficiency_emilia} noted that the infrastructure costs are a concern for the business.",
+        "fact": "{efficiency_emilia} noted that the labeling pipeline is done by hand.",
         "readings": {
-          "driver": "She wants the infrastructure costs to be reduced to improve the margin.",
-          "boundary": "She will not accept a new infrastructure setup if it increases the costs.",
-          "trade_off": "She would accept a manual data processing step if it saves money on the infrastructure.",
-          "fact": "That is simply how the infrastructure setup works today."
+          "driver": "Automating the labeling would reduce the time spent on manual data preparation.",
+          "boundary": "She will not accept the labeling pipeline if it is not automated.",
+          "trade_off": "She would accept the labeling remaining manual if the cost of automation exceeds the savings in labor.",
+          "fact": "That is simply how the labeling pipeline works today."
         },
         "metric_id": null,
         "suggested_target": null,
@@ -1106,11 +1076,11 @@
         "suggested_level": null,
         "holds": null,
         "ops": [],
-        "concedes_metric": "efficiency",
-        "concedes_loss": 2,
-        "concedes_target": null,
-        "concedes_axis": null,
-        "concedes_max_level": null,
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "data.labeling",
+        "concedes_axis": "automation",
+        "concedes_max_level": 2,
         "asserts_target": null,
         "asserts_axis": null,
         "asserts_level": null,
@@ -1127,14 +1097,14 @@
         "branch_y_ops": []
       },
       {
-        "key": "fact_validation_broken",
+        "key": "fact_val_broken",
         "tag": "fact",
         "stakeholder_id": null,
-        "fact": "The data validation layer is broken and stopped working last night.",
+        "fact": "The data validation step is broken and stopped working.",
         "readings": {
-          "driver": "The validation layer needs to be fixed to catch bad data.",
-          "boundary": "The validation layer cannot be skipped if it is broken.",
-          "trade_off": "The validation layer could be replaced with a manual check if it is broken.",
+          "driver": "Fixing the validation step would prevent bad data from reaching the forecast job.",
+          "boundary": "The team will not proceed with the forecast if the validation step is not fixed.",
+          "trade_off": "The team would accept the validation step remaining broken if the forecast job is delayed.",
           "fact": "That is simply how the validation setup works today."
         },
         "metric_id": null,
@@ -1164,15 +1134,15 @@
         "branch_y_ops": []
       },
       {
-        "key": "fact_ingest_trigger",
+        "key": "fact_iv_trigger",
         "tag": "fact",
         "stakeholder_id": null,
         "fact": "The hand-over from ingestion to validation is triggered by a manual request.",
         "readings": {
-          "driver": "The hand-over should be triggered automatically to save time.",
-          "boundary": "The hand-over cannot be triggered manually if it is automated.",
-          "trade_off": "The hand-over could be triggered by a schedule if it is manual.",
-          "fact": "That is simply how the hand-over works today."
+          "driver": "Changing the trigger to on data arrival would make the pipeline more reliable.",
+          "boundary": "The team will not accept a manual trigger for the hand-over.",
+          "trade_off": "The team would accept the manual trigger if it is documented in the runbook.",
+          "fact": "That is simply how the hand-over is configured today."
         },
         "metric_id": null,
         "suggested_target": null,
@@ -1201,15 +1171,15 @@
         "branch_y_ops": []
       },
       {
-        "key": "fact_till_scan_late",
+        "key": "fact_ver_missing",
         "tag": "fact",
         "stakeholder_id": null,
-        "fact": "The till scan lines arrived late last night and the validation step was skipped.",
+        "fact": "The data versioning step is missing from the pipeline.",
         "readings": {
-          "driver": "The till scan lines need to arrive on time to avoid skipping validation.",
-          "boundary": "The validation step cannot be skipped if the till scan lines are late.",
-          "trade_off": "The validation step could be skipped if the till scan lines are late and the forecast is still needed.",
-          "fact": "That is simply how the data pipeline works today."
+          "driver": "Adding versioning would make it easier to track changes in the data.",
+          "boundary": "The team will not approve the model release if the versioning is missing.",
+          "trade_off": "The team would accept the versioning remaining missing if the forecast accuracy is high.",
+          "fact": "That is simply how the versioning setup works today."
         },
         "metric_id": null,
         "suggested_target": null,
@@ -1222,84 +1192,10 @@
         "concedes_target": null,
         "concedes_axis": null,
         "concedes_max_level": null,
-        "asserts_target": "data.ingestion",
+        "asserts_target": "data.versioning",
         "asserts_axis": "automation",
-        "asserts_level": 2,
+        "asserts_level": 1,
         "asserts_trigger": null,
-        "branch_x_description": null,
-        "branch_x_target": null,
-        "branch_x_axis": null,
-        "branch_x_level": null,
-        "branch_x_ops": [],
-        "branch_y_description": null,
-        "branch_y_target": null,
-        "branch_y_axis": null,
-        "branch_y_level": null,
-        "branch_y_ops": []
-      },
-      {
-        "key": "fact_forecast_incomplete",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "The forecast job started with incomplete data last night, causing wrong order suggestions.",
-        "readings": {
-          "driver": "The forecast job needs to start with complete data to avoid wrong suggestions.",
-          "boundary": "The forecast job cannot start with incomplete data if it is automated.",
-          "trade_off": "The forecast job could start with incomplete data if the validation step is skipped.",
-          "fact": "That is simply how the forecast job works today."
-        },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_axis": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_axis": null,
-        "concedes_max_level": null,
-        "asserts_target": "data.validation",
-        "asserts_axis": "automation",
-        "asserts_level": 0,
-        "asserts_trigger": null,
-        "branch_x_description": null,
-        "branch_x_target": null,
-        "branch_x_axis": null,
-        "branch_x_level": null,
-        "branch_x_ops": [],
-        "branch_y_description": null,
-        "branch_y_target": null,
-        "branch_y_axis": null,
-        "branch_y_level": null,
-        "branch_y_ops": []
-      },
-      {
-        "key": "fact_versioning_manual",
-        "tag": "fact",
-        "stakeholder_id": null,
-        "fact": "The hand-over from validation to versioning is done by hand and triggered by a manual request.",
-        "readings": {
-          "driver": "The hand-over should be automated to reduce the risk of errors.",
-          "boundary": "The hand-over cannot be done by hand if it is automated.",
-          "trade_off": "The hand-over could be done by hand if it is reviewed and approved.",
-          "fact": "That is simply how the hand-over works today."
-        },
-        "metric_id": null,
-        "suggested_target": null,
-        "suggested_axis": null,
-        "suggested_level": null,
-        "holds": null,
-        "ops": [],
-        "concedes_metric": null,
-        "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_axis": null,
-        "concedes_max_level": null,
-        "asserts_target": "e.validate_version",
-        "asserts_axis": "automation",
-        "asserts_level": 2,
-        "asserts_trigger": "manual_request",
         "branch_x_description": null,
         "branch_x_target": null,
         "branch_x_axis": null,

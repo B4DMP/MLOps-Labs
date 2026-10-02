@@ -32,7 +32,7 @@
     "mix_overrides": {
       "ch_shadow_deployment_contract": {
         "trade_off_min_share": 0.2,
-        "trade_off_max_share": 0.4
+        "trade_off_max_share": 0.46
       }
     }
   },
@@ -69,7 +69,7 @@
     "mix_overrides": {
       "ch_shadow_deployment_contract": {
         "trade_off_min_share": 0.2,
-        "trade_off_max_share": 0.4
+        "trade_off_max_share": 0.46
       }
     }
   },
@@ -111,7 +111,7 @@
     "mix_overrides": {
       "ch_shadow_deployment_contract": {
         "trade_off_min_share": 0.2,
-        "trade_off_max_share": 0.4
+        "trade_off_max_share": 0.46
       }
     }
   },
@@ -155,7 +155,7 @@
     "mix_overrides": {
       "ch_shadow_deployment_contract": {
         "trade_off_min_share": 0.2,
-        "trade_off_max_share": 0.4
+        "trade_off_max_share": 0.46
       }
     }
   }

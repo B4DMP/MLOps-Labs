@@ -881,10 +881,10 @@ def _neutral_room() -> dict:
     }
 
 
-def _reset_run_session(username: str) -> None:
+def _reset_run_session(user_id: int) -> None:
     """Escalation points and grudges are per playthrough, so the demo's do not carry over."""
     with get_session() as session:
-        rec = get_or_create_game_session(username, session)
+        rec = get_or_create_game_session(user_id, session)
         rec.escalation_points = 3
         rec.grudges = []
         flag_modified(rec, "grudges")
@@ -1085,12 +1085,12 @@ async def handle_state_update_request(
                 # Leaving a demo phase: metrics restart too, so none of the demo's score carries over.
                 leaving_demo = _demo_finished(
                     PhaseFactory.translate_challenge_index(challenge_index=challenge_id, phase_index=phase_id),
-                    played_templates(username),
+                    played_templates(user_id),
                 )
                 if leaving_demo:
                     metric_values = [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()]
                     ac_changes = {}
-                    _reset_run_session(username)
+                    _reset_run_session(user_id)
 
                 for i, m_name in enumerate(MetricFactory.get_available_metrics()):
                     cur_val = metric_values[i] if i < len(metric_values) else 0

@@ -4,7 +4,7 @@ Removes `user_data.user_name` and every legacy `user_name`/`player` string colum
 tables. All of them were write-only debt behind the `user_id` FK. The two logs that had a
 `(user_name, seq)` unique constraint get `(user_id, seq)` instead. Teachers keep their `user_name`.
 
-Revision ID: a3b4c5d6e7f8
+Revision ID: a9b8c7d6e5f4
 Revises: a2b3c4d5e6f7
 Create Date: 2026-09-29 00:00:00.000000
 
@@ -16,7 +16,7 @@ from alembic import op
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'a3b4c5d6e7f8'
+revision: str = 'a9b8c7d6e5f4'
 down_revision: Union[str, None] = 'a2b3c4d5e6f7'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
