@@ -248,6 +248,8 @@ celerybeat.pid
 
 # Environments
 .env
+.env.deploy
+.ghcr_pat
 .venv
 env/
 venv/

@@ -93,12 +93,31 @@ def get_stakeholders() -> dict[str, Any]:
     }
 
 
+def _with_answer_key_debug(question: dict) -> dict:
+    """Attaches the answer key for one knowledge question. Only ever called when
+    `ENABLE_DOSSIER_DEBUG` is on - see `_dump_questions` - matching `intel_handler._deck_debug`'s
+    same answer-key-only-in-debug-builds pattern for the offline intel deck."""
+    if not question.get("knowledge_question"):
+        return question
+    correct = next((a for a in question.get("answers", []) if a.get("id") == 0), None)
+    if correct is None:
+        return question
+    return {**question, "debug": {"correct_id": 0, "correct_text": correct.get("text")}}
+
+
+def _dump_questions(questions: list[Any]) -> list[Any]:
+    dumped = [q.model_dump() if hasattr(q, "model_dump") else q for q in questions]
+    if settings.ENABLE_DOSSIER_DEBUG:
+        dumped = [_with_answer_key_debug(q) for q in dumped]
+    return dumped
+
+
 def get_intro_questions() -> list[Any]:
-    return [q.model_dump() if hasattr(q, 'model_dump') else q for q in QuestionFactory.intro_questions]
+    return _dump_questions(QuestionFactory.intro_questions)
 
 
 def get_outro_questions() -> list[Any]:
-    return [q.model_dump() if hasattr(q, 'model_dump') else q for q in QuestionFactory.outro_questions]
+    return _dump_questions(QuestionFactory.outro_questions)
 
 def get_phases() -> list[Any]:
     return [
@@ -393,6 +412,12 @@ async def handle_game_init(
             "stakeholders": get_stakeholders(),
             "phases": get_phases(),
             "emotion_colors": get_emotion_colors(),
+            # Static content, not tied to progressionIndex 1's own event: a session resumed
+            # straight into progressionIndex 2 (reload after the demo, or after the real briefing
+            # was already dismissed in an earlier session) never replays that event, and the
+            # post-demo "real briefing" screen (Game.tsx's isRealBriefingOpen) needs this content
+            # whether or not it did.
+            "briefing": BriefingFactory.briefing,
             "use_questionnaire": use_questionnaire,
             "intro_phase_enabled": intro_phase_enabled,
             "settings": {

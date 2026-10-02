@@ -130,8 +130,18 @@ function App() {
     setIsInRegisterUi(false);
     setIsInAdminUi(true);
     pushScreen("/admin");
-    const dashData = await fetchAdminDashboard();
-    updateAdminState(dashData);
+    try {
+      const dashData = await fetchAdminDashboard();
+      updateAdminState(dashData);
+    } catch (err) {
+      // Never leave the admin shell showing on a failed/unauthorized dashboard fetch - back out
+      // to login and let the caller's catch block (if any) still surface the error message.
+      setIsInAdminUi(false);
+      setAdminToken("");
+      setIsInLoginUi(true);
+      pushScreen("/login");
+      throw err;
+    }
   };
 
   const enterTeacherUi = async (loggedInTeacherName?: string) => {
@@ -167,7 +177,10 @@ function App() {
     if (path === "/admin") {
       const result = await whoami();
       if (result.admin) {
-        await enterAdminUi();
+        // enterAdminUi already falls back to login and resets state on a failed dashboard
+        // fetch - just swallow the re-thrown error here, there's no login-form error UI to
+        // show it in on a cold reload.
+        await enterAdminUi().catch(() => {});
       } else {
         setIsInLoginUi(true);
         pushScreen("/login");

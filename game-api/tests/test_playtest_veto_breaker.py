@@ -28,6 +28,11 @@ from mlops_serious_game.domain.phase_factory import PhaseFactory
 from test_run_scope import _uid, migrated_db  # noqa: F401  (fixture used by name)
 from test_veto_breaker import STUCK_CHALLENGE_ID, STUCK_PHASE_ID, _seed_player_on_stuck_challenge
 
+# Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
+# runs locally/in docker-compose where Postgres is actually available.
+pytestmark = pytest.mark.db
+
+
 
 def _losing_search_result():
     """Stands in for a search that proved no card in the room passes - the trigger condition for

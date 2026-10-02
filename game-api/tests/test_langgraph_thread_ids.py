@@ -13,6 +13,11 @@ from sqlalchemy import create_engine, text
 from mlops_serious_game.config import settings
 from test_migrations import _alembic_config, throwaway_db  # noqa: F401 (fixture import)
 
+# Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
+# runs locally/in docker-compose where Postgres is actually available.
+pytestmark = pytest.mark.db
+
+
 _CHECKPOINT_TABLE_DDL = {
     "checkpoints": """
         CREATE TABLE checkpoints (

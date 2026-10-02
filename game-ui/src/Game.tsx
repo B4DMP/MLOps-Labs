@@ -7,6 +7,7 @@ import Questionaire from "./Questionaire";
 import type { Briefing } from "./types/Briefing";
 import type { Question } from "./types/Question";
 import BriefingPage from "./BriefingPage";
+import honeycombsIcon from "./components/Results/icons/honeycombs.json";
 import "intro.js/introjs.css";
 import { startTour } from "./utils/tour";
 import { TOUR_GUIDE_SEED } from "./utils/speech";
@@ -19,7 +20,7 @@ import AcSimulation from "./components/ac_simulation";
 import type { ChatMsg } from "./components/StakeholderInteractionArea";
 import { MetricsContext } from "./components/MetricProvider";
 import { StakeholderContext } from "./components/StakeholderProvider";
-import { PhasesContext } from "./components/PhaseProvider";
+import { PhasesContext, hasIntroPhase } from "./components/PhaseProvider";
 import PrePhaseDialog from "./components/PrePhaseDialog";
 import ErrorDialog from "./components/ErrorDialog";
 import PerformanceDashboard from "./components/PerformanceDashboard";
@@ -68,6 +69,19 @@ interface AppProps {
   onLogout: () => void;
 }
 
+/** seenBriefings.ts key for the real briefing shown after the demo - distinct from any
+ *  phase:challenge key, since it isn't tied to a specific phase/challenge pair. */
+const REAL_BRIEFING_KEY = "post-demo-briefing";
+
+/** Shown via BriefingPage before phase 0 (the throwaway demo) instead of the real briefing -
+ *  short on purpose, since the player is about to spend a whole phase on it anyway. The real
+ *  "Welcome to Lindenmarkt" briefing (from the backend) is shown again once the demo ends. */
+const DEMO_BRIEFING: Briefing = {
+  briefing_title: "Before We Start: The Honey Vault",
+  briefing_description:
+    "Welcome to Lindenmarkt. Before the real project, a practice round: somewhere behind the actual supply chain sits a honey vault, guarded by a bear named Bruce who would rather be asleep, and audited nightly by a man named Mark who trusts no dashboard, least of all the one you're about to build.\n\nThis round is just for you to get comfortable with the tools - nothing here is scored. The real project, and the real stakes, start the moment you're done.",
+};
+
 
 
 function App({ onLogout }: AppProps) {
@@ -102,6 +116,10 @@ function App({ onLogout }: AppProps) {
   const [progressionIndex, setProgressionIndex] = useState<number | null>(null);
   const [isLoadingSave, setIsLoadingSave] = useState<boolean>(true);
   const [isPhaseDialogueOpen, setIsPhaseDialogueOpen] = useState(false);
+  // Shown once, full-screen, between the demo (phase 0) ending and phase 1's own briefing -
+  // reuses BriefingPage with the real backend `briefing` content, which otherwise only showed
+  // before the demo. Only relevant when a demo actually ran (hasIntroPhase).
+  const [isRealBriefingOpen, setIsRealBriefingOpen] = useState(false);
   // True when the briefing was reopened from the dossier mid-phase, so closing
   // it returns to the phase instead of starting the round.
   const [isBriefingReview, setIsBriefingReview] = useState(false);
@@ -147,10 +165,12 @@ function App({ onLogout }: AppProps) {
     } else if (progressionIndex === 4) {
       phase = "report";
     } else if (progressionIndex === 1) {
-      phase = "briefing";
+      phase = hasIntroPhase(phases) ? "demo-briefing" : "briefing";
     } else if (progressionIndex === 2) {
-      if (isPhaseDialogueOpen) {
+      if (isRealBriefingOpen) {
         phase = "briefing";
+      } else if (isPhaseDialogueOpen) {
+        phase = "phase-briefing";
       } else if (challengeLoopId === 0) {
         phase = "offline-intel";
       } else if (challengeLoopId === 1 || challengeLoopId === 2) {
@@ -160,7 +180,7 @@ function App({ onLogout }: AppProps) {
       }
     }
     replaceProgress(phase);
-  }, [progressionIndex, isPhaseDialogueOpen, challengeLoopId]);
+  }, [progressionIndex, isPhaseDialogueOpen, isRealBriefingOpen, challengeLoopId, phases]);
 
   const stakeholdersRef = useRef<Record<string, Stakeholder>>({});
   const metricsRef = useRef<Record<string, Metric>>({});
@@ -219,7 +239,14 @@ function App({ onLogout }: AppProps) {
             setIsNewChallenge(false);
           } else {
             setIsNewChallenge(true);
-            setIsPhaseDialogueOpen(true);
+            // First arrival at phase 1 after the demo: show the real briefing first, and let
+            // its own onBriefingCompleted open the phase briefing afterwards instead of here.
+            const isFirstRealPhaseEntry = hasIntroPhase(phases) && currentPhase === 1;
+            if (isFirstRealPhaseEntry && !hasSeenBriefing(userId, REAL_BRIEFING_KEY)) {
+              setIsRealBriefingOpen(true);
+            } else {
+              setIsPhaseDialogueOpen(true);
+            }
           }
         }
       }
@@ -246,6 +273,14 @@ function App({ onLogout }: AppProps) {
       type: "game:progress_update",
       value: 2,
     });
+  };
+
+  // Dismisses the post-demo real briefing (frontend-only - progressionIndex is already 2, so
+  // there's nothing to tell the backend) and hands off to phase 1's own briefing.
+  const onRealBriefingCompleted = () => {
+    markBriefingSeen(userId, REAL_BRIEFING_KEY);
+    setIsRealBriefingOpen(false);
+    setIsPhaseDialogueOpen(true);
   };
 
   const [briefing, setBriefing] = useState<Briefing>({
@@ -278,6 +313,12 @@ function App({ onLogout }: AppProps) {
       setStakeholders(enrichedStakeholders);
       setMetrics(rawMetrics);
       setPhases(data["phases"]);
+      // Static content, independent of progressionIndex: a session resumed straight into
+      // progressionIndex 2 never replays that event's own game:progress_change message, and the
+      // post-demo "real briefing" (isRealBriefingOpen) needs this whether or not it did.
+      if (data["briefing"]) {
+        setBriefing(data["briefing"]);
+      }
       if (data["phases"] && data["phases"].length > 0) {
         setChallengeAmount(data["phases"].length);
       }
@@ -787,8 +828,10 @@ function App({ onLogout }: AppProps) {
       <SettingsPanel isVisible={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} onLogout={onLogout} />
       {/* Gameplay has its own gear in the dossier header; everywhere else (questionnaire,
           briefing, end screen) gets this small fixed one instead, since none of those screens
-          have a persistent header of their own. */}
-      {progressionIndex !== 2 && progressionIndex !== null && !isLoadingSave && (
+          have a persistent header of their own. The post-demo "real briefing" is also bare
+          BriefingPage with no header of its own, even though it shows at progressionIndex 2
+          (the same index real gameplay uses) - so it needs this gear too. */}
+      {(progressionIndex !== 2 || isRealBriefingOpen) && progressionIndex !== null && !isLoadingSave && (
         <button
           type="button"
           onClick={() => setIsSettingsOpen((v) => !v)}
@@ -832,8 +875,20 @@ function App({ onLogout }: AppProps) {
           </motion.div>
         ) : progressionIndex === 1 ? (
           <motion.div {...FADE_TRANSITION} key="prebriefing" style={{ width: "100%", height: "100%" }}>
+            {hasIntroPhase(phases) ? (
+              <BriefingPage
+                onBriefingCompleted={onBriefingCompleted}
+                briefing={DEMO_BRIEFING}
+                heroIcon={{ icon: honeycombsIcon, loop: false }}
+              />
+            ) : (
+              <BriefingPage onBriefingCompleted={onBriefingCompleted} briefing={briefing} />
+            )}
+          </motion.div>
+        ) : progressionIndex === 2 && isRealBriefingOpen ? (
+          <motion.div {...FADE_TRANSITION} key="real-briefing" style={{ width: "100%", height: "100%" }}>
             <BriefingPage
-              onBriefingCompleted={onBriefingCompleted}
+              onBriefingCompleted={onRealBriefingCompleted}
               briefing={briefing}
             />
           </motion.div>

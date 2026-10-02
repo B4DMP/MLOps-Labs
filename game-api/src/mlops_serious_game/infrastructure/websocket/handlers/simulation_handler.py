@@ -81,10 +81,25 @@ def _calculate_simulation_emotion_deltas(
     (delivered clean, came in capped, or left debt behind), not just move the numbers."""
     deltas: dict[str, dict[str, float]] = {}
     buckets: dict[str, str] = {}
+    # `report.stakeholders` already carries the authoritative "overridden"/"resistant"/"committed"
+    # verdict (pipeline.py's `_stakeholder_execution`, from buy-in/boundary/veto data) - neither
+    # status is reliably visible in this turn's graph targets. A broken veto only creates the
+    # overridden stakeholder's grudge this turn; it degrades something on a *later* turn when the
+    # grudge fires. A resistant low-power stakeholder's own target may likewise land undisturbed
+    # (no capped_by, no debt) if nothing else in the room happened to leave debt behind. Without
+    # checking status first, both would fall through to "clean_delivery" - all-positive pills next
+    # to an "Overruled"/"Resistant" badge.
+    status_by_id = {
+        getattr(st, "stakeholder_id", None): getattr(st, "status", None)
+        for st in getattr(report, "stakeholders", [])
+    }
     capped_targets = {
         getattr(t, "id", None)
         for t in getattr(report, "targets", [])
         if getattr(t, "capped_by", None)
+    }
+    debt_targets = {
+        getattr(d, "target_id", None) for d in getattr(report, "debt_created", []) if getattr(d, "target_id", None)
     }
     has_debt = bool(getattr(report, "debt_created", []))
 
@@ -102,6 +117,12 @@ def _calculate_simulation_emotion_deltas(
                 card_targets.add(raw_op["target"])
 
     for st_id in room_st_ids:
+        status = status_by_id.get(st_id)
+        if status == "overridden":
+            deltas[st_id] = dict(SIMULATION_OUTCOMES["overridden"])
+            buckets[st_id] = "overridden"
+            continue
+
         st_items = [i for i in card_items if getattr(i, "stakeholder_id", None) == st_id]
         st_targets = set()
         for item in st_items:
@@ -128,7 +149,12 @@ def _calculate_simulation_emotion_deltas(
         if st_targets and any(t in capped_targets for t in st_targets):
             deltas[st_id] = dict(SIMULATION_OUTCOMES["capped_delivery"])
             buckets[st_id] = "capped_delivery"
-        elif has_debt:
+        # A resistant stakeholder never reads as a clean delivery, even if their own target
+        # happens to show no capped_by/debt this turn - "resistant" already means they lacked
+        # commitment, so the debt check below only needs to catch debt on THEIR OWN target, not
+        # debt anywhere else in the room (that would otherwise wrongly sour an uninvolved,
+        # genuinely clean stakeholder too).
+        elif status == "resistant" or any(t in debt_targets for t in st_targets):
             deltas[st_id] = dict(SIMULATION_OUTCOMES["technical_debt"])
             buckets[st_id] = "technical_debt"
         else:
@@ -210,6 +236,7 @@ _REACTION_CAUSE = {
     "clean_delivery": "emotion.simulation_clean",
     "capped_delivery": "emotion.simulation_capped",
     "technical_debt": "emotion.simulation_debt",
+    "overridden": "emotion.simulation_overridden",
 }
 
 

@@ -26,6 +26,11 @@ from mlops_serious_game.domain.metric_factory import MetricFactory
 from test_run_scope import _seed_user, _start_run, _uid, migrated_db  # noqa: F401  (fixture used by name)
 from test_playtest import _begun_game, _dealt_challenge  # noqa: F401  (helpers reused)
 
+# Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
+# runs locally/in docker-compose where Postgres is actually available.
+pytestmark = pytest.mark.db
+
+
 
 # ── set_metric_changes (pure DB unit) ────────────────────────────────────────
 

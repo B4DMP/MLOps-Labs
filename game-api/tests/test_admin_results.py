@@ -25,6 +25,11 @@ from test_run_scope import (  # noqa: F401  (migrated_db is a fixture, used by n
 )
 from test_new_run import PLAYED_CHALLENGE, PLAYED_PHASE, _add_session, _allow_replay, _finish_run
 
+# Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
+# runs locally/in docker-compose where Postgres is actually available.
+pytestmark = pytest.mark.db
+
+
 
 def _finished(username: str, campaign_key: str, *, tainted: bool = False, runs: int = 1) -> int:
     """A player who has finished `runs` games, each with one played challenge."""

@@ -6,6 +6,11 @@ from mlops_serious_game.infrastructure.database import GameChallenge
 from mlops_serious_game.infrastructure.websocket.handlers.gather_handler import handle_gather_open
 from mlops_serious_game.infrastructure.websocket.handlers.game_handler import handle_game_init
 
+# Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
+# runs locally/in docker-compose where Postgres is actually available.
+pytestmark = pytest.mark.db
+
+
 
 @pytest.mark.anyio
 async def test_gather_open_updates_attention_tokens_in_session():

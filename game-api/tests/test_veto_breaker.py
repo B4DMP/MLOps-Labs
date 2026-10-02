@@ -28,6 +28,10 @@ from mlops_serious_game.domain.phase_factory import PhaseFactory
 
 from test_run_scope import _seed_user, _start_run, _uid, migrated_db  # noqa: F401  (fixture used by name)
 
+# Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
+# runs locally/in docker-compose where Postgres is actually available.
+pytestmark = pytest.mark.db
+
 # The challenge this mechanic exists for: a weak card is vetoed by a high-power stakeholder whose
 # Boundary it leaves unmet. Content is regenerated now and then, so if this stops vetoing, repoint
 # the three constants below to another challenge that still does (the room's high-power stakeholders

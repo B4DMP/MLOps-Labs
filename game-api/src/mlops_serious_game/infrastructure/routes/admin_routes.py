@@ -40,6 +40,12 @@ from mlops_serious_game.application.services.teacher_service import (
 )
 from mlops_serious_game.application.llm_cache import cache_stats
 from mlops_serious_game.config import settings
+from mlops_serious_game.infrastructure.k8s_deploy import (
+    NotInClusterError,
+    UnknownAppError,
+    get_pod_logs,
+    restart_deployments,
+)
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
@@ -466,4 +472,40 @@ async def update_bug_report_recipients_route(
     req: BugReportRecipientsUpdateRequest, _: str = Depends(check_admin_token)
 ):
     return {"recipients": update_bug_report_recipients(req.recipients)}
+
+
+@router.get("/deploy/version")
+async def get_deploy_version(_: str = Depends(check_admin_token)):
+    """What build is actually running right now - the direct way to confirm a restart/repull
+    picked up a new image, rather than just that *a* container is up."""
+    return {"git_sha": settings.GIT_SHA}
+
+
+@router.get("/deploy/logs")
+async def get_deploy_logs(
+    app: Literal["mlops-game-api", "mlops-game-ui", "mlops-game-postgres"],
+    lines: int = Query(500, ge=1, le=5000),
+    _: str = Depends(check_admin_token),
+):
+    try:
+        return await get_pod_logs(app, tail_lines=lines)
+    except UnknownAppError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except NotInClusterError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch logs: {e}")
+
+
+@router.post("/deploy/restart")
+async def restart_deployment(_: str = Depends(check_admin_token)):
+    """Rollout-restart the game-api and game-ui Deployments: re-pulls the latest pushed image
+    (imagePullPolicy: Always) and reloads any changed Secret/ConfigMap values."""
+    try:
+        results = await restart_deployments()
+        return {"type": "deploy_restart_success", "restarted": results}
+    except NotInClusterError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to restart deployments: {e}")
 

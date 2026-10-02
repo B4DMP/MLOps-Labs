@@ -185,11 +185,11 @@ def set_admin_cookie(response: Response, *, secure: bool, existing_csrf: str | N
         httponly=True,
         secure=secure,
         samesite="lax",
-        # Scoped to /api, not just /api/admin: /api/auth/whoami (which every screen calls to
-        # check both sessions) is outside /api/admin, so a tighter scope would never let whoami
-        # see this cookie at all. /api still excludes the one thing worth excluding - /ws, which
-        # admin never needs.
-        path="/api",
+        # Must be "/", not "/api": cookie Path matching happens in the browser against the
+        # literal request URL, before any reverse-proxy rewrite - behind an ingress that serves
+        # the API under a path prefix (e.g. /mlops-lab-api/...), the browser never makes a
+        # bare-/api request, so a "/api"-scoped cookie silently never gets sent back at all.
+        path="/",
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
     _set_csrf_cookie_if_absent(response, existing=existing_csrf, secure=secure)
@@ -204,9 +204,8 @@ def set_teacher_cookie(
         httponly=True,
         secure=secure,
         samesite="lax",
-        # Same reasoning as the admin cookie: the teacher dashboard is REST-polled, never over
-        # the websocket, so it never needs to be visible at /ws.
-        path="/api",
+        # See set_admin_cookie's comment - same path-prefix problem applies here.
+        path="/",
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
     _set_csrf_cookie_if_absent(response, existing=existing_csrf, secure=secure)
@@ -217,11 +216,11 @@ def clear_player_cookie(response: Response) -> None:
 
 
 def clear_admin_cookie(response: Response) -> None:
-    response.delete_cookie(ADMIN_COOKIE_NAME, path="/api")
+    response.delete_cookie(ADMIN_COOKIE_NAME, path="/")
 
 
 def clear_teacher_cookie(response: Response) -> None:
-    response.delete_cookie(TEACHER_COOKIE_NAME, path="/api")
+    response.delete_cookie(TEACHER_COOKIE_NAME, path="/")
 
 
 def _remaining_lifetime(payload: dict) -> timedelta:

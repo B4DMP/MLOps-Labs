@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  namespace: ma-bela-veltrup
+  namespace: mlops-lab
   name: mlops-game-postgres-pvc
 spec:
   accessModes:
@@ -14,7 +14,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: ma-bela-veltrup
+  namespace: mlops-lab
   name: mlops-game-postgres
   labels:
     app: mlops-game-postgres
@@ -42,6 +42,10 @@ spec:
           value: "mlops_labs"
         - name: POSTGRES_DB
           value: "mlops_labs"
+        # node-storage PVCs mount with a pre-existing lost+found dir, which initdb refuses to
+        # initialize into - give postgres its own subdirectory instead.
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
         volumeMounts:
         - name: postgres-storage
           mountPath: /var/lib/postgresql/data
@@ -61,7 +65,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mlops-game-postgres
-  namespace: ma-bela-veltrup
+  namespace: mlops-lab
 spec:
   selector:
     app: mlops-game-postgres

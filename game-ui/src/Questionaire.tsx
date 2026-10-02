@@ -1,6 +1,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import type { Question } from "./types/Question";
 import { Icon } from "@iconify/react";
+import { useSettings } from "./components/SettingsProvider";
 import styles from "./Questionaire.module.css";
 
 interface QuestionaireProps {
@@ -47,12 +48,13 @@ function hashString(text: string): number {
  * this same fixed order, in every question, in both intro and outro - `id` continues to encode
  * which one is correct, unrelated to where it lands on screen. */
 const ICON_ANSWER_ORDER = [
+  "Business Stakeholder",
+  "Subject Matter Expert",
+  "Legal Expert",
+  "Data Scientist",
   "Data Engineer",
-  "ML Engineer / Data Scientist",
-  "Compliance & QA Architect",
-  "Business/Domain Analyst",
-  "DevOps/MLOps Engineer",
-  "Production Engineer (App Reliability)",
+  "ML Engineer",
+  "DevOps Engineer",
 ];
 
 /** Answers not in `ICON_ANSWER_ORDER` (every icon-chip question other than the six match-to-role
@@ -200,7 +202,20 @@ export default function Questionaire({
   answers,
   setAnswers,
 }: QuestionaireProps) {
+  const { canPlaytest } = useSettings();
   const [step, setStep] = useState(0);
+  // Dev builds only (`ENABLE_DOSSIER_DEBUG`) - `question.debug` is absent entirely otherwise, so
+  // this state has nothing to toggle in a normal build. Several can be open at once, since a
+  // section can hold more than one debug-eligible question.
+  const [debugOpen, setDebugOpen] = useState<Set<number>>(new Set());
+  const toggleDebug = (globalIndex: number) => {
+    setDebugOpen((open) => {
+      const next = new Set(open);
+      if (next.has(globalIndex)) next.delete(globalIndex);
+      else next.add(globalIndex);
+      return next;
+    });
+  };
 
   const shuffledQuestions: IndexedQuestion[] = useMemo(() => {
     return questions.map((q, globalIndex) => ({
@@ -336,13 +351,33 @@ export default function Questionaire({
               const selectedEscape = escapeAnswers.find((a) => a.id === selectedAnswer?.id);
               const showInlineNotes = question.notes && selectedEscape && escapeHatchWantsNotes(selectedEscape.text);
               const showUnconditionalNotes = question.notes && escapeAnswers.length === 0;
+              const isDebugOpen = debugOpen.has(index);
+              const isDebugAnswer = (answerId: number) =>
+                isDebugOpen && question.debug != null && question.debug.correct_id === answerId;
 
               return (
                 <div className={styles.questionCard} key={index}>
                   <div className={styles.questionPromptRow}>
                     <span className={styles.questionNumberPill}>Q{index + 1}</span>
                     <p className={styles.questionText}>{renderRich(question.question)}</p>
+                    {question.debug && (
+                      <button
+                        type="button"
+                        className={styles.debugToggle}
+                        onClick={() => toggleDebug(index)}
+                        title={`Debug: correct answer is "${question.debug.correct_text}"`}
+                        aria-label="Toggle answer key (debug)"
+                      >
+                        <Icon icon="ph:key-duotone" />
+                      </button>
+                    )}
                   </div>
+
+                  {isDebugOpen && question.debug && (
+                    <div className={styles.debugPanel}>
+                      Answer key: <span className={styles.debugRightText}>{question.debug.correct_text}</span>
+                    </div>
+                  )}
 
                   {hasAnswers && useScale && (
                     <div className={styles.likertScale}>
@@ -352,7 +387,11 @@ export default function Questionaire({
                           const { display, caption } = scaleEntry(question, answer, position);
                           const isSelected = selectedAnswer?.id === answer.id;
                           return (
-                            <label key={answer.id} className={styles.likertOption} htmlFor={`q${index}-a${answer.id}`}>
+                            <label
+                              key={answer.id}
+                              className={`${styles.likertOption} ${isDebugAnswer(answer.id) ? styles.debugCorrect : ""}`}
+                              htmlFor={`q${index}-a${answer.id}`}
+                            >
                               <input
                                 className={styles.likertRadioHidden}
                                 type="radio"
@@ -385,7 +424,9 @@ export default function Questionaire({
                         return (
                           <label
                             key={answer.id}
-                            className={`${styles.iconChip} ${isSelected ? styles.iconChipSelected : ""}`}
+                            className={`${styles.iconChip} ${isSelected ? styles.iconChipSelected : ""} ${
+                              isDebugAnswer(answer.id) ? styles.debugCorrect : ""
+                            }`}
                             htmlFor={`q${index}-a${answer.id}`}
                             style={{ ["--chip-accent" as any]: chipAccent(answer.text) }}
                           >
@@ -413,7 +454,9 @@ export default function Questionaire({
                         return (
                           <label
                             key={answer.id}
-                            className={`${styles.optionItem} ${isSelected ? styles.optionItemSelected : ""}`}
+                            className={`${styles.optionItem} ${isSelected ? styles.optionItemSelected : ""} ${
+                              isDebugAnswer(answer.id) ? styles.debugCorrect : ""
+                            }`}
                             htmlFor={`q${index}-a${answer.id}`}
                           >
                             <input
@@ -539,25 +582,37 @@ export default function Questionaire({
             {isLastStep ? (
               <button
                 type="button"
-                className={`d-flex align-items-center justify-content-center gap-2 ${styles.actionButton}`}
+                className={`d-flex align-items-center justify-content-center gap-2 ${styles.actionButton} ${
+                  allComplete ? styles.actionButtonNudge : ""
+                }`}
                 onClick={onQuestionaireCompleted}
                 disabled={!allComplete}
               >
                 <span>Submit Questionnaire</span>
-                <Icon icon="ph:check-circle-duotone" />
+                <Icon icon="ph:check-circle-duotone" className={styles.actionButtonArrow} />
               </button>
             ) : (
               <button
                 type="button"
-                className={`d-flex align-items-center justify-content-center gap-2 ${styles.actionButton}`}
+                className={`d-flex align-items-center justify-content-center gap-2 ${styles.actionButton} ${
+                  currentSectionComplete ? styles.actionButtonNudge : ""
+                }`}
                 onClick={() => setStep((s) => Math.min(sections.length - 1, s + 1))}
                 disabled={!currentSectionComplete}
               >
                 <span>Next</span>
-                <Icon icon="ph:arrow-right-duotone" />
+                <Icon icon="ph:arrow-right-duotone" className={styles.actionButtonArrow} />
               </button>
             )}
           </div>
+
+          {canPlaytest && (
+            <div className={styles.actionArea}>
+              <button type="button" className={styles.linkButton} onClick={onQuestionaireCompleted}>
+                Skip questionnaire (playtest)
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

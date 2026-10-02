@@ -30,6 +30,11 @@ from mlops_serious_game.domain.requirement_factory import RequirementFactory
 
 from test_run_scope import _seed_user, _start_run, _uid, migrated_db  # noqa: F401  (fixture used by name)
 
+# Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
+# runs locally/in docker-compose where Postgres is actually available.
+pytestmark = pytest.mark.db
+
+
 
 # ── The card search (pure) ───────────────────────────────────────────────────
 

@@ -452,6 +452,45 @@
     color: var(--secondary-bg);
 }
 
+/* Debug-only answer key (ENABLE_DOSSIER_DEBUG), matching offline_intel_gathering's own
+   answer-key toggle so every debug affordance in the app reads the same way */
+.debugToggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1.5px dashed currentColor;
+    background: #ffffff;
+    color: #a16207;
+    font-size: 0.7rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.debugPanel {
+    background: #fefce8;
+    border: 1.5px dashed #a16207;
+    border-radius: 6px;
+    padding: 0.3rem 0.6rem;
+    margin: 0 0 0.75rem;
+    font-size: 0.75rem;
+    color: #1e293b;
+}
+
+.debugRightText {
+    color: #15803d;
+    font-weight: 700;
+}
+
+.debugCorrect {
+    outline: 2px dashed #a16207;
+    outline-offset: 2px;
+}
+
 .notesWrapper {
     margin-top: 1rem;
     padding-top: 0.75rem;
@@ -517,6 +556,39 @@
     border-color: var(--border-subtle, #cbd5e1);
     color: var(--text-muted, #64748b);
     cursor: not-allowed;
+}
+
+/* Once the current page is fully answered: a slow pulse nudges towards Next/Submit, same
+   idiom as PrePhaseDialog's startButtonPulse/-Arrow. */
+.actionButtonNudge {
+    animation: questionnaireActionButtonPulse 2s ease-in-out infinite;
+}
+
+.actionButtonNudge .actionButtonArrow {
+    animation: questionnaireActionButtonArrow 2s ease-in-out infinite;
+}
+
+@keyframes questionnaireActionButtonPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(38, 102, 130, 0.45);
+    }
+    50% {
+        transform: scale(1.03);
+        box-shadow: 0 0 0 8px rgba(38, 102, 130, 0);
+    }
+}
+
+@keyframes questionnaireActionButtonArrow {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(5px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .actionButtonNudge,
+    .actionButtonNudge .actionButtonArrow {
+        animation: none;
+    }
 }
 
 .validationHint {

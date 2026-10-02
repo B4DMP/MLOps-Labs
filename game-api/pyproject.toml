@@ -45,6 +45,11 @@ dev = [
     "ruff>=0.7.2",
 ]
 
+[tool.pytest.ini_options]
+markers = [
+    "db: needs a real Postgres connection, excluded from CI via -m 'not db'",
+]
+
 [tool.uv]
 required-environments = [
     "sys_platform == 'darwin' and platform_machine == 'x86_64'",

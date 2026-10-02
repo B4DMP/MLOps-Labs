@@ -25,6 +25,11 @@ from mlops_serious_game.config import settings
 from mlops_serious_game.infrastructure.api import app
 from mlops_serious_game.infrastructure.database import Campaign, User, get_session
 
+# Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
+# runs locally/in docker-compose where Postgres is actually available.
+pytestmark = pytest.mark.db
+
+
 # Every fixture/test below shares this one campaign instead of minting a fresh
 # `tts-*-campaign-<uuid>` per test - `register_user` needs `is_test_campaign` set to accept an
 # empty email/password-policy-free registration, so this get-or-create also forces that flag on

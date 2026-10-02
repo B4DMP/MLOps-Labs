@@ -194,6 +194,9 @@ class Settings(BaseSettings):
     # back to window.speechSynthesis automatically, no frontend deploy needed.
     TTS_BACKEND_ENABLED: bool = True
 
+    # --- Build identity: which image is actually running (admin Deployment panel) ---
+    GIT_SHA: str = "unknown"
+
     # --- Paths Configuration ---
     EVALUATION_DATASET_FILE_PATH: Path = Path("data/evaluation_dataset.json")
     EXTRACTION_METADATA_FILE_PATH: Path = Path("data/extraction_metadata.json")

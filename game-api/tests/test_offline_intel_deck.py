@@ -265,6 +265,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from content_gen.ledger import WorkItem  # noqa: E402
 from content_gen.stages.artifacts import ARTIFACT_TYPES, ArtifactsStage, artifact_type, narrator_for  # noqa: E402
 
+# Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
+# runs locally/in docker-compose where Postgres is actually available.
+pytestmark = pytest.mark.db
+
+
 ROOM = [
     {"stakeholder_id": "data_dave", "name": "Dave", "role": "Data Engineer"},
     {"stakeholder_id": "reliability_ruth", "name": "Ruth", "role": "SRE"},

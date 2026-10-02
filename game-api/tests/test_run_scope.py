@@ -20,6 +20,11 @@ from sqlalchemy import create_engine, select, text
 
 from mlops_serious_game.config import settings
 
+# Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
+# runs locally/in docker-compose where Postgres is actually available.
+pytestmark = pytest.mark.db
+
+
 
 def _admin_engine():
     admin_url = sqlalchemy.engine.make_url(settings.POSTGRES_URI).set(database="postgres")

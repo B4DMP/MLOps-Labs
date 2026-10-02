@@ -17,17 +17,25 @@ export type PhaseData = {
 };
 
 /**
- * Phase 0 ("Introduction") is a self-contained demo whose state is thrown away afterwards, so
- * the first phase a player really plays is 1 whether or not the demo ran, and the demo must
- * not count as a previous phase to diff against. Shared so the phase briefing and the dossier
- * cannot disagree about who counts as new.
+ * True when phase 0 ("Introduction") is present - a self-contained demo whose state is thrown
+ * away afterwards. Shared so every screen that needs to know "did this run go through the demo"
+ * (the phase briefing, the dossier, the pre/post-demo briefing screens) agrees on the same check.
  */
-export function isFirstPlayablePhase(phases: PhaseData[], currentPhase: number): boolean {
-  const hasIntroPhase =
+export function hasIntroPhase(phases: PhaseData[]): boolean {
+  return (
     phases.length > 0 &&
     phases[0]?.id === 0 &&
-    phases[0]?.phase_name?.toLowerCase() === "introduction";
-  return hasIntroPhase ? currentPhase <= 1 : currentPhase === 0;
+    phases[0]?.phase_name?.toLowerCase() === "introduction"
+  );
+}
+
+/**
+ * Phase 0 ("Introduction") is a self-contained demo whose state is thrown away afterwards, so
+ * the first phase a player really plays is 1 whether or not the demo ran, and the demo must
+ * not count as a previous phase to diff against.
+ */
+export function isFirstPlayablePhase(phases: PhaseData[], currentPhase: number): boolean {
+  return hasIntroPhase(phases) ? currentPhase <= 1 : currentPhase === 0;
 }
 
 type PhaseContextType = {

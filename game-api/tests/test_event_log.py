@@ -9,6 +9,11 @@ import pytest
 from mlops_serious_game.domain.event import GameEvent
 from mlops_serious_game.domain.event_causes import EventCauseFactory, causes_used_in, missing_causes
 
+# Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
+# runs locally/in docker-compose where Postgres is actually available.
+pytestmark = pytest.mark.db
+
+
 def _src_dir() -> Path:
     """The `mlops_serious_game` package root, whether tests run from a checkout (source under
     `src/`) or the container image (copied straight to `/app/mlops_serious_game`)."""

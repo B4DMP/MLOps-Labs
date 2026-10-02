@@ -263,6 +263,25 @@
   flex-shrink: 0;
 }
 
+/* Pulsing ring around the whole banner while its headline/description is being read aloud -
+   same idiom as PrePhaseDialog's missionCardSpeaking/challengeSpeaking, so "this is what's
+   being narrated right now" reads the same way on every screen that does it. */
+.directiveBannerSpeaking {
+  animation: directiveBannerSpeakingRing 1.6s ease-in-out infinite;
+}
+
+@keyframes directiveBannerSpeakingRing {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(15, 24, 38, 0.3); }
+  50% { box-shadow: 0 0 0 4px rgba(15, 24, 38, 0.6); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .directiveBannerSpeaking {
+    animation: none;
+    box-shadow: 0 0 0 3px rgba(15, 24, 38, 0.5);
+  }
+}
+
 /* Icon + (header row / description) laid out side by side, so the hero can run taller than one
    text line without the header row growing to match it - the title row and the description
    below it both start flush at the same left edge, to the right of the icon's own margin. */
@@ -497,6 +516,10 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  /* `overflow: hidden` zeroes a flex item's automatic min-height (spec behaviour), so without
+     this, `.modalBody`'s column flex would crush a card short instead of scrolling once total
+     content outgrows the viewport - same guard `.directiveBanner` already has. */
+  flex-shrink: 0;
 }
 
 .cardHeader {
@@ -839,6 +862,117 @@
   border-radius: 0 0.3rem 0.3rem 0;
   font-style: italic;
   line-height: 1.35;
+}
+
+/* ── Round Highlights (Good vs. Bad Scorecard) ──
+   Two columns of short, icon-led bullets - every line restates a fact some section further
+   down the page already covers in full, so this never becomes a second source of truth. */
+/* Concerns run longer now that each one carries a hint line, so they get the bigger share -
+   wins stay short, factual one-liners and don't need the room. */
+.highlightsGrid {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .highlightsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.highlightsCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.highlightsColLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.highlightsColLabelGood {
+  color: #166534;
+}
+
+.highlightsColLabelBad {
+  color: #991b1b;
+}
+
+.highlightsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.highlightsItemGood,
+.highlightsItemBad {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.4rem;
+}
+
+.highlightsItemGood {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.highlightsItemBad {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.highlightsItemGood svg,
+.highlightsItemBad svg {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  font-size: 0.9rem;
+}
+
+/* The fact and its hint stack as two lines within the same bullet, rather than the hint
+   running on as a second sentence of the same line - it's advice, not more of the same fact. */
+.highlightsItemTextCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.highlightsHint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-style: italic;
+  font-weight: 400;
+  color: #7c2d12;
+  opacity: 0.85;
+}
+
+.highlightsHint svg {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  font-size: 0.85rem;
+}
+
+.highlightsEmpty {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  padding: 0.35rem 0.5rem;
 }
 
 /* ── Project Dimensions Shifts (6 Metrics) ──
@@ -1207,4 +1341,37 @@
 .actionButton:disabled {
   opacity: 0.65;
   cursor: not-allowed;
+}
+
+/* Once the debrief has fully loaded and finished its auto-narration: a slow pulse nudges the
+   player onward, same idiom (and timings) as PrePhaseDialog's startButtonPulse/-Arrow. */
+.actionButtonNudge {
+  animation: simActionButtonPulse 2s ease-in-out infinite;
+}
+
+.actionButtonNudge .actionButtonArrow {
+  animation: simActionButtonArrow 2s ease-in-out infinite;
+}
+
+@keyframes simActionButtonPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(15, 24, 38, 0.45);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 8px rgba(15, 24, 38, 0);
+  }
+}
+
+@keyframes simActionButtonArrow {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actionButtonNudge,
+  .actionButtonNudge .actionButtonArrow {
+    animation: none;
+  }
 }

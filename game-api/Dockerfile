@@ -18,6 +18,16 @@ COPY tools tools/
 COPY alembic.ini ./
 COPY alembic alembic/
 COPY --from=gameconfig . /gameConfig
+# admin_service.py's config editor resolves these the same way as /gameConfig - only ever
+# volume-mounted in docker-compose for local dev, so they need baking in here too for the
+# admin panel's "Game Configuration" JSON editor to find a schema/uischema in production.
+COPY --from=gameconfigschemas . /gameConfigSchemas
+COPY --from=gameconfiguischemas . /gameConfigUISchemas
+
+# So the admin panel can show which build is actually running (verifying a restart/repull
+# actually picked up a new image), not just that *a* container is up.
+ARG GIT_SHA=unknown
+ENV GIT_SHA=$GIT_SHA
 
 # Install current package without reinstalling dependencies.
 RUN --mount=type=cache,target=/root/.cache/uv \

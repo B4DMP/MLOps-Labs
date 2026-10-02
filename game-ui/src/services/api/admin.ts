@@ -445,6 +445,40 @@ export function fetchBugReportRecipients(): Promise<{ recipients: string[] }> {
   return adminGet("/api/admin/bug-reports/recipients", "Failed to fetch bug report recipients.");
 }
 
+export interface DeployRestartResult {
+  type: string;
+  restarted: { deployment: string; restarted_at: string }[];
+}
+
+/** Which build the game-api pod is actually running - proves a restart/repull picked up a new
+ * image, since this value only changes when the image actually changed. */
+export function fetchDeployVersion(): Promise<{ git_sha: string }> {
+  return adminGet("/api/admin/deploy/version", "Failed to fetch the running build version.");
+}
+
+export type LoggableApp = "mlops-game-api" | "mlops-game-ui" | "mlops-game-postgres";
+
+export interface DeployLogsResult {
+  pod: string | null;
+  logs: string;
+}
+
+/** Tails the current pod's container log - the same thing `kubectl logs` would show, for
+ * debugging a live issue (a stuck game, a slow request) without needing cluster access. */
+export function fetchDeployLogs(app: LoggableApp, lines: number = 500): Promise<DeployLogsResult> {
+  return adminGet(
+    `/api/admin/deploy/logs?app=${encodeURIComponent(app)}&lines=${lines}`,
+    "Failed to fetch logs."
+  );
+}
+
+/** Rollout-restarts the game-api and game-ui Deployments in the cluster: re-pulls the latest
+ * pushed image and reloads any changed Secret/ConfigMap values. Only works in the deployed
+ * cluster, not local dev. */
+export function restartDeployment(): Promise<DeployRestartResult> {
+  return adminMutate("/api/admin/deploy/restart", "POST", "Failed to restart the deployment.");
+}
+
 export async function updateBugReportRecipients(recipients: string[]): Promise<{ recipients: string[] }> {
   const response = await fetch(`${BASE_URL}/api/admin/bug-reports/recipients`, {
     method: "POST",

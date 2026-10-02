@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: mlops-lab
+  name: mlops-game-api
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: mlops-lab
+  name: deployment-restarter
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "patch"]
+    resourceNames: ["mlops-game-api", "mlops-game-ui"]
+  # For the admin panel's log viewer: pod names change on every restart, so unlike the
+  # Deployments above these can't be resourceNames-restricted - get/list on pods and get on
+  # pods/log, still confined to this one single-purpose namespace (3 pods total).
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: mlops-lab
+  name: mlops-game-api-deployment-restarter
+subjects:
+  - kind: ServiceAccount
+    name: mlops-game-api
+    namespace: mlops-lab
+roleRef:
+  kind: Role
+  name: deployment-restarter
+  apiGroup: rbac.authorization.k8s.io

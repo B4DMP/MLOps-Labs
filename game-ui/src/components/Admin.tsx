@@ -36,8 +36,12 @@ import {
   sendAdminTestEmail,
   fetchBugReportRecipients,
   updateBugReportRecipients,
+  restartDeployment,
+  fetchDeployVersion,
+  fetchDeployLogs,
   type AdminEmailStatus,
   type AdminTestEmailTemplate,
+  type LoggableApp,
 } from "../services/api/admin";
 
 export interface Campaign {
@@ -130,7 +134,7 @@ export function Admin({
   questionaire_results,
 }: AdminProps) {
   // Navigation
-  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis" | "results" | "graph_debug" | "teachers" | "bug_reports" | "llm_cache" | "email">("config");
+  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis" | "results" | "graph_debug" | "teachers" | "bug_reports" | "llm_cache" | "email" | "deploy">("config");
 
   // Email / SMTP state
   const [emailStatus, setEmailStatus] = useState<AdminEmailStatus | null>(null);
@@ -160,6 +164,112 @@ export function Admin({
       loadEmailStatus();
     }
   }, [activeSubpage, adminToken]);
+
+  // Deployment restart/repull
+  const [deployLoading, setDeployLoading] = useState(false);
+  const [deploySuccessMessage, setDeploySuccessMessage] = useState<string | null>(null);
+  const [deployErrorMessage, setDeployErrorMessage] = useState<string | null>(null);
+  const [showDeployConfirm, setShowDeployConfirm] = useState(false);
+  const [runningGitSha, setRunningGitSha] = useState<string | null>(null);
+  const [versionLoading, setVersionLoading] = useState(false);
+  const [versionError, setVersionError] = useState<string | null>(null);
+
+  const loadDeployVersion = async () => {
+    setVersionLoading(true);
+    setVersionError(null);
+    try {
+      const res = await fetchDeployVersion();
+      setRunningGitSha(res.git_sha);
+    } catch (err: any) {
+      setVersionError(err.message || "Failed to fetch the running build version.");
+    } finally {
+      setVersionLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeSubpage === "deploy" && runningGitSha === null && !versionLoading) {
+      loadDeployVersion();
+    }
+  }, [activeSubpage, adminToken]);
+
+  // Right after a restart, the old pod can already be gone while the new one isn't routable yet
+  // (we've seen this gap cause a transient fetch failure / 502 during manual testing) - retry a
+  // few times with a short delay instead of making the admin click Refresh themselves.
+  const pollDeployVersionAfterRestart = async () => {
+    setVersionLoading(true);
+    setVersionError(null);
+    const attempts = 6;
+    const delayMs = 5000;
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        const res = await fetchDeployVersion();
+        setRunningGitSha(res.git_sha);
+        setVersionLoading(false);
+        return;
+      } catch (err: any) {
+        if (attempt === attempts) {
+          setVersionError(
+            (err.message || "Failed to fetch the running build version.") +
+            " The rollout may still be in progress - try Refresh again in a moment."
+          );
+          setVersionLoading(false);
+          return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+  };
+
+  const handleRestartDeployment = async () => {
+    setShowDeployConfirm(false);
+    setDeployLoading(true);
+    setDeploySuccessMessage(null);
+    setDeployErrorMessage(null);
+    try {
+      const res = await restartDeployment();
+      setDeploySuccessMessage(
+        `Restarted: ${res.restarted.map((r) => r.deployment).join(", ")}. Verifying the new build version...`
+      );
+      await pollDeployVersionAfterRestart();
+    } catch (err: any) {
+      setDeployErrorMessage(err.message || "Failed to restart the deployment.");
+    } finally {
+      setDeployLoading(false);
+    }
+  };
+
+  // Deployment log viewer - the same thing `kubectl logs` would show, for debugging a live
+  // issue (a stuck game, a slow request) without needing cluster access.
+  const [logApp, setLogApp] = useState<LoggableApp>("mlops-game-api");
+  const [logLines, setLogLines] = useState(500);
+  const [logText, setLogText] = useState<string | null>(null);
+  const [logPodName, setLogPodName] = useState<string | null>(null);
+  const [logLoading, setLogLoading] = useState(false);
+  const [logError, setLogError] = useState<string | null>(null);
+  const [logFilter, setLogFilter] = useState("");
+
+  const handleFetchLogs = async () => {
+    setLogLoading(true);
+    setLogError(null);
+    try {
+      const res = await fetchDeployLogs(logApp, logLines);
+      setLogText(res.logs);
+      setLogPodName(res.pod);
+    } catch (err: any) {
+      setLogError(err.message || "Failed to fetch logs.");
+    } finally {
+      setLogLoading(false);
+    }
+  };
+
+  const filteredLogLines = useMemo(() => {
+    if (!logText) return [];
+    const lines = logText.split("\n");
+    if (!logFilter.trim()) return lines;
+    const needle = logFilter.toLowerCase();
+    return lines.filter((l) => l.toLowerCase().includes(needle));
+  }, [logText, logFilter]);
 
   // Bug report notification recipients
   const [bugReportRecipients, setBugReportRecipients] = useState<string[] | null>(null);
@@ -700,6 +810,14 @@ export function Admin({
               <Icon icon="ph:envelope-simple-bold" />
               <span>SMTP Email</span>
             </button>
+            <button
+              type="button"
+              className={`${styles.navTab} ${activeSubpage === "deploy" ? styles.navTabActive : ""}`}
+              onClick={() => setActiveSubpage("deploy")}
+            >
+              <Icon icon="ph:rocket-launch-bold" />
+              <span>Deployment</span>
+            </button>
           </div>
 
           <div className="text-muted small d-none d-md-block">
@@ -712,6 +830,7 @@ export function Admin({
             {activeSubpage === "bug_reports" && "Player-submitted bug reports"}
             {activeSubpage === "llm_cache" && "How many prompts are cached and how often the caches are hit"}
             {activeSubpage === "email" && "Inspect SMTP configuration and send test emails"}
+            {activeSubpage === "deploy" && "Restart the live deployment to pull the latest image and config"}
           </div>
         </div>
 
@@ -2135,9 +2254,271 @@ export function Admin({
               </div>
             </div>
           )}
+
+          {/* ======================================================== */}
+          {/* SUBPAGE: DEPLOYMENT                                      */}
+          {/* ======================================================== */}
+          {activeSubpage === "deploy" && (
+            <div className="d-flex flex-column gap-4">
+              <div className={styles.cardSurface}>
+                <div className={styles.sectionHeader}>
+                  <div>
+                    <h2 className={styles.sectionTitle}>
+                      <Icon icon="ph:rocket-launch-bold" />
+                      <span>Restart & Repull</span>
+                    </h2>
+                    <p className={styles.sectionSubtitle}>
+                      Rolls the live game-api and game-ui pods: re-pulls the latest image pushed
+                      by CI and reloads any changed secrets or config. Only works against the
+                      deployed cluster, not local development.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.outlineButton}
+                    onClick={loadDeployVersion}
+                    disabled={versionLoading}
+                  >
+                    <Icon
+                      icon={versionLoading ? "ph:spinner-bold" : "ph:arrows-clockwise-bold"}
+                      className={versionLoading ? styles.spinner : ""}
+                    />
+                    <span>Refresh</span>
+                  </button>
+                </div>
+
+                <div className={styles.kpiGrid} style={{ marginBottom: "1rem" }}>
+                  <div className={styles.kpiCard}>
+                    <div className={styles.kpiHeader}>
+                      <span className={styles.kpiLabel}>Running Build (game-api)</span>
+                      <Icon icon="ph:tag-bold" className={styles.kpiIcon} />
+                    </div>
+                    {versionLoading && runningGitSha === null ? (
+                      <div className="fs-6 text-muted">Loading...</div>
+                    ) : runningGitSha ? (
+                      <code className="fs-6 fw-bold text-dark">{runningGitSha.slice(0, 12)}</code>
+                    ) : (
+                      <div className="fs-6 text-danger">Unknown</div>
+                    )}
+                    <small className="text-muted mt-1">
+                      Commit SHA baked into the image at build time - compare against the latest
+                      commit on main to confirm a restart actually picked up a new image.
+                    </small>
+                  </div>
+                </div>
+                {versionError && (
+                  <div className="alert alert-danger d-flex align-items-center gap-2 mb-3" role="alert">
+                    <Icon icon="ph:warning-octagon-bold" />
+                    <div className="small">{versionError}</div>
+                  </div>
+                )}
+
+                <div className="alert alert-light border small text-muted mb-3" role="note">
+                  <Icon icon="ph:info-bold" className="me-1" />
+                  Code or <code>gameConfig/*.json</code> changes only take effect after the CI
+                  pipeline has built and pushed a new image. Check the pipeline has finished
+                  before restarting, or this will just reload the current image.
+                </div>
+
+                {deploySuccessMessage && (
+                  <div className="alert alert-success d-flex align-items-center gap-2 mb-3" role="alert">
+                    <Icon icon="ph:check-circle-bold" className="fs-5 flex-shrink-0" />
+                    <div className="small">{deploySuccessMessage}</div>
+                  </div>
+                )}
+                {deployErrorMessage && (
+                  <div className="alert alert-danger d-flex align-items-start gap-2 mb-3" role="alert">
+                    <Icon icon="ph:warning-octagon-bold" className="fs-5 flex-shrink-0 mt-1" />
+                    <div className="small">{deployErrorMessage}</div>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  style={{ maxWidth: "260px" }}
+                  disabled={deployLoading}
+                  onClick={() => setShowDeployConfirm(true)}
+                >
+                  {deployLoading ? (
+                    <span className="d-flex align-items-center justify-content-center gap-2">
+                      <Icon icon="ph:spinner-bold" className={styles.spinner} />
+                      <span>Restarting...</span>
+                    </span>
+                  ) : (
+                    <span className="d-flex align-items-center justify-content-center gap-2">
+                      <Icon icon="ph:rocket-launch-bold" />
+                      <span>Restart & Repull</span>
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* Log Viewer */}
+              <div className={styles.cardSurface}>
+                <div className={styles.sectionHeader}>
+                  <div>
+                    <h2 className={styles.sectionTitle}>
+                      <Icon icon="ph:terminal-window-bold" />
+                      <span>Log Viewer</span>
+                    </h2>
+                    <p className={styles.sectionSubtitle}>
+                      Tails the live pod's container log - the same thing <code>kubectl logs</code>{" "}
+                      would show, for debugging something happening right now (a stuck game, a
+                      slow request) without needing cluster access.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="d-flex flex-wrap align-items-end gap-2 mb-3">
+                  <div>
+                    <label className="form-label small fw-semibold text-secondary mb-1">
+                      Component
+                    </label>
+                    <select
+                      className="form-select form-select-sm"
+                      value={logApp}
+                      onChange={(e) => setLogApp(e.target.value as LoggableApp)}
+                      style={{ minWidth: "180px" }}
+                    >
+                      <option value="mlops-game-api">game-api</option>
+                      <option value="mlops-game-ui">game-ui</option>
+                      <option value="mlops-game-postgres">postgres</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label small fw-semibold text-secondary mb-1">
+                      Lines
+                    </label>
+                    <select
+                      className="form-select form-select-sm"
+                      value={logLines}
+                      onChange={(e) => setLogLines(Number(e.target.value))}
+                      style={{ minWidth: "110px" }}
+                    >
+                      <option value={200}>200</option>
+                      <option value={500}>500</option>
+                      <option value={1000}>1,000</option>
+                      <option value={5000}>5,000</option>
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.actionButton}
+                    style={{ padding: "0.45rem 1.1rem" }}
+                    onClick={handleFetchLogs}
+                    disabled={logLoading}
+                  >
+                    <Icon
+                      icon={logLoading ? "ph:spinner-bold" : "ph:terminal-window-bold"}
+                      className={logLoading ? styles.spinner : ""}
+                    />
+                    <span>{logLoading ? "Fetching..." : "Fetch Logs"}</span>
+                  </button>
+                  <div className="flex-grow-1" style={{ minWidth: "200px" }}>
+                    <label className="form-label small fw-semibold text-secondary mb-1">
+                      Filter (e.g. a username)
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      placeholder="Only show lines containing..."
+                      value={logFilter}
+                      onChange={(e) => setLogFilter(e.target.value)}
+                      disabled={!logText}
+                    />
+                  </div>
+                </div>
+
+                {logError && (
+                  <div className="alert alert-danger d-flex align-items-center gap-2 mb-3" role="alert">
+                    <Icon icon="ph:warning-octagon-bold" />
+                    <div className="small">{logError}</div>
+                  </div>
+                )}
+
+                {logText !== null && (
+                  <>
+                    <div className="d-flex justify-content-between align-items-center mb-1 text-muted small">
+                      <span>
+                        {logPodName ? <>Pod: <code>{logPodName}</code></> : "No pod found"} -{" "}
+                        showing {filteredLogLines.length} of {logText.split("\n").length} lines
+                      </span>
+                    </div>
+                    <pre
+                      style={{
+                        background: "#0a1922",
+                        color: "#d7e5ec",
+                        borderRadius: "0.5rem",
+                        padding: "1rem",
+                        maxHeight: "480px",
+                        overflow: "auto",
+                        fontSize: "0.78rem",
+                        lineHeight: 1.5,
+                        marginBottom: 0,
+                      }}
+                    >
+                      {filteredLogLines.length > 0
+                        ? filteredLogLines.join("\n")
+                        : "(no lines match the filter)"}
+                    </pre>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
+      {/* Restart & Repull Confirmation Modal */}
+      {showDeployConfirm && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center p-3"
+          style={{
+            backgroundColor: "rgba(10, 25, 34, 0.75)",
+            backdropFilter: "blur(4px)",
+            zIndex: 9999,
+          }}
+          onClick={() => setShowDeployConfirm(false)}
+        >
+          <div
+            className="card border-0 rounded-4 shadow-lg overflow-hidden"
+            style={{ maxWidth: "500px", width: "100%", background: "#ffffff" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="p-3 d-flex align-items-center gap-2 text-white"
+              style={{ backgroundColor: "#dc2626" }}
+            >
+              <Icon icon="ph:warning-octagon-bold" style={{ fontSize: "1.75rem" }} />
+              <h5 className="mb-0 fw-bold">Restart the live deployment?</h5>
+            </div>
+            <div className="p-4">
+              <p className="text-secondary small mb-3">
+                This briefly interrupts traffic to both the game UI and API while pods roll. Any
+                player mid-session may see a short disconnect.
+              </p>
+              <div className="d-flex justify-content-end gap-2">
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary btn-sm px-3"
+                  onClick={() => setShowDeployConfirm(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger btn-sm px-3 fw-bold d-inline-flex align-items-center gap-1"
+                  onClick={handleRestartDeployment}
+                >
+                  <Icon icon="ph:rocket-launch-bold" />
+                  <span>Yes, Restart</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Campaign Confirmation Modal */}
       {campaignToDelete && (

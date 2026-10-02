@@ -255,3 +255,36 @@
 .actionButton:hover {
     background: var(--secondary-bg);
 }
+
+/* Once the briefing's narration (if any) is done talking: a slow pulse nudges towards Continue,
+   same idiom as PrePhaseDialog's startButtonPulse/-Arrow. */
+.actionButtonNudge {
+    animation: briefingActionButtonPulse 2s ease-in-out infinite;
+}
+
+.actionButtonNudge .actionButtonArrow {
+    animation: briefingActionButtonArrow 2s ease-in-out infinite;
+}
+
+@keyframes briefingActionButtonPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(38, 102, 130, 0.45);
+    }
+    50% {
+        transform: scale(1.03);
+        box-shadow: 0 0 0 8px rgba(38, 102, 130, 0);
+    }
+}
+
+@keyframes briefingActionButtonArrow {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(5px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .actionButtonNudge,
+    .actionButtonNudge .actionButtonArrow {
+        animation: none;
+    }
+}

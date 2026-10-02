@@ -138,6 +138,13 @@ SIMULATION_OUTCOMES = {
         "stress": 0.25,
         "trust": -0.20,
     },
+    "overridden": {
+        "trust": -0.30,
+        "stress": 0.25,
+        "perceived_risk": 0.20,
+        "sense_of_control": -0.25,
+        "fairness": -0.15,
+    },
 }
 
 ROLE_SENSITIVITIES = {
