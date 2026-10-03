@@ -7,7 +7,11 @@ import styles from "./CheatSheetModal.module.css";
 import { INTEL_TAGS } from "../types/IntelTag";
 import { useSpeech } from "./useSpeech";
 import { startTour } from "../utils/tour";
+import { useNarratorGate } from "./useNarratorGate";
 import { TOUR_GUIDE_SEED } from "../utils/speech";
+import { AUTOMATION_META, GOVERNANCE_META } from "../utils/stageCanvas";
+import { INTRO_COMPOSE_TOUR_GROUP, resetIntroComposeTour } from "../utils/introComposeTour";
+import { GRAPH_DEFINITIONS, GRAPH_EXAMPLE } from "../content/graphHelp";
 
 /** Which intro.js tour group each section's "Replay Demo" button reopens. Only sections that
  * were actually covered by the phase-0 walkthrough get the button - sections without an entry
@@ -18,7 +22,21 @@ const SECTION_TOUR_GROUP: Record<string, string> = {
   "Digging for Intel": "introDossier",
   "Pitch & Debate": "introPitch",
   Simulate: "introSimulate",
+  "MLOps Graph": INTRO_COMPOSE_TOUR_GROUP,
 };
+
+type CheatSheetTab = "guide" | "graph" | "bug";
+
+/** Plain option names for each rung, matching the composer's legend swatches. */
+const GRAPH_AUTOMATION_STEPS = [
+  { name: "Not built yet", meta: AUTOMATION_META[1] },
+  { name: "Implement It Manually", meta: AUTOMATION_META[2] },
+  { name: "Automate It", meta: AUTOMATION_META[3] },
+];
+const GRAPH_GOVERNANCE_STEPS = [
+  { name: "No review", meta: GOVERNANCE_META[0] },
+  { name: "A review step, named per component (Spot Checks, Second Review, Tech-Lead Approval...)", meta: GOVERNANCE_META[3] },
+];
 
 const MAX_BUG_MESSAGE_LENGTH = 4000;
 
@@ -39,6 +57,8 @@ interface CheatSheetModalProps {
   currentPhase?: number;
   currentChallenge?: number;
   challengeTitle?: string;
+  /** Tab to show on open. Defaults to the guide. */
+  initialTab?: CheatSheetTab;
 }
 
 interface CheatSheetSection {
@@ -145,7 +165,8 @@ const SECTIONS: CheatSheetSection[] = [
       </>,
       <>
         After a veto: revise the card and re-pitch, or <EmojiIcon name="power" /> Push It Through with an Escalation
-        Point (3 for the whole game, never refill). The stakeholder who vetoed you will remember it.
+        Point (3 for the whole game, never refill). The stakeholder who vetoed you will remember it. Push It
+        Through is not available in the introduction, so there a veto means going back and fixing the card.
       </>,
     ],
   },
@@ -175,13 +196,15 @@ export default function CheatSheetModal({
   currentPhase,
   currentChallenge,
   challengeTitle,
+  initialTab = "guide",
 }: CheatSheetModalProps) {
   const [isClosing, setIsClosing] = useState(false);
   const [poppingTitle, setPoppingTitle] = useState<string | null>(null);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const { speak: speakTts } = useSpeech();
+  const gate = useNarratorGate();
 
-  const [activeTab, setActiveTab] = useState<"guide" | "bug">("guide");
+  const [activeTab, setActiveTab] = useState<CheatSheetTab>(initialTab);
   const [bugMessage, setBugMessage] = useState("");
   const [bugStatus, setBugStatus] = useState<"idle" | "submitting" | "sent" | "error">("idle");
   const [bugError, setBugError] = useState<string | null>(null);
@@ -189,11 +212,12 @@ export default function CheatSheetModal({
   useEffect(() => {
     if (isOpen) {
       setIsClosing(false);
-      setActiveTab("guide");
+      setActiveTab(initialTab);
       setBugMessage("");
       setBugStatus("idle");
       setBugError(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   // Wait out the panel's own entrance animation (modalPop, ~0.25s) before scrolling, so the
@@ -228,7 +252,8 @@ export default function CheatSheetModal({
     setTimeout(() => {
       setIsClosing(false);
       onClose();
-      startTour(group, { narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
+      if (group === INTRO_COMPOSE_TOUR_GROUP) resetIntroComposeTour();
+      startTour(group, { beforeStart: () => gate.request(), narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
     }, 200);
   };
 
@@ -304,6 +329,14 @@ export default function CheatSheetModal({
           </button>
           <button
             type="button"
+            className={`${styles.tab} ${activeTab === "graph" ? styles.tabActive : ""}`}
+            onClick={() => setActiveTab("graph")}
+          >
+            <Icon icon="ph:graph-bold" />
+            <span>MLOps Graph</span>
+          </button>
+          <button
+            type="button"
             className={`${styles.tab} ${activeTab === "bug" ? styles.tabActive : ""}`}
             onClick={() => setActiveTab("bug")}
           >
@@ -312,7 +345,63 @@ export default function CheatSheetModal({
           </button>
         </div>
 
-        {activeTab === "bug" ? (
+        {activeTab === "graph" ? (
+          <div className={styles.modalBody}>
+            <div className={styles.card} style={{ ["--accent" as string]: "#0284c7" }}>
+              <div className={styles.cardHeader}>
+                <Icon icon="ph:graph-bold" className={styles.cardIcon} />
+                <span>What the graph means</span>
+              </div>
+              <ul className={styles.bulletList}>
+                {GRAPH_DEFINITIONS.map((d) => (
+                  <li key={d.term}>
+                    <strong>{d.term}:</strong> {d.text}
+                  </li>
+                ))}
+              </ul>
+              <div className={styles.tagLegend}>
+                <div className={styles.legendLabel}>Automation steps (who does the work)</div>
+                {GRAPH_AUTOMATION_STEPS.map((step) => (
+                  <div key={step.name} className={styles.tagChip}>
+                    <span className={styles.rungSwatch} style={{ background: step.meta.color }} />
+                    <span className={styles.tagChipLabel}>{step.name}</span>
+                  </div>
+                ))}
+                <div className={styles.legendLabel}>Governance steps (who checks the work)</div>
+                {GRAPH_GOVERNANCE_STEPS.map((step) => (
+                  <div key={step.name} className={styles.tagChip}>
+                    <span className={styles.rungSwatch} style={{ background: step.meta.color }} />
+                    <span className={styles.tagChipLabel}>{step.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className={styles.card} style={{ ["--accent" as string]: "#d97706" }}>
+              <div className={styles.cardHeader}>
+                <Icon icon="ph:honey-bold" className={styles.cardIcon} />
+                <span>{GRAPH_EXAMPLE.title}</span>
+              </div>
+              <ul className={styles.bulletList}>
+                {GRAPH_EXAMPLE.steps.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ul>
+              {currentPhase === 0 && typeof document !== "undefined" && document.querySelector(`[data-intro-group="${INTRO_COMPOSE_TOUR_GROUP}"]`) ? (
+                <button
+                  type="button"
+                  className={styles.replayDemoButton}
+                  onClick={() => handleReplayDemo(SECTION_TOUR_GROUP["MLOps Graph"])}
+                  title="Replay the guided walkthrough of the composer"
+                >
+                  <Icon icon="ph:play-circle-bold" />
+                  <span>Replay graph walkthrough</span>
+                </button>
+              ) : currentPhase === 0 ? (
+                <div className={styles.glyphLine}>Open this from the pitch composer to replay the walkthrough.</div>
+              ) : null}
+            </div>
+          </div>
+        ) : activeTab === "bug" ? (
           <div className={styles.modalBody}>
             {bugStatus === "sent" ? (
               <p className={styles.successText}>

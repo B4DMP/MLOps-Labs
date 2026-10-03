@@ -6,7 +6,13 @@ import styles from "./ComposeActionProposalModal.module.css";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import { useSpeech } from "./useSpeech";
 import { startTour } from "../utils/tour";
+import { useNarratorGate } from "./useNarratorGate";
+import { waitForCoachClear } from "../utils/introCoach";
 import { TOUR_GUIDE_SEED } from "../utils/speech";
+import { sameAsLastPitch } from "../utils/sameCard";
+import { describeHandoff } from "../utils/edgeSummary";
+import { INTRO_COMPOSE_TOUR_GROUP, markIntroComposeTourStarted } from "../utils/introComposeTour";
+import { GRAPH_HINTS, GRAPH_HINT_OPTION, GRAPH_HINT_TARGET, GRAPH_TOUR } from "../content/graphHelp";
 import type { Stakeholder } from "./StakeholderProvider";
 import type { StakeholderDossierEntry, IntelEntry } from "./StakeholderDossier";
 import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
@@ -126,6 +132,7 @@ export interface ComponentData {
   capped_by?: string;
   story?: string;
   icon?: string;
+  help?: string;
   layout?: { x: number; y: number };
 }
 
@@ -224,12 +231,12 @@ export interface ComposeActionProposalModalProps {
    *  never disagree about how ready the player is to pitch. */
   intelTotal?: number;
   intelVerified?: number;
+  /** Shows a "?" in the header that asks the host to open the cheat sheet on its MLOps Graph
+   *  tab. The composer stays mounted underneath so the replayed walkthrough can find its markup. */
+  onOpenCheatSheet?: () => void;
 }
 
 const MAX_ATOMIC_CHANGES = 3;
-
-// Module-level so reopening the modal doesn't replay the demo; only a page reload resets it.
-let introComposeTourStarted = false;
 
 /** One dossier note, carrying who it belongs to so clicking it can jump the dossier there. */
 interface LinkedNote {
@@ -257,7 +264,7 @@ function noteSourceMeta(item: IntelEntry) {
  */
 const LEGEND_GROUPS: Array<{
   heading: string;
-  items: Array<{ label: string; swatch?: CSSProperties; glyph?: string }>;
+  items: Array<{ label: string; swatch?: CSSProperties; glyph?: string; icon?: string; iconColor?: string }>;
 }> = [
   {
     heading: "Status rail",
@@ -513,9 +520,11 @@ export default function ComposeActionProposalModal({
   onSelectIntel,
   intelTotal = 0,
   intelVerified = 0,
+  onOpenCheatSheet,
 }: ComposeActionProposalModalProps) {
   const { emit, subscribe } = useGameWebSocket();
   const { speak: speakTts } = useSpeech();
+  const gate = useNarratorGate();
   const highlight = useGlossaryHighlighter("action_proposal");
 
   const [localGraphState, setLocalGraphState] = useState<GraphStatePayload | null>(propGraphState);
@@ -553,13 +562,14 @@ export default function ComposeActionProposalModal({
     [atomicChanges, initialAtomicChangesResolved]
   );
 
-  const unchangedSinceLastPitch = useMemo(() => {
-    const key = (c: AtomicChange) =>
-      JSON.stringify([c.target, c.kind ?? "raise_to", c.axis ?? null, String(c.value ?? ""), c.trigger ?? null]);
-    const a = atomicChanges.map(key).sort();
-    const b = lastPitchedChanges.map(key).sort();
-    return b.length > 0 && a.length === b.length && a.every((k, i) => k === b[i]);
-  }, [atomicChanges, lastPitchedChanges]);
+  const unchangedSinceLastPitch = useMemo(
+    () => sameAsLastPitch(atomicChanges, lastPitchedChanges),
+    [atomicChanges, lastPitchedChanges]
+  );
+
+  // Intro-only hint ladder; local state, reset when the challenge changes.
+  const [hintLevel, setHintLevel] = useState(0);
+  useEffect(() => setHintLevel(0), [currentChallenge]);
 
   const requestClose = useCallback(() => {
     if (isDirty) setConfirmingLeave("close");
@@ -749,9 +759,8 @@ export default function ComposeActionProposalModal({
     // Phase 0 has exactly one challenge, so checking the phase alone is sufficient -
     // `currentChallenge` is the challenge's *global* id (e.g. 113), not a phase-relative index.
     if (!isOpen || currentPhase !== 0) return;
-    if (introComposeTourStarted) return;
-    introComposeTourStarted = true;
-    startTour("introCompose", { narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
+    if (!markIntroComposeTourStarted()) return;
+    startTour(INTRO_COMPOSE_TOUR_GROUP, { beforeStart: async () => { await waitForCoachClear(); return gate.request(); }, narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
   }, [isOpen, currentPhase]);
 
   // Map of all components by ID across stages
@@ -981,6 +990,11 @@ export default function ComposeActionProposalModal({
     setAtomicChanges((prev) => removeChangeAt(prev, index));
   };
 
+  const hintTarget = allComponentsMap.get(GRAPH_HINT_TARGET);
+  const hintOption = hintTarget ? optionsOn(hintTarget, "automation").find((o) => o.name === GRAPH_HINT_OPTION) : undefined;
+  const hintCanSlot =
+    !!hintTarget && !!hintOption && optionStatus(hintTarget, "automation", hintOption, atomicChanges) === "next" && !slotsFull;
+
   const handleConfirm = () => {
     onConfirmProposal(atomicChanges);
     onClose();
@@ -1037,6 +1051,18 @@ export default function ComposeActionProposalModal({
             </span>
           </div>
 
+          {onOpenCheatSheet && (
+            <button
+              type="button"
+              className={styles.helpBtn}
+              onClick={onOpenCheatSheet}
+              aria-label="Graph help"
+              {...tagProps("Graph help", "What the boxes, lines and dials mean, with a worked example")}
+            >
+              <Icon icon="ph:question-bold" />
+            </button>
+          )}
+
           <button
             type="button"
             className={styles.closeBtn}
@@ -1053,9 +1079,9 @@ export default function ComposeActionProposalModal({
       {/* ── Stage Tabs Bar ── */}
       <div
         className={styles.stageTabsBar}
-        data-intro-group="introCompose"
+        data-intro-group={INTRO_COMPOSE_TOUR_GROUP}
         data-title="Pipeline Stages"
-        data-intro="This is the pipeline stage switcher. Only the stage for your current phase is editable here (the dot marks it); the others are view-only, so you can check how a change here would ripple downstream before it's actually rippled anywhere."
+        data-intro={GRAPH_TOUR.stages}
         data-step="1"
       >
         {(graphState?.stages || []).map((stage) => {
@@ -1099,9 +1125,9 @@ export default function ComposeActionProposalModal({
         {/* Left: Graph Canvas Viewport */}
         <div
           className={styles.canvasArea}
-          data-intro-group="introCompose"
-          data-title="Pipeline Nodes"
-          data-intro="These nodes are the pipeline's components. Click one to add a change to your proposal - up to 3 per pitch. Each change is a promise: raise this component's automation or governance to a specific level, a promise the simulation will absolutely check on."
+          data-intro-group={INTRO_COMPOSE_TOUR_GROUP}
+          data-title="Components and Hand-offs"
+          data-intro={GRAPH_TOUR.canvas}
           data-step="2"
         >
           <div className={styles.canvasToolbar}>
@@ -1117,7 +1143,14 @@ export default function ComposeActionProposalModal({
               </span>
 
               {/* Legend on demand: it is reference material, not something to read every time */}
-              <span className={styles.legendChip} tabIndex={0}>
+              <span
+                className={styles.legendChip}
+                tabIndex={0}
+                data-intro-group={INTRO_COMPOSE_TOUR_GROUP}
+                data-title="Two Dials"
+                data-intro={GRAPH_TOUR.dials}
+                data-step="3"
+              >
                 <Icon icon="ph:list-bullets-bold" />
                 <span>Legend</span>
                 <span className={styles.legendPanel} role="tooltip">
@@ -1142,7 +1175,13 @@ export default function ComposeActionProposalModal({
           </div>
 
           {/* SVG Topology Canvas */}
-          <div className={styles.canvasBox}>
+          <div
+            className={styles.canvasBox}
+            data-intro-group={INTRO_COMPOSE_TOUR_GROUP}
+            data-title="What Feeds on What"
+            data-intro={GRAPH_TOUR.feeds}
+            data-step="6"
+          >
             {(() => {
               if (!graphState) {
                 return (
@@ -1281,9 +1320,7 @@ export default function ComposeActionProposalModal({
                     const baseWidth = edgeStrokeWidth(e.automation);
                     const isAutomated =
                       e.automation !== undefined && e.automation !== null && e.automation >= 3;
-                    const edgeSummary = `Automation: ${formatAxisLevel("automation", e.automation)}${
-                      e.trigger && e.trigger !== "none" ? `, started by ${formatTrigger(e.trigger)}` : ""
-                    }\nGovernance: ${formatAxisLevel("governance", e.governance ?? 0)}`;
+                    const edgeSummary = describeHandoff(from.name, to.name, e);
                     const hasTrigger = Boolean(e.trigger && e.trigger !== "none");
                     // Every edge the player may act on gets a handle, triggered or not; the
                     // slotted and view-only badges already own the midpoint when they show.
@@ -1620,12 +1657,18 @@ export default function ComposeActionProposalModal({
         {/* Right: Inspector & Slots Panel */}
         <div
           className={styles.sidebarArea}
-          data-intro-group="introCompose"
-          data-title="Proposal Slot"
-          data-intro="Once you select a node, its details show up here: what level to raise it to, and why. Add it to a slot, and it becomes part of the proposal you'll pitch to the room - and shortly after, part of what the room remembers you promising."
-          data-step="3"
+          data-intro-group={INTRO_COMPOSE_TOUR_GROUP}
+          data-title="Try a Change"
+          data-intro={GRAPH_TOUR.select}
+          data-step="4"
         >
-          <div className={styles.sidebarContent}>
+          <div
+            className={styles.sidebarContent}
+            data-intro-group={INTRO_COMPOSE_TOUR_GROUP}
+            data-title="Governance"
+            data-intro={GRAPH_TOUR.governance}
+            data-step="5"
+          >
             {selectedCrossStub ? (
               /* ── Cross-Phase Dependency: purely informational, nothing to build here ── */
               <div className={styles.inspectorCard}>
@@ -1853,6 +1896,8 @@ export default function ComposeActionProposalModal({
                   ) : (
                     /* Editable Component Controls */
                     <>
+                      {selectedCompData.help && <p className={styles.componentHelp}>{highlight(selectedCompData.help)}</p>}
+
                       <div className={styles.statusStrip}>
                         <span className={styles.statusLabel}>Runs</span>
                         <span className={styles.statusValue}>
@@ -1992,7 +2037,13 @@ export default function ComposeActionProposalModal({
             )}
 
             {/* ── Proposal Slots (1 to 3) ── */}
-            <div className={styles.slotsSection}>
+            <div
+              className={styles.slotsSection}
+              data-intro-group={INTRO_COMPOSE_TOUR_GROUP}
+              data-title="Slots"
+              data-intro={GRAPH_TOUR.slots}
+              data-step="7"
+            >
               <div className={styles.slotsSectionHeader}>
                 <h4 className={styles.slotsTitle}>
                   <Icon icon="ph:stack-bold" />
@@ -2085,13 +2136,45 @@ export default function ComposeActionProposalModal({
         <div className={styles.footerLeft}>
           <Icon icon="ph:info-bold" />
           <span>
-            {atomicChanges.length === 0
+            {unchangedSinceLastPitch
+              ? "Nothing changed since your last pitch, so nobody has anything new to react to."
+              : atomicChanges.length === 0
               ? "Add at least one change before taking this to the stakeholders."
               : `${atomicChanges.length} change${atomicChanges.length > 1 ? "s" : ""} to be argued for.`}
           </span>
         </div>
 
         <div className={styles.footerRight}>
+          {currentPhase === 0 && (
+            <div className={styles.hintGroup}>
+              {hintLevel > 0 && (
+                <span className={styles.hintText} role="status">
+                  <Icon icon="ph:lightbulb-bold" /> {GRAPH_HINTS[hintLevel - 1]}
+                </span>
+              )}
+              {hintLevel === GRAPH_HINTS.length && (
+                <button
+                  type="button"
+                  className={styles.secondaryBtn}
+                  disabled={!hintCanSlot}
+                  onClick={() => hintTarget && hintOption && handleAddOption(hintTarget, "automation", hintOption)}
+                >
+                  <Icon icon="ph:plus-bold" />
+                  <span>Add it for me</span>
+                </button>
+              )}
+              {hintLevel < GRAPH_HINTS.length && (
+                <button
+                  type="button"
+                  className={styles.secondaryBtn}
+                  onClick={() => setHintLevel((l) => Math.min(l + 1, GRAPH_HINTS.length))}
+                >
+                  <Icon icon="ph:lightbulb-bold" />
+                  <span>{hintLevel === 0 ? "Hint" : "Another hint"}</span>
+                </button>
+              )}
+            </div>
+          )}
           <button
             type="button"
             className={styles.secondaryBtn}
