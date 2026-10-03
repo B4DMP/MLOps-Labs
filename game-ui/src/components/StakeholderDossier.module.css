@@ -2643,3 +2643,22 @@
 .stickyNoteGrid {
   padding-bottom: 6px;
 }
+
+/* "Losing patience" / "Out of patience" tag on the heading and a marker on the tab */
+.patienceTag {
+  color: #b45309;
+  font-weight: 700;
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.tabPatienceBadge {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  z-index: 2;
+  display: inline-flex;
+  font-size: 0.75rem;
+  color: #b45309;
+  pointer-events: none;
+}

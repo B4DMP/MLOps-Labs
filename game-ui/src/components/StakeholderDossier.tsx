@@ -124,13 +124,20 @@ export interface StakeholderDossierEntry {
   debug?: StakeholderDebugInfo;
 }
 
+export type BuyInBand = "very_low" | "low" | "medium" | "high" | "very_high";
+
+// The card renders from `band` alone; every numeric field is optional.
 export interface StakeholderBuyInInfo {
-  threshold: number;
-  actionCardScore: number;
+  band?: BuyInBand;
+  /** Impatience step from the server (0 clears the tag). */
+  impatience?: number;
+  /** Only used to place the unlabelled veto/objection marker, when given. */
+  threshold?: number;
+  actionCardScore?: number;
   dialogueScore?: number;
-  emotionScore: number;
-  total: number;
-  isPersuaded: boolean;
+  emotionScore?: number;
+  total?: number;
+  isPersuaded?: boolean;
   // Below `threshold` (or boundary violated): high power vetoes, low power only objects.
   blocks?: boolean;
   currentEmotion?: string;
@@ -276,6 +283,34 @@ const ARTIFACT_TYPE_LABEL: Record<string, string> = {
  * got here, which the stamp cannot: two confirmed notes can have arrived by very different
  * routes. Player language, one line, no system words.
  */
+export const BUY_IN_BAND_META: Record<BuyInBand, { label: string; fill: number }> = {
+  very_low: { label: "Very low", fill: 12 },
+  low: { label: "Low", fill: 32 },
+  medium: { label: "Medium", fill: 55 },
+  high: { label: "High", fill: 78 },
+  very_high: { label: "Very high", fill: 100 },
+};
+
+export type BuyInTone = "resistant" | "wavering" | "persuaded";
+
+// Band wins; the old flags only fill in when the server sent no band.
+export const resolveBuyIn = (info: StakeholderBuyInInfo): { band: BuyInBand; tone: BuyInTone } => {
+  const band: BuyInBand =
+    info.band ?? (info.blocks ? "low" : info.isPersuaded ? "high" : "medium");
+  const tone: BuyInTone =
+    info.boundaryViolated || info.blocks || band === "very_low" || band === "low"
+      ? "resistant"
+      : band === "medium"
+      ? "wavering"
+      : "persuaded";
+  return { band, tone };
+};
+
+const PATIENCE_DETAIL = "Bringing them the same problem again wears on them. Answer what they asked for and it eases.";
+
+export const impatienceTagLabel = (impatience?: number): string | null =>
+  !impatience || impatience < 1 ? null : impatience >= 2 ? "Out of patience" : "Losing patience";
+
 const getSourceCaption = (item: IntelEntry): { icon: string; text: string; title: string } | null => {
   switch ((item.source || "").toLowerCase()) {
     case "public_record":
@@ -1659,12 +1694,17 @@ export default function StakeholderDossier({
       activeEmotionColors[emotionDisplay] ||
       activeEmotionColors[emotionDisplay.toLowerCase()] ||
       "#64748b";
-    const powerDetail = `${(st.power || stObj?.power || "low").toUpperCase()} — ${
-      (st.power || stObj?.power || "").toLowerCase() === "high" ? "strong authority" : "limited authority"
-    }`;
-    const interestDetail = `${(st.interest || stObj?.interest || "low").toUpperCase()} — ${
-      (st.interest || stObj?.interest || "").toLowerCase() === "high" ? "closely engaged" : "loosely engaged"
-    }`;
+    const powerDetail =
+      (st.power || stObj?.power || "").toLowerCase() === "high"
+        ? "High power. Can this person stop you? Yes: they can veto the whole plan."
+        : "Low power. Can this person stop you? No: they can only grumble.";
+    const interestDetail =
+      (st.interest || stObj?.interest || "").toLowerCase() === "high"
+        ? "High interest. They care a lot, so your words and your proposal move their mood strongly. Together with power, it sets how strongly they react."
+        : "Low interest. They care less, so your words and your proposal move their mood gently. Together with power, it sets how strongly they react.";
+    const patienceLabel = impatienceTagLabel(
+      (buyInInfoMap?.[st.stakeholder_id] ?? buyInInfoMap?.[st.name])?.impatience,
+    );
 
     return (
       <>
@@ -1788,6 +1828,20 @@ export default function StakeholderDossier({
                   {(st.interest || stObj?.interest || "low").toUpperCase()}
                 </span>
               </div>
+              {patienceLabel && (
+                <div
+                  className={`${styles.powerInterestBadge} ${styles.patienceTag}`}
+                  tabIndex={0}
+                  aria-label={`${patienceLabel}: ${PATIENCE_DETAIL}`}
+                  onMouseEnter={(e) => showInfoTag(e, patienceLabel, PATIENCE_DETAIL)}
+                  onMouseLeave={hideInfoTag}
+                  onFocus={(e) => showInfoTag(e, patienceLabel, PATIENCE_DETAIL)}
+                  onBlur={hideInfoTag}
+                >
+                  <Icon icon="ph:hourglass-medium-bold" className={styles.metricIcon} />
+                  <span>{patienceLabel}</span>
+                </div>
+              )}
               {intelPips.length > 0 && (
                 <div
                   className={styles.powerInterestBadge}
@@ -1822,10 +1876,21 @@ export default function StakeholderDossier({
           const buyInInfo = buyInInfoMap ? (buyInInfoMap[st.stakeholder_id] || buyInInfoMap[st.name]) : undefined;
           if (!buyInInfo) return null;
 
-          const totalPercent = Math.min(100, Math.max(0, Math.round(buyInInfo.total * 100)));
-          const cardPercent = Math.min(60, Math.max(0, Math.round(buyInInfo.actionCardScore * 100)));
-          const emotionPercent = Math.min(40, Math.max(0, Math.round(buyInInfo.emotionScore * 100)));
+          const { band, tone } = resolveBuyIn(buyInInfo);
+          const bandMeta = BUY_IN_BAND_META[band];
+          // Bar fill comes from the band; the two segments split it by their relative weight.
+          const cardWeight = buyInInfo.actionCardScore ?? 0;
+          const emotionWeight = buyInInfo.emotionScore ?? 0;
+          const weightSum = cardWeight + emotionWeight;
+          const cardShare = weightSum > 0 ? cardWeight / weightSum : 0.6;
+          const cardPercent = bandMeta.fill * cardShare;
+          const emotionPercent = bandMeta.fill - cardPercent;
           const isBoundaryViolated = Boolean(buyInInfo.boundaryViolated);
+          const isHighPowerStakeholder = (st.power || stObj?.power || "").toLowerCase() === "high";
+          const lineName = isHighPowerStakeholder ? "Veto line" : "Objection line";
+          const lineDetail = isHighPowerStakeholder
+            ? "Below this line a high power stakeholder vetoes the plan."
+            : "Below this line this person objects, but they cannot stop the plan.";
           const isRevealed = buyInInfo.isRevealed ?? false;
 
           return (
@@ -1841,68 +1906,65 @@ export default function StakeholderDossier({
                       <EmojiIcon name="balanceScale" /> Buy-In Progress
                     </span>
                     <span
-                      className={`badge ${isBoundaryViolated || buyInInfo.blocks ? "bg-danger" : buyInInfo.isPersuaded ? "bg-success" : "bg-warning text-dark"}`}
+                      className={`badge ${tone === "resistant" ? "bg-danger" : tone === "persuaded" ? "bg-success" : "bg-warning text-dark"}`}
                       style={{ fontSize: "0.62rem" }}
                     >
                       {isBoundaryViolated ? (
-                        <><EmojiIcon name="noEntry" /> Boundary Violated ({totalPercent}%)</>
-                      ) : buyInInfo.blocks ? (
-                        <><EmojiIcon name="noEntry" /> Resistant ({totalPercent}%)</>
-                      ) : buyInInfo.isPersuaded ? (
-                        <><EmojiIcon name="checkMark" /> Persuaded ({totalPercent}%)</>
+                        <><EmojiIcon name="noEntry" /> Boundary crossed</>
+                      ) : tone === "resistant" ? (
+                        <><EmojiIcon name="noEntry" /> {bandMeta.label}</>
+                      ) : tone === "persuaded" ? (
+                        <><EmojiIcon name="checkMark" /> {bandMeta.label}</>
                       ) : (
-                        <><EmojiIcon name="warning" /> Wavering ({totalPercent}%)</>
+                        <><EmojiIcon name="warning" /> {bandMeta.label}</>
                       )}
                     </span>
                   </div>
-                  <span style={{ fontSize: "0.65rem", color: "#64748b", fontWeight: 600 }}>
-                    Blocks below: <strong>{Math.round(buyInInfo.threshold * 100)}%</strong>
-                  </span>
                 </div>
 
                 {/* Stacked Progress Bar with Threshold Marker Notch */}
                 <div className="progress position-relative" style={{ height: "16px", backgroundColor: "#e2e8f0", borderRadius: "4px" }}>
-                  {/* Threshold Marker Notch */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: `${Math.min(99, Math.max(1, buyInInfo.threshold * 100))}%`,
-                      top: "-2px",
-                      bottom: "-2px",
-                      width: "3px",
-                      backgroundColor: "#dc3545",
-                      zIndex: 5,
-                      borderRadius: "1px",
-                    }}
-                    title={`Required Threshold: ${Math.round(buyInInfo.threshold * 100)}%`}
-                  />
+                  {/* Unlabelled marker; only drawn when a position is provided */}
+                  {buyInInfo.threshold != null && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: `${Math.min(99, Math.max(1, buyInInfo.threshold * 100))}%`,
+                        top: "-2px",
+                        bottom: "-2px",
+                        width: "3px",
+                        backgroundColor: "#dc3545",
+                        zIndex: 5,
+                        borderRadius: "1px",
+                      }}
+                      role="img"
+                      aria-label={lineName}
+                      title={`${lineName}: ${lineDetail}`}
+                    />
+                  )}
 
-                  {cardPercent > 0 && (
+                  {!isBoundaryViolated && cardPercent > 0 && (
                     <div
                       className="progress-bar bg-primary"
                       role="progressbar"
                       style={{ width: `${cardPercent}%` }}
-                      title={`Action Card Alignment: +${cardPercent}% (max 60%)`}
-                    >
-                      {cardPercent >= 10 && `+${cardPercent}%`}
-                    </div>
+                      title="What you proposed"
+                    />
                   )}
                   {emotionPercent > 0 && (
                     <div
                       className="progress-bar bg-success"
                       role="progressbar"
                       style={{ width: `${emotionPercent}%` }}
-                      title={`Emotional State (${buyInInfo.currentEmotion || "neutral"}): +${emotionPercent}% (max 40%)`}
-                    >
-                      {emotionPercent >= 10 && `+${emotionPercent}%`}
-                    </div>
+                      title={`How they feel right now (${buyInInfo.currentEmotion || "neutral"})`}
+                    />
                   )}
                 </div>
 
                 {/* Breakdown Legend Row */}
                 <div className={styles.buyInLegendRow}>
-                  <span><EmojiIcon name="cardJoker" /> Card: <b>{isBoundaryViolated ? "0% (Boundary Violated)" : `+${cardPercent}%`}</b></span>
-                  <span><EmojiIcon name="emotion" /> Emotion: <b>+{emotionPercent}%</b></span>
+                  <span><EmojiIcon name="cardJoker" /> What you proposed</span>
+                  <span><EmojiIcon name="emotion" /> How they feel right now</span>
                 </div>
               </div>
 
@@ -2596,8 +2658,12 @@ export default function StakeholderDossier({
             // lines, rather than wherever the browser happens to wrap a too-narrow single line.
             const [tabRoleWord, ...tabGivenNameWords] = st.name.split(" ");
             const tabGivenName = tabGivenNameWords.join(" ");
+            const tabPatience = impatienceTagLabel(
+              (buyInInfoMap?.[st.stakeholder_id] ?? buyInInfoMap?.[st.name])?.impatience,
+            );
             const tabTagDetail = [
               `Emotional State: ${emotion}`,
+              tabPatience,
               keyPlayerHint || null,
               changeHint || null,
               tabPips.length > 0 ? `Intel: ${describeIntelPips(tabPips)}` : null,
@@ -2628,6 +2694,11 @@ export default function StakeholderDossier({
                     } ${isPulsingChange ? styles.tabChangeBadgePulsing : ""}`}
                   >
                     {change.isNew ? "NEW" : "SHIFTED"}
+                  </span>
+                )}
+                {tabPatience && (
+                  <span className={styles.tabPatienceBadge} title={tabPatience}>
+                    <Icon icon="ph:hourglass-medium-bold" />
                   </span>
                 )}
                 {tabPips.length > 0 && (

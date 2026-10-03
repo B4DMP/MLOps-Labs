@@ -1,6 +1,6 @@
 import { forwardRef, useImperativeHandle } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { phaseLabel, phaseShortLabel } from "./StakeholderDossier";
+import { phaseLabel, phaseShortLabel, resolveBuyIn, impatienceTagLabel, BUY_IN_BAND_META } from "./StakeholderDossier";
 import type { PhaseData } from "./PhaseProvider";
 
 // jsdom can't render the real Lottie player that CheatSheetModal's OnceIcon pulls in - mock it
@@ -67,5 +67,40 @@ describe("phaseShortLabel", () => {
     expect(phaseShortLabel(6, phases)).toBe("P7");
     expect(phaseShortLabel(0, [{ id: 0, phase_name: "Retrospective" }])).toBe("P1");
     expect(phaseShortLabel(null, phases)).toBe("EARLIER");
+  });
+});
+
+describe("resolveBuyIn", () => {
+  it("maps bands to the resistant, wavering and persuaded tones", () => {
+    expect(resolveBuyIn({ band: "very_low" }).tone).toBe("resistant");
+    expect(resolveBuyIn({ band: "low" }).tone).toBe("resistant");
+    expect(resolveBuyIn({ band: "medium" }).tone).toBe("wavering");
+    expect(resolveBuyIn({ band: "high" }).tone).toBe("persuaded");
+    expect(resolveBuyIn({ band: "very_high" }).tone).toBe("persuaded");
+  });
+
+  it("stays resistant when blocked or a boundary is crossed, whatever the band", () => {
+    expect(resolveBuyIn({ band: "high", blocks: true }).tone).toBe("resistant");
+    expect(resolveBuyIn({ band: "very_high", boundaryViolated: true }).tone).toBe("resistant");
+  });
+
+  it("labels every band in words", () => {
+    expect(Object.values(BUY_IN_BAND_META).map((m) => m.label)).toEqual([
+      "Very low",
+      "Low",
+      "Medium",
+      "High",
+      "Very high",
+    ]);
+  });
+});
+
+describe("impatienceTagLabel", () => {
+  it("is empty at zero, mild at one and strong from two", () => {
+    expect(impatienceTagLabel(0)).toBeNull();
+    expect(impatienceTagLabel(undefined)).toBeNull();
+    expect(impatienceTagLabel(1)).toBe("Losing patience");
+    expect(impatienceTagLabel(2)).toBe("Out of patience");
+    expect(impatienceTagLabel(3)).toBe("Out of patience");
   });
 });

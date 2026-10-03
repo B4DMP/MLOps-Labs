@@ -1624,6 +1624,45 @@
       "why_it_matters": "Alignment, not accuracy, is what gets a model into production in a real organisation."
     },
     {
+      "id": "power",
+      "term": "power",
+      "aliases": [],
+      "category": "requirements",
+      "definition": "Can this person stop you? High power can veto the whole plan. Low power can only grumble.",
+      "why_it_matters": "Power decides who can block you. Spend your effort on those people first.",
+      "disabled": true
+    },
+    {
+      "id": "interest",
+      "term": "interest",
+      "aliases": [],
+      "category": "requirements",
+      "definition": "How much this person cares. Together with power it sets how strongly your words and your proposal move their mood.",
+      "why_it_matters": "A person who cares a lot reacts strongly, for better or worse.",
+      "disabled": true
+    },
+    {
+      "id": "boundary",
+      "term": "boundary",
+      "aliases": [
+        "boundaries"
+      ],
+      "category": "requirements",
+      "definition": "A line a stakeholder will not let a plan cross. If a high-power stakeholder's boundary is crossed, they veto.",
+      "why_it_matters": "Their notes tell you where the line is. Check them before you propose changes."
+    },
+    {
+      "id": "veto",
+      "term": "veto",
+      "aliases": [
+        "vetoes",
+        "vetoed"
+      ],
+      "category": "requirements",
+      "definition": "What a high-power stakeholder does to block a plan. Go back, read the objection and fix the proposal.",
+      "why_it_matters": "A veto is feedback, not a game over. It tells you what to change."
+    },
+    {
       "id": "traceability",
       "term": "traceability",
       "aliases": [
