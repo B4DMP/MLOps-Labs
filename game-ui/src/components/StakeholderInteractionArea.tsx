@@ -20,6 +20,7 @@ import { colorForStakeholderId } from "../types/StakeholderAvatar";
 import type { DialogueOption } from "../types/DialogueOption";
 import type { ActionCard } from "../types/ActionCard";
 import { startTour } from "../utils/tour";
+import { useNarratorGate } from "./useNarratorGate";
 import { TOUR_GUIDE_SEED } from "../utils/speech";
 import { useSpeech } from "./useSpeech";
 
@@ -297,13 +298,14 @@ export default function StakeholderInteractionArea({
   const { isSurfaceEnabled } = useGlossary();
   const highlightMessages = isSurfaceEnabled("stakeholder_messages");
   const { speak: speakTour } = useSpeech();
+  const gate = useNarratorGate();
 
   useEffect(() => {
     if (!isEnabled && current_challenge === 0 && current_phase === 0 && !isintro4DoneRef.current) {
       isintro4DoneRef.current = true;
       setIsintro4Done(true);
       setTimeout(() => {
-        startTour("intro4", { narrate: (text) => speakTour(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
+        startTour("intro4", { beforeStart: () => gate.request(), narrate: (text) => speakTour(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
       }, 10);
     }
   }, [isEnabled, current_challenge, current_phase]);

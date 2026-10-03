@@ -24,6 +24,7 @@ import SpokenText from "./SpokenText";
 import OnceIcon from "./Results/OnceIcon";
 import { useSpeech } from "./useSpeech";
 import { startTour } from "../utils/tour";
+import { useNarratorGate } from "./useNarratorGate";
 import { useSettings } from "./SettingsProvider";
 import { splitSentences, TOUR_GUIDE_SEED } from "../utils/speech";
 import { MetricsContext } from "./MetricProvider";
@@ -302,6 +303,7 @@ export default function AcSimulation({
   const { metrics } = useContext(MetricsContext);
   const { stakeholders } = useContext(StakeholderContext);
   const { speak: speakTts } = useSpeech();
+  const gate = useNarratorGate();
   const { settings } = useSettings();
 
   const [payload, setPayload] = useState<DeltaReportPayload | null>(null);
@@ -488,6 +490,7 @@ export default function AcSimulation({
     if (introSimulateTourStartedRef.current) return;
     introSimulateTourStartedRef.current = true;
     startTour("introSimulate", {
+      beforeStart: () => gate.request(),
       narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }),
       onFinish: () => setIntroSimulateTourDone(true),
     });

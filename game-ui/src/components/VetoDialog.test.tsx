@@ -106,3 +106,16 @@ describe("VetoDialog", () => {
     expect(onReviseProposal).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("VetoDialog intro behaviour", () => {
+  it("shows intro footer wording and the feedback slot", () => {
+    renderDialog({ isIntro: true, feedback: <div>coach panel</div> });
+    expect(screen.getByText("coach panel")).toBeInTheDocument();
+    expect(screen.getByText(/no way around a veto/i)).toBeInTheDocument();
+  });
+
+  it("keeps the breaker hidden when the handler is omitted, even with points", () => {
+    renderDialog({ isIntro: true, escalationPoints: 3 });
+    expect(screen.queryByRole("button", { name: /Push It Through/ })).not.toBeInTheDocument();
+  });
+});

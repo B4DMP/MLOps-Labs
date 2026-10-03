@@ -10,6 +10,8 @@ import BriefingPage from "./BriefingPage";
 import honeycombsIcon from "./components/Results/icons/honeycombs.json";
 import "intro.js/introjs.css";
 import { startTour } from "./utils/tour";
+import { useNarratorGate } from "./components/useNarratorGate";
+import { NarratorGateHost } from "./components/NarratorGate";
 import { TOUR_GUIDE_SEED } from "./utils/speech";
 import { useSpeech } from "./components/useSpeech";
 import ResultsScreen from "./components/Results/ResultsScreen";
@@ -88,6 +90,7 @@ function App({ onLogout }: AppProps) {
   const debug: boolean = false;
   const { emit, subscribe, isConnected, userId } = useGameWebSocket();
   const { speak: speakTour } = useSpeech();
+  const gate = useNarratorGate();
 
   const sendJsonMessage = (data: any) => {
     emit(data.type, data);
@@ -670,7 +673,7 @@ function App({ onLogout }: AppProps) {
 
       if (currentPhaseRef.current === 0 && currentChallengeRef.current === 0 && !isintro5DoneRef.current) {
         setTimeout(() => {
-          startTour("intro5", { narrate: (text) => speakTour(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
+          startTour("intro5", { beforeStart: () => gate.request(), narrate: (text) => speakTour(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
         }, 100);
         setIsintro5Done(true);
       }
@@ -824,6 +827,7 @@ function App({ onLogout }: AppProps) {
 
   return (
     <div style={{ width: "100%", height: "100%", overflow: "hidden", position: "relative" }}>
+      <NarratorGateHost />
       <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
       <SettingsPanel isVisible={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} onLogout={onLogout} />
       {/* Gameplay has its own gear in the dossier header; everywhere else (questionnaire,

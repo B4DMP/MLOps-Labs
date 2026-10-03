@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import { clearSeenBriefings } from "../utils/seenBriefings";
+import { clearIntroCoach } from "../utils/introCoach";
 
 export interface PlayerSettings {
   auto_skip_conversations: boolean;
@@ -165,6 +166,7 @@ export default function SettingsProvider({ children, userId, startMuted = false 
     const unsubReset = subscribe("settings:account_reset", () => {
       clearMirror(userId);
       clearSeenBriefings(userId);
+      clearIntroCoach(userId);
       window.location.reload();
     });
     return () => {

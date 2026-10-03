@@ -3,6 +3,8 @@ import styles from "./VetoDialog.module.css";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import OnceIcon from "./Results/OnceIcon";
 import ROAD_BARRIER_ICON from "./Results/icons/road-barrier.json";
+import { ESCALATIONS, VETO_FEEDBACK } from "../content/helpCopy";
+import type { ReactNode } from "react";
 
 export interface VetoInfo {
   stakeholder_id: string;
@@ -12,6 +14,9 @@ export interface VetoInfo {
   objection_kind?: string;
   objection_detail?: string;
   boundary_violated?: boolean;
+  /** Graph target and dossier note behind a boundary objection (optional, newer servers). */
+  objection_target?: string | null;
+  objection_item_id?: string | null;
 }
 
 interface VetoDialogProps {
@@ -30,6 +35,10 @@ interface VetoDialogProps {
   onVetoBreaker?: () => void;
   /** True from the click until the server answers, so the button cannot be pressed twice. */
   isBreakingVeto?: boolean;
+  /** Intro walkthrough: footer wording changes (the breaker is hidden by omitting its handler). */
+  isIntro?: boolean;
+  /** Coach panel shown under the reason box. */
+  feedback?: ReactNode;
 }
 
 export default function VetoDialog({
@@ -42,17 +51,15 @@ export default function VetoDialog({
   escalationPoints = null,
   onVetoBreaker,
   isBreakingVeto = false,
+  isIntro = false,
+  feedback,
 }: VetoDialogProps) {
   if (!isOpen || !vetoInfo) return null;
 
   const pointsLeft = escalationPoints ?? 0;
   const canBreakVeto = Boolean(onVetoBreaker) && pointsLeft > 0 && !isBreakingVeto;
   const vetoBreakerHint =
-    escalationPoints === null
-      ? undefined
-      : pointsLeft > 0
-        ? `Spend one Escalation Point (${pointsLeft} left) to push this exact card through anyway. ${vetoInfo.stakeholder_name || "They"} will remember it.`
-        : "No Escalation Points left this playthrough.";
+    escalationPoints === null ? undefined : ESCALATIONS.hint(pointsLeft, vetoInfo.stakeholder_name);
 
   const stId = vetoInfo.stakeholder_id;
   const st = stakeholders[stId] || {};
@@ -138,6 +145,7 @@ export default function VetoDialog({
                   <p className={styles.reasonText}>{vetoInfo.objection_detail}</p>
                 </div>
               )}
+              {feedback}
             </div>
           </div>
         </div>
@@ -147,7 +155,9 @@ export default function VetoDialog({
           <div className={styles.footerHint}>
             <Icon icon="ph:info-bold" className={styles.footerHintIcon} />
             <span>
-              A high-power stakeholder has blocked the plan. Adjust your commitments to address their objection before proceeding.
+              {isIntro
+                ? VETO_FEEDBACK.introFooter
+                : "A high-power stakeholder has blocked the plan. Adjust your commitments to address their objection before proceeding."}
             </span>
           </div>
           <div className={styles.actions}>

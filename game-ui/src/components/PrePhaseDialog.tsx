@@ -15,6 +15,7 @@ import CheatSheetModal from "./CheatSheetModal";
 import SpokenText from "./SpokenText";
 import GlossaryText from "./glossary/GlossaryText";
 import { startTour } from "../utils/tour";
+import { useNarratorGate } from "./useNarratorGate";
 
 interface PrePhaseDialogProps {
   isOpen: boolean;
@@ -61,6 +62,7 @@ export default function PrePhaseDialog({
   const { currentPhase, phases } = useContext(PhasesContext);
   const { settings } = useSettings();
   const { speak: speakTts } = useSpeech();
+  const gate = useNarratorGate();
   // Overlay layer the radar portals its bubbles and tooltips into. The page
   // clips its own overflow and the matrix column keeps a transform from its
   // entrance animation, so neither can host a fixed-position bubble.
@@ -204,6 +206,7 @@ export default function PrePhaseDialog({
     const timer = setTimeout(() => {
       introTourStartedRef.current = true;
       startTour("intro2", {
+        beforeStart: () => gate.request(),
         narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }),
         onFinish: () => setIntroTourDone(true),
       });

@@ -8,10 +8,30 @@ import { MetricsContext } from "./MetricProvider";
 import { PhasesContext } from "./PhaseProvider";
 import { useSettings } from "./SettingsProvider";
 import { useSpeech } from "./useSpeech";
-import { slotForStakeholderVoice, TOUR_GUIDE_SEED } from "../utils/speech";
+import {
+  slotForStakeholderVoice,
+  TOUR_GUIDE_SEED,
+  setNarrationBusy,
+  isNarrationBusy,
+  waitForNarrationIdle,
+} from "../utils/speech";
 import { startTour } from "../utils/tour";
+import { useNarratorGate } from "./useNarratorGate";
+import { useIntroCoach } from "./useIntroCoach";
+import CoachTip from "./CoachTip";
+import PowerInterestExplainer from "./PowerInterestExplainer";
+import VetoFeedback from "./VetoFeedback";
+import CheatSheetModal from "./CheatSheetModal";
+import { waitForCoachClear } from "../utils/introCoach";
+import { ESCALATIONS, PITCH_GUIDE, SEAT_CHIPS } from "../content/helpCopy";
 import styles from "./pitch_debate.module.css";
-import StakeholderDossier, { type StakeholderDossierEntry, type StakeholderBuyInInfo, type IntelEntry } from "./StakeholderDossier";
+import StakeholderDossier, {
+  impatienceTagLabel,
+  type BuyInBand,
+  type StakeholderDossierEntry,
+  type StakeholderBuyInInfo,
+  type IntelEntry,
+} from "./StakeholderDossier";
 import OfflineIntelGathering, { type IntelArtifact } from "./offline_intel_gathering";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import StakeholderInteractionArea, { type ChatMsg, type RevealedIntel } from "./StakeholderInteractionArea";
@@ -46,6 +66,15 @@ import { FADE_TRANSITION } from "../utils/transitions";
 // has to be verified before pitching is worth it (ratio of verified / total for the phase).
 const READY_YELLOW = 0.35;
 const READY_GREEN = 0.6;
+
+// Seen-once flags kept by the intro coach (per player, localStorage).
+const GUIDE_KEYS = {
+  tour: "introPitchTour",
+  explainer: "powerInterestExplainer",
+  reveal: "guideReveal",
+  reactions: "guideReactions",
+  off: "guideOff",
+} as const;
 
 export interface PitchDebateProps {
   currentPhase: number;
@@ -98,6 +127,10 @@ interface PitchStatePayload {
     emotions: number;
     buy_in: number | null;
     band: "green" | "amber" | "red";
+    /** Word band from the server; the client keeps no thresholds of its own. */
+    buy_in_band?: BuyInBand;
+    /** Impatience step, 0 up to the server's cap. */
+    impatience?: number;
     boundary_violated: boolean;
     emotional_state: string;
   }>;
@@ -115,6 +148,8 @@ interface PitchStatePayload {
   /** How many Escalation Points are left this playthrough (D15): 3 to start, never regenerated
    * within a run. Spent by the Veto Breaker in `VetoDialog`. */
   escalation_points?: number;
+  /** True while the intro (demo) phase is running. */
+  is_demo?: boolean;
 }
 
 export default function PitchDebate({
@@ -144,7 +179,7 @@ export default function PitchDebate({
   onSettingsToggle,
   isSettingsOpen = false,
 }: PitchDebateProps) {
-  const { emit, subscribe } = useGameWebSocket();
+  const { emit, subscribe, userId } = useGameWebSocket();
   const { settings } = useSettings();
   const { speak: speakTts, cancel: cancelTts } = useSpeech();
   const stakeholderCtx = useContext(StakeholderContext);
@@ -197,6 +232,11 @@ export default function PitchDebate({
     setInfoTag({ label, detail, top: rect.bottom + 6, anchorX, left: anchorX });
   };
   const hideInfoTag = () => setInfoTag(null);
+  // Info tag at a fixed spot (no hover anchor), gone after a moment; for blocked card clicks.
+  const flashInfoTag = (label: string, detail?: string) => {
+    setInfoTag({ label, detail, top: window.innerHeight - 190, anchorX: window.innerWidth / 2, left: window.innerWidth / 2 });
+    window.setTimeout(() => setInfoTag((cur) => (cur && cur.label === label ? null : cur)), 3500);
+  };
 
   useLayoutEffect(() => {
     if (!infoTag || !infoTagRef.current) return;
@@ -265,6 +305,20 @@ export default function PitchDebate({
   const [isBreakingVeto, setIsBreakingVeto] = useState(false);
   const [isCommittedLocked, setIsCommittedLocked] = useState(false);
   const hasAutoTransitionedRef = useRef(false);
+  // Vetoes in a row (reset on a pass), and which veto the player already dealt with via the
+  // coach panel so a later pitch:state does not pop the dialog back open.
+  const [vetoStreak, setVetoStreak] = useState(0);
+  const vetoKeyRef = useRef<string | null>(null);
+  const dismissedVetoKeyRef = useRef<string | null>(null);
+  const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
+  const [isExplainerOpen, setIsExplainerOpen] = useState(false);
+  // Guided session: what the player has done this visit (a reload re-derives from chat history).
+  const [verifyPlayed, setVerifyPlayed] = useState(false);
+  const [talkPlayed, setTalkPlayed] = useState(false);
+
+  const gate = useNarratorGate();
+  const isIntro = currentPhase === 0 || pitchState?.is_demo === true;
+  const coach = useIntroCoach(isIntro ? 0 : currentPhase, { userId, gateOpen: gate.gateOpen });
 
   // ── Engagement Card & Tokens State ──
   const [localTokens, setLocalTokens] = useState(20);
@@ -320,6 +374,11 @@ export default function PitchDebate({
   // actually finish" gating below - see processSpeechQueue.
   const activeFloorTimerRef = useRef<any>(null);
   const activeHardCapTimerRef = useRef<any>(null);
+  // Fires when a line makes no sentence progress for a while; reset on every sentence.
+  const activeProgressTimerRef = useRef<any>(null);
+  // The last line that played, for the persistent Replay control, and a short "just closed" flag.
+  const lastLineRef = useRef<ChatMsg | null>(null);
+  const [isLineJustClosed, setIsLineJustClosed] = useState(false);
 
   const [activeSpeakingState, setActiveSpeakingState] = useState<{
     stakeholderId: string;
@@ -346,19 +405,42 @@ export default function PitchDebate({
     speechQueueRef.current.length > 0 ||
     Boolean(activeSpeakingState || activePlayerSpeakingState);
 
-  const clearSpeechTimers = () => {
+  // Ceiling grows with the text; the no-progress watchdog is what usually ends a stuck line.
+  const speechCapMs = (kind: "player" | "stakeholder", text: string) =>
+    Math.max(kind === "player" ? 12000 : 20000, text.length * 100 + 5000);
+  const NO_PROGRESS_MS = 15000;
+
+  /** Arms the length-scaled ceiling and the watchdog; returns `touch` for each sentence heard. */
+  const armSpeechCaps = (kind: "player" | "stakeholder", text: string, giveUp: () => void) => {
+    const fire = () => {
+      cancelTts("cap");
+      giveUp();
+    };
+    activeHardCapTimerRef.current = setTimeout(fire, speechCapMs(kind, text));
+    const touch = (ms: number = NO_PROGRESS_MS) => {
+      if (activeProgressTimerRef.current) clearTimeout(activeProgressTimerRef.current);
+      activeProgressTimerRef.current = setTimeout(fire, ms);
+    };
+    touch(NO_PROGRESS_MS + 5000);
+    return touch;
+  };
+
+  const clearSpeechTimers = (reason?: "skip") => {
+    if (activeProgressTimerRef.current) clearTimeout(activeProgressTimerRef.current);
     if (activeFadeTimerRef.current) clearTimeout(activeFadeTimerRef.current);
     if (activeSpeechTimerRef.current) clearTimeout(activeSpeechTimerRef.current);
     if (activeNextTimerRef.current) clearTimeout(activeNextTimerRef.current);
     if (activeFloorTimerRef.current) clearTimeout(activeFloorTimerRef.current);
     if (activeHardCapTimerRef.current) clearTimeout(activeHardCapTimerRef.current);
-    cancelTts();
+    cancelTts(reason);
   };
 
   // Shared tail for "a line is done" - used both by the normal queue advance below and by
   // playChatMessage, which re-narrates any chat-history line (player or stakeholder) without
   // re-entering the queue.
   const finishActiveSpeech = (kind: "stakeholder" | "player" = "stakeholder") => {
+    clearTimeout(activeProgressTimerRef.current);
+    clearTimeout(activeHardCapTimerRef.current);
     if (kind === "player") {
       setActivePlayerSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
     } else {
@@ -386,6 +468,7 @@ export default function PitchDebate({
       setActivePlayerSpeakingState(null);
       isProcessingQueueRef.current = false;
       setIsSpeechInProgress(false);
+      setNarrationBusy("pitch-queue", false);
       if (pendingDismissKeysRef.current.size > 0) {
         const keysToDismiss = Array.from(pendingDismissKeysRef.current);
         pendingDismissKeysRef.current.clear();
@@ -406,6 +489,11 @@ export default function PitchDebate({
     if (nextItem.chatMsg) {
       setChatMsgsState((prev) => [...prev, nextItem.chatMsg!]);
     }
+    lastLineRef.current =
+      nextItem.chatMsg ??
+      (nextItem.type === "player"
+        ? { id: "user", message: nextItem.message, ac_id: -1 }
+        : { id: nextItem.stakeholderId || "", message: nextItem.message, ac_id: -1, stakeholder_id: nextItem.stakeholderId });
 
     if (nextItem.type === "player") {
       setActiveSpeakingState(null);
@@ -435,6 +523,8 @@ export default function PitchDebate({
       const proceedWhenReady = () => {
         if (settled || !speechDone || !floorDone) return;
         settled = true;
+        clearTimeout(activeProgressTimerRef.current);
+        clearTimeout(activeHardCapTimerRef.current);
         setActivePlayerSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
         activeSpeechTimerRef.current = setTimeout(() => {
           setActivePlayerSpeakingState(null);
@@ -443,9 +533,16 @@ export default function PitchDebate({
           activeNextTimerRef.current = setTimeout(processSpeechQueue, 150);
         }, 400);
       };
+      const touch = armSpeechCaps("player", nextItem.message, () => {
+        speechDone = true;
+        proceedWhenReady();
+      });
       speakTts(nextItem.message, {
         slot: "player",
-        onSentence: ({ index }) => setActiveSentenceIndex(index),
+        onSentence: ({ index }) => {
+          setActiveSentenceIndex(index);
+          touch();
+        },
         onEnd: () => {
           speechDone = true;
           proceedWhenReady();
@@ -455,10 +552,6 @@ export default function PitchDebate({
         floorDone = true;
         proceedWhenReady();
       }, floorMs);
-      activeHardCapTimerRef.current = setTimeout(() => {
-        speechDone = true;
-        proceedWhenReady();
-      }, 12000);
     } else {
       setActivePlayerSpeakingState(null);
       if (nextItem.stakeholderId) {
@@ -535,10 +628,17 @@ export default function PitchDebate({
         settled = true;
         finishActiveSpeech();
       };
+      const touch = armSpeechCaps("stakeholder", nextItem.message, () => {
+        speechDone = true;
+        proceedWhenReady();
+      });
       speakTts(nextItem.message, {
         slot: slotForStakeholderVoice(stakeholders[nextItem.stakeholderId || ""]?.voice),
         seed: nextItem.stakeholderId,
-        onSentence: ({ index }) => setActiveSentenceIndex(index),
+        onSentence: ({ index }) => {
+          setActiveSentenceIndex(index);
+          touch();
+        },
         onEnd: () => {
           speechDone = true;
           proceedWhenReady();
@@ -548,15 +648,11 @@ export default function PitchDebate({
         floorDone = true;
         proceedWhenReady();
       }, floorMs);
-      activeHardCapTimerRef.current = setTimeout(() => {
-        speechDone = true;
-        proceedWhenReady();
-      }, 20000);
     }
   };
 
   const skipCurrentSpeech = () => {
-    clearSpeechTimers();
+    clearSpeechTimers("skip");
     setActiveSpeakingState(null);
     setActiveSentenceIndex(null);
     setLiveChatMsg(null);
@@ -581,6 +677,8 @@ export default function PitchDebate({
     if (!isPlayerMsg && !stakeholderId) return;
 
     clearSpeechTimers();
+    setNarrationBusy("pitch-queue", true);
+    lastLineRef.current = msg;
     isProcessingQueueRef.current = true;
     setActiveSentenceIndex(null);
     setLiveChatMsg(msg);
@@ -601,10 +699,17 @@ export default function PitchDebate({
       settled = true;
       finishActiveSpeech(isPlayerMsg ? "player" : "stakeholder");
     };
+    const touch = armSpeechCaps(isPlayerMsg ? "player" : "stakeholder", msg.message, () => {
+      speechDone = true;
+      proceedWhenReady();
+    });
     speakTts(msg.message, {
       slot: isPlayerMsg ? "player" : slotForStakeholderVoice(stakeholders[stakeholderId!]?.voice),
       seed: isPlayerMsg ? undefined : stakeholderId,
-      onSentence: ({ index }) => setActiveSentenceIndex(index),
+      onSentence: ({ index }) => {
+        setActiveSentenceIndex(index);
+        touch();
+      },
       onEnd: () => {
         speechDone = true;
         proceedWhenReady();
@@ -614,10 +719,6 @@ export default function PitchDebate({
       floorDone = true;
       proceedWhenReady();
     }, floorMs);
-    activeHardCapTimerRef.current = setTimeout(() => {
-      speechDone = true;
-      proceedWhenReady();
-    }, 20000);
   };
 
   const triggerStakeholderSpeech = (
@@ -635,6 +736,7 @@ export default function PitchDebate({
   ) => {
     if (!stakeholderId || !message) return;
     setIsSpeechInProgress(true);
+    setNarrationBusy("pitch-queue", true);
     speechQueueRef.current.push({
       id: Math.random().toString(36).substring(2, 9),
       type: "stakeholder",
@@ -654,6 +756,7 @@ export default function PitchDebate({
   const triggerPlayerSpeech = (message: string, chatMsg?: ChatMsg) => {
     if (!message) return;
     setIsSpeechInProgress(true);
+    setNarrationBusy("pitch-queue", true);
     speechQueueRef.current.push({
       id: Math.random().toString(36).substring(2, 9),
       type: "player",
@@ -663,7 +766,22 @@ export default function PitchDebate({
     processSpeechQueue();
   };
 
-  useEffect(() => () => clearSpeechTimers(), []);
+  useEffect(
+    () => () => {
+      clearSpeechTimers();
+      setNarrationBusy("pitch-queue", false);
+    },
+    [],
+  );
+
+  // Keep Stop and Replay up for a moment after a line closes.
+  useEffect(() => {
+    if (isAnySpeechActive) return;
+    if (!lastLineRef.current) return;
+    setIsLineJustClosed(true);
+    const t = setTimeout(() => setIsLineJustClosed(false), 5000);
+    return () => clearTimeout(t);
+  }, [isAnySpeechActive]);
 
   // ── WebSocket Subscriptions ──
   const [graphState, setGraphState] = useState<any>(null);
@@ -676,13 +794,31 @@ export default function PitchDebate({
 
   const introPitchTourStartedRef = useRef(false);
   useEffect(() => {
-    // Phase 0 has exactly one challenge, so checking the phase alone is sufficient -
+    // Phase 0 has exactly one challenge, so the phase alone identifies the intro;
     // `currentChallenge` is the challenge's *global* id (e.g. 113), not a phase-relative index.
-    if (currentPhase !== 0) return;
-    if (introPitchTourStartedRef.current) return;
+    if (!isIntro || !pitchState || introPitchTourStartedRef.current) return;
     introPitchTourStartedRef.current = true;
-    startTour("introPitch", { narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
-  }, [currentPhase]);
+    if (coach.hasSeen(GUIDE_KEYS.tour)) return;
+    if (pitchState.stage !== "PREPARE" || playedIds.length > 0) {
+      // Already underway (a reload): skip the replay and go straight to the live guide.
+      coach.markSeen(GUIDE_KEYS.tour);
+      coach.markSeen(GUIDE_KEYS.explainer);
+      return;
+    }
+    startTour("introPitch", {
+      beforeStart: async () => {
+        await waitForCoachClear();
+        const allowed = await gate.request();
+        if (isNarrationBusy()) await waitForNarrationIdle();
+        return allowed;
+      },
+      narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }),
+      onFinish: () => {
+        coach.markSeen(GUIDE_KEYS.tour);
+        if (!coach.hasSeen(GUIDE_KEYS.explainer)) setIsExplainerOpen(true);
+      },
+    });
+  }, [isIntro, pitchState, playedIds.length]);
 
   useWebSocketEvent<PitchStatePayload>("pitch:state", (payload) => {
     setPitchState(payload);
@@ -709,10 +845,15 @@ export default function PitchDebate({
         // with the same still-standing veto: stop showing the button as busy.
         setIsBreakingVeto(false);
         if (payload.veto_info) {
+          const key = `${payload.veto_info.message}|${payload.veto_info.objection_item_id ?? ""}`;
+          if (key !== vetoKeyRef.current) {
+            vetoKeyRef.current = key;
+            setVetoStreak((n) => n + 1);
+          }
           setVetoInfo(payload.veto_info);
-          setIsVetoDialogOpen(true);
+          if (key !== dismissedVetoKeyRef.current) setIsVetoDialogOpen(true);
         } else {
-          const vetoRead = payload.reads?.find((r) => r.power === "high" && (r.boundary_violated || (r.buy_in ?? 1) < 0.4)) || payload.reads?.[0];
+          const vetoRead = payload.reads?.find((r) => r.power === "high" && (r.boundary_violated || r.buy_in_band === "very_low" || r.buy_in_band === "low")) || payload.reads?.[0];
           if (vetoRead) {
             const stObj = stakeholders[vetoRead.stakeholder_id];
             setVetoInfo({
@@ -730,6 +871,7 @@ export default function PitchDebate({
         // Covers both an ordinary pass and a broken veto (outcome is "PASS" either way): the
         // dialog has nothing left to say once the card is through.
         setIsVetoDialogOpen(false);
+        setVetoStreak(0);
         setIsBreakingVeto(false);
         if (!hasAutoTransitionedRef.current && onEndPitch) {
           hasAutoTransitionedRef.current = true;
@@ -944,11 +1086,6 @@ export default function PitchDebate({
 
     return Object.fromEntries(
       pitchState.reads.map((r) => {
-        const normAlign = Math.max(0, Math.min(1, 0.5 * ((r.alignment ?? 0) + 1.0)));
-        const cardScore = r.boundary_violated ? 0 : 0.6 * normAlign;
-        const emotionScore = 0.4 * (r.emotions ?? 0.5);
-        const total = r.buy_in ?? Math.min(1.0, Math.max(0.0, cardScore + emotionScore));
-
         const hasSpokenInPitch = Boolean(
           activePitchConvId &&
           chatMsgsState.some(
@@ -958,18 +1095,13 @@ export default function PitchDebate({
           )
         );
 
-        // Mirrors scoring.py VETO_THRESHOLD / OBJECTION_THRESHOLD.
-        const threshold = r.power === "high" ? 0.4 : 0.3;
-
         return [
           r.stakeholder_id,
           {
-            threshold,
-            actionCardScore: cardScore,
-            emotionScore: emotionScore,
-            total: total,
+            band: r.buy_in_band,
+            impatience: r.impatience,
             isPersuaded: r.band === "green",
-            blocks: total < threshold,
+            blocks: r.band === "red",
             currentEmotion: hasSpokenInPitch
               ? (stakeholders[r.stakeholder_id]?.emotional_state || r.emotional_state || "neutral")
               : (stakeholders[r.stakeholder_id]?.emotional_state || "neutral"),
@@ -1107,7 +1239,13 @@ export default function PitchDebate({
     const exhausted =
       (card.max_plays_per_phase === 1 || card.stakeholder_selection_amount === -1) &&
       playedIds.includes(card.id);
-    if (tokens < card.token_cost || exhausted) return;
+    if (tokens < card.token_cost || exhausted) {
+      // Say why instead of ignoring the click: a coach tip in the intro, a hover tag elsewhere.
+      const reason = exhausted ? "used" : "cost";
+      const { outcome, tip } = coach.report({ type: "cardBlocked", reason, cost: card.token_cost, left: tokens });
+      if (outcome === "info" && tip) flashInfoTag(tip.title, tip.body);
+      return;
+    }
     setPlayingCard(card);
   };
 
@@ -1134,6 +1272,7 @@ export default function PitchDebate({
       stakeholder_ids: stakeholderIds,
       attention_tokens: nextTokens,
     });
+    setTalkPlayed(true);
     if (playingCard.max_plays_per_phase === 1 || playingCard.stakeholder_selection_amount === -1) {
       setPlayedIds((prev) => [...prev, playingCard.id]);
     }
@@ -1154,6 +1293,7 @@ export default function PitchDebate({
       intel_item_id: item.id,
       attention_tokens: nextTokens,
     });
+    setVerifyPlayed(true);
     setPlayingCard(null);
   };
 
@@ -1251,6 +1391,8 @@ export default function PitchDebate({
     }
 
     const isFlipped = isRightSide || (isTop && topIndex !== undefined && topIndex >= 1);
+    const showPowerChips = isIntro && !coach.seen.includes(GUIDE_KEYS.explainer);
+    const patienceLabel = impatienceTagLabel(pitchState?.reads?.find((r) => r.stakeholder_id === st.id)?.impatience);
 
     // Stakeholder names are authored "<role/category> <given name>" (e.g. "Requirements
     // Ryan"): split on the first space so the nameplate always breaks there, on its own two
@@ -1262,6 +1404,7 @@ export default function PitchDebate({
     return (
       <div
         key={st.id}
+        data-coach-seat={st.id}
         className={`${styles.seatedStakeholder} ${isSelected ? styles.seatedSelected : ""} ${isSpeaking ? styles.seatedSpeaking : ""}`}
         style={{ ["--st-color" as string]: stakeholderColor }}
         onClick={() => setSelectedStakeholderId(st.id)}
@@ -1319,6 +1462,36 @@ export default function PitchDebate({
             <span className={styles.deskNameplateLine}>{nameRoleWord}</span>
           )}
         </div>
+
+        {(showPowerChips || patienceLabel) && (
+          <div className={styles.seatChips}>
+            {showPowerChips && (
+              <>
+                <button
+                  type="button"
+                  className={styles.seatChip}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsExplainerOpen(true);
+                  }}
+                >
+                  {SEAT_CHIPS.power(String(st.power || "").toLowerCase() === "high")}
+                </button>
+                <button
+                  type="button"
+                  className={styles.seatChip}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsExplainerOpen(true);
+                  }}
+                >
+                  {SEAT_CHIPS.interest(String(st.interest || "").toLowerCase() === "high")}
+                </button>
+              </>
+            )}
+            {patienceLabel && <span className={`${styles.seatChip} ${styles.seatChipPatience}`}>{patienceLabel}</span>}
+          </div>
+        )}
       </div>
     );
   };
@@ -1354,6 +1527,107 @@ export default function PitchDebate({
       ? styles[`tableCenterPlaqueReady${intelReadiness}`]
       : styles.tableCenterPlaqueActive
     : "";
+
+  // ── Intro coach: tips on mistakes, and the live guide steps ──
+  useEffect(() => {
+    if (isPitchModalOpen) coach.report({ type: "deckOpened", readiness: intelReadiness });
+  }, [isPitchModalOpen]);
+
+  useEffect(() => {
+    if (stage === "PITCHED" && !isPitchDebating) {
+      coach.report({ type: "evaluated", predicted: pitchState?.predicted_outcome });
+    }
+  }, [stage, isPitchDebating, pitchState?.predicted_outcome]);
+
+  const closeExplainer = () => {
+    coach.markSeen(GUIDE_KEYS.explainer);
+    setIsExplainerOpen(false);
+  };
+
+  const handleShowVetoObjection = () => {
+    if (!vetoInfo) return;
+    dismissedVetoKeyRef.current = vetoKeyRef.current;
+    setIsVetoDialogOpen(false);
+    setSelectedStakeholderId(vetoInfo.stakeholder_id);
+    if (vetoInfo.objection_item_id) {
+      setHighlightedIntelId(vetoInfo.objection_item_id);
+      setTimeout(() => setHighlightedIntelId(null), 3000);
+    }
+  };
+
+  const handleReviseFromVeto = () => {
+    dismissedVetoKeyRef.current = vetoKeyRef.current;
+    setIsVetoDialogOpen(false);
+    hideInfoTag();
+    const t = vetoInfo?.objection_target;
+    setComposerFocusTargetId(t && findGraphTarget(graphState?.technical, t) ? t : undefined);
+    setIsPitchModalOpen(true);
+  };
+
+  const highPowerStakeholder =
+    activeStakeholders.find((s) => String(s.power || "").toLowerCase() === "high") ?? activeStakeholders[0];
+  // A conversation card leaves "eng_<card>_<n>" chat history; the verify card (zero) is not a talk.
+  const hasEngagementChat = chatMsgsState.some((m) => {
+    const c = m.conversation_id || "";
+    return c.startsWith("eng_") && !c.includes("eng_0_");
+  });
+  const boundaryNoteId = (dossierData || [])
+    .find((d) => d.stakeholder_id === highPowerStakeholder?.id)
+    ?.intel_items.find((i) => i.categorized_type === "boundary")?.id;
+
+  type GuideTip = { title: string; body: string; anchor: string; dismissLabel: string; onDismiss: () => void };
+  let guide: GuideTip | null = null;
+  const seenFlags = coach.seen;
+  const guideReady =
+    isIntro &&
+    seenFlags.includes(GUIDE_KEYS.tour) &&
+    !seenFlags.includes(GUIDE_KEYS.off) &&
+    !isExplainerOpen &&
+    !coach.blocked &&
+    !coach.tip &&
+    !playingCard &&
+    !isVetoDialogOpen &&
+    !isCheatSheetOpen &&
+    !isPitchModalOpen;
+  const skipGuide = () => coach.markSeen(GUIDE_KEYS.off);
+  if (guideReady && stage === "PITCHED" && !isPitchDebating && !seenFlags.includes(GUIDE_KEYS.reactions)) {
+    guide = {
+      ...PITCH_GUIDE.reactions,
+      anchor: '[class*="buyInCard"]',
+      dismissLabel: PITCH_GUIDE.dismiss,
+      onDismiss: () => coach.markSeen(GUIDE_KEYS.reactions),
+    };
+  } else if (guideReady && stage === "PREPARE") {
+    const talkDone = talkPlayed || hasEngagementChat;
+    const verifyDone = verifyPlayed || talkDone || unconfirmedNotes.length === 0;
+    const skip = { dismissLabel: PITCH_GUIDE.skip, onDismiss: skipGuide };
+    if (!verifyDone) {
+      guide = { ...PITCH_GUIDE.verify, anchor: '[data-coach="engagement-shelf"]', ...skip };
+    } else if (!talkDone) {
+      guide = {
+        ...PITCH_GUIDE.talk(highPowerStakeholder?.name || "them"),
+        anchor: `[data-coach-seat="${highPowerStakeholder?.id}"]`,
+        ...skip,
+      };
+    } else if (!hasActiveConversations && !isPitchDebating && !seenFlags.includes(GUIDE_KEYS.reveal)) {
+      guide = {
+        ...PITCH_GUIDE.reveal,
+        anchor: boundaryNoteId ? `[data-intel-id="${CSS.escape(boundaryNoteId)}"]` : '[class*="indicationPill"]',
+        dismissLabel: PITCH_GUIDE.dismiss,
+        onDismiss: () => coach.markSeen(GUIDE_KEYS.reveal),
+      };
+    } else if (seenFlags.includes(GUIDE_KEYS.reveal) && !isCardComposed && !hasActiveConversations) {
+      guide = { ...PITCH_GUIDE.deck, anchor: '[data-coach="pitch-deck"]', ...skip };
+    }
+  }
+
+  // Show the dossier page the reveal step talks about.
+  const guideStepKey = guide?.title;
+  useEffect(() => {
+    if (guideStepKey === PITCH_GUIDE.reveal.title && highPowerStakeholder) {
+      setSelectedStakeholderId(highPowerStakeholder.id);
+    }
+  }, [guideStepKey]);
 
   return (
     <div className={styles.container}>
@@ -1435,6 +1709,7 @@ export default function PitchDebate({
                       lastPitchedChanges={pitchState?.last_pitched_changes}
                       initialSelectedTargetId={composerFocusTargetId}
                       onConfirmProposal={handleConfirmMergeProposal}
+                      onOpenCheatSheet={() => setIsCheatSheetOpen(true)}
                       allowedTargets={pitchState?.allowed_targets || []}
                       upstreamMap={pitchState?.upstream_map || {}}
                       predictions={pitchState?.predictions || []}
@@ -1561,6 +1836,11 @@ export default function PitchDebate({
                                   ? styles.tableCenterSurfaceSpeaking
                                   : ""
                               }`}
+                              data-intro-group="introPitch"
+                              data-title={PITCH_GUIDE.castTitle}
+                              data-intro={PITCH_GUIDE.cast}
+                              data-position="top"
+                              data-step="5"
                             >
                               {/* Left Seat */}
                               <div
@@ -1599,6 +1879,7 @@ export default function PitchDebate({
                                 ) : (
                                   <div
                                     className={`${styles.tableCenterPlaque} ${plaqueReadyClass}`}
+                                    data-coach="pitch-deck"
                                     tabIndex={0}
                                     role="button"
                                     onClick={() => {
@@ -1726,6 +2007,21 @@ export default function PitchDebate({
                                   </span>
                                 </div>
 
+                                {!isIntro && escalationPoints !== null && (
+                                  <div
+                                    className={`${styles.statChipEscalation} ${escalationPoints === 0 ? styles.statChipMuted : ""}`}
+                                    tabIndex={0}
+                                    role="status"
+                                    onMouseEnter={(e) => showInfoTag(e, ESCALATIONS.label, ESCALATIONS.chipHint(escalationPoints))}
+                                    onMouseLeave={hideInfoTag}
+                                    onFocus={(e) => showInfoTag(e, ESCALATIONS.label, ESCALATIONS.chipHint(escalationPoints))}
+                                    onBlur={hideInfoTag}
+                                  >
+                                    <Icon icon="ph:lightning-bold" className={styles.intelStatIcon} />
+                                    <span className={styles.statNumber}>{escalationPoints}</span>
+                                    <span className={styles.statLabel}>{ESCALATIONS.label}</span>
+                                  </div>
+                                )}
                               </div>
 
                               {/* Proposal State Controls */}
@@ -1845,6 +2141,7 @@ export default function PitchDebate({
                                   <button
                                     type="button"
                                     className={`${styles.actionButton} ${styles.actionButtonAuto} ${isPitchDebating ? styles.actionButtonDisabled : ""}`}
+                                    data-coach="commit"
                                     disabled={isPitchDebating}
                                     onClick={() => {
                                       hideInfoTag();
@@ -1929,26 +2226,46 @@ export default function PitchDebate({
                         {/* One skip control for every bubble: the bubbles themselves move around
                             the table, so the button that dismisses them stays put here instead,
                             below the table. */}
-                        {isAnySpeechActive && (
+                        {(isAnySpeechActive || isSpeechInProgress || (isLineJustClosed && lastLineRef.current)) && (
                           <div className={styles.speechSkipBarRow}>
-                            <button
-                              type="button"
-                              className={styles.speechSkipBar}
-                              onClick={() => {
-                                // This button unmounts the instant the queue empties (isAnySpeechActive
-                                // goes false), so no mouseleave/blur ever fires to clear the hover
-                                // tag - clear it explicitly here instead of leaving it stuck onscreen.
-                                hideInfoTag();
-                                skipCurrentSpeech();
-                              }}
-                              onMouseEnter={(e) => showInfoTag(e, "Skip", "Skip the current message")}
-                              onMouseLeave={hideInfoTag}
-                              onFocus={(e) => showInfoTag(e, "Skip", "Skip the current message")}
-                              onBlur={hideInfoTag}
-                            >
-                              <Icon icon="ph:skip-forward-fill" />
-                              <span>Skip</span>
-                            </button>
+                            <div className={styles.speechBarGroup}>
+                              {(isAnySpeechActive || isSpeechInProgress) && (
+                                <button
+                                  type="button"
+                                  className={styles.speechSkipBar}
+                                  onClick={() => {
+                                    // This button can unmount the instant the queue empties, so no
+                                    // mouseleave/blur ever fires to clear the hover tag - clear it here.
+                                    hideInfoTag();
+                                    skipCurrentSpeech();
+                                  }}
+                                  onMouseEnter={(e) => showInfoTag(e, "Skip", "Skip the current message")}
+                                  onMouseLeave={hideInfoTag}
+                                  onFocus={(e) => showInfoTag(e, "Skip", "Skip the current message")}
+                                  onBlur={hideInfoTag}
+                                >
+                                  <Icon icon="ph:skip-forward-fill" />
+                                  <span>Skip</span>
+                                </button>
+                              )}
+                              {lastLineRef.current && (
+                                <button
+                                  type="button"
+                                  className={styles.speechSkipBar}
+                                  onClick={() => {
+                                    hideInfoTag();
+                                    if (lastLineRef.current) playChatMessage(lastLineRef.current);
+                                  }}
+                                  onMouseEnter={(e) => showInfoTag(e, "Replay", "Hear the last message again")}
+                                  onMouseLeave={hideInfoTag}
+                                  onFocus={(e) => showInfoTag(e, "Replay", "Hear the last message again")}
+                                  onBlur={hideInfoTag}
+                                >
+                                  <Icon icon="ph:arrow-counter-clockwise-bold" />
+                                  <span>Replay</span>
+                                </button>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -2062,6 +2379,7 @@ export default function PitchDebate({
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 12, scale: 0.985 }}
                             transition={{ duration: 0.2, ease: "easeOut" }}
+                            data-coach="engagement-shelf"
                             data-intro-group="introPitch"
                             data-title="Engagement Cards"
                             data-intro="Your Engagement Cards, spent by dragging one onto a stakeholder or the pitch plaque. You get a limited supply per round, so spend them on what actually moves the needle, not on whoever's currently loudest."
@@ -2140,8 +2458,12 @@ export default function PitchDebate({
       {/* Stakeholder Veto Dialog */}
       <VetoDialog
         isOpen={isVetoDialogOpen}
-        onClose={() => setIsVetoDialogOpen(false)}
+        onClose={() => {
+          dismissedVetoKeyRef.current = vetoKeyRef.current;
+          setIsVetoDialogOpen(false);
+        }}
         onReviseProposal={() => {
+          dismissedVetoKeyRef.current = vetoKeyRef.current;
           setIsVetoDialogOpen(false);
           setComposerFocusTargetId(undefined);
           setIsPitchModalOpen(true);
@@ -2150,9 +2472,74 @@ export default function PitchDebate({
         stakeholders={stakeholders as any}
         getStakeholderColor={getStakeholderColor}
         escalationPoints={escalationPoints}
-        onVetoBreaker={handleVetoBreaker}
+        // The breaker is a real-game tool; the intro walkthrough teaches revising instead.
+        onVetoBreaker={isIntro ? undefined : handleVetoBreaker}
         isBreakingVeto={isBreakingVeto}
+        isIntro={isIntro}
+        feedback={
+          isIntro && vetoInfo ? (
+            <VetoFeedback
+              vetoInfo={vetoInfo}
+              technical={graphState?.technical}
+              isRepeat={vetoStreak > 1}
+              onShowObjection={handleShowVetoObjection}
+              onRevise={handleReviseFromVeto}
+            />
+          ) : undefined
+        }
       />
+
+      <CheatSheetModal
+        isOpen={isCheatSheetOpen}
+        onClose={() => setIsCheatSheetOpen(false)}
+        initialTab="graph"
+        activeSectionTitle="Pitch & Debate"
+        currentPhase={currentPhase}
+        currentChallenge={currentChallenge}
+        challengeTitle={challengeTitle}
+      />
+
+      {isExplainerOpen && (
+        <div className={styles.explainerOverlay} role="dialog" aria-modal="true" aria-label="Power and interest">
+          <div className={styles.explainerPanel}>
+            <PowerInterestExplainer
+              stakeholders={activeStakeholders.map((s) => ({
+                id: s.id,
+                name: s.name,
+                power: s.power || "low",
+                interest: s.interest || "low",
+                color: getStakeholderColor(s),
+              }))}
+            />
+            <div className={styles.explainerActions}>
+              <button type="button" className={styles.actionButton} autoFocus onClick={closeExplainer}>
+                {PITCH_GUIDE.explainerDone}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {coach.tip && (
+        <CoachTip
+          tone="mistake"
+          title={coach.tip.title}
+          body={coach.tip.body}
+          anchor={coach.tip.id === "likelyVeto" ? '[data-coach="commit"]' : '[data-coach="engagement-shelf"]'}
+          onDismiss={coach.dismiss}
+        />
+      )}
+      {!coach.tip && guide && (
+        <CoachTip
+          tone="guide"
+          title={guide.title}
+          body={guide.body}
+          anchor={guide.anchor}
+          spotlight
+          dismissLabel={guide.dismissLabel}
+          onDismiss={guide.onDismiss}
+        />
+      )}
 
       {/* Full Page Offline Intel Gathering View for Single Artifact Review */}
       <AnimatePresence>

@@ -1,0 +1,94 @@
+.tip {
+  position: fixed;
+  z-index: 9600;
+  width: min(340px, calc(100vw - 12px));
+  padding: 0.75rem 0.9rem 0.7rem;
+  border-radius: 12px;
+  color: #dbe6ec;
+  background: linear-gradient(160deg, rgb(23, 60, 77) 0%, rgb(13, 34, 44) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
+  font-family: "Helvetica Neue", Inter, ui-sans-serif, sans-serif;
+  animation: coachIn 0.18s ease-out;
+}
+
+.tipGuide {
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(38, 102, 130, 0.45);
+}
+
+.tipMistake {
+  border-color: rgba(245, 158, 11, 0.55);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(245, 158, 11, 0.35);
+}
+
+.title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.25rem;
+}
+
+.tipMistake .title {
+  color: #fcd34d;
+}
+
+.body {
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.55rem;
+}
+
+.dismiss {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 0.2rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dismiss:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+:global([data-coach-spot="true"]) {
+  outline: 3px solid rgba(120, 200, 225, 0.9);
+  outline-offset: 3px;
+  border-radius: 10px;
+  animation: coachPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes coachIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes coachPulse {
+  0%,
+  100% {
+    outline-color: rgba(120, 200, 225, 0.9);
+  }
+  50% {
+    outline-color: rgba(120, 200, 225, 0.3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tip,
+  :global([data-coach-spot="true"]) {
+    animation: none;
+  }
+}
