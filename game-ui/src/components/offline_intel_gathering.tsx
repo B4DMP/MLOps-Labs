@@ -15,6 +15,9 @@ import { slotForStakeholderVoice, TOUR_GUIDE_SEED } from "../utils/speech";
 import { startTour } from "../utils/tour";
 import { StakeholderContext } from "./StakeholderProvider";
 import { useSettings } from "./SettingsProvider";
+import { useNarratorGate } from "./useNarratorGate";
+import IntelNextActionHint, { useIntelHintUses, type IntelHintKind } from "./IntelNextActionHint";
+import hintStyles from "./IntelNextActionHint.module.css";
 import OnceIcon from "./Results/OnceIcon";
 import MAIL_OPEN_MARKETING_ICON from "./Results/icons/mail-open-marketing.json";
 import MESSAGES_ENGAGEMENT_ALT_ICON from "./Results/icons/messages-engagement-alt.json";
@@ -129,8 +132,10 @@ export default function OfflineIntelGathering({
   singleArtifact,
   onGoBack,
 }: OfflineIntelGatheringProps) {
-  const { emit, subscribe } = useGameWebSocket();
+  const { emit, subscribe, userId } = useGameWebSocket();
   const { speak: speakTts } = useSpeech();
+  const gate = useNarratorGate();
+  const { isLearned: isHintLearned, recordUse: recordHintUse } = useIntelHintUses(userId);
   const { settings } = useSettings();
   const { stakeholders } = useContext(StakeholderContext);
   const [artifacts, setArtifacts] = useState<IntelArtifact[]>(() =>
@@ -327,6 +332,7 @@ export default function OfflineIntelGathering({
     if (currentArtifact.is_known) return; // already on the record, not the player's call to make
     const artKey = currentArtifact.id;
 
+    if (visibleHintKind === "tag") recordHintUse("tag");
     setIsNudging(false);
     setTaggedTypes((prev) => ({
       ...prev,
@@ -382,6 +388,7 @@ export default function OfflineIntelGathering({
       clearTimeout(transitionTimeoutRef.current);
       transitionTimeoutRef.current = null;
     }
+    if (visibleHintKind === "next" || visibleHintKind === "known") recordHintUse(visibleHintKind);
     setIsNudging(false);
     setDirection(1);
     if (currentIndex < artifacts.length - 1) {
@@ -519,8 +526,15 @@ export default function OfflineIntelGathering({
     if (isPhaseBriefingOpen || introDossierTourPending) return;
     if (!currentArtifactKey || !currentArtifact?.content) return;
     if (narratedArtifactKeysRef.current.has(currentArtifactKey)) return;
-    narrateArtifact(currentArtifact, currentArtifactKey);
+    // Locked audio queues the reading behind the narrator gate; muted or "Read it myself" skips it.
+    let cancelled = false;
+    void gate.request().then((allowed) => {
+      if (cancelled) return;
+      if (allowed) narrateArtifact(currentArtifact, currentArtifactKey);
+      else setIsNudging(true);
+    });
     return () => {
+      cancelled = true;
       narrationCancelRef.current();
       setIsNarrating(false);
       setNarratingArtifactKey(null);
@@ -542,6 +556,7 @@ export default function OfflineIntelGathering({
     if (introDossierTourStartedRef.current) return;
     introDossierTourStartedRef.current = true;
     startTour("introDossier", {
+      beforeStart: () => gate.request(),
       narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }),
       onFinish: () => setIntroDossierTourDone(true),
     });
@@ -566,6 +581,25 @@ export default function OfflineIntelGathering({
   const isOnRecordFact = (art: IntelArtifact) => Boolean(art.is_known) && art.categorized_type === "fact";
   const isOnRecordStance = (art: IntelArtifact) => Boolean(art.is_known) && art.categorized_type !== "fact";
   const isOnKnownFact = isOnKnownArtifact && currentArtifact.categorized_type === "fact";
+  // The one control to point at: category buttons for an untagged call, Next once an artifact is
+  // settled (known, or tagged), Finish & Continue when everything is. Null while the reading
+  // still plays; isNudging also turns on when it is skipped, muted or already heard.
+  const isSettled = isOnKnownArtifact || Boolean(currentTaggedType);
+  const nextAction: "tag" | "next" | "finish" | null =
+    !currentArtifact || isFinished
+      ? null
+      : !isSettled
+        ? isNudging ? "tag" : null
+        : isOnKnownArtifact && !isNudging
+          ? null
+          : singleArtifact
+            ? null
+            : allTagged ? "finish" : "next";
+  const hintKind: IntelHintKind | null =
+    nextAction === "tag" ? "tag" : nextAction === "finish" ? "finish" : nextAction === "next" ? (isOnKnownArtifact ? "known" : "next") : null;
+  // Intro phase only, and each hint fades once the player has acted on it twice.
+  const visibleHintKind: IntelHintKind | null =
+    currentPhase === 0 && hintKind && !isHintLearned(hintKind) ? hintKind : null;
   // The on-record pair is one argument seen from two sides. Name the other side so the
   // player reads the second card as a rebuttal instead of an unrelated statement.
   const conflictPartnerIndex = isOnKnownArtifact && !isOnKnownFact
@@ -1252,9 +1286,11 @@ export default function OfflineIntelGathering({
                         {!singleArtifact ? (
                           <div className="d-flex align-items-center gap-1">
                             {allTagged && (
+                              <span className={hintStyles.hintAnchor}>
                               <button
                                 type="button"
                                 onClick={() => {
+                                  if (visibleHintKind === "finish") recordHintUse("finish");
                                   if (transitionTimeoutRef.current) {
                                     clearTimeout(transitionTimeoutRef.current);
                                     transitionTimeoutRef.current = null;
@@ -1263,26 +1299,42 @@ export default function OfflineIntelGathering({
                                   setDirection(1);
                                   setCurrentIndex(artifacts.length);
                                 }}
-                                className={`${styles.actionButton} ${styles.returnHeaderButton}`}
+                                className={`${styles.actionButton} ${styles.returnHeaderButton} ${
+                                  nextAction === "finish" ? styles.actionButtonNudge : ""
+                                }`}
                                 title="All intel categorized. Return to summary to continue to the pitch debate."
+                                aria-describedby={visibleHintKind === "finish" ? "intel-hint-finish" : undefined}
                               >
                                 <span>Finish & Continue</span>
                                 <Icon icon="ph:arrow-right-bold" />
                               </button>
+                              {visibleHintKind === "finish" && <IntelNextActionHint kind="finish" variant="floating" />}
+                              </span>
                             )}
+                            <span className={hintStyles.hintAnchor}>
                             <button
                               onClick={handleNextItem}
-                              className={`${styles.navButton} ${
-                                isNudging && isOnKnownArtifact ? styles.navButtonNudge : ""
+                              className={`${styles.navButton} ${hintStyles.navButtonLabeled} ${
+                                nextAction === "next" ? styles.navButtonNudge : ""
                               }`}
-                              title={currentIndex < artifacts.length - 1 ? "Next Intel Artifact" : "Finish / View Summary"}
-                              aria-label={currentIndex < artifacts.length - 1 ? "Next Intel Artifact" : "Finish / View Summary"}
+                              title={currentIndex < artifacts.length - 1 ? "Next artifact" : "See summary"}
+                              aria-label={currentIndex < artifacts.length - 1 ? "Next artifact" : "See summary"}
+                              aria-describedby={
+                                visibleHintKind === "next" || visibleHintKind === "known" ? `intel-hint-${visibleHintKind}` : undefined
+                              }
                             >
+                              <span className={hintStyles.navButtonLabel}>
+                                {currentIndex < artifacts.length - 1 ? "Next artifact" : "See summary"}
+                              </span>
                               <Icon
                                 icon={currentIndex < artifacts.length - 1 ? "ph:caret-right-bold" : "ph:arrow-right-bold"}
                                 className={styles.navButtonIcon}
                               />
                             </button>
+                            {(visibleHintKind === "next" || visibleHintKind === "known") && (
+                              <IntelNextActionHint kind={visibleHintKind} variant="floating" />
+                            )}
+                            </span>
                           </div>
                         ) : onGoBack ? (
                           <button
@@ -1352,6 +1404,7 @@ export default function OfflineIntelGathering({
                           : "First ask: is this about a person or about the system? If it is about a person, do they want it, refuse to cross it, or accept giving it up?"}
                       </p>
 
+                      {visibleHintKind === "tag" && <IntelNextActionHint kind="tag" variant="inline" />}
                       <div className={`row g-2 ${styles.tagGrid}`}>
                         {REQUIREMENT_TAGS.filter((tag) => tag.type !== "fact" || isOnKnownFact).map((tag) => {
                           const isSelected = currentTaggedType === tag.type;
@@ -1375,7 +1428,7 @@ export default function OfflineIntelGathering({
                                 title={isOnKnownArtifact ? "Already on record, nothing to change here" : undefined}
                                 className={`btn ${styles.tagButton} ${sizeClass} ${isSelected ? styles.tagButtonSelected : ""} ${
                                   isOnKnownArtifact ? styles.tagButtonLocked : ""
-                                } ${isNudging && !isOnKnownArtifact ? styles.tagButtonNudge : ""}`}
+                                } ${nextAction === "tag" ? styles.tagButtonNudge : ""}`}
                                 style={{ borderColor: tag.color }}
                               >
                                 <div className={styles.tagButtonHeader}>

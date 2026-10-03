@@ -1,0 +1,71 @@
+.hint {
+  display: block;
+  padding: 0.4rem 0.7rem;
+  border-radius: 0.5rem;
+  background: var(--primary-bg, #0f1826);
+  color: #ffffff;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  font-weight: 500;
+  animation: hintIn 0.25s ease-out;
+}
+
+.hintInline {
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.hintFloating {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  width: max-content;
+  max-width: 15rem;
+  z-index: 5;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.hintFloating::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  right: 0.9rem;
+  border: 6px solid transparent;
+  border-bottom-color: var(--primary-bg, #0f1826);
+}
+
+.hintAnchor {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Doubled class beats the circular 30px nav button this is combined with. */
+.navButtonLabeled.navButtonLabeled {
+  width: auto;
+  padding: 0 0.75rem 0 0.85rem;
+  border-radius: 999px;
+  gap: 0.35rem;
+}
+
+.navButtonLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@keyframes hintIn {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hint {
+    animation: none;
+  }
+}
