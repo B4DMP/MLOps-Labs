@@ -37,6 +37,7 @@ import { fetchTtsAudioUrl } from "./speechBackend";
  */
 let audioUnlocked = false;
 let audioUnlockWaiters: Array<() => void> = [];
+let unlockListenersInstalled = false;
 
 function markAudioUnlocked(): void {
   if (audioUnlocked) return;
@@ -46,16 +47,76 @@ function markAudioUnlocked(): void {
 }
 
 function installAudioUnlock(): void {
-  if (typeof document === "undefined") return;
+  if (typeof document === "undefined" || unlockListenersInstalled) return;
+  unlockListenersInstalled = true;
   const unlock = () => {
     document.removeEventListener("pointerdown", unlock, true);
     document.removeEventListener("keydown", unlock, true);
+    unlockListenersInstalled = false;
     markAudioUnlocked();
   };
   document.addEventListener("pointerdown", unlock, true);
   document.addEventListener("keydown", unlock, true);
 }
 installAudioUnlock();
+
+/** A blocked `play()` (NotAllowedError) is the browser telling us audio is locked, whatever the
+ *  gesture flag says: forget the flag and wait for the next real gesture. */
+function markAudioLocked(): void {
+  audioUnlocked = false;
+  installAudioUnlock();
+}
+
+/** Fast path only: true once a pointer/key gesture was seen (or the gate unlocked audio). */
+export function isAudioUnlocked(): boolean {
+  return audioUnlocked;
+}
+
+const AUDIO_PROBE_TIMEOUT_MS = 200;
+
+/** Real lock test: an AudioContext that reaches "running" without a gesture means audio is open.
+ *  Falls back to the gesture flag where AudioContext does not exist. */
+export async function probeAudioUnlocked(): Promise<boolean> {
+  if (audioUnlocked) return true;
+  const Ctor: typeof AudioContext | undefined =
+    typeof window === "undefined"
+      ? undefined
+      : window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!Ctor) return audioUnlocked;
+  let ctx: AudioContext | null = null;
+  try {
+    ctx = new Ctor();
+    if (ctx.state !== "running") {
+      // resume() stays pending (does not reject) while locked, so race it with a short timeout.
+      await Promise.race([
+        ctx.resume().catch(() => {}),
+        new Promise<void>((resolve) => setTimeout(resolve, AUDIO_PROBE_TIMEOUT_MS)),
+      ]);
+    }
+    const running = ctx.state === "running";
+    if (running) markAudioUnlocked();
+    return running;
+  } catch {
+    return audioUnlocked;
+  } finally {
+    ctx?.close?.().catch(() => {});
+  }
+}
+
+/** Call inside a click handler: marks audio unlocked and warms an AudioContext so the narration
+ *  started right after is allowed to play. */
+export function unlockAudio(): void {
+  markAudioUnlocked();
+  try {
+    const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctor) return;
+    const ctx = new Ctor();
+    void ctx.resume().catch(() => {});
+    setTimeout(() => ctx.close?.().catch(() => {}), 500);
+  } catch {
+    // The gesture itself is what unlocks audio; the warm-up is best effort.
+  }
+}
 
 /** In practice a session only ever reaches this ungestured state via a fresh reload/restore
  *  straight into an auto-narrating screen - the player already clicked "Next"/whatever got them
@@ -78,6 +139,29 @@ function waitForAudioUnlock(): Promise<void> {
     }, AUDIO_UNLOCK_TIMEOUT_MS);
     audioUnlockWaiters.push(onUnlock);
   });
+}
+
+const SESSION_MUTE_KEY = "mlops_session_muted";
+let sessionMuted = false;
+
+/** "Read it myself" on the narrator gate: mutes narration for this browser session only. */
+export function isSessionMuted(): boolean {
+  if (sessionMuted) return true;
+  try {
+    return window.sessionStorage.getItem(SESSION_MUTE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function setSessionMuted(muted: boolean): void {
+  sessionMuted = muted;
+  try {
+    if (muted) window.sessionStorage.setItem(SESSION_MUTE_KEY, "1");
+    else window.sessionStorage.removeItem(SESSION_MUTE_KEY);
+  } catch {
+    // The module flag still covers this page life.
+  }
 }
 
 export type VoiceSlot = "male" | "female" | "narrator" | "player";
@@ -375,6 +459,90 @@ export interface SpeakOptions {
   onSentence?: (info: { index: number; total: number; text: string }) => void;
 }
 
+/** Why a narration stopped early. "arbiter" is a newer line preempting it, "cap" a caller's own
+ * time limit, "skip" a player or unmount cancel (the default), "error" a failed backend attempt. */
+export type CancelReason = "arbiter" | "cap" | "skip" | "error";
+
+type Stop = (reason?: CancelReason) => void;
+
+export interface NarrationEvent {
+  generation: number;
+  slot: VoiceSlot;
+  type: "start" | "sentence" | "end" | "cancel";
+  index?: number;
+  reason?: CancelReason;
+  /** A backend failure that continues on the browser voice; the line is not over. */
+  handedOff?: boolean;
+  /** On the "sentence" event with index -1: time from the line starting to its first sound. */
+  firstAudioMs?: number;
+}
+
+const narrationListeners = new Set<(e: NarrationEvent) => void>();
+const narrationLog: Array<NarrationEvent & { at: number }> = [];
+const NARRATION_LOG_MAX = 100;
+
+/** Subscribes to every narration start/sentence/end/cancel, whichever component started it. */
+export function onNarrationEvent(listener: (e: NarrationEvent) => void): () => void {
+  narrationListeners.add(listener);
+  return () => narrationListeners.delete(listener);
+}
+
+/** The last narration events with timings and cancel reasons, for console inspection. */
+export function getNarrationDiagnostics(): ReadonlyArray<NarrationEvent & { at: number }> {
+  return narrationLog;
+}
+
+/** Quiet by default; `localStorage.mlops_tts_debug = "1"` turns the console.debug lines on. */
+function ttsDebugOn(): boolean {
+  try {
+    return typeof localStorage !== "undefined" && localStorage.getItem("mlops_tts_debug") === "1";
+  } catch {
+    return false;
+  }
+}
+
+function emitNarration(e: NarrationEvent): void {
+  narrationLog.push({ ...e, at: Date.now() });
+  if (narrationLog.length > NARRATION_LOG_MAX) narrationLog.shift();
+  if (ttsDebugOn()) console.debug("[TTS]", e);
+  narrationListeners.forEach((l) => {
+    try {
+      l(e);
+    } catch (err) {
+      console.error("[TTS] narration listener failed", err);
+    }
+  });
+}
+
+/** Per-line bookkeeping for the instrumentation: each event fires once, nothing after the end. */
+function beginLine(generation: number, slot: VoiceSlot) {
+  const startedAt = Date.now();
+  let finished = false;
+  let audible = false;
+  emitNarration({ generation, slot, type: "start" });
+  return {
+    sentence(index: number) {
+      if (!finished) emitNarration({ generation, slot, type: "sentence", index });
+    },
+    /** Sound actually began; the first one per line records the time to first audio. */
+    audible() {
+      if (finished || audible) return;
+      audible = true;
+      emitNarration({ generation, slot, type: "sentence", index: -1, firstAudioMs: Date.now() - startedAt });
+    },
+    end() {
+      if (finished) return;
+      finished = true;
+      emitNarration({ generation, slot, type: "end" });
+    },
+    cancel(reason: CancelReason, handedOff = false) {
+      if (finished) return;
+      finished = true;
+      emitNarration({ generation, slot, type: "cancel", reason, handedOff });
+    },
+  };
+}
+
 /** Module-level narration arbiter: `window.speechSynthesis` used to serialize `speak()` calls for
  * free (one global browser queue), so two components narrating never actually overlapped. Backend
  * narration plays through independent `HTMLAudioElement`s instead, which broke that implicit
@@ -382,7 +550,60 @@ export interface SpeakOptions {
  * narration plays at a time, globally" for both paths: every `speak()`/`speakAuto()` call stops
  * whatever the previous one started before it begins its own. */
 let currentGeneration = 0;
-let currentStop: (() => void) | null = null;
+let currentStop: Stop | null = null;
+
+/* Busy state for callers that must not preempt a line (tours). The arbiter itself is busy while
+ * a line holds `currentStop`; a screen with its own queue between lines holds a named flag. */
+const externalBusy = new Set<string>();
+const idleWaiters = new Set<() => void>();
+const NARRATION_IDLE_TIMEOUT_MS = 20000;
+
+/** True while any narration is playing or a screen has flagged its queue as busy. */
+export function isNarrationBusy(): boolean {
+  return currentStop !== null || externalBusy.size > 0;
+}
+
+/** A screen with its own speech queue calls this with a stable key (true while lines are queued
+ *  or playing, false when drained) so tours wait instead of cutting in between its lines. */
+export function setNarrationBusy(key: string, busy: boolean): void {
+  if (busy) externalBusy.add(key);
+  else externalBusy.delete(key);
+  notifyIdle();
+}
+
+function notifyIdle(): void {
+  if (isNarrationBusy() || idleWaiters.size === 0) return;
+  const waiters = [...idleWaiters];
+  idleWaiters.clear();
+  waiters.forEach((w) => w());
+}
+
+/** Resolves true once nothing is narrating, false if `timeoutMs` passes first (callers then go
+ *  ahead and preempt rather than hang). Re-checks after a tick: the arbiter is briefly empty
+ *  while one line hands over to the next. */
+export function waitForNarrationIdle(timeoutMs: number = NARRATION_IDLE_TIMEOUT_MS): Promise<boolean> {
+  return new Promise((resolve) => {
+    const onIdle = () => setTimeout(check, 0);
+    const timer = setTimeout(() => {
+      idleWaiters.delete(onIdle);
+      resolve(false);
+    }, timeoutMs);
+    function check() {
+      if (isNarrationBusy()) {
+        idleWaiters.add(onIdle);
+        return;
+      }
+      clearTimeout(timer);
+      resolve(true);
+    }
+    check();
+  });
+}
+
+function releaseStop(generation: number): void {
+  if (generation === currentGeneration) currentStop = null;
+  notifyIdle();
+}
 
 /** Cleans and sentence-chunks `text` the same way for every narration path, so `speak()` and the
  * backend path in `speakAuto()` always agree on what counts as "one sentence". */
@@ -392,37 +613,22 @@ function toSpeechChunks(text: string): string[] {
   return chunkText(clean);
 }
 
-/**
- * Speaks `text` in `slot`'s voice, one sentence at a time. Returns a cancel function; calling it
- * (or `cancelSpeech()`) stops the whole utterance queue, not just the current sentence.
- *
- * A no-op (returns a no-op cancel, still calls `onEnd`) when there is nothing left to say after
- * cleaning, or when the browser has no `speechSynthesis` at all.
- *
- * Starting this always stops whatever narration was previously started via `speak()` or
- * `speakAuto()`, from any component - see the module-level arbiter comment above.
- */
-export function speak(text: string, opts: SpeakOptions): () => void {
-  currentStop?.();
+/** Speaks `chunks` from `startIndex` on in the browser voice. `onSentence` indexes stay absolute
+ *  into `chunks`, so a fallback that resumes mid-line keeps the UI highlight consistent. */
+function speakChunks(chunks: string[], opts: SpeakOptions, startIndex: number): Stop {
+  currentStop?.("arbiter");
   const myGeneration = ++currentGeneration;
-  const clearStop = () => {
-    if (myGeneration === currentGeneration) currentStop = null;
-  };
+  const line = beginLine(myGeneration, opts.slot);
+  const clearStop = () => releaseStop(myGeneration);
 
-  if (!hasSpeechSynthesis()) {
+  if (!hasSpeechSynthesis() || startIndex >= chunks.length) {
+    line.end();
     opts.onEnd?.();
     clearStop();
     return () => {};
   }
 
   const synth = window.speechSynthesis;
-  const chunks = toSpeechChunks(text);
-  if (chunks.length === 0) {
-    opts.onEnd?.();
-    clearStop();
-    return () => {};
-  }
-
   const pitch = pitchFor(opts.seed, opts.slot, opts.playerGender);
   const baseRate =
     opts.seed && opts.seed in RATE_OVERRIDES
@@ -432,7 +638,7 @@ export function speak(text: string, opts: SpeakOptions): () => void {
         : 1;
   const rate = Math.max(RATE_MIN, Math.min(RATE_MAX, baseRate * (opts.rate ?? 1)));
   let cancelled = false;
-  let index = 0;
+  let index = startIndex;
   /* Set once an online voice has failed. Preferring network voices means an offline player, a
    * blocked request or a flaky connection would otherwise lose the whole line: every chunk would
    * error and be skipped in silence. After the first failure this run falls back to local voices
@@ -452,6 +658,7 @@ export function speak(text: string, opts: SpeakOptions): () => void {
   const speakNext = () => {
     if (cancelled) return;
     if (index >= chunks.length) {
+      line.end();
       opts.onEnd?.();
       clearStop();
       return;
@@ -461,6 +668,7 @@ export function speak(text: string, opts: SpeakOptions): () => void {
     if (voice) utterance.voice = voice;
     utterance.pitch = pitch;
     utterance.rate = rate;
+    utterance.onstart = () => line.audible();
     utterance.onend = () => {
       index += 1;
       speakNext();
@@ -474,6 +682,7 @@ export function speak(text: string, opts: SpeakOptions): () => void {
       index += 1;
       speakNext();
     };
+    line.sentence(index);
     opts.onSentence?.({ index, total: chunks.length, text: chunks[index] });
     synth.speak(utterance);
   };
@@ -488,13 +697,28 @@ export function speak(text: string, opts: SpeakOptions): () => void {
     });
   }
 
-  const cancel = () => {
+  const cancel: Stop = (reason = "skip") => {
     cancelled = true;
     synth.cancel();
+    line.cancel(reason);
     clearStop();
   };
   currentStop = cancel;
   return cancel;
+}
+
+/**
+ * Speaks `text` in `slot`'s voice, one sentence at a time. Returns a cancel function; calling it
+ * (or `cancelSpeech()`) stops the whole utterance queue, not just the current sentence.
+ *
+ * A no-op (returns a no-op cancel, still calls `onEnd`) when there is nothing left to say after
+ * cleaning, or when the browser has no `speechSynthesis` at all.
+ *
+ * Starting this always stops whatever narration was previously started via `speak()` or
+ * `speakAuto()`, from any component - see the module-level arbiter comment above.
+ */
+export function speak(text: string, opts: SpeakOptions): () => void {
+  return speakChunks(toSpeechChunks(text), opts, 0);
 }
 
 /** Identifies the narration currently holding the arbiter, so a caller can tell whether the line
@@ -506,9 +730,10 @@ export function getSpeechGeneration(): number {
 /** Stops whatever is currently narrating, wherever it was started from - routes through the
  * module-level arbiter (`currentStop`) rather than reaching for `window.speechSynthesis` directly,
  * since the active narration may instead be backend audio (an `HTMLAudioElement`), which a bare
- * `speechSynthesis.cancel()` does nothing to stop. */
-export function cancelSpeech(): void {
-  currentStop?.();
+ * `speechSynthesis.cancel()` does nothing to stop. `reason` is only recorded in the diagnostics
+ * ("cap" for a caller's time limit, "skip" for a player action, the default). */
+export function cancelSpeech(reason: CancelReason = "skip"): void {
+  currentStop?.(reason);
 }
 
 export interface SpeakAutoOptions extends SpeakOptions {
@@ -521,16 +746,15 @@ export interface SpeakAutoOptions extends SpeakOptions {
  * Fetches and plays `chunks` (one backend request per sentence) in sequence, calling
  * `opts.onSentence` right before each sentence's audio starts playing. Prefetches the next
  * sentence's audio as soon as the current one begins playing (not after it ends), so there is no
- * audible network gap between sentences. Returns a cancel function synchronously; rejects the
- * returned promise (once, via `onFailure`) if any fetch or playback in the sequence fails, so the
- * caller can fall back to re-speaking the whole line via `speak()` - resuming the backend path
- * mid-line after a partial failure is not worth the complexity here.
+ * audible network gap between sentences. Returns a cancel function synchronously; reports a
+ * failure once via `onFailure` with the index of the sentence that did not finish, so the caller
+ * can fall back to the browser voice for that sentence and the rest.
  */
 function speakBackendChunks(
   chunks: string[],
-  opts: Pick<SpeakOptions, "slot" | "seed" | "onSentence">,
+  opts: Pick<SpeakOptions, "slot" | "seed" | "onSentence"> & { onAudible?: () => void },
   onDone: () => void,
-  onFailure: (err: unknown) => void,
+  onFailure: (err: unknown, failedIndex: number) => void,
 ): () => void {
   let cancelled = false;
   let settled = false;
@@ -542,9 +766,10 @@ function speakBackendChunks(
   };
 
   (async () => {
+    let i = 0;
     try {
       let nextUrl = fetchTtsAudioUrl(chunks[0], opts);
-      for (let i = 0; i < chunks.length; i += 1) {
+      for (i = 0; i < chunks.length; i += 1) {
         const url = await nextUrl;
         if (cancelled) {
           URL.revokeObjectURL(url);
@@ -558,7 +783,10 @@ function speakBackendChunks(
         } catch (err) {
           // Only a gesture-policy rejection is worth waiting out - anything else (a real decode/
           // network error) should still fail fast into the normal webspeech fallback.
-          if (!(err instanceof DOMException) || err.name !== "NotAllowedError" || audioUnlocked) {
+          const blocked = err instanceof DOMException && err.name === "NotAllowedError";
+          const wasUnlocked = audioUnlocked;
+          if (blocked) markAudioLocked();
+          if (!blocked || wasUnlocked) {
             throw err;
           }
           await waitForAudioUnlock();
@@ -568,6 +796,7 @@ function speakBackendChunks(
           }
           await audio.play();
         }
+        opts.onAudible?.();
         // Kick off the next sentence's fetch now that this one is audibly playing, so the
         // network round-trip overlaps with playback instead of creating a gap after it.
         if (i + 1 < chunks.length) nextUrl = fetchTtsAudioUrl(chunks[i + 1], opts);
@@ -586,7 +815,7 @@ function speakBackendChunks(
     } catch (err) {
       if (!cancelled && !settled) {
         settled = true;
-        onFailure(err);
+        onFailure(err, i);
       }
     }
   })();
@@ -607,43 +836,42 @@ function speakBackendChunks(
  * `speakAuto()`, from any component - see the module-level arbiter comment above.
  */
 export function speakAuto(text: string, opts: SpeakAutoOptions): () => void {
-  currentStop?.();
+  currentStop?.("arbiter");
   const myGeneration = ++currentGeneration;
 
   if (opts.backend === "webspeech") {
-    // speak() runs its own arbiter turn (it re-reads currentStop/currentGeneration itself), so
+    // speakChunks runs its own arbiter turn (it re-reads currentStop/currentGeneration itself), so
     // this call's entry is superseded immediately - that's fine, there is nothing to cancel yet.
     return speak(text, opts);
   }
 
-  const setStop = (fn: (() => void) | null) => {
-    if (myGeneration === currentGeneration) currentStop = fn;
-  };
-
   const chunks = toSpeechChunks(text);
   if (chunks.length === 0) {
     opts.onEnd?.();
-    setStop(null);
+    releaseStop(myGeneration);
     return () => {};
   }
+
+  const line = beginLine(myGeneration, opts.slot);
 
   // `stopped` covers every way this call's backend attempt ends: an external cancel, natural
   // completion, or handing off to the webspeech fallback. Once true, `cancel()` no longer touches
   // the (finished) backend attempt - it only needs to reach the fallback, if one is running.
   let stopped = false;
-  let fallbackCancel: (() => void) | null = null;
+  let fallbackCancel: Stop | null = null;
 
-  const cancel = () => {
+  const cancel: Stop = (reason = "skip") => {
     if (stopped) {
-      fallbackCancel?.();
+      fallbackCancel?.(reason);
       return;
     }
     stopped = true;
     backendCancel();
-    setStop(null);
+    line.cancel(reason);
+    releaseStop(myGeneration);
   };
 
-  const fallbackToWebspeech = (err: unknown) => {
+  const fallbackToWebspeech = (err: unknown, failedIndex: number) => {
     if (stopped) return;
     stopped = true;
     // Surfaced so a real failure (as opposed to a guess) is one console check away next time
@@ -654,22 +882,31 @@ export function speakAuto(text: string, opts: SpeakAutoOptions): () => void {
         `A "NotAllowedError" here means the browser's autoplay policy blocked playback, not a network issue.`,
       err,
     );
-    // Neutralize the arbiter entry for this call before speak() runs its own arbiter turn -
-    // otherwise speak()'s own `currentStop?.()` would reach back into this very `cancel` and
+    line.cancel("error", true);
+    // Neutralize the arbiter entry for this call before speakChunks runs its own arbiter turn -
+    // otherwise its own `currentStop?.()` would reach back into this very `cancel` and
     // immediately mark itself stopped, before `fallbackCancel` is even assigned.
-    setStop(null);
-    // Re-speaks the whole line from the start rather than resuming mid-sentence: an acceptable
-    // simplification for what should be a rare, already-degraded path (the backend just failed).
-    fallbackCancel = speak(text, opts);
+    releaseStop(myGeneration);
+    // Only the sentence that failed and the ones after it: the earlier ones were already heard.
+    fallbackCancel = speakChunks(chunks, opts, failedIndex);
   };
 
   const backendCancel = speakBackendChunks(
     chunks,
-    opts,
+    {
+      slot: opts.slot,
+      seed: opts.seed,
+      onSentence: (info) => {
+        line.sentence(info.index);
+        opts.onSentence?.(info);
+      },
+      onAudible: line.audible,
+    },
     () => {
       if (stopped) return;
       stopped = true;
-      setStop(null);
+      line.end();
+      releaseStop(myGeneration);
       opts.onEnd?.();
     },
     fallbackToWebspeech,

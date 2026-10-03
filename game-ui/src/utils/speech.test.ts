@@ -5,7 +5,12 @@ vi.mock("./speechBackend", () => ({ fetchTtsAudioUrl: vi.fn() }));
 import {
   cancelSpeech,
   chunkText,
+  isNarrationBusy,
   loadVoices,
+  onNarrationEvent,
+  setNarrationBusy,
+  waitForNarrationIdle,
+  type NarrationEvent,
   pickVoice,
   pitchFor,
   speak,
@@ -560,26 +565,40 @@ describe("speakAuto", () => {
     expect(onEnd).toHaveBeenCalledOnce(); // the speak() no-op fallback ran
   });
 
-  it("falls back to speechSynthesis for the whole line when a later sentence fails mid-line", async () => {
+  it("falls back for only the remaining sentences when a later sentence fails mid-line", async () => {
+    const spoken: FakeUtterance[] = [];
+    setFakeWebspeech(spoken);
     mockedFetchTtsAudioUrl.mockResolvedValueOnce("blob:fake-1").mockResolvedValueOnce("blob:fake-2");
     const onEnd = vi.fn();
+    const onSentence = vi.fn();
+    const flush = async () => {
+      for (let n = 0; n < 4; n += 1) await Promise.resolve();
+    };
 
-    speakAuto("First sentence. Second sentence.", { slot: "narrator", backend: "auto", onEnd });
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    speakAuto("First sentence. Second sentence. Third sentence.", {
+      slot: "narrator",
+      backend: "auto",
+      onEnd,
+      onSentence,
+    });
+    await flush();
     lastAudio?.onended?.(); // first sentence finishes normally
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await flush();
     lastAudio?.onerror?.(); // second sentence's playback fails
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await flush();
 
-    // The re-speak-from-the-start fallback is the documented simplification for a partial
-    // failure - it re-runs the whole line through the webspeech no-op path in this test.
+    expect(spoken.map((u) => u.text)).toEqual(["Second sentence."]);
+    spoken[0].onend?.();
+    expect(spoken.map((u) => u.text)).toEqual(["Second sentence.", "Third sentence."]);
+    spoken[1].onend?.();
     expect(onEnd).toHaveBeenCalledOnce();
+    // Indexes stay absolute into the full line and never go back before the failed sentence.
+    expect(onSentence.mock.calls.map(([info]) => [info.index, info.total])).toEqual([
+      [0, 3],
+      [1, 3],
+      [1, 3],
+      [2, 3],
+    ]);
   });
 
   it("cancelling before the backend fetch resolves cancels it instead of letting it play", async () => {
@@ -623,6 +642,7 @@ class FakeUtterance {
   rate = 1;
   onend: (() => void) | null = null;
   onerror: (() => void) | null = null;
+  onstart: (() => void) | null = null;
   constructor(public text: string) {}
 }
 
@@ -755,5 +775,78 @@ describe("narration arbiter", () => {
     firstAudio?.onended?.();
     await Promise.resolve();
     expect(onEnd1).not.toHaveBeenCalled();
+  });
+});
+
+describe("narration busy state and diagnostics", () => {
+  const originalSynth = getSynth();
+  const originalUtterance = (globalThis as Record<string, unknown>).SpeechSynthesisUtterance;
+  let spoken: FakeUtterance[];
+  let events: NarrationEvent[];
+  let off: () => void;
+
+  beforeEach(() => {
+    cancelSpeech(); // earlier suites can leave a line holding the arbiter
+    spoken = [];
+    setFakeWebspeech(spoken);
+    events = [];
+    off = onNarrationEvent((e) => events.push(e));
+  });
+
+  afterEach(() => {
+    cancelSpeech();
+    setNarrationBusy("test-queue", false);
+    off();
+    setSynth(originalSynth);
+    (globalThis as Record<string, unknown>).SpeechSynthesisUtterance = originalUtterance;
+  });
+
+  it("is busy while a line plays and idle once it ends", () => {
+    expect(isNarrationBusy()).toBe(false);
+    speak("One line.", { slot: "narrator" });
+    expect(isNarrationBusy()).toBe(true);
+    spoken[0].onend?.();
+    expect(isNarrationBusy()).toBe(false);
+  });
+
+  it("counts a screen's own queue flag as busy", () => {
+    setNarrationBusy("test-queue", true);
+    expect(isNarrationBusy()).toBe(true);
+    setNarrationBusy("test-queue", false);
+    expect(isNarrationBusy()).toBe(false);
+  });
+
+  it("waitForNarrationIdle resolves only after the queue flag clears", async () => {
+    setNarrationBusy("test-queue", true);
+    const done = vi.fn();
+    void waitForNarrationIdle(5000).then(done);
+    await new Promise((r) => setTimeout(r, 20));
+    expect(done).not.toHaveBeenCalled();
+
+    setNarrationBusy("test-queue", false);
+    await new Promise((r) => setTimeout(r, 20));
+    expect(done).toHaveBeenCalledWith(true);
+  });
+
+  it("waitForNarrationIdle gives up with false after its timeout", async () => {
+    setNarrationBusy("test-queue", true);
+    await expect(waitForNarrationIdle(20)).resolves.toBe(false);
+  });
+
+  it("records the reason for each cancel", () => {
+    speak("First line.", { slot: "narrator" });
+    speak("Second line.", { slot: "narrator" }); // preempts the first
+    cancelSpeech("cap");
+    speak("Third line.", { slot: "narrator" })(); // returned cancel defaults to skip
+
+    const reasons = events.filter((e) => e.type === "cancel").map((e) => e.reason);
+    expect(reasons).toEqual(["arbiter", "cap", "skip"]);
+  });
+
+  it("reports the first sound with the time since the line started", () => {
+    speak("Hello there.", { slot: "narrator" });
+    spoken[0].onstart?.();
+    const first = events.find((e) => e.firstAudioMs !== undefined);
+    expect(first?.firstAudioMs).toBeGreaterThanOrEqual(0);
   });
 });

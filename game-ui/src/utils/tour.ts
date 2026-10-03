@@ -1,5 +1,6 @@
 
 import introJs from "intro.js";
+import { getSpeechGeneration, onNarrationEvent, waitForNarrationIdle } from "./speech";
 
 /**
  * Shared driver for every `data-intro-group` guided tour in the app (see PrePhaseDialog,
@@ -25,6 +26,9 @@ export interface StartTourOptions {
    *  module cannot call the `useSpeech` hook itself), so narration still goes through whichever
    *  settings/backend that component's own `useSpeech()` resolves to. */
   narrate?: (text: string) => () => void;
+  /** Awaited before the tour touches the DOM or narrates, e.g. the narrator start gate
+   *  (`requestNarratorGate`). Resolving `false` runs the tour silently (player chose to read). */
+  beforeStart?: () => Promise<boolean | void>;
 }
 
 function makeControlButton(label: string, title: string, onClick: () => void): HTMLButtonElement {
@@ -55,13 +59,73 @@ function makeControlButton(label: string, title: string, onClick: () => void): H
  * tooltip changes, which is idempotent and therefore safe to over-call.
  */
 export function startTour(group: string, options: StartTourOptions = {}): void {
+  const { beforeStart, ...rest } = options;
+  if (!beforeStart) {
+    startTourNow(group, rest);
+    return;
+  }
+  beforeStart().then(
+    (allowed) => startTourNow(group, allowed === false ? { ...rest, narrate: undefined } : rest),
+    () => startTourNow(group, rest),
+  );
+}
+
+function startTourNow(group: string, options: StartTourOptions): void {
   const tour = introJs.tour();
   let narrationCancel: () => void = () => { };
-  let lastNarratedText: string | null = null;
+  // The step text whose narration was last attempted, and whether it is confirmed audible.
+  let attemptedText: string | null = null;
+  let confirmed = false;
+  let retried = false;
+  let ownCancel = false;
+  let attemptId = 0;
+  let trackedGeneration: number | null = null;
   const stopNarration = () => {
-    narrationCancel();
+    ownCancel = true;
+    try {
+      narrationCancel();
+    } finally {
+      ownCancel = false;
+    }
     narrationCancel = () => { };
   };
+
+  const currentStepText = () =>
+    document.querySelector<HTMLElement>(".introjs-showElement[data-intro]")?.getAttribute("data-intro") ?? null;
+
+  /** Starts narrating `text` once nothing else is speaking. It only counts as narrated after a
+   *  sentence or the end is reported; a first line cancelled before that is retried once. */
+  const beginNarration = (text: string) => {
+    if (!options.narrate) return;
+    const narrate = options.narrate;
+    const id = ++attemptId;
+    attemptedText = text;
+    confirmed = false;
+    trackedGeneration = null;
+    stopNarration();
+    void waitForNarrationIdle().then(() => {
+      if (finished || id !== attemptId) return;
+      const before = getSpeechGeneration();
+      narrationCancel = narrate(text);
+      // No new line means narration is muted or skipped: nothing to confirm or retry.
+      if (getSpeechGeneration() === before) confirmed = true;
+      else trackedGeneration = getSpeechGeneration();
+    });
+  };
+
+  const unsubscribeNarration = onNarrationEvent((e) => {
+    if (trackedGeneration === null || e.generation < trackedGeneration || confirmed) return;
+    if (e.type === "sentence" || e.type === "end") {
+      confirmed = true;
+    } else if (e.type === "cancel" && !e.handedOff && !ownCancel && !retried) {
+      const text = attemptedText;
+      window.setTimeout(() => {
+        if (!text || finished || confirmed || retried || text !== attemptedText || currentStepText() !== text) return;
+        retried = true;
+        beginNarration(text);
+      }, 250);
+    }
+  });
 
   let finished = false;
   let observer: MutationObserver | null = null;
@@ -76,6 +140,7 @@ export function startTour(group: string, options: StartTourOptions = {}): void {
     if (finished) return;
     finished = true;
     stopNarration();
+    unsubscribeNarration();
     observer?.disconnect();
     resizeObserver?.disconnect();
     options.onFinish?.();
@@ -103,10 +168,9 @@ export function startTour(group: string, options: StartTourOptions = {}): void {
 
     const activeElement = document.querySelector<HTMLElement>(".introjs-showElement[data-intro]");
     const text = activeElement?.getAttribute("data-intro") ?? null;
-    if (text && text !== lastNarratedText) {
-      lastNarratedText = text;
-      stopNarration();
-      if (options.narrate) narrationCancel = options.narrate(text);
+    if (text && text !== attemptedText) {
+      retried = false;
+      beginNarration(text);
     }
 
     if (activeElement && activeElement !== resizeObservedElement) {
@@ -131,7 +195,7 @@ export function startTour(group: string, options: StartTourOptions = {}): void {
   tour.onComplete(finish);
 
   // Start narrating the first step's text now, before intro.js has even computed the tooltip's
-  // position - `sync()`'s dedup check (comparing against `lastNarratedText`) means this is the
+  // position - `sync()`'s dedup check (comparing against `attemptedText`) means this is the
   // same call `sync()` would otherwise make once the tooltip appears, just given a head start
   // equal to however long `.start()`'s own layout/positioning work takes. Without this, that work
   // raced the narration's own network fetch, and a slow enough race read as a dropped/failed
@@ -140,10 +204,7 @@ export function startTour(group: string, options: StartTourOptions = {}): void {
     document.querySelectorAll<HTMLElement>(`[data-intro-group="${group}"]`)
   ).sort((a, b) => Number(a.getAttribute("data-step") || 0) - Number(b.getAttribute("data-step") || 0));
   const firstText = steps[0]?.getAttribute("data-intro");
-  if (firstText && options.narrate) {
-    lastNarratedText = firstText;
-    narrationCancel = options.narrate(firstText);
-  }
+  if (firstText && options.narrate) beginNarration(firstText);
 
   // intro.js's `.start()` resolves even when `group` matches nothing, but never calls
   // onComplete/onExit in that case (there is nothing to complete or exit from) - so without this,

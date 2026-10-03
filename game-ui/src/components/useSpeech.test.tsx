@@ -10,6 +10,7 @@ vi.mock("../utils/speech", () => ({
     return () => {};
   }),
   getSpeechGeneration: () => generation,
+  isSessionMuted: () => false,
   cancelSpeech: () => cancelSpeech(),
 }));
 vi.mock("./SettingsProvider", () => ({

@@ -1,0 +1,168 @@
+.overlayLayer {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9700;
+  padding: clamp(0.75rem, 2vh, 1.5rem) clamp(0.75rem, 2vw, 1.5rem);
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(6px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.panel {
+  width: 100%;
+  max-width: 480px;
+  background: var(--dialog-bg, #f8fafc);
+  border: 1px solid var(--dialog-border, #e2e8f0);
+  border-radius: 0.75rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.header {
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  color: #ffffff;
+  background-color: var(--primary-bg, #0f1826);
+  border-bottom: 2px solid var(--secondary-bg, #1e293b);
+}
+
+.heroIcon {
+  display: inline-flex;
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+}
+
+.heroIcon > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: #ffffff;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0.2rem 0 0 0;
+  line-height: 1.35;
+}
+
+.body {
+  padding: 1.25rem 1.5rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.primaryButton,
+.secondaryButton {
+  padding: 0.8rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all var(--transition, 0.2s ease);
+}
+
+.primaryButton {
+  border: 1px solid var(--secondary-bg, #1e293b);
+  background: var(--primary-bg, #0f1826);
+  color: #ffffff;
+}
+
+.primaryButton:hover {
+  background: var(--secondary-bg, #1e293b);
+}
+
+.primaryButton[aria-disabled="true"] {
+  cursor: progress;
+  opacity: 0.85;
+}
+
+.secondaryButton {
+  border: 1px solid var(--dialog-border, #cbd5e1);
+  background: #ffffff;
+  color: var(--primary-bg, #0f1826);
+}
+
+.secondaryButton:hover {
+  background: var(--bg-subtle, #f1f5f9);
+}
+
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible {
+  outline: 3px solid #2e7a9e;
+  outline-offset: 2px;
+}
+
+.note {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--text-muted, #64748b);
+  text-align: center;
+}
+
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  animation: spin 0.8s linear infinite;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.97) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlayLayer,
+  .panel {
+    animation: none;
+  }
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useSettings } from "./SettingsProvider";
-import { cancelSpeech, getSpeechGeneration, speakAuto, type SpeakOptions, type VoiceSlot } from "../utils/speech";
+import { cancelSpeech, getSpeechGeneration, isSessionMuted, speakAuto, type CancelReason, type SpeakOptions, type VoiceSlot } from "../utils/speech";
 
 const VOICE_FIELD: Record<VoiceSlot, "voice_male" | "voice_female" | "voice_narrator" | "voice_player"> = {
   male: "voice_male",
@@ -23,16 +23,16 @@ export function useSpeech() {
   // The arbiter generation of the last line this component started, if it is still playing.
   const lastGenerationRef = useRef<number | null>(null);
 
-  const cancelOwn = useCallback(() => {
+  const cancelOwn = useCallback((reason?: CancelReason) => {
     if (lastGenerationRef.current !== null && lastGenerationRef.current === getSpeechGeneration()) {
-      cancelSpeech();
+      cancelSpeech(typeof reason === "string" ? reason : undefined);
     }
     lastGenerationRef.current = null;
   }, []);
 
   const speakSlot = useCallback((text: string, opts: Omit<SpeakOptions, "voiceName" | "rate" | "playerGender">) => {
     const current = settingsRef.current;
-    if (current.mute_tts) {
+    if (current.mute_tts || isSessionMuted()) {
       opts.onEnd?.();
       return () => {};
     }
