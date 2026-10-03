@@ -12,7 +12,6 @@ from mlops_serious_game.domain.emotion import (
     PitchTuning,
     TriggerCondition,
     apply_emotion_delta,
-    get_patience_malus,
 )
 
 
@@ -84,12 +83,6 @@ class EmotionFactory:
         import with no gameConfig directory mounted)."""
         cls.ensure_loaded()
         return cls.config.pitch_tuning if cls.config else PitchTuning()
-
-    @classmethod
-    def get_patience_malus(cls) -> EmotionDelta:
-        """Returns the configured dimensional patience malus vector."""
-        tuning = cls.get_pitch_tuning()
-        return get_patience_malus(tuning.patience_malus)
 
 
     @classmethod

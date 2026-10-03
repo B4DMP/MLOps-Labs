@@ -111,7 +111,12 @@ async def run_action_card_pitch_workflow(
         fallback_stakeholders = []
         for st in stakeholders:
             st_name = st.get("stakeholder_name", st.get("stakeholder_id", ""))
-            if st.get("is_approval", False) or st.get("objection_kind") == "none":
+            repeat = st.get("repeat_context")
+            if repeat == "answered":
+                msg = "Better. That took a while."
+            elif repeat == "unchanged":
+                msg = "You brought me the same problem again."
+            elif st.get("is_approval", False) or st.get("objection_kind") == "none":
                 msg = "The proposal looks aligned with my priorities. I am on board."
             elif st.get("objection_kind") == "misclassification":
                 msg = "You completely misunderstood my position on my requirements."
@@ -123,6 +128,8 @@ async def run_action_card_pitch_workflow(
             else:
                 tgt = st.get("objection_target", "my priorities")
                 msg = f"The proposal completely neglects my demand for {tgt}."
+            if repeat == "changed_unanswered":
+                msg = f"Different, but not enough. {msg}"
 
             fallback_stakeholders.append({
                 "stakeholder_id": st.get("stakeholder_id", ""),

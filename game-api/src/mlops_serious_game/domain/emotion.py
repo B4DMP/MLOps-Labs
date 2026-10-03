@@ -424,7 +424,10 @@ class PitchTuning(BaseModel):
     default_patience: int = Field(default=3, description="Patience per stakeholder per challenge (D50, was 2)")
     sound_out_patience_cost: int = Field(default=1, description="Patience spent when sounding a stakeholder out in Build your case (D50)")
 
-    patience_malus: float = Field(default=0.05, description="Patience malus magnitude applied to emotion values when an action card is presented more than once in a challenge")
+    impatience_step: float = Field(default=0.15, description="Emotion offset (per dimension) of the first impatience step, before the stakeholder's stress / sense-of-control scaling")
+    impatience_cap: int = Field(default=3, description="Most impatience steps a stakeholder can carry within one challenge")
+    impatience_decay: float = Field(default=0.6, description="Each further impatience step adds this fraction of the previous step's growth (diminishing)")
+    impatience_relief: float = Field(default=0.08, description="Trust and fairness gain when a stakeholder's standing objection is finally answered")
 
 
 class EmotionConfig(BaseModel):

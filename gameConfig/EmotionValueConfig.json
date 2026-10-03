@@ -263,6 +263,9 @@
       "emotion_room_listening": -0.03,
       "default_patience": 3,
       "sound_out_patience_cost": 1,
-      "patience_malus": 0.05
+      "impatience_step": 0.15,
+      "impatience_cap": 3,
+      "impatience_decay": 0.6,
+      "impatience_relief": 0.08
    }
 }

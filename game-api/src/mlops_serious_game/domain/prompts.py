@@ -328,6 +328,7 @@ Your Evaluation of the Proposal:
 - Proposed Action Plan Summary: {{action_card_summary}}
 - Your Key Assessment / Most Pressing Objection:
 {{objection_detail}}
+- Proposal Attempt Number: {{pitch_attempt}}
 
 Instructions:
 1. Stay 100% in-character as an authentic MLOps domain stakeholder speaking aloud in a real meeting room.
@@ -342,6 +343,13 @@ Instructions:
    - Neither of your trade-off branches was addressed. Point out that neither your primary demand nor your compromise was included.
    {% elif objection_kind == "driver" %}
    - Your driver requirement was neglected. Express concern regarding the missing improvement or feature.
+   {% endif %}
+   {% if repeat_context == "unchanged" %}
+   - This is a repeat: your objection has not changed and the Project Manager brought you the same problem again. Say so with growing impatience.
+   {% elif repeat_context == "changed_unanswered" %}
+   - This is a repeat: the proposal changed, but your objection still stands. Acknowledge the change, then say it still does not solve your problem.
+   {% elif repeat_context == "answered" %}
+   - This is a repeat: your earlier objection is now answered. Acknowledge, with some relief, that it was a long road ("Better. That took a while." in spirit), without repeating the old complaint.
    {% endif %}
 3. Tone & Emotion:
    - Reflect your current emotional state ({{emotional_state}}) and buy-in level ({{buy_in}}).

@@ -16,6 +16,7 @@ from mlops_serious_game.application.graph_service.apply import apply_ops
 from mlops_serious_game.application.graph_service.view import evaluate_graph
 from mlops_serious_game.application.pitch_debate_service.scoring import (
     buy_in,
+    buy_in_band,
     emotions_norm,
     outcome as calc_outcome,
 )
@@ -92,6 +93,8 @@ class StakeholderRead(BaseModel):
     boundary_violated: bool = False
     emotional_state: str = "neutral"
     emotion_values: dict[str, float] = Field(default_factory=dict)
+    buy_in_band: str = "medium"
+    impatience: int = Field(default=0, description="Impatience steps on show (0 to the configured cap)")
 
 
 class CardView(BaseModel):
@@ -142,6 +145,14 @@ class PitchState(BaseModel):
     # be refused when unchanged and stakeholders whose reaction didn't move can stay silent.
     last_pitched_changes: list[AtomicChange] = Field(default_factory=list)
     reaction_signatures: dict[str, dict[str, float]] = Field(default_factory=dict)
+    # Impatience steps per stakeholder for this challenge; the emotion offset is derived from them.
+    impatience: dict[str, int] = Field(default_factory=dict)
+    # The vetoing stakeholder's line, kept so a reload can show the veto again.
+    veto_message: str = ""
+    # Set once the intro's free first revision after a veto has been spent.
+    free_repeat_used: bool = False
+    # Per stakeholder, how the last re-pitch landed: quiet | unchanged | answered | changed_unanswered.
+    repeat_context: dict[str, str] = Field(default_factory=dict)
 
     def open_objections(self) -> list[Objection]:
         return self.objections
@@ -169,6 +180,33 @@ def silent_stakeholders(state: PitchState, new_signatures: dict[str, dict[str, f
         st_id for st_id, sig in new_signatures.items()
         if st_id in state.reaction_signatures and state.reaction_signatures[st_id] == sig
     }
+
+
+def quiet_stakeholders(state: PitchState) -> set[str]:
+    """Stakeholders who were fine and saw nothing change for them: no reaction, no emotion update."""
+    return {st_id for st_id, ctx in state.repeat_context.items() if ctx == "quiet"}
+
+
+def _patience_scale(sensitivities: Optional[dict[str, float]]) -> float:
+    """Stress and sense-of-control sensitivities set how fast someone loses patience."""
+    sens = sensitivities or {}
+    mean = (sens.get("stress", 1.0) + sens.get("sense_of_control", 1.0)) / 2
+    return max(0.75, min(1.5, mean))
+
+
+def impatience_offset(step: int, sensitivities: Optional[dict[str, float]] = None) -> dict[str, float]:
+    """Derived emotion offset for an impatience step count (never stored), growing less per step."""
+    tuning = EmotionFactory.get_pitch_tuning()
+    n = max(0, min(int(step), tuning.impatience_cap))
+    if n == 0:
+        return {}
+    growth = sum(tuning.impatience_decay ** k for k in range(n))
+    return get_patience_malus(tuning.impatience_step * growth * _patience_scale(sensitivities))
+
+
+def _sensitivities_of(st_id: str) -> dict[str, float]:
+    st_obj = StakeholderFactory.get_stakeholder(st_id)
+    return getattr(st_obj, "emotion_sensitivities", {}) if st_obj else {}
 
 
 def find_pipeline_predecessors(graph: TechnicalGraph, target: str) -> list[str]:
@@ -668,6 +706,7 @@ def stakeholder_reads(
     changes: list[AtomicChange],
     room: list[tuple],
     emotion_values: dict[str, dict[str, float]],
+    impatience: Optional[dict[str, int]] = None,
 ) -> list[StakeholderRead]:
     """Evaluates continuous demand alignment, emotions, and buy-in for every stakeholder in the room."""
     ops = atomic_changes_to_ops(graph, state, changes)
@@ -699,6 +738,9 @@ def stakeholder_reads(
             state=state,
         )
         ev = emotion_values.get(st_id, EmotionFactory.create_default_emotion_values(0.5))
+        steps = (impatience or {}).get(st_id, 0)
+        if steps:
+            ev = apply_emotion_delta(ev, impatience_offset(steps, _sensitivities_of(st_id)))
         em_norm = emotions_norm(ev)
         bv = violated_by_st.get(st_id, False)
         bi = buy_in(alignment_val=align, emotions_val=em_norm, boundary_violated=bv)
@@ -714,6 +756,8 @@ def stakeholder_reads(
             boundary_violated=bv,
             emotional_state=st_state,
             emotion_values=ev,
+            buy_in_band=buy_in_band(bi),
+            impatience=min(steps, EmotionFactory.get_pitch_tuning().impatience_cap),
         ))
     return reads
 
@@ -725,6 +769,7 @@ def card_view(
     changes: list[AtomicChange],
     room: list[tuple],
     emotion_values: Optional[dict[str, dict[str, float]]] = None,
+    impatience: Optional[dict[str, int]] = None,
 ) -> CardView:
     """One call for the builder and commit screen: predictions, warnings, reads, outcome."""
     room_ids = [st_entry[0] for st_entry in room]
@@ -736,6 +781,7 @@ def card_view(
         changes=changes,
         room=room,
         emotion_values=emotion_values or {},
+        impatience=impatience,
     )
     return CardView(
         predictions=predictions_for(graph, state, changes),
@@ -759,6 +805,8 @@ def evaluate_pitch(
     held_items: Optional[list] = None,
     names: Optional[dict[str, str]] = None,
     presentation_count: int = 1,
+    previous: Optional[PitchState] = None,
+    free_repeat: bool = False,
     **kwargs,
 ) -> tuple[PitchState, CardView, list[str]]:
     """Evaluates the pitched Action Card once against all room stakeholders.
@@ -769,7 +817,11 @@ def evaluate_pitch(
     - Boundaries: warns of crossed red lines.
     - Misclassifications: refutes player categorization errors and applies constant malus.
     Calculates dynamic pitch emotion deltas and commits updated emotions.
-    Applies a small patience malus to all stakeholders if presented more than once in the challenge.
+
+    On a re-pitch (`previous` holds an evaluated pitch) each stakeholder reacts to what changed for
+    them: fine and unchanged means no emotion update at all; a standing objection builds one
+    impatience step (none when `free_repeat`); an answered one releases it down to one step and
+    earns a little relief. Impatience is never written into emotions, reads derive it.
     """
     room = room or []
     current_emotions = current_emotions or {}
@@ -785,9 +837,9 @@ def evaluate_pitch(
     names = names or {}
     room_ids = [st_entry[0] for st_entry in room]
 
-    repeat_count = max(0, presentation_count - 1)
-    patience_malus_magnitude = EmotionFactory.get_pitch_tuning().patience_malus if EmotionFactory.get_config() else 0.05
-    patience_delta = get_patience_malus(patience_malus_magnitude) if repeat_count > 0 else {}
+    tuning = EmotionFactory.get_pitch_tuning()
+    prior = previous if previous is not None and previous.reaction_signatures else None
+    prior_objecting = {o.stakeholder_id for o in prior.objections} if prior else set()
 
     ops = atomic_changes_to_ops(graph, state, changes)
     card_atoms = {f"{op.kind}({op.target}, {op.value})" for op in ops}
@@ -804,6 +856,8 @@ def evaluate_pitch(
     feedback: list[PitchFeedbackMessage] = []
     accumulated_deltas: dict[str, dict[str, float]] = {}
     reaction_signatures: dict[str, dict[str, float]] = {}
+    impatience: dict[str, int] = {}
+    repeat_context: dict[str, str] = {}
     items_to_correct: list[str] = []
 
     # Map held items by stakeholder
@@ -939,6 +993,7 @@ def evaluate_pitch(
         react = calculate_reactivity(power, interest=interest)
         st_obj = StakeholderFactory.get_stakeholder(st_id)
         role_sens = getattr(st_obj, "emotion_sensitivities", {}) if st_obj else {}
+        steps = prior.impatience.get(st_id, 0) if prior else 0
         weights = calculate_dynamic_weights(st_id, st_intel, role_sensitivities=role_sens)
         deltas = calculate_pitch_deltas(
             alignment=align,
@@ -953,11 +1008,28 @@ def evaluate_pitch(
 
         reaction_signatures[st_id] = dict(deltas)
 
-        # Apply patience malus on repeat presentations
-        if repeat_count > 0:
-            for dim, p_val in patience_delta.items():
-                deltas[dim] = round(deltas.get(dim, 0.0) + (p_val * repeat_count), 4)
+        if prior and st_id in prior.reaction_signatures:
+            was_objecting = st_id in prior_objecting
+            unchanged = prior.reaction_signatures[st_id] == reaction_signatures[st_id]
+            if not was_objecting and not is_agreeing:
+                pass  # a new objection, not a repeat: normal delta, no impatience yet
+            elif not was_objecting:
+                steps = 0
+                if unchanged:
+                    repeat_context[st_id] = "quiet"
+                    deltas = {}
+            elif is_agreeing:
+                repeat_context[st_id] = "answered"
+                steps = min(steps, 1)
+                relief = round(tuning.impatience_relief * _patience_scale(role_sens), 4)
+                for dim in ("trust", "fairness"):
+                    deltas[dim] = round(deltas.get(dim, 0.0) + relief, 4)
+            else:
+                repeat_context[st_id] = "unchanged" if unchanged else "changed_unanswered"
+                if not free_repeat:
+                    steps = min(tuning.impatience_cap, steps + 1)
 
+        impatience[st_id] = steps
         accumulated_deltas[st_id] = deltas
 
     # Update emotions with deltas
@@ -974,6 +1046,7 @@ def evaluate_pitch(
         changes=changes,
         room=room,
         emotion_values=updated_emotions,
+        impatience=impatience,
     )
 
     valid_atomic_changes: list[AtomicChange] = []
@@ -1005,6 +1078,9 @@ def evaluate_pitch(
         presentation_count=presentation_count,
         last_pitched_changes=valid_atomic_changes,
         reaction_signatures=reaction_signatures,
+        impatience=impatience,
+        repeat_context=repeat_context,
+        free_repeat_used=bool(previous and previous.free_repeat_used) or free_repeat,
     )
     return new_pitch_state, view, items_to_correct
 

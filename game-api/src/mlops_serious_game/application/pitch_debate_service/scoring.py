@@ -107,6 +107,20 @@ def buy_in(
     return max(0.0, min(1.0, round(raw, 3)))
 
 
+def buy_in_band(value: float) -> str:
+    """Player-facing word for a buy-in in [0, 1]: five even bands, so the UI needs no thresholds.
+    The veto line (0.4) falls on the low/medium edge."""
+    if value < 0.2:
+        return "very_low"
+    if value < 0.4:
+        return "low"
+    if value < 0.6:
+        return "medium"
+    if value < 0.8:
+        return "high"
+    return "very_high"
+
+
 def outcome(
     room: list[tuple[str, str, float, bool]],
     veto_threshold: float = VETO_THRESHOLD,

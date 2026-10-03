@@ -19,6 +19,8 @@ class StakeholderPitchContext(TypedDict, total=False):
     objection_detail: str
     objection_target: Optional[str]
     distance: float
+    # None on a first pitch; else "unchanged", "answered" or "changed_unanswered" (vs. last pitch).
+    repeat_context: Optional[str]
 
 
 class ActionCardPitchState(TypedDict, total=False):

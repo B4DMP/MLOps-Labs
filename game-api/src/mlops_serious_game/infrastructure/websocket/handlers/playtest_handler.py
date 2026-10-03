@@ -190,12 +190,11 @@ async def _break_the_stood_veto(websocket: WebSocket, user_id: int, ids: dict) -
     playtest tools exist to manufacture progress, and refusing to progress past a room that
     genuinely cannot be won by any card would defeat that, when the game already has a legitimate
     way through. Returns whether it actually broke the veto (false only when there are no
-    Escalation Points left, at which point this really is the end of the road).
+    Escalation Points left, or in the intro where the breaker is unavailable: the end of the road).
     """
     if pitch_store.escalation_points(user_id) <= 0:
         return False
-    await handle_pitch_veto_breaker(websocket, user_id, ids)
-    return True
+    return await handle_pitch_veto_breaker(websocket, user_id, ids)
 
 
 async def handle_playtest_skip_challenge(websocket: WebSocket, user_id: int, payload: dict) -> None:

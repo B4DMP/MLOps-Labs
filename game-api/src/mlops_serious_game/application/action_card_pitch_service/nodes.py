@@ -97,6 +97,7 @@ async def generate_stakeholder_pitch_responses_node(
     player_message = state.get("player_message", "")
     card_summary = state.get("action_card_summary", "")
     stakeholders: list[StakeholderPitchContext] = state.get("stakeholders", [])
+    pitch_attempt = state.get("pitch_attempt", 1)
 
     configurable = config.get("configurable", {}) if config else {}
     ws = configurable.get("ws")
@@ -133,6 +134,8 @@ async def generate_stakeholder_pitch_responses_node(
             "is_approval": is_approval,
             "objection_kind": objection_kind,
             "objection_detail": objection_detail,
+            "pitch_attempt": pitch_attempt,
+            "repeat_context": st_ctx.get("repeat_context") or "",
         })
 
         clean_response = sanitize_dialogue_text(raw_response, name_to_strip=st_name, st_id=st_id)

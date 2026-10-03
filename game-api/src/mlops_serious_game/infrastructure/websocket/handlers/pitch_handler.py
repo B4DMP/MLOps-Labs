@@ -82,6 +82,7 @@ class PitchContext:
             changes=state.atomic_changes,
             room=self.room,
             emotion_values=current_emotions,
+            impatience=state.impatience,
         )
 
 
@@ -101,6 +102,40 @@ def _primary_veto_read(view: pitch.CardView) -> pitch.StakeholderRead:
         return veto_reads[0]
     fallback = [r for r in view.reads if r.boundary_violated or r.buy_in < VETO_THRESHOLD]
     return (fallback or view.reads)[0]
+
+
+def _objection_of(ctx: PitchContext, state: "pitch.PitchState", st_id: str) -> dict[str, Any]:
+    """One stakeholder's primary objection against the card in `state`."""
+    card_ops_list = pitch.atomic_changes_to_ops(ctx.graph, ctx.state, state.atomic_changes)
+    card_atoms = {f"{op.kind}({op.target}, {op.value})" for op in card_ops_list}
+    warnings = pitch.boundary_checks(ctx.graph, ctx.state, ctx.all_intel, state.atomic_changes, [st_id])
+    return pitch.compute_stakeholder_primary_objection(
+        st_id=st_id,
+        st_intel=[i for i in ctx.all_intel if getattr(i, "stakeholder_id", None) == st_id],
+        changes=state.atomic_changes,
+        card_atoms=card_atoms,
+        violated_boundaries=[w for w in warnings if w.violated and w.stakeholder_id == st_id],
+        graph=ctx.graph,
+        state=ctx.state,
+    )
+
+
+def _veto_info(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView, message: str) -> dict[str, Any]:
+    """What the veto dialog and coach panel show; the same shape at commit and after a reload."""
+    read = _primary_veto_read(view)
+    veto_st = StakeholderFactory.get_stakeholder(read.stakeholder_id)
+    obj = _objection_of(ctx, state, read.stakeholder_id)
+    return {
+        "stakeholder_id": read.stakeholder_id,
+        "stakeholder_name": veto_st.name if veto_st else ctx.names.get(read.stakeholder_id, read.stakeholder_id),
+        "power": read.power,
+        "message": message,
+        "objection_kind": obj["objection_kind"],
+        "objection_detail": obj["objection_detail"],
+        "boundary_violated": read.boundary_violated,
+        "objection_target": obj.get("objection_target"),
+        "objection_item_id": obj.get("item_id"),
+    }
 
 
 AUTOMATION_LEVEL_NAMES = ["Broken", "Absent", "Manual", "Automated"]
@@ -279,7 +314,10 @@ def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView,
         "presentation_count": getattr(state, "presentation_count", 0),
         "last_pitched_changes": [c.model_dump() for c in state.last_pitched_changes],
         "escalation_points": pitch_store.escalation_points(ctx.user_id),
+        "is_demo": ctx.phase_id in PhaseFactory.demo_phase_ids(),
     }
+    if state.stage == "DONE" and state.outcome == "VETO" and view.reads:
+        payload["veto_info"] = _veto_info(ctx, state, view, state.veto_message)
     payload.update(extra)
     return payload
 
@@ -383,6 +421,7 @@ async def handle_pitch_evaluate(websocket: WebSocket, user_id: int, payload: dic
     pitch_index = max(len(matching_pitch_ids) + 1, getattr(state, "presentation_count", 0) + 1)
     pitch_conv_id = f"{prefix}{pitch_index}"
 
+    is_demo = ctx.phase_id in PhaseFactory.demo_phase_ids()
     new_state, view, items_to_correct = pitch.evaluate_pitch(
         graph=ctx.graph,
         state=ctx.state,
@@ -393,6 +432,9 @@ async def handle_pitch_evaluate(websocket: WebSocket, user_id: int, payload: dic
         held_items=ctx.held_items(),
         names=ctx.names,
         presentation_count=pitch_index,
+        previous=state,
+        # The intro's first revision after a veto is free: revising is how you learn the room.
+        free_repeat=is_demo and state.stage == "DONE" and state.outcome == "VETO" and not state.free_repeat_used,
     )
 
     if items_to_correct:
@@ -426,11 +468,11 @@ async def handle_pitch_evaluate(websocket: WebSocket, user_id: int, payload: dic
     held_map = {i.id: i for i in ctx.held_items()}
     newly_verified_or_stored = False
 
-    silent_ids = pitch.silent_stakeholders(state, new_state.reaction_signatures)
+    quiet_ids = pitch.quiet_stakeholders(new_state)
 
     for room_entry in ctx.room:
         st_id = room_entry[0]
-        if st_id in silent_ids:
+        if st_id in quiet_ids:
             continue
         power = room_entry[1]
         st = StakeholderFactory.get_stakeholder(st_id)
@@ -500,6 +542,7 @@ async def handle_pitch_evaluate(websocket: WebSocket, user_id: int, payload: dic
             "objection_detail": primary_obj["objection_detail"],
             "objection_target": primary_obj.get("objection_target"),
             "distance": primary_obj.get("distance", 0.0),
+            "repeat_context": new_state.repeat_context.get(st_id),
         })
 
     if newly_verified_or_stored and ctx.challenge and websocket:
@@ -507,7 +550,7 @@ async def handle_pitch_evaluate(websocket: WebSocket, user_id: int, payload: dic
         dossier = await retrieve_dossier_data(ctx.challenge, websocket)
         await manager.send_event(websocket=websocket, event="intel:dossier_data", payload={"dossier": dossier})
 
-    addressed_names_str = ", ".join([s["stakeholder_name"] for s in stakeholders_ctx_list])
+    addressed_names_str = ", ".join([s["stakeholder_name"] for s in stakeholders_ctx_list]) or "everyone in the room"
 
     player_msg, stakeholder_responses, _ = await run_action_card_pitch_workflow(
         user_id=user_id,
@@ -581,6 +624,27 @@ async def handle_pitch_evaluate(websocket: WebSocket, user_id: int, payload: dic
             "facial_expression": facial_expression,
         })
 
+    for room_entry in ctx.room:
+        if room_entry[0] not in quiet_ids:
+            continue
+        quiet_text = f"{ctx.names.get(room_entry[0], room_entry[0])} had nothing new to react to."
+        await manager.send_event(
+            websocket=websocket,
+            event="intel:message_received",
+            payload={
+                "type": "system_message",
+                "stakeholder_id": "__environment__",
+                "message": quiet_text,
+                "conversation_id": pitch_conv_id,
+            },
+        )
+        new_db_entries.append({
+            "id": "__environment__",
+            "message": quiet_text,
+            "conversation_id": pitch_conv_id,
+            "ac_id": -1,
+        })
+
     with get_session() as db:
         row = db.scalars(
             select(GameChallenge)
@@ -641,6 +705,9 @@ async def handle_pitch_commit(websocket: WebSocket, user_id: int, payload: dict)
         applied = _apply_card(ctx, committed_state, view)
         if committed_state.emotion_deltas:
             ctx.emotions = pitch_store.apply_emotion_deltas(user_id, committed_state.emotion_deltas, ctx.room_ids)
+        # TODO: in the real game, feed stakeholders still impatient here into grudges_created.
+        if ctx.phase_id in PhaseFactory.demo_phase_ids():
+            committed_state.impatience = {}
     else:
         # 1. Identify high-power vetoing stakeholders
         primary_veto_read = _primary_veto_read(view)
@@ -681,25 +748,9 @@ async def handle_pitch_commit(websocket: WebSocket, user_id: int, payload: dict)
 
         # 4. Compute primary objection details
         card_ops_list = pitch.atomic_changes_to_ops(ctx.graph, ctx.state, state.atomic_changes)
-        card_atoms = {f"{op.kind}({op.target}, {op.value})" for op in card_ops_list}
         commitments = _card_commitments(ctx.graph, card_ops_list)
         card_summary = "\n".join(commitments) if commitments else "No atomic changes configured."
-
-        st_intel = [i for i in ctx.all_intel if getattr(i, "stakeholder_id", None) == veto_st_id]
-        warnings = pitch.boundary_checks(
-            ctx.graph, ctx.state, ctx.all_intel, state.atomic_changes, [veto_st_id]
-        )
-        violated_st_warnings = [w for w in warnings if w.violated and w.stakeholder_id == veto_st_id]
-
-        primary_obj = pitch.compute_stakeholder_primary_objection(
-            st_id=veto_st_id,
-            st_intel=st_intel,
-            changes=state.atomic_changes,
-            card_atoms=card_atoms,
-            violated_boundaries=violated_st_warnings,
-            graph=ctx.graph,
-            state=ctx.state,
-        )
+        primary_obj = _objection_of(ctx, state, veto_st_id)
 
         challenge_context = (
             f"{ctx.challenge.name}: {ctx.challenge.roundIntroduction} "
@@ -732,15 +783,8 @@ async def handle_pitch_commit(websocket: WebSocket, user_id: int, payload: dict)
             pitch_chat_summary=pitch_chat_summary,
         )
 
-        veto_info = {
-            "stakeholder_id": veto_st_id,
-            "stakeholder_name": veto_st_name,
-            "power": primary_veto_read.power,
-            "message": veto_message,
-            "objection_kind": primary_obj["objection_kind"],
-            "objection_detail": primary_obj["objection_detail"],
-            "boundary_violated": primary_veto_read.boundary_violated,
-        }
+        committed_state.veto_message = veto_message
+        veto_info = _veto_info(ctx, committed_state, view, veto_message)
 
         # Send veto message event into the chat
         await manager.send_event(
@@ -784,7 +828,7 @@ async def handle_pitch_commit(websocket: WebSocket, user_id: int, payload: dict)
     await _send(websocket, ctx, committed_state, view, applied=applied, veto_info=veto_info)
 
 
-async def handle_pitch_veto_breaker(websocket: WebSocket, user_id: int, payload: dict) -> None:
+async def handle_pitch_veto_breaker(websocket: WebSocket, user_id: int, payload: dict) -> bool:
     """Spends an Escalation Point to push a stood veto through anyway (D15).
 
     Only usable on a committed veto - `pitch:commit` must have already landed on VETO, the same
@@ -792,17 +836,22 @@ async def handle_pitch_veto_breaker(websocket: WebSocket, user_id: int, payload:
     through; it does not let the player change the card first (that is just building a different
     one via `pitch:set_card`, free, no escalation needed - the tool exists for when no card would
     ever clear the room, not as a shortcut around building one).
+
+    Returns whether the veto was broken (False when it answered with an error instead).
     """
     ctx = PitchContext(user_id, payload.get("phase_id", 0), payload.get("challenge_id", 0))
     state = _load_or_start(ctx)
+    if ctx.phase_id in PhaseFactory.demo_phase_ids():
+        await _send(websocket, ctx, state, ctx.view(state), error="The veto breaker is not available in the introduction")
+        return False
     if state.stage != "DONE" or state.outcome != "VETO":
         await _send(websocket, ctx, state, ctx.view(state), error="no veto standing to push through")
-        return
+        return False
 
     points = pitch_store.escalation_points(user_id)
     if points <= 0:
         await _send(websocket, ctx, state, ctx.view(state), error="no Escalation Points left")
-        return
+        return False
 
     view = ctx.view(state)
     overridden = _primary_veto_read(view).stakeholder_id
@@ -818,6 +867,7 @@ async def handle_pitch_veto_breaker(websocket: WebSocket, user_id: int, payload:
     await send_events(websocket, user_id, [e.stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id) for e in events])
     # `_payload` fetches escalation_points fresh, so it already reflects the spend above.
     await _send(websocket, ctx, updated_state, view, applied=applied, veto_info=None, veto_broken=True)
+    return True
 
 
 def _apply_card(ctx: PitchContext, state: pitch.PitchState, view: pitch.CardView) -> dict[str, Any]:
