@@ -135,6 +135,8 @@ def build_graph_state(
                 comp["layout"] = c.layout
             if c.icon:
                 comp["icon"] = c.icon
+            if c.help:
+                comp["help"] = c.help
             if c.id in effective.capped_by:
                 comp["capped_by"] = effective.capped_by[c.id]
             if state.debt:

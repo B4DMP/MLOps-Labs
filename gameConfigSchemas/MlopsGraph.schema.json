@@ -219,6 +219,10 @@
           "icon": {
             "type": "string",
             "description": "Iconify icon name for this component"
+          },
+          "help": {
+            "type": "string",
+            "description": "One or two plain-language sentences shown in the composer"
           }
         }
       }

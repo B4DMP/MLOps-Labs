@@ -192,6 +192,7 @@
       "id": "req.kpi_definition",
       "stage_id": "req",
       "name": "KPI Definition",
+      "help": "Pins down the numbers the whole project will be judged by. Its one automation step is Implement It Manually, and Owner Sign-off gets the owner to approve it.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {},
@@ -230,6 +231,7 @@
       "id": "req.acceptance_criteria",
       "stage_id": "req",
       "name": "Acceptance Criteria",
+      "help": "Spells out what counts as done, so nobody argues about it at the end. Implement It Manually writes it by hand, and Owner Sign-off has the owner approve it.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {},
@@ -268,6 +270,7 @@
       "id": "req.data_contracts",
       "stage_id": "req",
       "name": "Data Contracts",
+      "help": "The agreement on what data arrives and in what shape. Implement It Manually keeps it a hand-run step, Automate It lets a platform run it, and Owner Sign-off adds the owner's approval.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {},
@@ -312,6 +315,7 @@
       "id": "req.risk_assessment",
       "stage_id": "req",
       "name": "Risk Assessment",
+      "help": "Lists what could go wrong before it does. Implement It Manually gets someone to do it by hand, and Owner Sign-off has the owner approve the result.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {},
@@ -350,6 +354,7 @@
       "id": "data.ingestion",
       "stage_id": "data",
       "name": "Data Ingestion Pipeline",
+      "help": "Pulls raw data into the pipeline, so everything downstream depends on it. Implement It Manually keeps a person running it, Automate It lets a platform do it, and Spot Checks give someone like Mark a say.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {
@@ -413,6 +418,7 @@
       "id": "data.validation",
       "stage_id": "data",
       "name": "Data Validation",
+      "help": "Catches bad or broken data before it travels any further. Implement It Manually has a person run the checks, Automate It runs them on a platform, and Spot Checks add a human look at the results.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {
@@ -476,6 +482,7 @@
       "id": "data.feature_store",
       "stage_id": "data",
       "name": "Feature Store",
+      "help": "Keeps the prepared features in one shared place for training and serving. Implement It Manually means hand upkeep, Automate It lets a platform keep it fed, and Spot Checks add a human look.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {
@@ -539,6 +546,7 @@
       "id": "data.versioning",
       "stage_id": "data",
       "name": "Data Versioning",
+      "help": "Remembers exactly which data each model was built from. Implement It Manually tracks it by hand, Automate It does it on a platform, and Spot Checks add a human look.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {
@@ -593,6 +601,7 @@
       "id": "data.labeling",
       "stage_id": "data",
       "name": "Data Labeling Pipeline",
+      "help": "Produces the answers the model learns from. Implement It Manually has people label by hand, Automate It runs the labeling on a platform, and Spot Checks sample the labels.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {
@@ -647,6 +656,7 @@
       "id": "data.training_drift_check",
       "stage_id": "data",
       "name": "Training Data Drift Check",
+      "help": "Warns when the training data no longer looks like the real world. Implement It Manually compares by hand, Automate It runs the comparison on a platform, and Spot Checks add a human look.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {},
@@ -691,6 +701,7 @@
       "id": "model.experiment_tracking",
       "stage_id": "model",
       "name": "Experiment Tracking",
+      "help": "Keeps a record of every experiment so good runs are not lost. Implement It Manually logs by hand, Automate It records runs on a platform, and Second Review has another person read the results.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {
@@ -745,6 +756,7 @@
       "id": "model.registry",
       "stage_id": "model",
       "name": "Model Registry",
+      "help": "The shelf where approved models are stored and found again. Implement It Manually files them by hand, Automate It lets a platform do it, and Second Review has another person check the results.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {
@@ -808,6 +820,7 @@
       "id": "model.training_pipeline",
       "stage_id": "model",
       "name": "Training Pipeline",
+      "help": "Turns data into a trained model, over and over. Implement It Manually has a person run it, Automate It lets a platform run it, and Second Review has another person check the results.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {
@@ -862,6 +875,7 @@
       "id": "model.hpo",
       "stage_id": "model",
       "name": "Hyperparameter Tuning",
+      "help": "Searches for the settings that make the model work best. Implement It Manually tries them by hand, Automate It searches on a platform, and Second Review has another person check the results.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {
@@ -916,6 +930,7 @@
       "id": "model.evaluation",
       "stage_id": "model",
       "name": "Model Evaluation Harness",
+      "help": "Tests whether a model is good enough to ship. Implement It Manually runs the tests by hand, Automate It runs them on a platform, and Second Review has another person read the outcome.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {},
@@ -960,6 +975,7 @@
       "id": "deploy.cicd",
       "stage_id": "deploy",
       "name": "CI/CD Pipeline",
+      "help": "Carries a change from code to production. Implement It Manually has a person push each release, Automate It lets a platform do it, and Tech-Lead Approval needs a sign-off first.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {
@@ -1014,6 +1030,7 @@
       "id": "deploy.serving",
       "stage_id": "deploy",
       "name": "Model Serving Endpoint",
+      "help": "The live service that answers requests with the model. Implement It Manually keeps it a hand-run job, Automate It lets a platform run it, and Tech-Lead Approval needs a sign-off first.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {
@@ -1078,6 +1095,7 @@
       "id": "deploy.canary_ab",
       "stage_id": "deploy",
       "name": "Canary and A/B Testing",
+      "help": "Tries a new model on a small share of users before everyone gets it. Implement It Manually sets it up by hand, Automate It runs it on a platform, and Tech-Lead Approval needs a sign-off.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {},
@@ -1122,6 +1140,7 @@
       "id": "deploy.shadow",
       "stage_id": "deploy",
       "name": "Shadow Deployment",
+      "help": "Runs a new model quietly beside the old one so nobody feels a mistake. Implement It Manually sets it up by hand, Automate It lets a platform run it, and Tech-Lead Approval needs a sign-off.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {},
@@ -1166,6 +1185,7 @@
       "id": "deploy.containerization",
       "stage_id": "deploy",
       "name": "Containerization",
+      "help": "Packs the model and its tools so it runs the same everywhere. Implement It Manually builds the package by hand, Automate It lets a platform build it, and Tech-Lead Approval needs a sign-off.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {
@@ -1219,6 +1239,7 @@
       "id": "deploy.orchestration",
       "stage_id": "deploy",
       "name": "Orchestration",
+      "help": "Decides what runs when, and restarts what falls over. Implement It Manually has a person schedule it, Automate It lets a platform do it, and Tech-Lead Approval needs a sign-off.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {
@@ -1273,6 +1294,7 @@
       "id": "deploy.api_gateway",
       "stage_id": "deploy",
       "name": "API Gateway",
+      "help": "The front door that every request to the model passes through. Implement It Manually keeps it a hand-run job, Automate It lets a platform manage it, and Tech-Lead Approval needs a sign-off.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {
@@ -1327,6 +1349,7 @@
       "id": "ops.performance_monitoring",
       "stage_id": "ops",
       "name": "Model Performance Monitoring",
+      "help": "Watches how well the live model is doing. Implement It Manually means someone looks by hand, Automate It watches on a platform, and Documented & Agreed writes the rules down with on-call.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {},
@@ -1371,6 +1394,7 @@
       "id": "ops.production_drift_monitoring",
       "stage_id": "ops",
       "name": "Production Drift Monitoring",
+      "help": "Notices when live data drifts away from what the model learned. Implement It Manually means someone compares by hand, Automate It watches on a platform, and Documented & Agreed writes the rules down with on-call.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {
@@ -1425,6 +1449,7 @@
       "id": "ops.alerting",
       "stage_id": "ops",
       "name": "Alerting System",
+      "help": "Gets the right person's attention when something breaks. Implement It Manually means someone raises the alarm by hand, Automate It fires alerts on a platform, and Documented & Agreed writes the rules down with on-call.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {
@@ -1479,6 +1504,7 @@
       "id": "ops.observability",
       "stage_id": "ops",
       "name": "Logging and Observability",
+      "help": "Lets the team see what the system is doing and why. Implement It Manually means collecting logs by hand, Automate It collects them on a platform, and Documented & Agreed writes the rules down with on-call.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {
@@ -1533,6 +1559,7 @@
       "id": "ops.retraining_trigger",
       "stage_id": "ops",
       "name": "Retraining Trigger",
+      "help": "Decides when the model needs to learn again. Implement It Manually means a person decides, Automate It lets a platform start it, and Documented & Agreed writes the rules down with on-call.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {},
@@ -1577,6 +1604,7 @@
       "id": "ops.rollback",
       "stage_id": "ops",
       "name": "Rollback Mechanism",
+      "help": "The way back to the last good model when a release goes wrong. Implement It Manually means a person does the revert, Automate It lets a platform do it, and Documented & Agreed writes the rules down with on-call.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {},

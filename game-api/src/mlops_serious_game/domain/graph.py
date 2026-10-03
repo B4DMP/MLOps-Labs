@@ -170,6 +170,7 @@ class Component(BaseModel):
     governance_options: list[Option] = Field(default_factory=list)
     layout: Optional[dict] = Field(default=None, description="SVG layout hint {x, y} for the stage modal")
     icon: Optional[str] = Field(default=None, description="Iconify icon name for this component")
+    help: Optional[str] = Field(default=None, description="Plain-language blurb shown in the composer")
 
 
 class Edge(BaseModel):
