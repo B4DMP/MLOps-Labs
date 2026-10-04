@@ -1,0 +1,101 @@
+# Gameplay flow (read this before touching any screen)
+
+Paths: UI = `game-ui/src`, API = `game-api/src/mlops_serious_game`. Written from reading the code,
+not from playing it. Update it when the flow changes.
+
+## One-line loop
+
+Register/Login -> intro briefing -> [per challenge: phase briefing -> offline intel -> pitch ->
+(veto -> revise) -> simulation] -> next challenge, or Results.
+
+## How screens are chosen
+
+No router. `App.tsx` picks login/register/verify/game with booleans; identity is an httpOnly
+cookie (`mlops_player`), the websocket authenticates from it. The URL is telemetry only.
+Resume position is **server side only**: `handle_game_init` (`game_handler.py`) reads the run's max
+`game_progress_index` and the latest `GameChallenge` row.
+
+`Game.tsx` renders by `progressionIndex`: null = loading, 0 intro questionnaire, 1 briefing
+(demo briefing if `hasIntroPhase`), 2 real briefing then gameplay, 3 outro questionnaire,
+4 `ResultsScreen`. Inside gameplay `challengeLoopId` picks the view: **0 offline intel, 1 and 2
+pitch (one screen), 3 simulation**. `PrePhaseDialog` is an overlay opened when `challengeLoopId`
+is 0 and the `phase:challenge` key changed (skipped if `seenBriefings` has it).
+
+**Loop index quirk:** the client sends its *current* index in `game:state_update_request`, the
+server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch end sends 2 (stores
+3 = simulation), simulation Continue sends 3 (stores 4 = "next challenge or end").
+
+## Steps
+
+1. **Register / Login** (`Register.tsx`, `Login.tsx`, calls in `App.tsx`, `routes/auth_routes.py`).
+   Register collects email, password, campaign key, mute and voice gender; email verification
+   unless the campaign skips it.
+2. **Intro briefing** (`BriefingPage.tsx`): hard-coded Honey Vault `DEMO_BRIEFING` when
+   `hasIntroPhase`, else the backend briefing. Continue sends `game:progress_update` value 2.
+3. **Phase briefing** (`PrePhaseDialog.tsx`): phase intro, challenge card, `PowerInterestMatrix`
+   (radar) with each newcomer's self-introduction. Phase 0 order: `intro2` tour, then narration of
+   phase and challenge, then introductions, then the Enter button is nudged. Closing it reveals
+   the already-mounted offline intel screen. Review reopen (from the dossier) is a modal with no
+   narration. This is where Power and Interest are first explained.
+4. **Offline intel** (`offline_intel_gathering.tsx`, dossier left, `IntelArtifactViewer.tsx`):
+   deck = on-record cards first (1 challenge Fact + the conflict stakeholders' positions,
+   normally 3), then up to 3 stance artifacts to tag as driver / boundary / trade-off
+   (`MAX_STANCE_ARTIFACTS`, `intel_handler.py`). Known cards cannot be tagged. Continue to the
+   Pitch appears only when every non-known card is tagged. Events: `intel:get_offline_artifacts`,
+   `intel:tag_item`, `intel:get_dossier`.
+5. **Pitch** (`pitch_debate.tsx`): dossier left; right column = boardroom table (stakeholder
+   seats, Pitch Deck plaque, stat chips), chat (`StakeholderInteractionArea.tsx`), engagement card
+   shelf.
+   - Cards (`GameEngagementCards.json`): Verify Intel (`intel:verify_item`), 1-to-1, Probe,
+     Team Sync-Up, Generic Question (`gather:open/ask/close`). 20 attention tokens per challenge.
+   - Pitch Deck opens `ComposeActionProposalModal.tsx`: graph of components and edges, two axes
+     (automation, governance), max 3 changes, only allowed targets of the phase stage.
+   - Stages `PREPARE -> PITCHED -> DONE`. Events: `pitch:state`, `pitch:evaluate` (stakeholders
+     react, no commit), `pitch:commit`, `pitch:veto_breaker`.
+6. **Outcome** (`scoring.py`): VETO if a high-power stakeholder has a violated boundary or low
+   buy-in; SOFT_PASS if only a low-power one objects; else PASS. VETO opens `VetoDialog.tsx`
+   (revise, or Push It Through with an Escalation Point: 3 per run, none in the intro). PASS and
+   SOFT_PASS auto-continue to `ac_simulation.tsx` (`simulation:run`, idempotent per challenge):
+   changes are applied, owners with low buy-in degrade them, grudges fire, the debrief is shown.
+7. **Next**: the *server* picks (`select_next_challenge`, `graph_service/scheduler.py`); the UI
+   just reacts to `game:state_update` (back to step 3) or `game:progress_change` (outro
+   questionnaire, then `ResultsScreen`: four pillars, grade, epilogue).
+
+## Phase 0 (demo)
+
+`demo: true` in `gameConfig/GameProgression.json`, one challenge (Honey Vault, Bruce and Mark).
+UI-only extras key off `currentPhase === 0`: tours `intro2`, `introDossier`, `introPitch`, a composer
+guide (`CoachTip` hints, was the `introCompose` tour), intel next-action hints, coach tips, graph hint button. Backend uses
+`PhaseFactory.demo_phase_ids()` / `is_demo`. When it ends the graph, metrics, escalation points
+and grudges are reset (`_reset_run_session`), the first real briefing shows a "practice round is
+over" alert.
+
+## Where things live
+
+- Narration: `utils/speech.ts` (one global arbiter, instrumentation, session mute), start gate
+  `NarratorGate.tsx`. Tours: `utils/tour.ts` (intro.js, group by `data-intro-group`). Tips:
+  `CoachTip.tsx` + `useIntroCoach.ts` (silent, seen-flags in localStorage per user).
+- Copy: `content/helpCopy.ts`, `content/graphHelp.ts`, `help` per component in
+  `gameConfig/MlopsGraph.json`, glossaries in `gameConfig/*Glossary.json`.
+- Re-pitch rules and impatience: `pitch_debate_service/session.py`; config in
+  `EmotionValueConfig.json` (`impatience_*`).
+- Plan and history of the intro work: `docs/plans/intro-pitch-handholding.md`.
+
+## Rules for player-facing text
+
+No numbers, thresholds, formulas or percentages (resource counts like tokens are fine). Say only
+what the engine does. In the intro never say a stakeholder *will* remember (grudges reset after
+the demo), say "in the real game". No em dashes.
+
+## Gotchas
+
+- A broken component needs "Fix It" and then "Automate It" (two slots) to meet an automate driver; fixing it by hand alone leaves the driver unmet and a downstream step is capped by it.
+- `get_phases()` always includes phase 0, and the client ignores the campaign flag
+  `intro_phase_enabled`, so the demo briefing can show before a first challenge in phase 1.
+- `handle_state_update_request` and `handle_get_dossier` read the latest `GameChallenge` without
+  scoping to the current run.
+- A broken veto is graded like a VETO in results (`outcome.veto_breaker` is not mapped).
+- Token deduction on card play is trusted from the client payload.
+- Stages `OBJECT` / `COMMIT` exist in the client type but are never sent.
+- Tour guards (`introTourStartedRef`, `introDossier...`) are per mount, only the coach tips and
+  briefings persist "seen".

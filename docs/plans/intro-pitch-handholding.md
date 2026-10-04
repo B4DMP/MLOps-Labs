@@ -29,7 +29,7 @@ Mistakes get a short, silent tip. No veto breaker in the intro.
 - Say only what the engine does. The simulation plays changes out and shows what owners do with
   them; it does not "check promises". In the intro never say someone *will* remember; say "in the
   real game, people remember being passed over".
-- Mistake tips are silent. Only tour steps are narrated.
+- D5: guide hints (the live guide steps) are narrated in the narrator voice like tour steps, through the narrator gate and respecting mute and auto-skip. Mistake tips (amber heads-up) stay silent.
 
 ## Ship for the next playtest
 
@@ -114,9 +114,13 @@ fast path.
 - Facts (developer only): power decides who can veto; interest and power together set how hard a
   pitch moves someone's mood. Bruce and Mark react equally, only Bruce can block.
 - Definitions added to `MLOpsGlossary.json` (`power`, `interest`, `boundary`, `veto`), hover tags
-  on dossier badges, seat chips ("High power", "Low interest") until the explainer has been seen
-  once, and the existing `PowerInterestMatrix` shown once in the cast step and linked from the
-  cheat sheet. Check whether the phase 0 briefing already shows that matrix.
+  on dossier badges and seat chips. The explanation lives in the briefing radar (`PrePhaseDialog`
+  step and Radar Guide, one-line consequence per quadrant in `PowerInterestMatrix`). The pitch
+  screen has no modal. Decision: the seat chips are icon only (lightning for power, eye for
+  interest, red high / blue low like the dossier badges), merged into the stakeholder's nameplate
+  next to the name, with no separate chip row. Each icon has a `HoverTooltip` and an aria-label that
+  state the level ("High power: can stop the whole plan."). Shown always in the intro. The cast step
+  points at "the little bolt and eye next to each name" and back to the briefing radar.
 
 ### 8. "Where do I click" on artifacts
 In `offline_intel_gathering.tsx` pulses already exist (category buttons for unknown, Next for
@@ -223,7 +227,7 @@ full set: the first-ten-minutes path (gate, steps 2 to 5, graph tour, veto feedb
 ## Decisions made
 Veto breaker off in the intro; real veto shown and explained; Commit not blocked; validation
 mistake not forced; Escalations chip beside Tokens/Intel; mistake tips separate from tours and
-silent; start gate as an app modal with a Lordicon hero; graph help inside the demo plus a
+silent while guide hints are narrated (D5); start gate as an app modal with a Lordicon hero; graph help inside the demo plus a
 cheat sheet tab; layered Power/Interest help; seen-once flags in `localStorage`; buy-in as word
 bands; resource counts are fine in copy.
 
@@ -267,6 +271,13 @@ Contract between backend and frontend (names fixed up front):
 - [x] GR3 Identical-card disabled Confirm with inline notice, edge hover sentences
 - [x] QA1 Audit: no digits or em dashes in new copy, claims match engine, tests green
 
+Guide polish (Part A):
+- [x] A1 Guide hints wait until no dialog, verification result, veto dialog, composer, cheat sheet, events log or artifact view is open (`guideReady`), and hold briefly after Verify Intel is played until its result dialog opens
+- [x] A2 New guide step "verifyReact" between verify and talk, worded from the last `intel:verified_res` (right: confirmed notes are safe; wrong: filed under the wrong type, now corrected)
+- [x] A3 `CoachTip` rebuilt: springy entrance and soft exit (`motion/react`), idle float, non-blocking pulse ring on the anchor, Lordicon hero per step (`OnceIcon`), amber heads-up tone for mistake tips, reduced-motion fallback, viewport-aware placement; icon map in `docs/plans/lordicon-icons.md`
+- [x] A4 Guide hints narrated (`useGuideNarration`: narrator slot, `TOUR_GUIDE_SEED`, narrator gate, mute and auto-skip, waits for an idle queue, cancels on dismiss or advance); mistake tips silent; hint shown as plain text (no `SpokenText` highlight)
+- [x] A5 Seat power/interest icons merged into the nameplate with level tooltips and aria-labels; cast step copy updated
+
 Notes from implementation:
 - BE4: the grudge hand-off for leftover impatience in the real game is NOT done (one-line TODO in
   `handle_pitch_commit`); impatience is per challenge and never stored in emotions, so nothing
@@ -279,3 +290,23 @@ Notes from implementation:
 - QA1 fixes applied: `veto_info` now re-derived on reload (`PitchState.veto_message`), free revision limited to the first one (`free_repeat_used`), cheat sheet replay button limited to phase 0, one `tour.ts` type error.
 - Known gaps: the unlabelled veto/objection notch no longer draws (the client has no threshold; accepted, buy-in shows as word bands); the likely-veto tip does not make the revision free (only the post-veto revision is); real-game grudge hand-off for leftover impatience is a TODO in `handle_pitch_commit`.
 - Not run in a browser: tour steps, start gate, coach tips, hint ladder, cheat sheet tab. 8 backend tests (`test_demo_phase.py` 5, `test_playtest.py` 3) fail on stale test schemas, confirmed pre-existing and unrelated. Remaining tsc errors (`Game.tsx`, `StakeholderDossier.tsx` status index, `nodeChrome.tsx`) are pre-existing.
+
+## Review follow-ups (found by flow review, fixed)
+
+- [x] F1 Repeat veto swallowed: `vetoKeyRef` / `dismissedVetoKeyRef` are cleared when the stage leaves DONE; the streak is kept per user and challenge in sessionStorage (`recordVeto`, same veto after a reload is not counted twice)
+- [x] F2 Reveal step anchors on the stakeholder's dossier page (not the player's own tag)
+- [x] F3 "Thin intel" tip is reported when the composer closes back onto the shelf, and not after a veto Revise
+- [x] F4 Seat icons state the level in tooltip and aria-label (done with A5)
+- [x] F5 Cast tour step is now `data-step=3`; chat and cards moved to 4 and 5
+- [x] F6 Dead notch branch, `threshold` field and line copy removed from `StakeholderDossier.tsx`
+- [x] F7 Composer tour seen flag persisted per user (superseded by C1: own storage key via `composeGuide.ts`, Replay resets it); cheat sheet replay button driven by `canReplayComposerGuide`; outside the composer a hint with a Close button replaces the dead end
+- [x] C1 composer guide: the `introCompose` intro.js tour (markup, module-level start, narrator-gate wiring, `utils/introComposeTour.ts`) is removed. `utils/composeGuide.ts` (`pickComposeStep`, `pickGuideTarget`) drives `CoachTip` hints from the composer's live state: canvas, two dials (the legend is opened for the step), click the target node, pick its step, governance, what feeds on what, slots and Confirm. Action steps wait for the player (selected node, a new slot; the Hint button slotting counts). Flags are per user under their own storage key with an own "Skip the guide" (`composeOff`), so the pitch guide's skip does not silence it; the cheat sheet replay clears them and restarts a mounted composer. Copy: `COMPOSE_GUIDE` in `helpCopy.ts`.
+- [x] F8 Unused `.explainer*` and `.pitchExplainerText` CSS removed; `verifyDone` also reads a persisted flag so it survives a reload; cheat sheet `handleReplayDemo` waits for coach tips to clear
+
+## Chain-aware guidance (broken components need two steps)
+
+- [x] A Backend: `suggested_level` / `suggested_axis` on dossier intel items; `objection_level` / `objection_axis` on `veto_info`; test for the driver veto of "Fix It" + validation card
+- [x] B Composer guide target is chain-aware (`chainStatus`, `raiseMore` step) until the wanted option is slotted
+- [x] C Amber, silent, once-per-user composer tip when a slotted step is capped by its upstream (`findCappedStep`)
+- [x] D Veto feedback names the driver's step and the earlier step a broken component needs
+- [x] E `quiet` on `pitch:state` reads; a quiet stakeholder's buy-in card stays revealed from an earlier pitch (`isReadRevealed`)

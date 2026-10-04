@@ -24,6 +24,13 @@ this project's environment — it belongs to the user's other, unrelated work.
   than reaching for the host environment - don't silently substitute it.
 - This applies to every language/toolchain in this repo (Python, Node), not just the backend.
 
+## Know the gameplay flow before changing a screen
+
+Read `docs/gameplay-flow.md` first: which screen the player sees when, what advances it, and where
+each concept (power/interest, intel, pitch, veto, simulation) is first introduced. Put new help
+or explanations on the screen where the player first meets the thing, and reuse the existing
+component instead of building a duplicate. Update that document when the flow changes.
+
 ## Keep comments short
 
 Default to 1-2 lines. Only go to 3-4 when the reasoning genuinely isn't obvious from the code
