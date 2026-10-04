@@ -102,6 +102,33 @@ async def test_veto_payload_names_the_objection_and_its_item(migrated_db):
 
 
 @pytest.mark.anyio
+async def test_driver_veto_names_the_level_the_driver_asked_for(migrated_db):
+    """Ingestion only fixed by hand, validation done: Bruce's driver is still unmet."""
+    await _seed_intro_player()
+    wrong = [
+        {"target": "data.ingestion", "kind": "raise_to", "axis": "automation", "value": 2},
+        {"target": "data.validation", "kind": "raise_to", "axis": "automation", "value": 2},
+        {"target": "data.validation", "kind": "raise_to", "axis": "automation", "value": 3},
+    ]
+    result = await _commit(wrong)
+
+    assert result["outcome"] == "VETO"
+    info = result["veto_info"]
+    assert info["objection_kind"] == "driver"
+    assert info["objection_target"] == "data.ingestion"
+    assert info["objection_axis"] == "automation"
+    assert info["objection_level"] == 3
+
+
+@pytest.mark.anyio
+async def test_boundary_veto_carries_the_held_level(migrated_db):
+    await _seed_intro_player()
+    info = (await _commit(AUTOMATE_ONLY))["veto_info"]
+    assert info["objection_level"] == 2
+    assert info["objection_axis"] == "automation"
+
+
+@pytest.mark.anyio
 async def test_reads_carry_a_band_and_an_impatience_step(migrated_db):
     await _seed_intro_player()
     result = await _commit(SCRIPTED_CARD)
@@ -166,7 +193,9 @@ async def test_stakeholders_with_nothing_new_get_a_system_line_and_no_emotion_up
     assert all(p["message"].endswith("had nothing new to react to.") for p in lines)
     quiet = pitch_store.load_pitch(_uid(), 0, DEMO_CHALLENGE_ID).repeat_context
     assert len(lines) == sum(1 for ctx in quiet.values() if ctx == "quiet")
+    reads = {r["stakeholder_id"]: r for r in result["reads"]}
     for st_id, ctx in quiet.items():
+        assert reads[st_id]["quiet"] == (ctx == "quiet")
         if ctx == "quiet":
             assert pitch_store.emotion_values(_uid(), [st_id])[st_id] == emotions[st_id]
 

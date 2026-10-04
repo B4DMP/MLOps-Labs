@@ -135,6 +135,8 @@ def _veto_info(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardVie
         "boundary_violated": read.boundary_violated,
         "objection_target": obj.get("objection_target"),
         "objection_item_id": obj.get("item_id"),
+        "objection_level": obj.get("objection_level"),
+        "objection_axis": obj.get("objection_axis"),
     }
 
 
@@ -295,7 +297,11 @@ def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView,
             {**w.model_dump(), "line": personalize(w.line) if w.line else None}
             for w in pitch.player_boundary_warnings(ctx.graph, view.boundary_warnings, held)
         ],
-        "reads": [r.model_dump() for r in view.reads],
+        # `quiet`: nothing new for them last evaluate, so their earlier reading still stands.
+        "reads": [
+            {**r.model_dump(), "quiet": state.repeat_context.get(r.stakeholder_id) == "quiet"}
+            for r in view.reads
+        ],
         "predicted_outcome": view.outcome,
         "objections": [o.model_dump() for o in state.open_objections()],
         "feedback_messages": [m.model_dump() for m in state.feedback_messages],

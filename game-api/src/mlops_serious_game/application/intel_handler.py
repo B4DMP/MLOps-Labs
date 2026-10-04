@@ -1313,6 +1313,9 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
                 else _phase_of_challenge(item.challenge_id)
             ),
             "target": target,
+            # The step a Driver asks for, so the UI can name it.
+            "suggested_level": getattr(getattr(item, "suggested", None), "level", None),
+            "suggested_axis": getattr(getattr(item, "suggested", None), "axis", None),
             # How many intel items exist about this graph target in total, found or not - the
             # per-target counterpart to the per-stakeholder `intel_total` on the dossier entry.
             "target_total": target_intel_totals.get(target) if target else None,

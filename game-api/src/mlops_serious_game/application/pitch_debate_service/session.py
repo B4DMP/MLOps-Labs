@@ -1249,6 +1249,7 @@ def compute_stakeholder_primary_objection(
         v = violated_boundaries[0]
         item = next((i for i in st_intel if getattr(i, "id", None) == v.item_id), None)
         item_desc = getattr(item, "description", None) if item else None
+        _, b_level, b_axis = item_target_and_level(item) if item else (None, None, None)
         target_name = (v.target or "").replace("req.", "").replace("_", " ") if v.target else "my boundary condition"
         if item_desc:
             detail = f"This violates my boundary constraint: '{item_desc}'."
@@ -1259,12 +1260,14 @@ def compute_stakeholder_primary_objection(
             "objection_kind": "boundary",
             "objection_detail": detail,
             "objection_target": v.target,
+            "objection_level": b_level,
+            "objection_axis": b_axis,
             "distance": 1.0,
             "is_approval": False,
         }
 
     # 2. Compute distance for stance requirements (Drivers and Trade-offs)
-    candidates: list[tuple[float, str, str, str, Optional[str]]] = []
+    candidates: list[tuple[float, str, str, str, Optional[str], Optional[int], Optional[str]]] = []
 
     for req in st_intel:
         r_type = getattr(req, "type", None) or (req.get("type") if isinstance(req, dict) else None)
@@ -1280,23 +1283,27 @@ def compute_stakeholder_primary_objection(
             target_label = target.replace("req.", "").replace("_", " ") if target else "my required component"
             detail = f"The proposal neglects my demand: '{desc}'." if desc else f"The proposal completely neglects my demand for {target_label}."
             if dist > 0.0:
-                candidates.append((dist, r_id, "driver", detail, target))
+                sugg = getattr(req, "suggested", None)
+                candidates.append((dist, r_id, "driver", detail, target,
+                                   getattr(sugg, "level", None), getattr(sugg, "axis", None)))
 
         elif r_type in (IntelTag.TRADE_OFF, "trade_off"):
             is_sat = is_trade_off_satisfied(req, card_atoms, target_levels, state)
             dist = 0.0 if is_sat else 1.0
             detail = "Neither my primary demand nor my compromise was addressed in the proposal."
             if dist > 0.0:
-                candidates.append((dist, r_id, "trade_off", detail, None))
+                candidates.append((dist, r_id, "trade_off", detail, None, None, None))
 
     if candidates:
         candidates.sort(key=lambda c: c[0], reverse=True)
-        max_dist, item_id, kind, detail, target = candidates[0]
+        max_dist, item_id, kind, detail, target, level, axis = candidates[0]
         return {
             "item_id": item_id,
             "objection_kind": kind,
             "objection_detail": detail,
             "objection_target": target,
+            "objection_level": level,
+            "objection_axis": axis,
             "distance": max_dist,
             "is_approval": False,
         }
@@ -1306,6 +1313,8 @@ def compute_stakeholder_primary_objection(
         "objection_kind": "none",
         "objection_detail": "The proposal looks aligned with my priorities. I'm on board.",
         "objection_target": None,
+        "objection_level": None,
+        "objection_axis": None,
         "distance": 0.0,
         "is_approval": True,
     }
