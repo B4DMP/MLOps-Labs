@@ -9,8 +9,9 @@ import { useSpeech } from "./useSpeech";
 import { startTour } from "../utils/tour";
 import { useNarratorGate } from "./useNarratorGate";
 import { TOUR_GUIDE_SEED } from "../utils/speech";
+import { waitForCoachClear } from "../utils/introCoach";
 import { AUTOMATION_META, GOVERNANCE_META } from "../utils/stageCanvas";
-import { INTRO_COMPOSE_TOUR_GROUP, resetIntroComposeTour } from "../utils/introComposeTour";
+import { resetComposeGuide } from "../utils/composeGuide";
 import { GRAPH_DEFINITIONS, GRAPH_EXAMPLE } from "../content/graphHelp";
 
 /** Which intro.js tour group each section's "Replay Demo" button reopens. Only sections that
@@ -22,7 +23,6 @@ const SECTION_TOUR_GROUP: Record<string, string> = {
   "Digging for Intel": "introDossier",
   "Pitch & Debate": "introPitch",
   Simulate: "introSimulate",
-  "MLOps Graph": INTRO_COMPOSE_TOUR_GROUP,
 };
 
 type CheatSheetTab = "guide" | "graph" | "bug";
@@ -35,7 +35,7 @@ const GRAPH_AUTOMATION_STEPS = [
 ];
 const GRAPH_GOVERNANCE_STEPS = [
   { name: "No review", meta: GOVERNANCE_META[0] },
-  { name: "A review step, named per component (Spot Checks, Second Review, Tech-Lead Approval...)", meta: GOVERNANCE_META[3] },
+  { name: "A review step, named per component (Spot Checks, Second Review, ...)", meta: GOVERNANCE_META[3] },
 ];
 
 const MAX_BUG_MESSAGE_LENGTH = 4000;
@@ -59,6 +59,10 @@ interface CheatSheetModalProps {
   challengeTitle?: string;
   /** Tab to show on open. Defaults to the guide. */
   initialTab?: CheatSheetTab;
+  /** True while the pitch composer is mounted, so its guide can be replayed from here. */
+  canReplayComposerGuide?: boolean;
+  /** Player id, so a replay can reset the composer guide's seen flags. */
+  userId?: number | null;
 }
 
 interface CheatSheetSection {
@@ -197,6 +201,8 @@ export default function CheatSheetModal({
   currentChallenge,
   challengeTitle,
   initialTab = "guide",
+  canReplayComposerGuide = false,
+  userId,
 }: CheatSheetModalProps) {
   const [isClosing, setIsClosing] = useState(false);
   const [poppingTitle, setPoppingTitle] = useState<string | null>(null);
@@ -252,8 +258,18 @@ export default function CheatSheetModal({
     setTimeout(() => {
       setIsClosing(false);
       onClose();
-      if (group === INTRO_COMPOSE_TOUR_GROUP) resetIntroComposeTour();
-      startTour(group, { beforeStart: () => gate.request(), narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
+      startTour(group, { beforeStart: async () => { await waitForCoachClear(); return gate.request(); }, narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
+    }, 200);
+  };
+
+  /** Closes the sheet, then restarts the composer guide (the mounted composer picks the reset up). */
+  const handleReplayComposerGuide = () => {
+    if (isClosing) return;
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsClosing(false);
+      onClose();
+      resetComposeGuide(userId);
     }, 200);
   };
 
@@ -386,18 +402,24 @@ export default function CheatSheetModal({
                   <li key={step}>{step}</li>
                 ))}
               </ul>
-              {currentPhase === 0 && typeof document !== "undefined" && document.querySelector(`[data-intro-group="${INTRO_COMPOSE_TOUR_GROUP}"]`) ? (
+              {currentPhase === 0 && canReplayComposerGuide ? (
                 <button
                   type="button"
                   className={styles.replayDemoButton}
-                  onClick={() => handleReplayDemo(SECTION_TOUR_GROUP["MLOps Graph"])}
-                  title="Replay the guided walkthrough of the composer"
+                  onClick={handleReplayComposerGuide}
+                  title="Replay the guide in the composer"
                 >
                   <Icon icon="ph:play-circle-bold" />
                   <span>Replay graph walkthrough</span>
                 </button>
               ) : currentPhase === 0 ? (
-                <div className={styles.glyphLine}>Open this from the pitch composer to replay the walkthrough.</div>
+                <div className={styles.glyphLine}>
+                  <span>Open the Pitch Deck, then press ? in the composer to replay the walkthrough.</span>
+                  <button type="button" className={styles.replayDemoButton} onClick={handleClose}>
+                    <Icon icon="ph:x-circle-bold" />
+                    <span>Close this sheet</span>
+                  </button>
+                </div>
               ) : null}
             </div>
           </div>

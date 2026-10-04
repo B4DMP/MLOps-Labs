@@ -4,15 +4,31 @@ import { Icon } from "@iconify/react";
 import { EMOJI_ICON } from "../utils/emojiIcons";
 import styles from "./ComposeActionProposalModal.module.css";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
-import { useSpeech } from "./useSpeech";
-import { startTour } from "../utils/tour";
+import { AnimatePresence } from "motion/react";
+import CoachTip, { type CoachIconKey } from "./CoachTip";
+import { useGuideNarration } from "./useGuideNarration";
 import { useNarratorGate } from "./useNarratorGate";
-import { waitForCoachClear } from "../utils/introCoach";
-import { TOUR_GUIDE_SEED } from "../utils/speech";
+import { isCoachTipOpen } from "../utils/introCoach";
+import {
+  COMPOSE_KEYS,
+  completedKeys,
+  type ComposeStepId,
+  buildGuideWhy,
+  onComposeGuideReset,
+  plainAutomation,
+  resolveMarkers,
+  pickComposeStep,
+  pickGuideTarget,
+  chainStatus,
+  wantedLevelFor,
+  findCappedStep,
+  readComposeSeen,
+  writeComposeSeen,
+} from "../utils/composeGuide";
 import { sameAsLastPitch } from "../utils/sameCard";
 import { describeHandoff } from "../utils/edgeSummary";
-import { INTRO_COMPOSE_TOUR_GROUP, markIntroComposeTourStarted } from "../utils/introComposeTour";
-import { GRAPH_HINTS, GRAPH_HINT_OPTION, GRAPH_HINT_TARGET, GRAPH_TOUR } from "../content/graphHelp";
+import { GRAPH_HINTS, GRAPH_HINT_OPTION, GRAPH_HINT_TARGET } from "../content/graphHelp";
+import { COACH_TIPS, COMPOSE_GUIDE, PITCH_GUIDE } from "../content/helpCopy";
 import type { Stakeholder } from "./StakeholderProvider";
 import type { StakeholderDossierEntry, IntelEntry } from "./StakeholderDossier";
 import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
@@ -234,6 +250,8 @@ export interface ComposeActionProposalModalProps {
   /** Shows a "?" in the header that asks the host to open the cheat sheet on its MLOps Graph
    *  tab. The composer stays mounted underneath so the replayed walkthrough can find its markup. */
   onOpenCheatSheet?: () => void;
+  /** The host has something else on screen (cheat sheet, coach tip, tour, start gate); the guide waits. */
+  guidePaused?: boolean;
 }
 
 const MAX_ATOMIC_CHANGES = 3;
@@ -391,7 +409,10 @@ function OptionLadder({
   };
 
   return (
-    <div className={`${styles.axisSection} ${axis === "governance" ? styles.axisSectionGovernance : ""}`}>
+    <div
+      className={`${styles.axisSection} ${axis === "governance" ? styles.axisSectionGovernance : ""}`}
+      data-coach={axis === "governance" ? "compose-governance" : undefined}
+    >
       <div className={styles.axisHeader}>
         <span className={styles.formLabel}>
           <Icon icon={AXIS_ICONS[axis]} />
@@ -433,6 +454,7 @@ function OptionLadder({
               <div
                 key={`${axis}-${option.to_level}`}
                 role="listitem"
+                data-coach-option={`${axis}-${option.to_level}`}
                 className={`${styles.optionRow} ${
                   status === "next"
                     ? styles.optionRowNext
@@ -521,9 +543,9 @@ export default function ComposeActionProposalModal({
   intelTotal = 0,
   intelVerified = 0,
   onOpenCheatSheet,
+  guidePaused = false,
 }: ComposeActionProposalModalProps) {
-  const { emit, subscribe } = useGameWebSocket();
-  const { speak: speakTts } = useSpeech();
+  const { emit, subscribe, userId } = useGameWebSocket();
   const gate = useNarratorGate();
   const highlight = useGlossaryHighlighter("action_proposal");
 
@@ -754,14 +776,6 @@ export default function ComposeActionProposalModal({
       setActiveStageId(phaseStageId);
     }
   }, [isOpen, phaseStageId]);
-
-  useEffect(() => {
-    // Phase 0 has exactly one challenge, so checking the phase alone is sufficient -
-    // `currentChallenge` is the challenge's *global* id (e.g. 113), not a phase-relative index.
-    if (!isOpen || currentPhase !== 0) return;
-    if (!markIntroComposeTourStarted()) return;
-    startTour(INTRO_COMPOSE_TOUR_GROUP, { beforeStart: async () => { await waitForCoachClear(); return gate.request(); }, narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }) });
-  }, [isOpen, currentPhase]);
 
   // Map of all components by ID across stages
   const allComponentsMap = useMemo(() => {
@@ -995,7 +1009,213 @@ export default function ComposeActionProposalModal({
   const hintCanSlot =
     !!hintTarget && !!hintOption && optionStatus(hintTarget, "automation", hintOption, atomicChanges) === "next" && !slotsFull;
 
+  // ── Composer guide (intro only): hints that wait for the player's own moves ──
+  const isIntro = currentPhase === 0;
+  const [guideSeen, setGuideSeen] = useState<string[]>(() => readComposeSeen(userId));
+  useEffect(() => {
+    const reload = () => setGuideSeen(readComposeSeen(userId));
+    reload();
+    return onComposeGuideReset(reload);
+  }, [userId]);
+  const markGuide = useCallback(
+    (...keys: string[]) => {
+      const merged = Array.from(new Set([...readComposeSeen(userId), ...keys]));
+      writeComposeSeen(userId, merged);
+      setGuideSeen(merged);
+    },
+    [userId]
+  );
+
+  const guideTargetPick = useMemo(() => {
+    if (!isIntro) return null;
+    const components = Array.from(allComponentsMap.values()).filter(
+      (c) => isTargetEditable(c.id, "component", c.stage_id).editable
+    );
+    const driverTargets: string[] = [];
+    const notedTargets: string[] = [];
+    dossierData.forEach((entry) =>
+      (entry.intel_items ?? []).forEach((item) => {
+        const target = item.target || item.debug?.target;
+        if (!target) return;
+        notedTargets.push(target);
+        if (item.categorized_type === "driver") driverTargets.push(target);
+      })
+    );
+    return pickGuideTarget({
+      components,
+      allowed: allowedTargets,
+      driverTargets,
+      notedTargets,
+      avoid: GRAPH_HINT_TARGET,
+      changes: initialAtomicChangesResolved,
+    });
+  }, [isIntro, allComponentsMap, isTargetEditable, dossierData, allowedTargets, initialAtomicChangesResolved]);
+
+  const initialChangeKeys = useMemo(() => new Set(initialAtomicChangesResolved.map(dedupeKey)), [initialAtomicChangesResolved]);
+  const changeSlotted = atomicChanges.some((c) => !initialChangeKeys.has(dedupeKey(c)));
+  const guideTarget = guideTargetPick?.target;
+  const guideWhy = useMemo(() => {
+    const nameOf = (id: string) => (stakeholders as Record<string, Stakeholder | undefined>)[id]?.name;
+    const notes = (guideTarget ? notesByTarget[guideTarget.id] ?? [] : []).map((n) => ({
+      text: resolveMarkers(n.item.fact || n.item.description || "", nameOf),
+      driver: n.item.categorized_type === "driver",
+      fromChallenge: !n.stakeholderId,
+      who: n.stakeholderName,
+      canStop: String((stakeholders as Record<string, Stakeholder | undefined>)[n.stakeholderId ?? ""]?.power || "").toLowerCase() === "high",
+    }));
+    return buildGuideWhy(notes);
+  }, [guideTarget, notesByTarget, stakeholders]);
+  const guideChain = useMemo(() => {
+    if (!guideTarget) return null;
+    const notes = dossierData.flatMap((e) => e.intel_items ?? []).map((i) => ({ ...i, target: i.target || i.debug?.target }));
+    return chainStatus(guideTarget, wantedLevelFor(guideTarget.id, notes), atomicChanges);
+  }, [guideTarget, dossierData, atomicChanges]);
+  // A target the player has not touched has nothing further to raise.
+  const wantedReached =
+    !guideTarget || !guideChain || guideChain.reached || projectedOn(guideTarget, "automation", atomicChanges) <= nominalOn(guideTarget, "automation");
+  const guideOnStage = !!guideTarget && (!guideTarget.stage_id || guideTarget.stage_id === activeStageId);
+  const governanceOptionName =
+    selectedCompData && selectedCompEditable.editable ? optionsOn(selectedCompData, "governance")[0]?.name : undefined;
+  const guideReady = isIntro && isOpen && !confirmingLeave && !guidePaused && !gate.gateOpen && !isCoachTipOpen();
+
+  const guideFlow = {
+    seen: guideSeen,
+    canvasPresent: !!graphState && currentStageTechnical.components.length > 0,
+    hasTarget: guideOnStage,
+    nodeSelected: !!guideTarget && selectedCompId === guideTarget.id,
+    changeSlotted,
+    wantedReached,
+    governanceVisible: !!governanceOptionName,
+  };
+  const guideStepId = pickComposeStep({ ...guideFlow, ready: guideReady });
+
+  // An action the player already did must not come back if they undo it.
+  useEffect(() => {
+    if (!isIntro || !isOpen) return;
+    const keys = completedKeys(guideFlow);
+    if (keys.length) markGuide(...keys);
+  });
+
+  const guideStepRef = useRef(guideStepId);
+  if (isOpen) guideStepRef.current = guideStepId;
+  // Closing the composer from the last hint ends the guide.
+  useEffect(() => {
+    if (!isOpen) return;
+    return () => {
+      if (guideStepRef.current === "slots") markGuide(COMPOSE_KEYS.slots);
+    };
+  }, [isOpen, markGuide]);
+
+  let guide: {
+    id: ComposeStepId;
+    title: string;
+    body: string;
+    anchor: string;
+    icon: CoachIconKey;
+    key: string;
+    action: boolean;
+  } | null = null;
+  switch (guideStepId) {
+    case "canvas":
+      guide = { id: guideStepId, ...COMPOSE_GUIDE.canvas, anchor: '[data-coach="compose-canvas"]', icon: "canvas", key: COMPOSE_KEYS.canvas, action: false };
+      break;
+    case "dials":
+      guide = { id: guideStepId, ...COMPOSE_GUIDE.dials, anchor: '[data-coach="compose-legend"]', icon: "dials", key: COMPOSE_KEYS.dials, action: false };
+      break;
+    case "pickNode":
+      if (guideTarget) {
+        guide = {
+          id: guideStepId,
+          ...COMPOSE_GUIDE.pickNode(guideTarget.name, guideWhy),
+          anchor: `[data-coach-node="${guideTarget.id}"]`,
+          icon: "pickNode",
+          key: COMPOSE_KEYS.node,
+          action: true,
+        };
+      }
+      break;
+    case "pickOption":
+      if (guideTarget && guideTargetPick) {
+        guide = {
+          id: guideStepId,
+          ...COMPOSE_GUIDE.pickOption(
+            optionDisplayName(guideTarget, "automation", guideTargetPick.option),
+            guideTarget.name,
+            plainAutomation(guideTargetPick.option.to_level, guideTargetPick.option.description, guideTargetPick.option.name),
+            guideWhy.driver?.who
+          ),
+          anchor: `[data-coach-option="automation-${guideTargetPick.option.to_level}"]`,
+          icon: "pickOption",
+          key: COMPOSE_KEYS.option,
+          action: true,
+        };
+      }
+      break;
+    case "raiseMore":
+      if (guideTarget && guideChain?.next && guideChain.steps.length > 1) {
+        const { next, steps, broken } = guideChain;
+        guide = {
+          id: guideStepId,
+          ...COMPOSE_GUIDE.raiseMore(
+            guideTarget.name,
+            optionDisplayName(guideTarget, "automation", steps[0]),
+            optionDisplayName(guideTarget, "automation", next),
+            broken,
+            plainAutomation(next.to_level, next.description, next.name),
+            guideWhy.driver?.who
+          ),
+          anchor: `[data-coach-option="automation-${next.to_level}"]`,
+          icon: "pickOption",
+          key: COMPOSE_KEYS.more,
+          action: true,
+        };
+      }
+      break;
+    case "governance":
+      if (selectedCompData) {
+        guide = {
+          id: guideStepId,
+          ...COMPOSE_GUIDE.governance(selectedCompData.name, governanceOptionName, !isImplemented(selectedCompData, atomicChanges)),
+          anchor: '[data-coach="compose-governance"]',
+          icon: "governance",
+          key: COMPOSE_KEYS.governance,
+          action: false,
+        };
+      }
+      break;
+    case "feeds":
+      guide = {
+        id: guideStepId,
+        ...COMPOSE_GUIDE.feeds,
+        anchor: document.querySelector('[data-coach="dossier"]') ? '[data-coach="dossier"]' : '[data-coach="compose-canvas"]',
+        icon: "feeds",
+        key: COMPOSE_KEYS.feeds,
+        action: false,
+      };
+      break;
+    case "slots":
+      guide = { id: guideStepId, ...COMPOSE_GUIDE.slots, anchor: '[data-coach="compose-slots"]', icon: "slots", key: COMPOSE_KEYS.slots, action: false };
+      break;
+  }
+
+  // Mistake tip: a slotted step the upstream will hold back. Silent, once per player.
+  const cappedStep = isIntro && isOpen ? findCappedStep(predictions, atomicChanges, (by) => {
+    const from = allEdgesMap.get(by)?.from_id ?? by;
+    return allComponentsMap.get(from)?.name;
+  }) : null;
+  const cappedSeen = guideSeen.includes(COMPOSE_KEYS.cappedTip);
+  const cappedCopy =
+    cappedStep && !cappedSeen && guideReady
+      ? COACH_TIPS.cappedStep(allComponentsMap.get(cappedStep.target)?.name ?? "That step", cappedStep.upstream)
+      : null;
+  if (cappedCopy) guide = null;
+
+  // Guide hints are spoken in the narrator voice, like the pitch screen's.
+  useGuideNarration(guide ? `compose-${guide.id}` : null, guide?.body ?? "");
+
   const handleConfirm = () => {
+    // Confirming ends the guide: the player has seen how it works.
+    if (isIntro) markGuide(...Object.values(COMPOSE_KEYS).filter((k) => k !== COMPOSE_KEYS.off && k !== COMPOSE_KEYS.cappedTip));
     onConfirmProposal(atomicChanges);
     onClose();
   };
@@ -1077,13 +1297,7 @@ export default function ComposeActionProposalModal({
       </div>
 
       {/* ── Stage Tabs Bar ── */}
-      <div
-        className={styles.stageTabsBar}
-        data-intro-group={INTRO_COMPOSE_TOUR_GROUP}
-        data-title="Pipeline Stages"
-        data-intro={GRAPH_TOUR.stages}
-        data-step="1"
-      >
+      <div className={styles.stageTabsBar}>
         {(graphState?.stages || []).map((stage) => {
           const isActivePhase = stage.id === phaseStageId;
           const isSelected = activeStageId === stage.id;
@@ -1123,13 +1337,7 @@ export default function ComposeActionProposalModal({
       {/* ── Split Body ── */}
       <div className={styles.modalBody}>
         {/* Left: Graph Canvas Viewport */}
-        <div
-          className={styles.canvasArea}
-          data-intro-group={INTRO_COMPOSE_TOUR_GROUP}
-          data-title="Components and Hand-offs"
-          data-intro={GRAPH_TOUR.canvas}
-          data-step="2"
-        >
+        <div className={styles.canvasArea}>
           <div className={styles.canvasToolbar}>
             <span className={styles.canvasStageName}>
               {graphState?.stages?.find((st) => st.id === activeStageId)?.name ?? "Stage"} architecture
@@ -1144,16 +1352,12 @@ export default function ComposeActionProposalModal({
 
               {/* Legend on demand: it is reference material, not something to read every time */}
               <span
-                className={styles.legendChip}
+                className={`${styles.legendChip} ${guideStepId === "dials" ? styles.legendChipOpen : ""}`}
                 tabIndex={0}
-                data-intro-group={INTRO_COMPOSE_TOUR_GROUP}
-                data-title="Two Dials"
-                data-intro={GRAPH_TOUR.dials}
-                data-step="3"
               >
                 <Icon icon="ph:list-bullets-bold" />
                 <span>Legend</span>
-                <span className={styles.legendPanel} role="tooltip">
+                <span className={styles.legendPanel} role="tooltip" data-coach="compose-legend">
                   {LEGEND_GROUPS.map((group) => (
                     <span key={group.heading} className={styles.legendGroup}>
                       <span className={styles.legendHeading}>{group.heading}</span>
@@ -1175,13 +1379,7 @@ export default function ComposeActionProposalModal({
           </div>
 
           {/* SVG Topology Canvas */}
-          <div
-            className={styles.canvasBox}
-            data-intro-group={INTRO_COMPOSE_TOUR_GROUP}
-            data-title="What Feeds on What"
-            data-intro={GRAPH_TOUR.feeds}
-            data-step="6"
-          >
+          <div className={styles.canvasBox} data-coach="compose-canvas">
             {(() => {
               if (!graphState) {
                 return (
@@ -1499,6 +1697,7 @@ export default function ComposeActionProposalModal({
                       <g
                         key={c.id}
                         className={styles.stageNode}
+                        data-coach-node={c.id}
                         transform={`translate(${x - BOX_W / 2}, ${y - BOX_H / 2})`}
                         onClick={() => {
                           setSelectedCompId(isSelected ? null : c.id);
@@ -1655,20 +1854,8 @@ export default function ComposeActionProposalModal({
         </div>
 
         {/* Right: Inspector & Slots Panel */}
-        <div
-          className={styles.sidebarArea}
-          data-intro-group={INTRO_COMPOSE_TOUR_GROUP}
-          data-title="Try a Change"
-          data-intro={GRAPH_TOUR.select}
-          data-step="4"
-        >
-          <div
-            className={styles.sidebarContent}
-            data-intro-group={INTRO_COMPOSE_TOUR_GROUP}
-            data-title="Governance"
-            data-intro={GRAPH_TOUR.governance}
-            data-step="5"
-          >
+        <div className={styles.sidebarArea}>
+          <div className={styles.sidebarContent}>
             {selectedCrossStub ? (
               /* ── Cross-Phase Dependency: purely informational, nothing to build here ── */
               <div className={styles.inspectorCard}>
@@ -2037,13 +2224,7 @@ export default function ComposeActionProposalModal({
             )}
 
             {/* ── Proposal Slots (1 to 3) ── */}
-            <div
-              className={styles.slotsSection}
-              data-intro-group={INTRO_COMPOSE_TOUR_GROUP}
-              data-title="Slots"
-              data-intro={GRAPH_TOUR.slots}
-              data-step="7"
-            >
+            <div className={styles.slotsSection} data-coach="compose-slots">
               <div className={styles.slotsSectionHeader}>
                 <h4 className={styles.slotsTitle}>
                   <Icon icon="ph:stack-bold" />
@@ -2232,6 +2413,36 @@ export default function ComposeActionProposalModal({
           </div>,
           document.body
         )}
+
+      <AnimatePresence>
+        {cappedCopy && (
+          <CoachTip
+            key="compose-capped"
+            tone="mistake"
+            title={cappedCopy.title}
+            body={cappedCopy.body}
+            anchor={`[data-coach-node="${cappedStep?.target}"]`}
+            spotlight
+            dismissLabel={PITCH_GUIDE.dismiss}
+            onDismiss={() => markGuide(COMPOSE_KEYS.cappedTip)}
+          />
+        )}
+        {guide && (
+          <CoachTip
+            key={"compose-" + guide.id}
+            tone="guide"
+            icon={guide.icon}
+            title={guide.title}
+            body={guide.body}
+            anchor={guide.anchor}
+            spotlight
+            dismissLabel={guide.action ? PITCH_GUIDE.skipStep : PITCH_GUIDE.dismiss}
+            onDismiss={() => markGuide(guide.key)}
+            secondaryLabel={PITCH_GUIDE.skip}
+            onSecondary={() => markGuide(COMPOSE_KEYS.off)}
+          />
+        )}
+      </AnimatePresence>
 
       {confirmingLeave && (
         <div

@@ -354,7 +354,7 @@
       "id": "data.ingestion",
       "stage_id": "data",
       "name": "Data Ingestion Pipeline",
-      "help": "Pulls raw data into the pipeline, so everything downstream depends on it. Implement It Manually keeps a person running it, Automate It lets a platform do it, and Spot Checks give someone like Mark a say.",
+      "help": "Pulls raw data into the pipeline, so everything downstream depends on it. Implement It Manually keeps a person running it, Automate It lets a platform do it, and Spot Checks add a reviewer.",
       "owner_role": null,
       "weight": 1.0,
       "attributes": {

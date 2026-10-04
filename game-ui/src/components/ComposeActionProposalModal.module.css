@@ -360,7 +360,8 @@
 }
 
 .legendChip:hover .legendPanel,
-.legendChip:focus-visible .legendPanel {
+.legendChip:focus-visible .legendPanel,
+.legendChipOpen .legendPanel {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);

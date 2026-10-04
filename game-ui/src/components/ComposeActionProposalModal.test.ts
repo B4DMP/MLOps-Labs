@@ -1,5 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { AtomicChange } from "../types/ActionCard";
+// jsdom cannot run the Lottie player (the composer imports the guide hint).
+vi.mock("@lordicon/react", () => ({ Player: () => null }));
 import { dedupeAtomicChanges } from "./ComposeActionProposalModal";
 
 /**
