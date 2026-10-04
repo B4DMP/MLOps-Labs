@@ -156,6 +156,7 @@ export default function EngagementCards({
           return (
             <motion.div
               key={card.id}
+              data-coach-card={card.id}
               className={styles.fanCard}
               style={{
                 left: "50%",

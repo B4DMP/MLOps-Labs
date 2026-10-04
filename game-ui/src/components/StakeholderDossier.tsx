@@ -70,6 +70,8 @@ export interface IntelEntry {
   requirement_id?: string;
   intel_type: string; // "unconfirmed" or "verified"
   categorized_type: string; // an IntelTag: "driver", "boundary", "trade_off" or "fact"
+  suggested_level?: number | null; // the step a driver asks for
+  suggested_axis?: string | null;
   description: string;
   /** Split wording: the part that holds still whatever the player tags it (bold). */
   fact?: string | null;
@@ -131,14 +133,12 @@ export interface StakeholderBuyInInfo {
   band?: BuyInBand;
   /** Impatience step from the server (0 clears the tag). */
   impatience?: number;
-  /** Only used to place the unlabelled veto/objection marker, when given. */
-  threshold?: number;
   actionCardScore?: number;
   dialogueScore?: number;
   emotionScore?: number;
   total?: number;
   isPersuaded?: boolean;
-  // Below `threshold` (or boundary violated): high power vetoes, low power only objects.
+  // High power vetoes, low power only objects.
   blocks?: boolean;
   currentEmotion?: string;
   boundaryViolated?: boolean;
@@ -1886,11 +1886,6 @@ export default function StakeholderDossier({
           const cardPercent = bandMeta.fill * cardShare;
           const emotionPercent = bandMeta.fill - cardPercent;
           const isBoundaryViolated = Boolean(buyInInfo.boundaryViolated);
-          const isHighPowerStakeholder = (st.power || stObj?.power || "").toLowerCase() === "high";
-          const lineName = isHighPowerStakeholder ? "Veto line" : "Objection line";
-          const lineDetail = isHighPowerStakeholder
-            ? "Below this line a high power stakeholder vetoes the plan."
-            : "Below this line this person objects, but they cannot stop the plan.";
           const isRevealed = buyInInfo.isRevealed ?? false;
 
           return (
@@ -1922,27 +1917,8 @@ export default function StakeholderDossier({
                   </div>
                 </div>
 
-                {/* Stacked Progress Bar with Threshold Marker Notch */}
+                {/* Stacked progress bar */}
                 <div className="progress position-relative" style={{ height: "16px", backgroundColor: "#e2e8f0", borderRadius: "4px" }}>
-                  {/* Unlabelled marker; only drawn when a position is provided */}
-                  {buyInInfo.threshold != null && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        left: `${Math.min(99, Math.max(1, buyInInfo.threshold * 100))}%`,
-                        top: "-2px",
-                        bottom: "-2px",
-                        width: "3px",
-                        backgroundColor: "#dc3545",
-                        zIndex: 5,
-                        borderRadius: "1px",
-                      }}
-                      role="img"
-                      aria-label={lineName}
-                      title={`${lineName}: ${lineDetail}`}
-                    />
-                  )}
-
                   {!isBoundaryViolated && cardPercent > 0 && (
                     <div
                       className="progress-bar bg-primary"

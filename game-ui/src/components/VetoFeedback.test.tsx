@@ -33,8 +33,47 @@ describe("deriveVetoChange", () => {
   it("resolves component and option names from the graph", () => {
     expect(deriveVetoChange(info, technical)).toEqual({ component: "Data Validation", option: "Implement It Manually" });
   });
+  const brokenIngestion = {
+    stage: {
+      components: [
+        {
+          id: "data.ingestion",
+          name: "Data Ingestion Pipeline",
+          nominal_automation: 0,
+          automation_options: [
+            { to_level: 2, name: "Implement It Manually", description: "x" },
+            { to_level: 3, name: "Automate It", description: "y" },
+          ],
+        },
+      ],
+    },
+  } as any;
+  const driver: VetoInfo = {
+    ...info,
+    objection_kind: "driver",
+    objection_target: "data.ingestion",
+    objection_level: 3,
+    objection_axis: "automation",
+  };
+  it("names the driver's step and the earlier step a broken component needs", () => {
+    expect(deriveVetoChange(driver, brokenIngestion)).toEqual({
+      component: "Data Ingestion Pipeline",
+      option: "Automate It",
+      first: { option: "Fix It", broken: true },
+    });
+  });
+  it("returns null for a driver without a level, and for unknown targets", () => {
+    expect(deriveVetoChange({ ...driver, objection_level: null }, brokenIngestion)).toBeNull();
+    expect(deriveVetoChange({ ...info, objection_target: "nope" }, technical)).toBeNull();
+  });
+  it("renders the driver ask in plain words", () => {
+    render(<VetoFeedback vetoInfo={driver} technical={brokenIngestion} isRepeat={false} onShowObjection={vi.fn()} onRevise={vi.fn()} />);
+    expect(
+      screen.getByText(/They asked for Automate It on Data Ingestion Pipeline\. Data Ingestion Pipeline is broken, so that takes two steps in two slots: first Fix It, then Automate It\./),
+    ).toBeInTheDocument();
+  });
   it("returns null for non-boundary or unknown targets", () => {
-    expect(deriveVetoChange({ ...info, objection_kind: "driver" }, technical)).toBeNull();
+    expect(deriveVetoChange({ ...info, objection_kind: "trade_off" }, technical)).toBeNull();
     expect(deriveVetoChange({ ...info, objection_target: "nope" }, technical)).toBeNull();
   });
 });

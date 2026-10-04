@@ -1,31 +1,78 @@
 .tip {
   position: fixed;
   z-index: 9600;
-  width: min(340px, calc(100vw - 12px));
-  padding: 0.75rem 0.9rem 0.7rem;
-  border-radius: 12px;
+  width: min(360px, calc(100vw - 12px));
+  border-radius: 16px;
   color: #dbe6ec;
-  background: linear-gradient(160deg, rgb(23, 60, 77) 0%, rgb(13, 34, 44) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
+  background: linear-gradient(160deg, rgb(23, 70, 88) 0%, rgb(13, 34, 44) 100%);
+  border: 1px solid rgba(120, 200, 225, 0.35);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 22px rgba(80, 180, 215, 0.22);
   font-family: "Helvetica Neue", Inter, ui-sans-serif, sans-serif;
-  animation: coachIn 0.18s ease-out;
-}
-
-.tipGuide {
-  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(38, 102, 130, 0.45);
 }
 
 .tipMistake {
-  border-color: rgba(245, 158, 11, 0.55);
-  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(245, 158, 11, 0.35);
+  background: linear-gradient(160deg, rgb(74, 50, 14) 0%, rgb(36, 24, 8) 100%);
+  border-color: rgba(245, 158, 11, 0.6);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 22px rgba(245, 158, 11, 0.2);
+}
+
+.inner {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  padding: 0.8rem 0.95rem 0.75rem;
+}
+
+.hero {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.9rem;
+  height: 2.9rem;
+  border-radius: 50%;
+  background: rgba(120, 200, 225, 0.16);
+  border: 1px solid rgba(120, 200, 225, 0.4);
+}
+
+.tipMistake .hero {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.heroIcon {
+  display: inline-flex;
+  width: 1.9rem;
+  height: 1.9rem;
+}
+
+.heroIcon > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.text {
+  min-width: 0;
+  flex: 1;
+}
+
+.eyebrow {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(150, 215, 235, 0.85);
+}
+
+.tipMistake .eyebrow {
+  color: rgba(252, 211, 77, 0.9);
 }
 
 .title {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: #ffffff;
-  margin-bottom: 0.25rem;
+  margin: 0.05rem 0 0.2rem;
 }
 
 .tipMistake .title {
@@ -44,51 +91,72 @@
 }
 
 .dismiss {
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
-  border-radius: 8px;
-  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  padding: 0.2rem 0.85rem;
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
 .dismiss:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
 }
 
-:global([data-coach-spot="true"]) {
-  outline: 3px solid rgba(120, 200, 225, 0.9);
-  outline-offset: 3px;
-  border-radius: 10px;
-  animation: coachPulse 1.6s ease-in-out infinite;
+.dismiss:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
 }
 
-@keyframes coachIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.secondary {
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-@keyframes coachPulse {
-  0%,
-  100% {
-    outline-color: rgba(120, 200, 225, 0.9);
-  }
-  50% {
-    outline-color: rgba(120, 200, 225, 0.3);
-  }
+.secondary:hover {
+  color: #ffffff;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .tip,
-  :global([data-coach-spot="true"]) {
-    animation: none;
-  }
+.secondary:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* Spotlight ring: sits over the anchor and never takes clicks. */
+.ring {
+  position: fixed;
+  z-index: 9590;
+  pointer-events: none;
+  border-radius: 14px;
+  border: 2px solid rgba(120, 200, 225, 0.9);
+  box-shadow: 0 0 14px rgba(120, 200, 225, 0.45);
+}
+
+.ringMistake {
+  border-color: rgba(245, 158, 11, 0.9);
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.4);
+}
+
+.ringPulse {
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  border: 2px solid currentColor;
+  color: rgba(120, 200, 225, 0.9);
+  pointer-events: none;
+}
+
+.ringMistake .ringPulse {
+  color: rgba(245, 158, 11, 0.9);
 }

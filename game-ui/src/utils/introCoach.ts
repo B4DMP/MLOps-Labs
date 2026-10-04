@@ -1,5 +1,6 @@
 // Pure logic for the intro coach: seen-once flags, tip resolution and the single-owner rule.
 import { COACH_TIPS } from "../content/helpCopy";
+import { clearComposeGuide } from "./composeGuide";
 
 export type CoachTone = "mistake" | "guide";
 
@@ -52,6 +53,7 @@ export function writeSeen(userId: number | null | undefined, seen: string[]): vo
 
 /** Drops this player's seen flags (called on account reset, like clearSeenBriefings). */
 export function clearIntroCoach(userId?: number | null): void {
+  clearComposeGuide(userId);
   try {
     window.localStorage.removeItem(coachStorageKey(userId));
   } catch {
@@ -123,4 +125,120 @@ export function waitForCoachClear(timeoutMs = 15000): Promise<void> {
       }
     }, 250);
   });
+}
+
+// Seen-once flags kept by the intro coach (per player, localStorage).
+export const GUIDE_KEYS = {
+  tour: "introPitchTour",
+  verifyPlayed: "guideVerifyPlayed",
+  verifyReact: "guideVerifyReact",
+  reveal: "guideReveal",
+  reactions: "guideReactions",
+  skipVerify: "guideSkipVerify",
+  skipTalk: "guideSkipTalk",
+  skipAsk: "guideSkipAsk",
+  skipDeck: "guideSkipDeck",
+  off: "guideOff",
+} as const;
+
+export type GuideStepId = "verify" | "verifyReact" | "talk" | "ask" | "reveal" | "deck" | "reactions";
+
+export interface GuideFlow {
+  /** Nothing else (modal, dialog, composer, tip, tour) is on screen. */
+  ready: boolean;
+  stage: string;
+  isPitchDebating: boolean;
+  seen: readonly string[];
+  verifyDone: boolean;
+  /** A verification result is waiting to be commented on. */
+  hasVerifyResult: boolean;
+  talkDone: boolean;
+  hasActiveConversations: boolean;
+  isCardComposed: boolean;
+  /** A stakeholder has answered a conversation card question. */
+  hasAnswer?: boolean;
+  /** Verify Intel was just played and its result has not arrived yet. */
+  verifyPending?: boolean;
+}
+
+/** Which live guide hint is due, in order: verify, react to it, talk, reveal, deck, reactions. */
+export function pickGuideStep(f: GuideFlow): GuideStepId | null {
+  if (!f.ready || f.seen.includes(GUIDE_KEYS.off) || f.verifyPending) return null;
+  if (f.stage === "PITCHED") {
+    return !f.isPitchDebating && !f.seen.includes(GUIDE_KEYS.reactions) ? "reactions" : null;
+  }
+  if (f.stage !== "PREPARE") return null;
+  if (!f.verifyDone && !f.seen.includes(GUIDE_KEYS.skipVerify)) return "verify";
+  if (f.hasVerifyResult && !f.seen.includes(GUIDE_KEYS.verifyReact) && !f.talkDone) return "verifyReact";
+  if (f.hasActiveConversations && !f.hasAnswer && !f.seen.includes(GUIDE_KEYS.skipAsk)) return "ask";
+  if (!f.talkDone && !f.seen.includes(GUIDE_KEYS.skipTalk)) return "talk";
+  if (!f.hasActiveConversations && !f.isPitchDebating && !f.seen.includes(GUIDE_KEYS.reveal)) return "reveal";
+  if (
+    f.seen.includes(GUIDE_KEYS.reveal) &&
+    !f.seen.includes(GUIDE_KEYS.skipDeck) &&
+    !f.isCardComposed &&
+    !f.hasActiveConversations
+  ) {
+    return "deck";
+  }
+  return null;
+}
+
+// Veto streak per user and challenge, so a reload does not forget a repeated objection.
+const streakKey = (userId: number | null | undefined, challengeId: number): string =>
+  `mlops_veto_streak:${userId || "anon"}:${challengeId}`;
+
+interface StoredStreak {
+  key: string | null;
+  n: number;
+}
+
+function readStreak(userId: number | null | undefined, challengeId: number): StoredStreak {
+  try {
+    const parsed = JSON.parse(window.sessionStorage.getItem(streakKey(userId, challengeId)) || "null");
+    if (parsed && typeof parsed.n === "number") return { key: typeof parsed.key === "string" ? parsed.key : null, n: parsed.n };
+  } catch {
+    // Fall through to an empty streak.
+  }
+  return { key: null, n: 0 };
+}
+
+function writeStreak(userId: number | null | undefined, challengeId: number, value: StoredStreak | null): void {
+  try {
+    const k = streakKey(userId, challengeId);
+    if (value) window.sessionStorage.setItem(k, JSON.stringify(value));
+    else window.sessionStorage.removeItem(k);
+  } catch {
+    // Best effort: the streak then lives in memory only.
+  }
+}
+
+export const getVetoStreak = readStreak;
+
+/** Registers a veto and returns the streak. The same veto seen again (a reload) does not count twice. */
+export function recordVeto(userId: number | null | undefined, challengeId: number, vetoKey: string): number {
+  const cur = readStreak(userId, challengeId);
+  if (cur.key === vetoKey) return cur.n;
+  const next = { key: vetoKey, n: cur.n + 1 };
+  writeStreak(userId, challengeId, next);
+  return next.n;
+}
+
+/** The stage left DONE: the next veto is a new one even if its text is identical. */
+export function releaseVetoKey(userId: number | null | undefined, challengeId: number): void {
+  const cur = readStreak(userId, challengeId);
+  if (cur.key !== null) writeStreak(userId, challengeId, { key: null, n: cur.n });
+}
+
+export function resetVetoStreak(userId: number | null | undefined, challengeId: number): void {
+  writeStreak(userId, challengeId, null);
+}
+
+/** The conversation card the guide points at: Probe Requirements, else the cheapest question card. */
+export function pickGuideCard<T extends { id: string; token_cost: number }>(cards: readonly T[], tokens: number): T | null {
+  for (const id of ["eng_2", "eng_4"]) {
+    const card = cards.find((c) => c.id === id);
+    if (card && card.token_cost <= tokens) return card;
+  }
+  return null;
 }

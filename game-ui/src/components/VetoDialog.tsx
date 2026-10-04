@@ -17,6 +17,9 @@ export interface VetoInfo {
   /** Graph target and dossier note behind a boundary objection (optional, newer servers). */
   objection_target?: string | null;
   objection_item_id?: string | null;
+  /** The step a driver asks for, or the level a boundary holds (newer servers). */
+  objection_level?: number | null;
+  objection_axis?: string | null;
 }
 
 interface VetoDialogProps {

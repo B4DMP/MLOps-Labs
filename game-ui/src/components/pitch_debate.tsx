@@ -19,10 +19,22 @@ import { startTour } from "../utils/tour";
 import { useNarratorGate } from "./useNarratorGate";
 import { useIntroCoach } from "./useIntroCoach";
 import CoachTip from "./CoachTip";
-import PowerInterestExplainer from "./PowerInterestExplainer";
+import HoverTooltip from "./HoverToolTip";
 import VetoFeedback from "./VetoFeedback";
 import CheatSheetModal from "./CheatSheetModal";
-import { waitForCoachClear } from "../utils/introCoach";
+import {
+  GUIDE_KEYS,
+  type GuideStepId,
+  getVetoStreak,
+  pickGuideCard,
+  pickGuideStep,
+  recordVeto,
+  releaseVetoKey,
+  resetVetoStreak,
+  waitForCoachClear,
+} from "../utils/introCoach";
+import { useGuideNarration } from "./useGuideNarration";
+import type { CoachIconKey } from "./CoachTip";
 import { ESCALATIONS, PITCH_GUIDE, SEAT_CHIPS } from "../content/helpCopy";
 import styles from "./pitch_debate.module.css";
 import StakeholderDossier, {
@@ -59,6 +71,7 @@ import type { GameEventPayload } from "../types/GameEvent";
 import type { IntelTag } from "../types/IntelTag";
 import type { StakeholderAvatar } from "../types/StakeholderAvatar";
 import { faceForEmotionState } from "../utils/emotionFace";
+import { isReadRevealed } from "../utils/readReveal";
 import EmotionEmoji from "./EmotionEmoji";
 import { FADE_TRANSITION } from "../utils/transitions";
 
@@ -66,15 +79,6 @@ import { FADE_TRANSITION } from "../utils/transitions";
 // has to be verified before pitching is worth it (ratio of verified / total for the phase).
 const READY_YELLOW = 0.35;
 const READY_GREEN = 0.6;
-
-// Seen-once flags kept by the intro coach (per player, localStorage).
-const GUIDE_KEYS = {
-  tour: "introPitchTour",
-  explainer: "powerInterestExplainer",
-  reveal: "guideReveal",
-  reactions: "guideReactions",
-  off: "guideOff",
-} as const;
 
 export interface PitchDebateProps {
   currentPhase: number;
@@ -131,6 +135,8 @@ interface PitchStatePayload {
     buy_in_band?: BuyInBand;
     /** Impatience step, 0 up to the server's cap. */
     impatience?: number;
+    /** Nothing new for them last evaluate: no reply, earlier reading stands. */
+    quiet?: boolean;
     boundary_violated: boolean;
     emotional_state: string;
   }>;
@@ -307,14 +313,19 @@ export default function PitchDebate({
   const hasAutoTransitionedRef = useRef(false);
   // Vetoes in a row (reset on a pass), and which veto the player already dealt with via the
   // coach panel so a later pitch:state does not pop the dialog back open.
-  const [vetoStreak, setVetoStreak] = useState(0);
+  const [vetoStreak, setVetoStreak] = useState(() => getVetoStreak(userId, currentChallenge).n);
   const vetoKeyRef = useRef<string | null>(null);
   const dismissedVetoKeyRef = useRef<string | null>(null);
   const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
-  const [isExplainerOpen, setIsExplainerOpen] = useState(false);
   // Guided session: what the player has done this visit (a reload re-derives from chat history).
   const [verifyPlayed, setVerifyPlayed] = useState(false);
-  const [talkPlayed, setTalkPlayed] = useState(false);
+  const [talkedIds, setTalkedIds] = useState<string[]>([]);
+  // Last verification result, kept so the guide can comment on it once its dialog is closed.
+  const [verifyPending, setVerifyPending] = useState(false);
+  const [lastVerification, setLastVerification] = useState<IntelVerificationResultData | null>(null);
+  // Who opened the composer: a veto Revise must not trigger the thin-intel tip on close.
+  const composerFromVetoRef = useRef(false);
+  const wasComposerOpenRef = useRef(false);
 
   const gate = useNarratorGate();
   const isIntro = currentPhase === 0 || pitchState?.is_demo === true;
@@ -802,7 +813,6 @@ export default function PitchDebate({
     if (pitchState.stage !== "PREPARE" || playedIds.length > 0) {
       // Already underway (a reload): skip the replay and go straight to the live guide.
       coach.markSeen(GUIDE_KEYS.tour);
-      coach.markSeen(GUIDE_KEYS.explainer);
       return;
     }
     startTour("introPitch", {
@@ -815,7 +825,6 @@ export default function PitchDebate({
       narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }),
       onFinish: () => {
         coach.markSeen(GUIDE_KEYS.tour);
-        if (!coach.hasSeen(GUIDE_KEYS.explainer)) setIsExplainerOpen(true);
       },
     });
   }, [isIntro, pitchState, playedIds.length]);
@@ -848,7 +857,7 @@ export default function PitchDebate({
           const key = `${payload.veto_info.message}|${payload.veto_info.objection_item_id ?? ""}`;
           if (key !== vetoKeyRef.current) {
             vetoKeyRef.current = key;
-            setVetoStreak((n) => n + 1);
+            setVetoStreak(recordVeto(userId, currentChallenge, key));
           }
           setVetoInfo(payload.veto_info);
           if (key !== dismissedVetoKeyRef.current) setIsVetoDialogOpen(true);
@@ -872,6 +881,7 @@ export default function PitchDebate({
         // dialog has nothing left to say once the card is through.
         setIsVetoDialogOpen(false);
         setVetoStreak(0);
+        resetVetoStreak(userId, currentChallenge);
         setIsBreakingVeto(false);
         if (!hasAutoTransitionedRef.current && onEndPitch) {
           hasAutoTransitionedRef.current = true;
@@ -883,6 +893,10 @@ export default function PitchDebate({
     } else {
       setIsCommittedLocked(false);
       hasAutoTransitionedRef.current = false;
+      // The next veto is a new one even when its text is identical.
+      vetoKeyRef.current = null;
+      dismissedVetoKeyRef.current = null;
+      releaseVetoKey(userId, currentChallenge);
     }
   });
 
@@ -950,13 +964,16 @@ export default function PitchDebate({
     const unsubs = [
       subscribe("intel:verified_res", (p: any) => {
         if (p?.status === "success") {
-          setVerificationModal({
+          const result = {
             wasCorrect: p.old_categorized_type === p.true_categorized_type,
             oldType: p.old_categorized_type,
             trueType: p.true_categorized_type,
             description: p.description,
             stakeholderName: p.stakeholder_name,
-          });
+          };
+          setVerificationModal(result);
+          setLastVerification(result);
+          setVerifyPending(false);
         }
       }),
       subscribe("intel:message_received", (p: any) => {
@@ -1086,14 +1103,17 @@ export default function PitchDebate({
 
     return Object.fromEntries(
       pitchState.reads.map((r) => {
-        const hasSpokenInPitch = Boolean(
-          activePitchConvId &&
+        const spoke = (convId: string) =>
           chatMsgsState.some(
             (m) =>
-              m.conversation_id === activePitchConvId &&
+              m.conversation_id === convId &&
               (m.id === r.stakeholder_id || m.id === stakeholders[r.stakeholder_id]?.name)
-          )
-        );
+          );
+        const hasSpokenInPitch = isReadRevealed({
+          spokeNow: Boolean(activePitchConvId && spoke(activePitchConvId)),
+          quiet: Boolean(r.quiet),
+          spokeEarlier: pitchConvSet.some((id) => id !== activePitchConvId && spoke(id)),
+        });
 
         return [
           r.stakeholder_id,
@@ -1272,7 +1292,7 @@ export default function PitchDebate({
       stakeholder_ids: stakeholderIds,
       attention_tokens: nextTokens,
     });
-    setTalkPlayed(true);
+    setTalkedIds((prev) => [...prev, ...stakeholderIds]);
     if (playingCard.max_plays_per_phase === 1 || playingCard.stakeholder_selection_amount === -1) {
       setPlayedIds((prev) => [...prev, playingCard.id]);
     }
@@ -1294,6 +1314,10 @@ export default function PitchDebate({
       attention_tokens: nextTokens,
     });
     setVerifyPlayed(true);
+    coach.markSeen(GUIDE_KEYS.verifyPlayed);
+    // Hold the next hint until the result dialog has had time to open.
+    setVerifyPending(true);
+    window.setTimeout(() => setVerifyPending(false), 8000);
     setPlayingCard(null);
   };
 
@@ -1391,7 +1415,25 @@ export default function PitchDebate({
     }
 
     const isFlipped = isRightSide || (isTop && topIndex !== undefined && topIndex >= 1);
-    const showPowerChips = isIntro && !coach.seen.includes(GUIDE_KEYS.explainer);
+    const showPowerChips = isIntro;
+    const levelOf = (v?: string) => (String(v || "").toLowerCase() === "high" ? "high" : "low");
+    const powerLevel = levelOf(st.power);
+    const interestLevel = levelOf(st.interest);
+    const levelColor = (l: string) => (l === "high" ? "#dc2626" : "#2563eb");
+    const powerInterestIcons = showPowerChips ? (
+      <span className={styles.nameplateIcons}>
+        <HoverTooltip description={SEAT_CHIPS.power[powerLevel]}>
+          <span className={styles.nameplateIcon} tabIndex={0} role="img" aria-label={SEAT_CHIPS.power[powerLevel]}>
+            <Icon icon="ph:lightning-bold" style={{ color: levelColor(powerLevel) }} />
+          </span>
+        </HoverTooltip>
+        <HoverTooltip description={SEAT_CHIPS.interest[interestLevel]}>
+          <span className={styles.nameplateIcon} tabIndex={0} role="img" aria-label={SEAT_CHIPS.interest[interestLevel]}>
+            <Icon icon="ph:eye-bold" style={{ color: levelColor(interestLevel) }} />
+          </span>
+        </HoverTooltip>
+      </span>
+    ) : null;
     const patienceLabel = impatienceTagLabel(pitchState?.reads?.find((r) => r.stakeholder_id === st.id)?.impatience);
 
     // Stakeholder names are authored "<role/category> <given name>" (e.g. "Requirements
@@ -1456,40 +1498,22 @@ export default function PitchDebate({
           {nameGivenName ? (
             <>
               <span className={styles.deskNameplateLine}>{nameRoleWord}</span>
-              <span className={styles.deskNameplateLine}>{nameGivenName}</span>
+              <span className={styles.deskNameplateRow}>
+                <span className={styles.deskNameplateLine}>{nameGivenName}</span>
+                {powerInterestIcons}
+              </span>
             </>
           ) : (
-            <span className={styles.deskNameplateLine}>{nameRoleWord}</span>
+            <span className={styles.deskNameplateRow}>
+              <span className={styles.deskNameplateLine}>{nameRoleWord}</span>
+              {powerInterestIcons}
+            </span>
           )}
         </div>
 
-        {(showPowerChips || patienceLabel) && (
+        {patienceLabel && (
           <div className={styles.seatChips}>
-            {showPowerChips && (
-              <>
-                <button
-                  type="button"
-                  className={styles.seatChip}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsExplainerOpen(true);
-                  }}
-                >
-                  {SEAT_CHIPS.power(String(st.power || "").toLowerCase() === "high")}
-                </button>
-                <button
-                  type="button"
-                  className={styles.seatChip}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsExplainerOpen(true);
-                  }}
-                >
-                  {SEAT_CHIPS.interest(String(st.interest || "").toLowerCase() === "high")}
-                </button>
-              </>
-            )}
-            {patienceLabel && <span className={`${styles.seatChip} ${styles.seatChipPatience}`}>{patienceLabel}</span>}
+            <span className={`${styles.seatChip} ${styles.seatChipPatience}`}>{patienceLabel}</span>
           </div>
         )}
       </div>
@@ -1529,8 +1553,13 @@ export default function PitchDebate({
     : "";
 
   // ── Intro coach: tips on mistakes, and the live guide steps ──
+  // Thin-intel tip: said when the composer closes back onto the shelf, never after a veto Revise.
   useEffect(() => {
-    if (isPitchModalOpen) coach.report({ type: "deckOpened", readiness: intelReadiness });
+    const wasOpen = wasComposerOpenRef.current;
+    wasComposerOpenRef.current = isPitchModalOpen;
+    if (isPitchModalOpen) return;
+    if (wasOpen && !composerFromVetoRef.current) coach.report({ type: "deckOpened", readiness: intelReadiness });
+    composerFromVetoRef.current = false;
   }, [isPitchModalOpen]);
 
   useEffect(() => {
@@ -1538,11 +1567,6 @@ export default function PitchDebate({
       coach.report({ type: "evaluated", predicted: pitchState?.predicted_outcome });
     }
   }, [stage, isPitchDebating, pitchState?.predicted_outcome]);
-
-  const closeExplainer = () => {
-    coach.markSeen(GUIDE_KEYS.explainer);
-    setIsExplainerOpen(false);
-  };
 
   const handleShowVetoObjection = () => {
     if (!vetoInfo) return;
@@ -1561,70 +1585,138 @@ export default function PitchDebate({
     hideInfoTag();
     const t = vetoInfo?.objection_target;
     setComposerFocusTargetId(t && findGraphTarget(graphState?.technical, t) ? t : undefined);
+    composerFromVetoRef.current = true;
     setIsPitchModalOpen(true);
   };
 
   const highPowerStakeholder =
     activeStakeholders.find((s) => String(s.power || "").toLowerCase() === "high") ?? activeStakeholders[0];
   // A conversation card leaves "eng_<card>_<n>" chat history; the verify card (zero) is not a talk.
-  const hasEngagementChat = chatMsgsState.some((m) => {
+  const bossId = highPowerStakeholder?.id;
+  // Talked to the high-power stakeholder this round: a card played on them (also after a reload,
+  // via the persisted targets) or one of their lines in a card conversation.
+  const hasEngagementChat = Boolean(
+    bossId &&
+      (talkedIds.includes(bossId) ||
+        Object.entries(cardTargetedMap).some(([cardId, ids]) => cardId !== "eng_0" && ids.includes(bossId)) ||
+        chatMsgsState.some((m) => {
+          const c = m.conversation_id || "";
+          return c.startsWith("eng_") && !c.includes("eng_0_") && m.id === bossId;
+        })),
+  );
+  // A stakeholder reply (not the player's question or a system line) in a card conversation.
+  const hasStakeholderAnswer = chatMsgsState.some((m) => {
     const c = m.conversation_id || "";
-    return c.startsWith("eng_") && !c.includes("eng_0_");
+    return c.startsWith("eng_") && !c.includes("eng_0_") && m.id !== "user" && m.id !== "__environment__";
   });
-  const boundaryNoteId = (dossierData || [])
-    .find((d) => d.stakeholder_id === highPowerStakeholder?.id)
-    ?.intel_items.find((i) => i.categorized_type === "boundary")?.id;
+  const guideCard = pickGuideCard(cards, tokens);
+  const askConversation = Object.values(conversations)[0];
+  const askName = stakeholders[askConversation?.stakeholder_id ?? ""]?.name || highPowerStakeholder?.name || "them";
+  // Example topic for the nudge: an option on a component this challenge can change, else the first open one.
+  const askOptions = (askConversation?.options ?? []).filter((o) => o.available && o.label);
+  const askExample =
+    (askOptions.find((o) => o.component_id && (pitchState?.allowed_targets || []).includes(o.component_id)) ?? askOptions[0])
+      ?.label;
 
-  type GuideTip = { title: string; body: string; anchor: string; dismissLabel: string; onDismiss: () => void };
-  let guide: GuideTip | null = null;
+  type GuideTip = {
+    id: GuideStepId;
+    title: string;
+    body: string;
+    anchor: string;
+    icon: CoachIconKey;
+    dismissLabel: string;
+    onDismiss: () => void;
+    secondaryLabel?: string;
+    onSecondary?: () => void;
+  };
   const seenFlags = coach.seen;
+  // Hints wait until nothing else claims the screen (dialogs, composer, tips, tours).
   const guideReady =
     isIntro &&
     seenFlags.includes(GUIDE_KEYS.tour) &&
-    !seenFlags.includes(GUIDE_KEYS.off) &&
-    !isExplainerOpen &&
     !coach.blocked &&
     !coach.tip &&
     !playingCard &&
+    !verificationModal &&
     !isVetoDialogOpen &&
     !isCheatSheetOpen &&
-    !isPitchModalOpen;
+    !isPitchModalOpen &&
+    !eventsOpen &&
+    !singleArtifactForReview;
   const skipGuide = () => coach.markSeen(GUIDE_KEYS.off);
-  if (guideReady && stage === "PITCHED" && !isPitchDebating && !seenFlags.includes(GUIDE_KEYS.reactions)) {
-    guide = {
-      ...PITCH_GUIDE.reactions,
-      anchor: '[class*="buyInCard"]',
-      dismissLabel: PITCH_GUIDE.dismiss,
-      onDismiss: () => coach.markSeen(GUIDE_KEYS.reactions),
-    };
-  } else if (guideReady && stage === "PREPARE") {
-    const talkDone = talkPlayed || hasEngagementChat;
-    const verifyDone = verifyPlayed || talkDone || unconfirmedNotes.length === 0;
-    const skip = { dismissLabel: PITCH_GUIDE.skip, onDismiss: skipGuide };
-    if (!verifyDone) {
-      guide = { ...PITCH_GUIDE.verify, anchor: '[data-coach="engagement-shelf"]', ...skip };
-    } else if (!talkDone) {
+  const talkDone = hasEngagementChat;
+  const verifyDone =
+    verifyPlayed || seenFlags.includes(GUIDE_KEYS.verifyPlayed) || talkDone || unconfirmedNotes.length === 0;
+  const stepId = pickGuideStep({
+    ready: guideReady,
+    stage,
+    isPitchDebating,
+    seen: seenFlags,
+    verifyDone,
+    hasVerifyResult: lastVerification !== null,
+    talkDone,
+    hasActiveConversations,
+    hasAnswer: hasStakeholderAnswer,
+    isCardComposed,
+    verifyPending,
+  });
+  const secondary = { secondaryLabel: PITCH_GUIDE.skip, onSecondary: skipGuide };
+  const skip = (key: string) => ({
+    dismissLabel: PITCH_GUIDE.skipStep,
+    onDismiss: () => coach.markSeen(key),
+    ...secondary,
+  });
+  const gotIt = (key: string) => ({
+    dismissLabel: PITCH_GUIDE.dismiss,
+    onDismiss: () => coach.markSeen(key),
+    ...secondary,
+  });
+  let guide: GuideTip | null = null;
+  switch (stepId) {
+    case "reactions":
+      guide = { id: stepId, ...PITCH_GUIDE.reactions, anchor: '[class*="buyInCard"]', icon: "reactions", ...gotIt(GUIDE_KEYS.reactions) };
+      break;
+    case "verify":
+      guide = { id: stepId, ...PITCH_GUIDE.verify, anchor: '[data-coach="engagement-shelf"]', icon: "verify", ...skip(GUIDE_KEYS.skipVerify) };
+      break;
+    case "verifyReact": {
+      const right = lastVerification?.wasCorrect !== false;
       guide = {
-        ...PITCH_GUIDE.talk(highPowerStakeholder?.name || "them"),
-        anchor: `[data-coach-seat="${highPowerStakeholder?.id}"]`,
-        ...skip,
+        id: stepId,
+        ...(right ? PITCH_GUIDE.verifyRight : PITCH_GUIDE.verifyWrong),
+        anchor: '[data-coach="dossier"]',
+        icon: right ? "verifyRight" : "verifyWrong",
+        ...gotIt(GUIDE_KEYS.verifyReact),
       };
-    } else if (!hasActiveConversations && !isPitchDebating && !seenFlags.includes(GUIDE_KEYS.reveal)) {
-      guide = {
-        ...PITCH_GUIDE.reveal,
-        anchor: boundaryNoteId ? `[data-intel-id="${CSS.escape(boundaryNoteId)}"]` : '[class*="indicationPill"]',
-        dismissLabel: PITCH_GUIDE.dismiss,
-        onDismiss: () => coach.markSeen(GUIDE_KEYS.reveal),
-      };
-    } else if (seenFlags.includes(GUIDE_KEYS.reveal) && !isCardComposed && !hasActiveConversations) {
-      guide = { ...PITCH_GUIDE.deck, anchor: '[data-coach="pitch-deck"]', ...skip };
+      break;
     }
+    case "talk":
+      guide = {
+        id: stepId,
+        ...PITCH_GUIDE.talk(highPowerStakeholder?.name || "them", guideCard?.title),
+        anchor: guideCard ? `[data-coach-card="${guideCard.id}"]` : '[data-coach="engagement-shelf"]',
+        icon: "talk",
+        ...skip(GUIDE_KEYS.skipTalk),
+      };
+      break;
+    case "ask":
+      guide = { id: stepId, ...PITCH_GUIDE.ask(askName, askExample ?? undefined), anchor: '[data-coach="gather-panel"]', icon: "ask", ...skip(GUIDE_KEYS.skipAsk) };
+      break;
+    case "reveal":
+      guide = { id: stepId, ...PITCH_GUIDE.reveal, anchor: '[data-coach="dossier"]', icon: "reveal", ...gotIt(GUIDE_KEYS.reveal) };
+      break;
+    case "deck":
+      guide = { id: stepId, ...PITCH_GUIDE.deck, anchor: '[data-coach="pitch-deck"]', icon: "deck", ...skip(GUIDE_KEYS.skipDeck) };
+      break;
   }
 
+  // Guide hints are spoken in the narrator voice; mistake tips stay silent.
+  useGuideNarration(guide?.id ?? null, guide?.body ?? "");
+
   // Show the dossier page the reveal step talks about.
-  const guideStepKey = guide?.title;
+  const guideStepKey = guide?.id;
   useEffect(() => {
-    if (guideStepKey === PITCH_GUIDE.reveal.title && highPowerStakeholder) {
+    if (guideStepKey === "reveal" && highPowerStakeholder) {
       setSelectedStakeholderId(highPowerStakeholder.id);
     }
   }, [guideStepKey]);
@@ -1653,7 +1745,7 @@ export default function PitchDebate({
           >
             {/* LEFT COLUMN: Stakeholder Dossier (Always Open & Embedded) */}
             <div className="col-12 col-lg-4 d-flex flex-column h-100 position-relative" style={{ minHeight: 0, zIndex: 1 }}>
-              <div className={`flex-grow-1 ${styles.dossierContainer}`}>
+              <div className={`flex-grow-1 ${styles.dossierContainer}`} data-coach="dossier">
                 <StakeholderDossier
                   isOpen={true}
                   canClose={false}
@@ -1710,6 +1802,7 @@ export default function PitchDebate({
                       initialSelectedTargetId={composerFocusTargetId}
                       onConfirmProposal={handleConfirmMergeProposal}
                       onOpenCheatSheet={() => setIsCheatSheetOpen(true)}
+                      guidePaused={coach.blocked || Boolean(coach.tip) || isCheatSheetOpen}
                       allowedTargets={pitchState?.allowed_targets || []}
                       upstreamMap={pitchState?.upstream_map || {}}
                       predictions={pitchState?.predictions || []}
@@ -1840,7 +1933,7 @@ export default function PitchDebate({
                               data-title={PITCH_GUIDE.castTitle}
                               data-intro={PITCH_GUIDE.cast}
                               data-position="top"
-                              data-step="5"
+                              data-step="3"
                             >
                               {/* Left Seat */}
                               <div
@@ -2279,7 +2372,7 @@ export default function PitchDebate({
                         data-intro-group="introPitch"
                         data-title="Conversation History"
                         data-intro="Chat history: every conversation you've had this round, so you can scroll back and check exactly what someone said before you pitch - useful the moment two stakeholders start contradicting each other, which is often."
-                        data-step="3"
+                        data-step="4"
                       >
                         {/* Maximized Challenge Card Wrapper */}
                         <div
@@ -2352,6 +2445,7 @@ export default function PitchDebate({
                           /* Dialogue Options Area replacing engagement cards while dialogue is active */
                           <motion.div
                             key="dialogue-options-shelf"
+                            data-coach="gather-panel"
                             className={styles.gatherConversationWrapper}
                             initial={{ opacity: 0, y: 14, scale: 0.985 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -2383,7 +2477,7 @@ export default function PitchDebate({
                             data-intro-group="introPitch"
                             data-title="Engagement Cards"
                             data-intro="Your Engagement Cards, spent by dragging one onto a stakeholder or the pitch plaque. You get a limited supply per round, so spend them on what actually moves the needle, not on whoever's currently loudest."
-                            data-step="4"
+                            data-step="5"
                           >
                             <EngagementCards
                               cards={cards}
@@ -2466,6 +2560,7 @@ export default function PitchDebate({
           dismissedVetoKeyRef.current = vetoKeyRef.current;
           setIsVetoDialogOpen(false);
           setComposerFocusTargetId(undefined);
+          composerFromVetoRef.current = true;
           setIsPitchModalOpen(true);
         }}
         vetoInfo={vetoInfo}
@@ -2493,53 +2588,41 @@ export default function PitchDebate({
         isOpen={isCheatSheetOpen}
         onClose={() => setIsCheatSheetOpen(false)}
         initialTab="graph"
+        canReplayComposerGuide={isIntro && isPitchModalOpen}
+        userId={userId}
         activeSectionTitle="Pitch & Debate"
         currentPhase={currentPhase}
         currentChallenge={currentChallenge}
         challengeTitle={challengeTitle}
       />
 
-      {isExplainerOpen && (
-        <div className={styles.explainerOverlay} role="dialog" aria-modal="true" aria-label="Power and interest">
-          <div className={styles.explainerPanel}>
-            <PowerInterestExplainer
-              stakeholders={activeStakeholders.map((s) => ({
-                id: s.id,
-                name: s.name,
-                power: s.power || "low",
-                interest: s.interest || "low",
-                color: getStakeholderColor(s),
-              }))}
-            />
-            <div className={styles.explainerActions}>
-              <button type="button" className={styles.actionButton} autoFocus onClick={closeExplainer}>
-                {PITCH_GUIDE.explainerDone}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {coach.tip && (
-        <CoachTip
-          tone="mistake"
-          title={coach.tip.title}
-          body={coach.tip.body}
-          anchor={coach.tip.id === "likelyVeto" ? '[data-coach="commit"]' : '[data-coach="engagement-shelf"]'}
-          onDismiss={coach.dismiss}
-        />
-      )}
-      {!coach.tip && guide && (
-        <CoachTip
-          tone="guide"
-          title={guide.title}
-          body={guide.body}
-          anchor={guide.anchor}
-          spotlight
-          dismissLabel={guide.dismissLabel}
-          onDismiss={guide.onDismiss}
-        />
-      )}
+      <AnimatePresence>
+        {coach.tip && (
+          <CoachTip
+            key={"tip-" + coach.tip.id}
+            tone="mistake"
+            title={coach.tip.title}
+            body={coach.tip.body}
+            anchor={coach.tip.id === "likelyVeto" ? '[data-coach="commit"]' : '[data-coach="engagement-shelf"]'}
+            onDismiss={coach.dismiss}
+          />
+        )}
+        {!coach.tip && guide && (
+          <CoachTip
+            key={"guide-" + guide.id}
+            tone="guide"
+            icon={guide.icon}
+            title={guide.title}
+            body={guide.body}
+            anchor={guide.anchor}
+            spotlight
+            dismissLabel={guide.dismissLabel}
+            onDismiss={guide.onDismiss}
+            secondaryLabel={guide.secondaryLabel}
+            onSecondary={guide.onSecondary}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Full Page Offline Intel Gathering View for Single Artifact Review */}
       <AnimatePresence>

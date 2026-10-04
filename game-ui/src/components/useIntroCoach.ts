@@ -44,7 +44,8 @@ export function useIntroCoach(phaseId: number, { userId, gateOpen = false }: Int
 
   const commit = useCallback(
     (next: CoachState) => {
-      if (next.seen.length !== stateRef.current.seen.length) writeSeen(userId, next.seen);
+      // Merge with storage so flags written elsewhere (the composer tour) survive.
+      if (next.seen.length !== stateRef.current.seen.length) writeSeen(userId, Array.from(new Set([...readSeen(userId), ...next.seen])));
       stateRef.current = next;
       setState(next);
     },

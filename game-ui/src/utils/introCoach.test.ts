@@ -1,12 +1,20 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  GUIDE_KEYS,
   INITIAL_COACH_STATE,
+  type GuideFlow,
   applyTip,
   clearIntroCoach,
   coachStorageKey,
   dismissTip,
+  getVetoStreak,
+  pickGuideCard,
+  pickGuideStep,
   readSeen,
+  recordVeto,
   releaseQueued,
+  releaseVetoKey,
+  resetVetoStreak,
   tipForEvent,
   writeSeen,
 } from "./introCoach";
@@ -94,5 +102,91 @@ describe("seen flags storage", () => {
     expect(readSeen(1)).toEqual([]);
     expect(() => writeSeen(1, ["a"])).not.toThrow();
     expect(() => clearIntroCoach(1)).not.toThrow();
+  });
+});
+
+describe("pickGuideStep", () => {
+  const base: GuideFlow = {
+    ready: true,
+    stage: "PREPARE",
+    isPitchDebating: false,
+    seen: [GUIDE_KEYS.tour],
+    verifyDone: false,
+    hasVerifyResult: false,
+    talkDone: false,
+    hasActiveConversations: false,
+    isCardComposed: false,
+  };
+
+  it("walks verify, react, talk, reveal, deck in order", () => {
+    expect(pickGuideStep(base)).toBe("verify");
+    expect(pickGuideStep({ ...base, verifyDone: true })).toBe("talk");
+    expect(pickGuideStep({ ...base, verifyDone: true, hasVerifyResult: true })).toBe("verifyReact");
+    const reacted = [GUIDE_KEYS.tour, GUIDE_KEYS.verifyReact];
+    expect(pickGuideStep({ ...base, verifyDone: true, hasVerifyResult: true, seen: reacted })).toBe("talk");
+    const talked = { ...base, verifyDone: true, talkDone: true, seen: reacted };
+    expect(pickGuideStep(talked)).toBe("reveal");
+    expect(pickGuideStep({ ...talked, seen: [...reacted, GUIDE_KEYS.reveal] })).toBe("deck");
+  });
+
+  it("lets the player skip a single step and moves on", () => {
+    expect(pickGuideStep({ ...base, seen: [GUIDE_KEYS.tour, GUIDE_KEYS.skipVerify] })).toBe("talk");
+    const skipped = { ...base, verifyDone: true, seen: [GUIDE_KEYS.tour, GUIDE_KEYS.skipTalk] };
+    expect(pickGuideStep(skipped)).toBe("reveal");
+    const deckSeen = [GUIDE_KEYS.tour, GUIDE_KEYS.reveal, GUIDE_KEYS.skipDeck];
+    expect(pickGuideStep({ ...base, verifyDone: true, talkDone: true, seen: deckSeen })).toBeNull();
+  });
+
+  it("points at the question panel until a stakeholder has answered", () => {
+    const talked = { ...base, verifyDone: true, talkDone: true, hasActiveConversations: true };
+    expect(pickGuideStep(talked)).toBe("ask");
+    expect(pickGuideStep({ ...talked, hasAnswer: true })).toBeNull();
+  });
+
+  it("waits while anything else is on screen or a result is pending", () => {
+    expect(pickGuideStep({ ...base, ready: false })).toBeNull();
+    expect(pickGuideStep({ ...base, verifyDone: true, verifyPending: true })).toBeNull();
+  });
+
+  it("is silent once the guide is skipped and speaks about reactions after a pitch", () => {
+    expect(pickGuideStep({ ...base, seen: [GUIDE_KEYS.off] })).toBeNull();
+    expect(pickGuideStep({ ...base, stage: "PITCHED" })).toBe("reactions");
+    expect(pickGuideStep({ ...base, stage: "PITCHED", seen: [GUIDE_KEYS.reactions] })).toBeNull();
+    expect(pickGuideStep({ ...base, stage: "PITCHED", isPitchDebating: true })).toBeNull();
+  });
+});
+
+describe("veto streak storage", () => {
+  afterEach(() => window.sessionStorage.clear());
+
+  it("counts new vetoes, not the same one seen again after a reload", () => {
+    expect(recordVeto(1, 113, "a|x")).toBe(1);
+    expect(recordVeto(1, 113, "a|x")).toBe(1);
+    expect(getVetoStreak(1, 113).n).toBe(1);
+  });
+
+  it("counts an identical veto again once the key was released", () => {
+    recordVeto(1, 113, "a|x");
+    releaseVetoKey(1, 113);
+    expect(recordVeto(1, 113, "a|x")).toBe(2);
+  });
+
+  it("resets on a pass and is kept per challenge", () => {
+    recordVeto(1, 113, "a|x");
+    expect(recordVeto(1, 114, "a|x")).toBe(1);
+    resetVetoStreak(1, 113);
+    expect(getVetoStreak(1, 113).n).toBe(0);
+  });
+});
+
+describe("pickGuideCard", () => {
+  const cards = [
+    { id: "eng_2", title: "Probe", token_cost: 3 },
+    { id: "eng_4", title: "Ask", token_cost: 1 },
+  ];
+  it("prefers the probe card, falls back to the cheap one, else none", () => {
+    expect(pickGuideCard(cards, 10)?.id).toBe("eng_2");
+    expect(pickGuideCard(cards, 2)?.id).toBe("eng_4");
+    expect(pickGuideCard(cards, 0)).toBeNull();
   });
 });

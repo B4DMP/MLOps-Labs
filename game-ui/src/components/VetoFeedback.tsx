@@ -2,23 +2,45 @@ import { Icon } from "@iconify/react";
 import styles from "./VetoDialog.module.css";
 import { VETO_FEEDBACK } from "../content/helpCopy";
 import { findGraphTarget, nominalOn, optionDisplayName, optionsOn, type OptionTarget } from "../utils/graphOptions";
+import { chainStatus } from "../utils/composeGuide";
 import type { VetoInfo } from "./VetoDialog";
 
 type Technical = Parameters<typeof findGraphTarget>[0];
 
 /** The suggested change, or null when the objection is not a boundary on a known component. */
+export interface VetoChange {
+  component: string;
+  option: string | null;
+  /** Driver objections only: the first step, when the ask takes more than one. */
+  first?: { option: string; broken: boolean };
+}
+
 export function deriveVetoChange(
   vetoInfo: VetoInfo,
   technical: Technical,
-): { component: string; option: string | null } | null {
-  if (vetoInfo.objection_kind !== "boundary" || !vetoInfo.objection_target) return null;
+): VetoChange | null {
+  const kind = vetoInfo.objection_kind;
+  if ((kind !== "boundary" && kind !== "driver") || !vetoInfo.objection_target) return null;
   const id = vetoInfo.objection_target;
   const target = (findGraphTarget(technical, id) ?? findGraphTarget(technical, id.replace(/^req\./, ""))) as
     | (OptionTarget & { name?: string })
     | undefined;
   if (!target?.name) return null;
-  // The boundary's exact level is not sent, so offer the first authored step up.
-  const first = optionsOn(target, "automation").find((o) => o.to_level > nominalOn(target, "automation"));
+  if (kind === "driver") {
+    if (vetoInfo.objection_level == null || (vetoInfo.objection_axis ?? "automation") !== "automation") return null;
+    const chain = chainStatus(target, vetoInfo.objection_level, []);
+    if (!chain || chain.wanted.to_level !== vetoInfo.objection_level) return null;
+    return {
+      component: target.name,
+      option: optionDisplayName(target, "automation", chain.wanted),
+      first: chain.steps.length > 1 ? { option: optionDisplayName(target, "automation", chain.steps[0]), broken: chain.broken } : undefined,
+    };
+  }
+  // Offer the step that reaches the boundary's level when sent, else the first step up.
+  const steps = optionsOn(target, "automation");
+  const first =
+    (vetoInfo.objection_level != null ? steps.find((o) => o.to_level === vetoInfo.objection_level) : undefined) ??
+    steps.find((o) => o.to_level > nominalOn(target, "automation"));
   return { component: target.name, option: first ? optionDisplayName(target, "automation", first) : null };
 }
 
@@ -35,6 +57,8 @@ export default function VetoFeedback({ vetoInfo, technical, isRepeat, onShowObje
   const change = deriveVetoChange(vetoInfo, technical);
   let suggestion: string;
   if (isRepeat) suggestion = VETO_FEEDBACK.repeat(change?.component);
+  else if (change && vetoInfo.objection_kind === "driver" && change.option)
+    suggestion = VETO_FEEDBACK.driver(change.component, change.option, change.first);
   else if (change?.option) suggestion = VETO_FEEDBACK.boundary(change.component, change.option);
   else if (change) suggestion = VETO_FEEDBACK.boundaryNoOption(change.component);
   else suggestion = vetoInfo.objection_detail || VETO_FEEDBACK.fallback;
