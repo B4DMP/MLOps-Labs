@@ -26,6 +26,21 @@ from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.domain.pattern import PatternFactory
 from mlops_serious_game.domain.requirement import ConfidenceType, IntelTag
 
+# Any test module touching these needs a real Postgres - mark it `db` automatically so a newly
+# added DB test file is skipped by CI's `-m "not db"` without anyone having to remember to tag it.
+_DB_HINTS = ("get_session", "migrated_db", "create_engine", "sessionmaker", "TestClient(")
+
+
+def pytest_collection_modifyitems(items):
+    needs_db: dict[str, bool] = {}
+    for item in items:
+        path = str(item.fspath)
+        if path not in needs_db:
+            source = Path(path).read_text(encoding="utf-8")
+            needs_db[path] = any(hint in source for hint in _DB_HINTS)
+        if needs_db[path]:
+            item.add_marker(pytest.mark.db)
+
 
 @pytest.fixture(scope="session")
 def config_dir() -> Path:

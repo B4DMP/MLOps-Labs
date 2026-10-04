@@ -12,3 +12,9 @@ vi.mock('@iconify/react', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@iconify/react')>()),
   Icon: ({ icon }: { icon?: string }) => createElement('span', { 'data-icon': icon }),
 }))
+
+// lottie-web calls canvas.getContext('2d') at import time, which is null in jsdom, so merely
+// importing it (e.g. via EmotionEmoji from any component's import chain) fails the whole suite.
+vi.mock('lottie-web', () => ({
+  default: { loadAnimation: () => ({ destroy: () => {} }) },
+}))
