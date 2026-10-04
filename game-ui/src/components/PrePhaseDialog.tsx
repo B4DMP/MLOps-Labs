@@ -376,7 +376,7 @@ export default function PrePhaseDialog({
                 <div className={styles.directiveStepItem}>
                   <span className={styles.stepBadge}>2</span>
                   <div className={styles.directiveStepContent}>
-                    <strong>Involve Others:</strong> Prioritize <span className={styles.highlightManage}>Manage Closely</span> stakeholders, but make sure to involve the others as well.
+                    <strong>Involve Others:</strong> Prioritize <span className={styles.highlightManage}>Manage Closely</span> stakeholders (high power can veto, high interest reacts strongly), but make sure to involve the others as well.
                   </div>
                 </div>
                 <div className={styles.directiveStepItem}>
@@ -495,7 +495,7 @@ export default function PrePhaseDialog({
                 className={styles.matrixColumn}
                 data-intro-group="intro2"
                 data-title="Power & Interest Radar"
-                data-intro="This is the power/interest radar. High power, high interest stakeholders go in 'Manage Closely' - track them down first once you start gathering intel. The others still matter, they just won't sink your pitch if you get to them second, a fact they have made their peace with."
+                data-intro="This is the power/interest radar, and it is worth two minutes. <br /> <br /> <mark>Power</mark> means: can this person stop you? High power can veto your whole plan, low power can only grumble. <br /> <mark>Interest</mark> means: how much do they care? <br /> <br /> Together with power it sets how strongly your proposal moves their mood. <br /> <br /> High power and high interest land in <em>'Manage Closely'</em> - track them down first once you start gathering intel. The others still matter, they just won't sink your pitch if you get to them second."
                 data-step="4"
               >
                 <div className={styles.sectionHeader}>
@@ -505,7 +505,7 @@ export default function PrePhaseDialog({
                   </h6>
                   <HoverTooltip
                     portalTarget={bubbleLayer}
-                    description="Radar Gameplay Guide: Power reflects authority to approve or veto your ML systems. Interest reflects how directly daily work is impacted. Focus your attention on 'Manage Closely' stakeholders, but don't disregard the others."
+                    description="Radar Guide: Power is whether this person can stop you. High power can veto the whole plan, low power can only grumble. Interest is how much they care; together with power it sets how strongly your words and your proposal move their mood. Focus on 'Manage Closely' stakeholders first, but don't disregard the others."
                   >
                     <span className={styles.radarHelpBtn}>
                       <Icon icon="ph:info-bold" />

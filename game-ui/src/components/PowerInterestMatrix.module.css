@@ -714,3 +714,10 @@
   transform: none;
   box-shadow: none;
 }
+
+.sectorConsequence {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  line-height: 1.3;
+  color: #94a3b8;
+}

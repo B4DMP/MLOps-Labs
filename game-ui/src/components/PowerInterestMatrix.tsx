@@ -39,6 +39,7 @@ interface QuadrantConfig {
   cardStyle: string;
   icon: string;
   iconColor: string;
+  consequence: string;
 }
 
 const QUADRANTS: QuadrantConfig[] = [
@@ -48,6 +49,7 @@ const QUADRANTS: QuadrantConfig[] = [
     cardStyle: styles.sectorTopLeft,
     icon: "ph:warning-circle-bold",
     iconColor: "#f97316",
+    consequence: "Can veto, but is moved gently. Do not cross their lines.",
   },
   {
     key: "high-high",
@@ -55,6 +57,7 @@ const QUADRANTS: QuadrantConfig[] = [
     cardStyle: styles.sectorTopRight,
     icon: "ph:star-bold",
     iconColor: "#ef4444",
+    consequence: "Can veto, and reacts strongly to everything you say and propose.",
   },
   {
     key: "low-low",
@@ -62,6 +65,7 @@ const QUADRANTS: QuadrantConfig[] = [
     cardStyle: styles.sectorBottomLeft,
     icon: "ph:eye-bold",
     iconColor: "#94a3b8",
+    consequence: "Cannot stop you. At worst a soft pass, and they barely react.",
   },
   {
     key: "low-high",
@@ -69,6 +73,7 @@ const QUADRANTS: QuadrantConfig[] = [
     cardStyle: styles.sectorBottomRight,
     icon: "ph:info-bold",
     iconColor: "#38bdf8",
+    consequence: "Cannot stop you. At worst a soft pass, but they react strongly.",
   },
 ];
 
@@ -532,6 +537,8 @@ export default function PowerInterestMatrix({
                       <span>{quad.key.endsWith("high") ? "High" : "Low"} Interest</span>
                     </span>
                   </div>
+
+                  <p className={styles.sectorConsequence}>{quad.consequence}</p>
 
                   <div className={styles.stakeholderList}>
                     {items.length === 0 ? (
