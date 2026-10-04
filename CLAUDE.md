@@ -24,6 +24,23 @@ this project's environment — it belongs to the user's other, unrelated work.
   than reaching for the host environment - don't silently substitute it.
 - This applies to every language/toolchain in this repo (Python, Node), not just the backend.
 
+## Keep CI green: what runs there, and what must not
+
+CI (`.github/workflows/ci-cd.yml`) has no Postgres and no real browser, so tests are split:
+
+- **Backend:** CI runs `pytest tests -q -m "not db"`. Tests that need a real Postgres are marked
+  `db` and run only locally via `docker compose exec api python -m pytest tests -q`.
+  `tests/conftest.py` auto-marks any test module that references `get_session`, `migrated_db`,
+  `create_engine`, `sessionmaker` or `TestClient(`. A test that reaches the DB indirectly (e.g.
+  through a service or LangGraph checkpointer) is not caught: add `@pytest.mark.db` yourself.
+  Before pushing a new backend test, run it with `-m "not db"` and confirm it is deselected or
+  passes without Postgres.
+- **Frontend:** `src/setupTests.ts` globally stubs `@iconify/react`'s `Icon` and `lottie-web`
+  (jsdom has no canvas, and iconify's retry timers fire after teardown and fail the whole run).
+  If a new third-party library needs canvas, WebGL, network polling or timers at import time,
+  stub it there rather than per test file. `npm test` exits non-zero on any unhandled error even
+  when every test passes.
+
 ## Know the gameplay flow before changing a screen
 
 Read `docs/gameplay-flow.md` first: which screen the player sees when, what advances it, and where
