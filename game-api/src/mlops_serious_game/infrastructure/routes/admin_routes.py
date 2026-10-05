@@ -27,6 +27,10 @@ from mlops_serious_game.application.services.bug_report_settings_service import 
     get_recipients as get_bug_report_recipients,
     update_recipients as update_bug_report_recipients,
 )
+from mlops_serious_game.application.services.default_llm_provider_service import (
+    get_default_llm_provider,
+    update_default_llm_provider,
+)
 from mlops_serious_game.application.services.admin_results import (
     get_player_results,
     get_results_dashboard,
@@ -80,6 +84,12 @@ class CampaignUpdateRequest(BaseModel):
 
 class ConfigUpdateRequest(BaseModel):
     data: Any
+
+
+class DefaultLlmProviderUpdateRequest(BaseModel):
+    # None clears the explicit default, falling back to the server-wide Mistral -> WestAI ->
+    # Groq env-key priority (application/llm.py).
+    llm_provider: Literal["mistral", "westai", "groq"] | None = None
 
 
 class TeacherCreateRequest(BaseModel):
@@ -479,6 +489,18 @@ async def update_bug_report_recipients_route(
     req: BugReportRecipientsUpdateRequest, _: str = Depends(check_admin_token)
 ):
     return {"recipients": update_bug_report_recipients(req.recipients)}
+
+
+@router.get("/default-llm-provider")
+async def get_default_llm_provider_route(_: str = Depends(check_admin_token)):
+    return {"llm_provider": get_default_llm_provider()}
+
+
+@router.post("/default-llm-provider")
+async def update_default_llm_provider_route(
+    req: DefaultLlmProviderUpdateRequest, _: str = Depends(check_admin_token)
+):
+    return {"llm_provider": update_default_llm_provider(req.llm_provider)}
 
 
 @router.get("/deploy/version")

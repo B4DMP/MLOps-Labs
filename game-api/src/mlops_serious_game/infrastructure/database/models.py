@@ -373,6 +373,23 @@ class BugReportRecipientsRow(Base):
     )
 
 
+class DefaultLlmProviderRow(Base):
+    """Single-row table (id=1) holding the server-wide default LLM provider, admin-editable via
+    /api/admin/default-llm-provider. NULL (or no row) falls back to the hardcoded
+    Mistral -> WestAI -> Groq env-key priority in application/llm.py."""
+
+    __tablename__ = settings.POSTGRES_DEFAULT_LLM_PROVIDER_TABLE
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    provider: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime,
+        default=datetime.datetime.utcnow,
+        onupdate=datetime.datetime.utcnow,
+        nullable=False,
+    )
+
+
 class LlmCacheEntry(Base):
     """One cached LLM answer. `key_hash` is a sha256 of the prompt and the model settings."""
 

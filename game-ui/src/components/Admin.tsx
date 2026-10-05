@@ -36,6 +36,8 @@ import {
   sendAdminTestEmail,
   fetchBugReportRecipients,
   updateBugReportRecipients,
+  fetchDefaultLlmProvider,
+  updateDefaultLlmProvider,
   restartDeployment,
   fetchDeployVersion,
   fetchDeployLogs,
@@ -331,6 +333,37 @@ export function Admin({
 
   const handleRemoveBugReportRecipient = (email: string) => {
     saveBugReportRecipients((bugReportRecipients || []).filter((r) => r !== email));
+  };
+
+  // Server-wide default LLM provider (falls back to the Mistral -> WestAI -> Groq env-key
+  // priority when unset)
+  const [defaultLlmProvider, setDefaultLlmProvider] = useState<string | null>(null);
+  const [defaultLlmProviderLoaded, setDefaultLlmProviderLoaded] = useState(false);
+  const [defaultLlmProviderSaving, setDefaultLlmProviderSaving] = useState(false);
+  const [defaultLlmProviderError, setDefaultLlmProviderError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (activeSubpage === "manager" && !defaultLlmProviderLoaded && adminToken) {
+      fetchDefaultLlmProvider()
+        .then((res) => {
+          setDefaultLlmProvider(res.llm_provider);
+          setDefaultLlmProviderLoaded(true);
+        })
+        .catch((err: any) => setDefaultLlmProviderError(err.message || "Failed to load the default LLM provider."));
+    }
+  }, [activeSubpage, adminToken]);
+
+  const saveDefaultLlmProvider = async (next: string | null) => {
+    setDefaultLlmProviderSaving(true);
+    setDefaultLlmProviderError(null);
+    try {
+      const res = await updateDefaultLlmProvider(next);
+      setDefaultLlmProvider(res.llm_provider);
+    } catch (err: any) {
+      setDefaultLlmProviderError(err.message || "Failed to save the default LLM provider.");
+    } finally {
+      setDefaultLlmProviderSaving(false);
+    }
   };
 
   const handleSendTestEmail = async (e: React.FormEvent) => {
@@ -884,6 +917,28 @@ export function Admin({
                     <span className={`${styles.pillBadge} ${styles.badgePrimary}`}>
                       {visibleCampaigns.length} {visibleCampaigns.length === 1 ? "Campaign" : "Campaigns"}
                     </span>
+                    <div className="d-flex align-items-center gap-2">
+                      <label htmlFor="defaultLlmProviderSelect" className="small fw-semibold text-secondary m-0">
+                        Default Provider
+                      </label>
+                      <select
+                        id="defaultLlmProviderSelect"
+                        className="form-select form-select-sm"
+                        style={{ minWidth: "8rem" }}
+                        value={defaultLlmProvider || ""}
+                        onChange={(e) => saveDefaultLlmProvider(e.target.value || null)}
+                        disabled={defaultLlmProviderSaving}
+                        title="The provider used campaign-wide when a campaign has no override (Mistral -> WestAI -> Groq env-key priority if unset)."
+                      >
+                        <option value="">Auto (env-based)</option>
+                        <option value="mistral">Mistral</option>
+                        <option value="westai">WestAI</option>
+                        <option value="groq">Groq</option>
+                      </select>
+                      {defaultLlmProviderError && (
+                        <span className="small text-danger">{defaultLlmProviderError}</span>
+                      )}
+                    </div>
                     <div className="form-check form-switch d-flex align-items-center gap-2 m-0">
                       <input
                         className="form-check-input mt-0"
