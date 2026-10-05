@@ -34,7 +34,7 @@ from mlops_serious_game.application.pitch_debate_service.chains import (
 from mlops_serious_game.application.pitch_debate_service.state import DialogueOption
 from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, verify_player_token
 from mlops_serious_game.infrastructure.database import IntelItem, GameSession, get_session
-from mlops_serious_game.infrastructure.database.run_scope import current_run_index, run_chain
+from mlops_serious_game.infrastructure.database.run_scope import FIRST_RUN, current_run_index, run_chain
 from mlops_serious_game.config import settings
 
 
@@ -154,6 +154,12 @@ def _deck_debug(requirement_id: str) -> Dict[str, Any]:
     return {"debug": _debug_requirement(req)} if req else {}
 
 
+def _artifact_is_edge(art) -> bool:
+    """Whether the requirement an offline artifact is about targets a graph edge."""
+    req = RequirementFactory.get_requirement(art.requirement_id)
+    return bool(req) and is_edge_requirement(req)
+
+
 async def generate_offline_intel_artifacts(curr_challenge: Challenge, user_id: int = None) -> List[Dict[str, Any]]:
     """Loads offline intel artifacts for the current challenge.
 
@@ -161,8 +167,14 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge, user_id: i
     straight into the dossier without ever being shown, which left players staring at verified intel
     with no idea where it came from. Reading them costs a couple of clicks and gives the player a
     worked example of a correct tag before their first real call.
+
+    Edge-targeted artifacts are left out of the deck entirely during a player's first playthrough:
+    new players meet only intel about the graph's components, and edge intel starts appearing from
+    the second playthrough on (docs/gameplay-flow.md).
     """
     challenge_artifacts = OfflineIntelArtifactFactory.get_artifacts_for_challenge(curr_challenge.id)
+    if user_id is not None and is_first_playthrough(user_id):
+        challenge_artifacts = [art for art in challenge_artifacts if not _artifact_is_edge(art)]
     unconfirmed_artifacts = deal_unconfirmed_artifacts(
         curr_challenge, [art for art in challenge_artifacts if not art.is_known]
     )
@@ -237,6 +249,8 @@ def load_known_intel_items_for_challenge(
         art for art in OfflineIntelArtifactFactory.get_artifacts_for_challenge(curr_challenge.id)
         if art.is_known
     ]
+    if is_first_playthrough(user_id):
+        known_artifacts = [art for art in known_artifacts if not _artifact_is_edge(art)]
     if not known_artifacts:
         return [], []
 
@@ -517,6 +531,36 @@ def item_target(item) -> Optional[str]:
     `requirement_factory.py` can never again silently diverge on priority order or field coverage.
     """
     return _shared_item_target(item)
+
+
+def is_edge_requirement(item) -> bool:
+    """Whether a requirement's graph target is an edge (a hand-off between components) rather
+    than a component itself."""
+    target = item_target(item)
+    if not target:
+        return False
+    try:
+        from mlops_serious_game.domain.graph_factory import GraphFactory
+
+        graph = GraphFactory.get_graph()
+        return graph.is_edge(graph.resolve(target))
+    except Exception:
+        return False
+
+
+def is_first_playthrough(user_id: int) -> bool:
+    """Whether this player hasn't finished a run yet. Edge intel is held back until the second
+    playthrough onward, so a new player only has to learn to read intel about the graph's
+    components before anything about the hand-offs between them."""
+    with get_session() as session:
+        return current_run_index(session, user_id) <= FIRST_RUN
+
+
+def filter_edge_intel(requirements: list, hide_edges: bool) -> list:
+    """Drops edge-targeted requirements when `hide_edges` is True, otherwise a no-op."""
+    if not hide_edges:
+        return requirements
+    return [r for r in requirements if not is_edge_requirement(r)]
 
 
 def _graph_snapshot(user_id: int):
@@ -1227,6 +1271,7 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
     stage. The player cannot tag a Fact, so the true tag decides the page.
     """
     user_id = _user_id_from_ws(ws)
+    hide_edges = is_first_playthrough(user_id)
     collected_items = await retrieve_intel_items(curr_challenge, ws)
     # This challenge's notes win where the archive holds the same id: they are the fresher read.
     items_by_id: Dict[str, StakeholderIntelItem] = {
@@ -1248,7 +1293,7 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
     # instead of just a found count. Same `max(pool, held)` guard as `intel_total`: notes carried
     # over from an earlier phase can only raise the count, never make it look incomplete.
     target_pool_counts: Dict[str, int] = {}
-    for req in RequirementFactory.get_requirements_for_challenge(curr_challenge.id):
+    for req in filter_edge_intel(RequirementFactory.get_requirements_for_challenge(curr_challenge.id), hide_edges):
         t = item_target(req)
         if t:
             target_pool_counts[t] = target_pool_counts.get(t, 0) + 1
@@ -1358,7 +1403,7 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             continue
         ch_st = ph_st_map.get(st.id)
         intel_entries = stakeholder_intel_map.get(st_id, [])
-        st_pool = _stakeholder_pool(curr_challenge.id, st.id)
+        st_pool = filter_edge_intel(_stakeholder_pool(curr_challenge.id, st.id), hide_edges)
 
         debug_fields = {}
         if debug_on:
@@ -1379,18 +1424,19 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             "interest": ch_st.interest if ch_st else "low",
             "intel_items": intel_entries,
             # This challenge's own pool only, found or not - the pitch deck's `intel_total` is
-            # scoped the same way (`ctx.all_intel` from `get_requirements_for_challenge`), so the
-            # two numbers agree. Carryover from earlier phases can still show up in `intel_items`
-            # (plan 05), it just no longer inflates the denominator past what this challenge holds.
+            # scoped the same way (`ctx.all_intel`, also edge-filtered on a first playthrough), so
+            # the two numbers agree. Carryover from earlier phases can still show up in
+            # `intel_items` (plan 05), it just no longer inflates the denominator past what this
+            # challenge holds.
             "intel_total": len(st_pool),
             "focus_stage_ids": focus_stage_ids,
         })
 
     if challenge_intel_entries:
-        fact_pool = [
+        fact_pool = filter_edge_intel([
             r for r in RequirementFactory.get_requirements_for_challenge(curr_challenge.id)
             if _is_known_fact(r)
-        ]
+        ], hide_edges)
         debug_fields = {"debug": {"missing_intel": _debug_missing(fact_pool, held_ids)}} if debug_on else {}
         dossier_list.append({
             **debug_fields,

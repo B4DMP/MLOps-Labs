@@ -16,6 +16,8 @@ from sqlalchemy import select
 from sqlalchemy.orm.attributes import flag_modified
 
 from mlops_serious_game.application.intel_handler import (
+    is_edge_requirement,
+    is_first_playthrough,
     load_known_intel_items,
     retrieve_dossier_data,
     store_intel_item,
@@ -53,6 +55,12 @@ def _challenge_and_room(phase_id: int, challenge_id: int):
         challenge = phases[0].challenges[0]
     room_ids = [ps.stakeholder_id for ps in PhaseFactory.get_phases()[challenge.phase_id].stakeholders]
     return challenge, room_ids
+
+
+def _pool_for(challenge_id: int, stakeholder_id: str, hide_edges: bool) -> list:
+    """A stakeholder's requirement pool, edge-targeted items dropped during a first playthrough."""
+    pool = RequirementFactory.get_requirements_for_stakeholder_in_challenge(challenge_id, stakeholder_id)
+    return [r for r in pool if not is_edge_requirement(r)] if hide_edges else pool
 
 
 def _stakeholder_obj(st_id: str):
@@ -117,8 +125,9 @@ def _options_payload(
     except Exception:
         pass
 
+    hide_edges = is_first_playthrough(user_id)
     room_pools = {
-        st_id: RequirementFactory.get_requirements_for_stakeholder_in_challenge(challenge.id, st_id)
+        st_id: _pool_for(challenge.id, st_id, hide_edges)
         for st_id in room_ids
     }
     if card.id == "eng_3" or card.stakeholder_selection_amount == -1:
@@ -126,7 +135,7 @@ def _options_payload(
     else:
         pool = room_pools.get(
             conversation.stakeholder_id,
-            RequirementFactory.get_requirements_for_stakeholder_in_challenge(challenge.id, conversation.stakeholder_id),
+            _pool_for(challenge.id, conversation.stakeholder_id, hide_edges),
         )
 
     seed = f"{user_id}|{challenge.id}|{conversation.card_id}|{conversation.stakeholder_id}|{conversation.turns_used}"
@@ -302,6 +311,7 @@ async def handle_gather_ask(websocket: WebSocket, user_id: int, payload: dict) -
     option = payload.get("option", "")
     card = EngagementCardFactory.get_card(card_id)
     challenge, room_ids = _challenge_and_room(phase_id, challenge_id)
+    hide_edges = is_first_playthrough(user_id)
 
     conversation = gather_store.load_conversation(user_id, phase_id, challenge_id, card_id, stakeholder_id)
     if conversation is None and (card_id == "eng_3" or card.stakeholder_selection_amount == -1):
@@ -419,7 +429,7 @@ async def handle_gather_ask(websocket: WebSocket, user_id: int, payload: dict) -
     # Resolve pure outcome
     if card_id == "eng_3":
         room_pools = {
-            s_id: RequirementFactory.get_requirements_for_stakeholder_in_challenge(challenge.id, s_id)
+            s_id: _pool_for(challenge.id, s_id, hide_edges)
             for s_id in room_ids
         }
         names_by_st = {s_id: _stakeholder_name(s_id) for s_id in room_ids}
@@ -433,7 +443,7 @@ async def handle_gather_ask(websocket: WebSocket, user_id: int, payload: dict) -
             graph=graph,
         )
     elif option == "component_query":
-        pool = RequirementFactory.get_requirements_for_stakeholder_in_challenge(challenge.id, conversation.stakeholder_id)
+        pool = _pool_for(challenge.id, conversation.stakeholder_id, hide_edges)
         outcome = gather.resolve_component_query(
             conversation=conversation,
             pool=pool,
@@ -444,7 +454,7 @@ async def handle_gather_ask(websocket: WebSocket, user_id: int, payload: dict) -
             graph=graph,
         )
     elif option == "priority_query":
-        pool = RequirementFactory.get_requirements_for_stakeholder_in_challenge(challenge.id, conversation.stakeholder_id)
+        pool = _pool_for(challenge.id, conversation.stakeholder_id, hide_edges)
         outcome = gather.resolve_priority_query(
             conversation=conversation,
             pool=pool,
@@ -454,7 +464,7 @@ async def handle_gather_ask(websocket: WebSocket, user_id: int, payload: dict) -
             graph=graph,
         )
     elif option == "generic_query":
-        pool = RequirementFactory.get_requirements_for_stakeholder_in_challenge(challenge.id, conversation.stakeholder_id)
+        pool = _pool_for(challenge.id, conversation.stakeholder_id, hide_edges)
         outcome = gather.resolve_generic_query(
             conversation=conversation,
             pool=pool,
@@ -761,7 +771,7 @@ async def handle_gather_ask(websocket: WebSocket, user_id: int, payload: dict) -
                 })
         else:
             # Check if stakeholder has already discovered items on this component
-            st_pool = RequirementFactory.get_requirements_for_stakeholder_in_challenge(challenge.id, speaker_id)
+            st_pool = _pool_for(challenge.id, speaker_id, hide_edges)
             matching_disc = [
                 r for r in st_pool
                 if gather.component_for_item(r, graph) == chosen_component
