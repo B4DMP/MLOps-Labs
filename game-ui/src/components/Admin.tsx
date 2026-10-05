@@ -55,6 +55,8 @@ export interface Campaign {
   is_bot_campaign?: boolean;
   require_email_verification?: boolean;
   intro_phase_enabled?: boolean;
+  /** "mistral" | "westai" | "groq", or unset to use the server-wide default priority. */
+  llm_provider?: string | null;
 }
 
 export interface Player {
@@ -97,6 +99,7 @@ interface AdminProps {
       is_bot_campaign?: boolean;
       require_email_verification?: boolean;
       intro_phase_enabled?: boolean;
+      llm_provider?: string;
     }
   ) => void;
   removeCampaign: (campaignKey: string) => void;
@@ -927,6 +930,7 @@ export function Admin({
                         <th>Access Key</th>
                         <th>Status</th>
                         <th>Flags</th>
+                        <th>LLM Provider</th>
                         <th>Enrolled Players</th>
                         <th className="text-end">Actions</th>
                       </tr>
@@ -1065,6 +1069,23 @@ export function Admin({
                                   </span>
                                 </button>
                               </div>
+                            </td>
+                            <td>
+                              <select
+                                className="form-select form-select-sm"
+                                style={{ minWidth: "8rem" }}
+                                value={c.llm_provider || ""}
+                                onChange={(e) =>
+                                  updateCampaign && updateCampaign(c.key, { llm_provider: e.target.value || "default" })
+                                }
+                                disabled={!updateCampaign}
+                                title="Which LLM provider this campaign's players use. Default follows the server-wide Mistral -> WestAI -> Groq priority."
+                              >
+                                <option value="">Default</option>
+                                <option value="mistral">Mistral</option>
+                                <option value="westai">WestAI</option>
+                                <option value="groq">Groq</option>
+                              </select>
                             </td>
                             <td>
                               <span className={`${styles.pillBadge} ${styles.badgeNeutral}`}>

@@ -60,6 +60,8 @@ class CampaignAddRequest(BaseModel):
     is_bot_campaign: bool = False
     require_email_verification: bool = True
     intro_phase_enabled: bool = False
+    # None (the default) means "use the server-wide Mistral -> WestAI -> Groq priority".
+    llm_provider: Literal["mistral", "westai", "groq"] | None = None
 
 
 class CampaignUpdateRequest(BaseModel):
@@ -71,6 +73,9 @@ class CampaignUpdateRequest(BaseModel):
     is_bot_campaign: bool | None = None
     require_email_verification: bool | None = None
     intro_phase_enabled: bool | None = None
+    # Omitted: leave the campaign's provider untouched. "default": clear it back to the
+    # server-wide priority. Any other value pins the campaign to that provider.
+    llm_provider: Literal["mistral", "westai", "groq", "default"] | None = None
 
 
 class ConfigUpdateRequest(BaseModel):
@@ -141,6 +146,7 @@ async def create_campaign(req: CampaignAddRequest, _: str = Depends(check_admin_
         is_bot_campaign=req.is_bot_campaign,
         require_email_verification=req.require_email_verification,
         intro_phase_enabled=req.intro_phase_enabled,
+        llm_provider=req.llm_provider,
     )
     data = get_admin_dashboard_data()
     return {"type": "admin_data_update", **data}
@@ -159,6 +165,7 @@ async def patch_campaign(campaign_key: str, req: CampaignUpdateRequest, _: str =
             is_bot_campaign=req.is_bot_campaign,
             require_email_verification=req.require_email_verification,
             intro_phase_enabled=req.intro_phase_enabled,
+            llm_provider=req.llm_provider,
         )
         data = get_admin_dashboard_data()
         return {"type": "admin_data_update", **data}

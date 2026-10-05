@@ -90,6 +90,9 @@ export async function updateAdminCampaign(
     is_bot_campaign?: boolean;
     require_email_verification?: boolean;
     intro_phase_enabled?: boolean;
+    /** "mistral" | "westai" | "groq" pins the campaign to that provider; "default" clears the
+     * override back to the server-wide Mistral -> WestAI -> Groq priority. */
+    llm_provider?: string;
   }
 ): Promise<AdminDashboardData> {
   const response = await fetch(`${BASE_URL}/api/admin/campaigns/${encodeURIComponent(campaignKey)}`, {

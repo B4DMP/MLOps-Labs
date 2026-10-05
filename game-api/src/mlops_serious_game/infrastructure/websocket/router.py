@@ -5,9 +5,11 @@ from collections.abc import Awaitable, Callable
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
+from mlops_serious_game.application.llm import bind_llm_provider
 from mlops_serious_game.application.persona_service import personas_or_default
 from mlops_serious_game.application.services.auth_service import (
     PLAYER_COOKIE_NAME,
+    get_player_llm_provider,
     verify_player_token,
 )
 from mlops_serious_game.config import settings
@@ -125,6 +127,10 @@ async def unified_websocket_endpoint(websocket: WebSocket):
     # handler, and every task they spawn, inherits it, so config prose and
     # avatars come out personalized without threading the player around.
     bind_personas(personas_or_default(user_id))
+    # Same mechanism, for the LLM provider this player's campaign is pinned to (or None to use
+    # the server-wide default order) - every chain built via application.llm.get_chat_model for
+    # the rest of this connection honors it without threading it through each call site.
+    bind_llm_provider(get_player_llm_provider(user_id))
 
     try:
         while True:

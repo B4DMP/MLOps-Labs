@@ -128,6 +128,25 @@ def get_player_email(user_id: int) -> str | None:
         return session.scalar(select(User.email).where(User.id == user_id))
 
 
+def get_player_llm_provider(user_id: int) -> str | None:
+    """The LLM provider override `user_id`'s campaign is configured with, or None (use the
+    server-wide default order) if it has none, the user is gone, or the lookup fails.
+
+    Mirrors persona_service.personas_or_default: never raises, so a database hiccup degrades to
+    the global default provider instead of closing the websocket.
+    """
+    try:
+        with get_session() as session:
+            return session.scalar(
+                select(Campaign.llm_provider)
+                .join(User, User.campaign_id == Campaign.id)
+                .where(User.id == user_id)
+            )
+    except Exception as exc:  # noqa: BLE001 - degrade to the server-wide default order
+        logger.warning(f"Falling back to the default LLM provider order for user {user_id}: {exc}")
+        return None
+
+
 def _create_player_token(user_id: int) -> str:
     return create_access_token(data={"sub": str(user_id), "role": "player"})
 

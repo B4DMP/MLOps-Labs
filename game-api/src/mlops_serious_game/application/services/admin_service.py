@@ -78,6 +78,7 @@ def get_campaigns_data() -> list[dict[str, Any]]:
                     "is_bot_campaign": c.is_bot_campaign,
                     "require_email_verification": c.require_email_verification,
                     "intro_phase_enabled": c.intro_phase_enabled,
+                    "llm_provider": c.llm_provider,
                     "users": get_campaign_users(c.campaign_key),
                 }
                 for c in campaigns_list
@@ -770,6 +771,7 @@ def add_campaign(
     is_bot_campaign: bool = False,
     require_email_verification: bool = True,
     intro_phase_enabled: bool = False,
+    llm_provider: str | None = None,
 ) -> None:
     try:
         with get_session() as session:
@@ -783,6 +785,7 @@ def add_campaign(
                 is_bot_campaign=is_bot_campaign,
                 require_email_verification=require_email_verification,
                 intro_phase_enabled=intro_phase_enabled,
+                llm_provider=llm_provider,
             )
             session.add(new_c)
     except Exception as e:
@@ -800,7 +803,13 @@ def update_campaign(
     is_bot_campaign: bool | None = None,
     require_email_verification: bool | None = None,
     intro_phase_enabled: bool | None = None,
+    llm_provider: str | None = None,
 ) -> None:
+    """`llm_provider="default"` clears the campaign's override back to the server-wide priority
+    (stored as NULL); any other non-None value pins the campaign to that provider. Every other
+    field keeps the usual "None means leave it alone" partial-update convention - `llm_provider`
+    can't use that convention too, since None would then be unable to mean "clear it back to
+    default" (see admin_routes.CampaignUpdateRequest)."""
     try:
         with get_session() as session:
             campaign = session.scalar(select(Campaign).where(Campaign.campaign_key == campaign_key))
@@ -821,6 +830,8 @@ def update_campaign(
                     campaign.require_email_verification = require_email_verification
                 if intro_phase_enabled is not None:
                     campaign.intro_phase_enabled = intro_phase_enabled
+                if llm_provider is not None:
+                    campaign.llm_provider = None if llm_provider == "default" else llm_provider
     except Exception as e:
         print(f"Error updating campaign {campaign_key}: {e}")
         raise
