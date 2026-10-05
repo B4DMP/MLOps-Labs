@@ -26,7 +26,9 @@ ROOM = [(RUTH, "high"), (DAVE, "low")]
 
 def _intel():
     return [
-        _item("r1", RUTH, "driver", suggested=_target("ops.alerting", 3)),
+        # ops.alerting starts at automation 1 (absent): the next rung a single raise_to can
+        # reach is 2 (manual), so Ruth's ask is pitched at the level one slot can actually land.
+        _item("r1", RUTH, "driver", suggested=_target("ops.alerting", 2)),
         _item("d1", DAVE, "driver", suggested=_target("data.validation", 3)),
     ]
 
@@ -35,9 +37,10 @@ def _change(target, value):
     return session.AtomicChange(target=target, kind="raise_to", axis="automation", value=value)
 
 
-BASE = [_change("ops.alerting", 3)]  # Ruth fine, Dave objecting
-OTHER_UNHELPFUL = [_change("ops.alerting", 3), _change("data.ingestion", 2)]  # nothing new for either
-ANSWERS_DAVE = [_change("ops.alerting", 3), _change("data.validation", 3)]
+BASE = [_change("ops.alerting", 2)]  # Ruth fine, Dave objecting
+OTHER_UNHELPFUL = [_change("ops.alerting", 2), _change("data.ingestion", 2)]  # nothing new for either
+# data.validation also starts at automation 1: reaching Dave's ask of 3 needs both rungs slotted.
+ANSWERS_DAVE = [_change("ops.alerting", 2), _change("data.validation", 2), _change("data.validation", 3)]
 
 
 def _pitch(real, changes, previous=None, **kw):
@@ -127,7 +130,7 @@ def test_answered_objection_releases_impatience_and_earns_relief(real):
     assert answered.emotion_deltas[DAVE]["fairness"] > fresh.emotion_deltas[DAVE]["fairness"]
     assert answered.emotion_deltas[DAVE]["trust"] - fresh.emotion_deltas[DAVE]["trust"] == pytest.approx(relief, rel=0.6)
 
-    settled, _, _ = _pitch(real, BASE + [_change("data.validation", 3), _change("data.ingestion", 2)], previous=answered)
+    settled, _, _ = _pitch(real, ANSWERS_DAVE, previous=answered)
     assert settled.impatience[DAVE] == 0  # the last step fades on the next calm pitch
 
 

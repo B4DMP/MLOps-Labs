@@ -1,8 +1,10 @@
 """Completability guarantee (docs/plans/graph-governance-automation-rework/00-plan.md sec 12):
 every authored challenge must have at least one <=3-slot combination of its own driver/trade-off
 items that keeps every high-power stakeholder in its phase out of VETO, starting from the
-freshly-seeded graph (the practical "worst case" approximation from sec 12.2 - no prior play has
-built anything up yet).
+freshly-seeded graph with the challenge's own `on_enter_ops` applied (the practical "worst case"
+approximation from sec 12.2 - no prior play has built anything up yet, but the challenge's own
+world event, e.g. "the pipeline just crashed", has already fired, since that is the state the
+player actually resolves from).
 
 This is a content-coverage check, not a graph-mechanic test: a failure here means a challenge was
 authored without a way to satisfy its own high-power stakeholder(s), not that the engine is wrong.
@@ -13,8 +15,8 @@ from pathlib import Path
 
 import pytest
 
-from mlops_serious_game.application.graph_service.apply import replay, seed_ops
-from mlops_serious_game.domain.graph import LoggedOp
+from mlops_serious_game.application.graph_service.apply import apply_ops, replay, seed_ops
+from mlops_serious_game.domain.graph import GraphOp, LoggedOp
 from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
@@ -26,7 +28,8 @@ from content_gen.solvability import find_veto_free_card  # noqa: E402
 
 def _has_safe_branch(graph, challenge, phase, all_intel) -> bool:
     """Whether some <=3-change card built from what this challenge's own intel names avoids a VETO
-    from any high-power stakeholder in its phase, starting from the fresh-seeded graph.
+    from any high-power stakeholder in its phase, starting from the fresh-seeded graph with this
+    challenge's own `on_enter_ops` applied.
 
     Shares `find_veto_free_card` with the content harness's gate, so the test and the generator agree
     on what "passable" means: it offers Boundary ops and every step of a composite Driver, and
@@ -34,7 +37,9 @@ def _has_safe_branch(graph, challenge, phase, all_intel) -> bool:
     room = [(ps.stakeholder_id, ps.power, ps.interest) for ps in phase.stakeholders]
     if not any(power == "high" for _, power, _ in room):
         return True  # nothing to veto with - vacuously safe
-    state = replay(graph, [LoggedOp(seq=i, op=op) for i, op in enumerate(seed_ops(graph))]).state
+    seeded = replay(graph, [LoggedOp(seq=i, op=op) for i, op in enumerate(seed_ops(graph))]).state
+    on_enter = [GraphOp.model_validate(o) for o in challenge.on_enter_ops or []]
+    state = apply_ops(graph, seeded, on_enter).state
     stances = [i for i in all_intel if getattr(getattr(i, "type", None), "value", getattr(i, "type", None)) != "fact"]
     return find_veto_free_card(graph, state, stances, room) is not None
 

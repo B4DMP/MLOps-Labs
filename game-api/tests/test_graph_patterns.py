@@ -123,8 +123,14 @@ def _challenge(cid, phase, template, **kw) -> Challenge:
 def _phases() -> list[Phase]:
     data = [
         _challenge(1, 1, "ch_fallback_1", fallback=True),
+        # data.versioning now defaults to manual (2); the threshold tracks that starting point
+        # so it's still eligible on a fresh graph and not once fully automated (3). Checked "on"
+        # nominal, not the (default) effective level: data.versioning's effective automation is
+        # itself capped at manual by e.validate_version in the real graph, which would make a
+        # nominal 3 indistinguishable from a nominal 2 under the default "effective" reading.
         _challenge(2, 1, "ch_needs_versioning", priority=50,
-                   preconditions={"component": "data.versioning", "axis": "automation", "op": "lte", "level": 1}),
+                   preconditions={"component": "data.versioning", "axis": "automation", "op": "lte", "level": 2,
+                                  "on": "nominal"}),
         _challenge(3, 1, "ch_always", priority=10),
         _challenge(4, 1, "ch_excluded", priority=99, excluded_if=True),
     ]

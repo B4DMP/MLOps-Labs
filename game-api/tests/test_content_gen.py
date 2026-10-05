@@ -58,8 +58,8 @@ ITEMS = {"items": [
              {"kind": "raise_to", "target": "e.validate_version", "axis": "automation", "value": "3"}]},
     {"key": "dave_versioning", "tag": "trade_off", "stakeholder_id": "data_dave",
      "fact": "{data_dave} brought up versioning for each dataset.",
-     "readings": {"driver": "D: More versioning is always better in his book.", "boundary": "B: He will not hand over a dataset that has no version.", "trade_off": "T: He would let versioning wait a sprint if ingestion gets fixed first.", "fact": "F: That is how the datasets are handled today."},
-     "concedes_target": "data.versioning", "concedes_axis": "automation", "concedes_max_level": 1},
+     "readings": {"driver": "D: More versioning is always better in his book.", "boundary": "B: He will not hand over a dataset that has no version.", "trade_off": "T: He would leave versioning manual a while longer if ingestion gets fixed first.", "fact": "F: That is how the datasets are handled today."},
+     "concedes_target": "data.versioning", "concedes_axis": "automation", "concedes_max_level": 2},
     {"key": "ruth_ingestion", "tag": "boundary", "stakeholder_id": "reliability_ruth",
      "fact": "{reliability_ruth} wants the ingestion job running again.",
      "readings": {"driver": "D: She will not sign off on anything until it is.", "boundary": "B: She will not sign off on anything until it is.", "trade_off": "T: She will not sign off on anything until it is.", "fact": "F: She will not sign off on anything until it is."},
@@ -86,9 +86,9 @@ ITEMS = {"items": [
      "readings": {"driver": "D: That is how it works today.", "boundary": "B: That is how it works today.", "trade_off": "T: That is how it works today.", "fact": "F: That is how it works today."},
      "asserts_target": "e.ingest_validate", "asserts_axis": "automation", "asserts_level": 2, "asserts_trigger": "manual_request"},
     {"key": "fact_versioning", "tag": "fact",
-     "fact": "Datasets are not versioned at all.",
+     "fact": "Datasets are versioned by hand, one at a time.",
      "readings": {"driver": "D: Nothing more to it than that.", "boundary": "B: Nothing more to it than that.", "trade_off": "T: Nothing more to it than that.", "fact": "F: Nothing more to it than that."},
-     "asserts_target": "data.versioning", "asserts_axis": "automation", "asserts_level": 1},
+     "asserts_target": "data.versioning", "asserts_axis": "automation", "asserts_level": 2},
     # Stances 9 to 13 bring every stakeholder up to its quota: dave 2, ruth 4, reuben 3, emilia 2.
     {"key": "ruth_flow", "tag": "driver", "stakeholder_id": "reliability_ruth",
      "fact": "{reliability_ruth} asked for the whole feature path to run on its own, from versioning onward.",
@@ -427,6 +427,9 @@ def test_items_checks_catch_missing_wording_on_a_broken_level(env):
     assert any("reads as absent" in e for e in errors)
 
     bad = json.loads(json.dumps(ITEMS))
+    # fact_versioning normally asserts level 2 (data.versioning's own current level); drop it to
+    # 1 (absent) here only, so the "absent read as broken" wording rule has a level-1 case to catch.
+    bad["items"][8]["asserts_level"] = 1
     bad["items"][8]["fact"] = "Datasets are broken and not versioned at all."  # level 1 is absent, not broken
     errors = STAGES["items"].check(bad, item, ctx)
     assert any("reads as something that existed and failed" in e for e in errors)

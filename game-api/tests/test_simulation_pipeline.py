@@ -164,6 +164,10 @@ def test_a_design_pattern_gained_lifts_stage_health(real):
         _raise("data.ingestion", 2),
         _raise("e.ingest_validate", 2),
         _raise("data.validation", 2),
+        # data.versioning now defaults to manual (2) - pin it down so the "data" stage isn't
+        # already at its health ceiling before the card under test runs, which would mask the
+        # lift this test is actually checking for.
+        {"kind": "set_to", "target": "data.versioning", "axis": "automation", "value": 1},
     )
     result = simulate(
         real,
@@ -278,8 +282,8 @@ def test_veto_broken_degrades_only_what_this_card_touched_that_they_own(real):
         challenge=_challenge(),
     )
     # data.versioning: owned by data_dave, not model_monica - the card still applies in full
-    # (starts absent, one legal step lands at manual - the ceiling a single slot can reach).
-    assert result.state.value("data.versioning", "automation") == 2, "the card still applies"
+    # (starts at manual, so the one legal step this slot takes lands it at automated).
+    assert result.state.value("data.versioning", "automation") == 3, "the card still applies"
     # model.evaluation: this card touched it and model_monica owns it - degraded.
     assert result.state.value("model.evaluation", "automation") < 3
     # model.registry: model_monica owns it too, but this card never touched it - untouched.
