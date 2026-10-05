@@ -1656,12 +1656,15 @@
       "initial_trigger": "none",
       "allowed_triggers": [
         "none",
-        "manual_request"
+        "manual_request",
+        "scheduled",
+        "on_data_arrival"
       ],
       "allowed_automation": [
         0,
         1,
-        2
+        2,
+        3
       ],
       "allowed_governance": [
         0,
@@ -1675,6 +1678,12 @@
           "trigger": "manual_request",
           "name": "Trigger Manually",
           "description": "Trigger the hand-off from Data Contracts to Data Ingestion Pipeline manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_data_arrival",
+          "name": "Auto-Trigger on New Data",
+          "description": "The hand-off from Data Contracts to Data Ingestion Pipeline fires automatically"
         }
       ],
       "governance_options": [
@@ -1694,12 +1703,15 @@
       "initial_trigger": "none",
       "allowed_triggers": [
         "none",
-        "manual_request"
+        "manual_request",
+        "scheduled",
+        "on_data_arrival"
       ],
       "allowed_automation": [
         0,
         1,
-        2
+        2,
+        3
       ],
       "allowed_governance": [
         0,
@@ -1713,6 +1725,12 @@
           "trigger": "manual_request",
           "name": "Trigger Manually",
           "description": "Trigger the hand-off from Risk Assessment to Acceptance Criteria manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_data_arrival",
+          "name": "Auto-Trigger on New Data",
+          "description": "The hand-off from Risk Assessment to Acceptance Criteria fires automatically"
         }
       ],
       "governance_options": [
@@ -1733,12 +1751,15 @@
       "initial_trigger": "none",
       "allowed_triggers": [
         "none",
-        "manual_request"
+        "manual_request",
+        "scheduled",
+        "on_data_arrival"
       ],
       "allowed_automation": [
         0,
         1,
-        2
+        2,
+        3
       ],
       "allowed_governance": [
         0,
@@ -1752,6 +1773,12 @@
           "trigger": "manual_request",
           "name": "Trigger Manually",
           "description": "Trigger the hand-off from Acceptance Criteria to Model Evaluation Harness manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_data_arrival",
+          "name": "Auto-Trigger on New Data",
+          "description": "The hand-off from Acceptance Criteria to Model Evaluation Harness fires automatically"
         }
       ],
       "governance_options": [

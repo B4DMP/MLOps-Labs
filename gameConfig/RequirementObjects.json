@@ -12,7 +12,7 @@
       "suggested": {
         "target": "e.risk_acceptance",
         "axis": "automation",
-        "level": 2
+        "level": 3
       },
       "ops": [
         {
@@ -31,7 +31,7 @@
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [
-        "raise_to(e.risk_acceptance, 2)",
+        "raise_to(e.risk_acceptance, 3)",
         "raise_to(req.acceptance_criteria, 2)",
         "raise_to(req.risk_assessment, 2)"
       ],
@@ -379,21 +379,21 @@
       "suggested": {
         "target": "e.risk_acceptance",
         "axis": "automation",
-        "level": 2
+        "level": 3
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "e.acceptance_eval",
           "axis": "automation",
-          "value": 2
+          "value": 3
         }
       ],
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [
-        "raise_to(e.risk_acceptance, 2)",
-        "raise_to(e.acceptance_eval, 2)"
+        "raise_to(e.risk_acceptance, 3)",
+        "raise_to(e.acceptance_eval, 3)"
       ],
       "gist": "The chain of hand-overs from risk assessment through acceptance criteria to evaluation is the subject of a note from {requirements_reuben}."
     },
@@ -428,7 +428,7 @@
       "suggested": {
         "target": "e.risk_acceptance",
         "axis": "automation",
-        "level": 2
+        "level": 3
       },
       "ops": [],
       "branch_x_atoms": [],
