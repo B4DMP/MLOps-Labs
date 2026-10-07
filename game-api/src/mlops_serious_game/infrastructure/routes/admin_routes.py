@@ -44,6 +44,7 @@ from mlops_serious_game.application.services.teacher_service import (
     update_teacher_password,
 )
 from mlops_serious_game.application.llm_cache import cache_stats
+from mlops_serious_game.config import settings
 from mlops_serious_game.infrastructure.k8s_deploy import (
     NotInClusterError,
     UnknownAppError,
