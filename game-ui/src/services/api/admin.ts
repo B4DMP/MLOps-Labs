@@ -195,6 +195,28 @@ export async function removeAdminPlayer(playerName: string): Promise<AdminDashbo
   return response.json();
 }
 
+export type DebugFlag = "graph" | "dossier" | "playtest";
+
+export async function setPlayerDebugFlag(
+  playerName: string,
+  flag: DebugFlag,
+  enabled: boolean,
+): Promise<AdminDashboardData> {
+  const response = await fetch(`${BASE_URL}/api/admin/players/${encodeURIComponent(playerName)}/debug-flags`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeaders() },
+    body: JSON.stringify({ [flag]: enabled }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to update debug flags.");
+  }
+
+  return response.json();
+}
+
 export async function removeAllAdminPlayers(): Promise<AdminDashboardData> {
   const response = await fetch(`${BASE_URL}/api/admin/players`, {
     method: "DELETE",

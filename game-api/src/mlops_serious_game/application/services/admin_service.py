@@ -2,6 +2,7 @@ import datetime
 from typing import Any
 from sqlalchemy import delete, func, select, or_, text
 
+from mlops_serious_game.application.debug_flags import GLOBAL_SETTINGS
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.question_factory import QuestionFactory
@@ -108,6 +109,7 @@ def get_player_data() -> dict[str, Any]:
                     "use_questionnaire": campaign.use_questionnaire if campaign else True,
                     "email": user.email,
                     "playtest_tainted": bool(user.playtest_tainted),
+                    "debug_flags": dict(user.debug_flags or {}),
                     "runs": 1,
                 }
 
@@ -695,6 +697,7 @@ def _build_player_row(name: str, data: dict[str, Any]) -> dict[str, Any]:
         "campaign_key": data.get("campaign_key", ""),
         "runs": data.get("runs", 1),
         "playtestTainted": bool(data.get("playtest_tainted", False)),
+        "debugFlags": {flag: bool((data.get("debug_flags") or {}).get(flag)) for flag in GLOBAL_SETTINGS},
         "lastActive": data["lastPlayed"].isoformat() if data.get("lastPlayed") else None,
     }
 
@@ -900,6 +903,7 @@ def reset_player(user_id: int) -> None:
         password_hash = user.password_hash
         users_on_machine = user.users_on_machine
         is_verified = user.is_verified
+        debug_flags = dict(user.debug_flags or {})
         _cleanup_and_delete_user(session, user)
         session.add(User(
             id=user_id,
@@ -909,6 +913,7 @@ def reset_player(user_id: int) -> None:
             password_hash=password_hash,
             users_on_machine=users_on_machine,
             is_verified=is_verified,
+            debug_flags=debug_flags,
         ))
 
 

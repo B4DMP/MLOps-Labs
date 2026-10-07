@@ -40,6 +40,7 @@ import {
   fetchDeployVersion,
   fetchDeployLogs,
   type AdminEmailStatus,
+  type DebugFlag,
   type AdminTestEmailTemplate,
   type LoggableApp,
 } from "../services/api/admin";
@@ -69,6 +70,8 @@ export interface Player {
   runs?: number;
   /** They used a playtest tool, so their data is left out of the research aggregates. */
   playtestTainted?: boolean;
+  /** Per-account debug switches; each is also on for everyone when the API enables it globally. */
+  debugFlags?: Partial<Record<DebugFlag, boolean>>;
 }
 
 interface AdminProps {
@@ -102,6 +105,7 @@ interface AdminProps {
   removeCampaign: (campaignKey: string) => void;
   removeAllCampaigns?: () => void;
   removePlayer?: (playerName: string) => void;
+  setDebugFlag?: (playerName: string, flag: DebugFlag, enabled: boolean) => void;
   removeAllPlayers?: () => void;
   finished_players_amount: number;
   sum_per_challenge: number[];
@@ -125,6 +129,7 @@ export function Admin({
   removeCampaign,
   removeAllCampaigns,
   removePlayer,
+  setDebugFlag,
   removeAllPlayers,
   finished_players_amount,
   sum_per_challenge,
@@ -1431,6 +1436,7 @@ export function Admin({
                             )}
                           </div>
                         </th>
+                        <th title="Per-account debug tools. Graph: the Graph Debug tab. Answer key: true tags and archetypes in the dossier, deck and questionnaire.">Debug</th>
                         <th className="text-end">Actions</th>
                       </tr>
                     </thead>
@@ -1484,6 +1490,33 @@ export function Admin({
                                 </span>
                               </td>
                               <td className="text-muted font-monospace small">{p.playTime}</td>
+                              <td>
+                                {setDebugFlag && (
+                                  <div className="d-flex flex-column gap-1">
+                                    {(
+                                      [
+                                        ["graph", "Graph"],
+                                        ["dossier", "Answer key"],
+                                        ["playtest", "Skip tools"],
+                                      ] as [DebugFlag, string][]
+                                    ).map(([flag, label]) => (
+                                      <div className="form-check form-switch m-0" key={flag}>
+                                        <input
+                                          className="form-check-input"
+                                          type="checkbox"
+                                          role="switch"
+                                          id={`debug-${flag}-${p.name}`}
+                                          checked={!!p.debugFlags?.[flag]}
+                                          onChange={(e) => setDebugFlag(p.name, flag, e.target.checked)}
+                                        />
+                                        <label className="form-check-label small" htmlFor={`debug-${flag}-${p.name}`}>
+                                          {label}
+                                        </label>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </td>
                               <td className="text-end">
                                 {removePlayer && (
                                   confirmDeletePlayer === p.name ? (
@@ -1528,7 +1561,7 @@ export function Admin({
                         })
                       ) : (
                         <tr>
-                          <td colSpan={8} className="text-center py-4 text-muted">
+                          <td colSpan={9} className="text-center py-4 text-muted">
                             No players found matching the current filters.
                           </td>
                         </tr>

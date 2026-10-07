@@ -26,6 +26,9 @@ class User(Base):
     # Set the first time a playtest tool fabricates progress, never cleared (D10). Account-level
     # because contamination does not stay inside one challenge or run: see docs/plans/results-screen.md.
     playtest_tainted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Per-account debug overrides set from the admin panel, e.g. {"graph": true}. A flag is on for
+    # this account when it is on here or in the global settings - see application/debug_flags.py.
+    debug_flags: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     users_on_machine: Mapped[int] = mapped_column(Integer, nullable=False)

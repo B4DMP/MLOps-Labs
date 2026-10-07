@@ -31,6 +31,8 @@ import {
   removeAdminCampaign,
   removeAllAdminCampaigns,
   removeAdminPlayer,
+  setPlayerDebugFlag,
+  type DebugFlag,
   removeAllAdminPlayers,
 } from "./services/api/admin";
 import { WebSocketProvider } from "./services/websocket/WebSocketContext";
@@ -491,6 +493,15 @@ function App() {
     }
   };
 
+  const handleSetDebugFlag = async (playerName: string, flag: DebugFlag, enabled: boolean) => {
+    try {
+      updateAdminState(await setPlayerDebugFlag(playerName, flag, enabled));
+    } catch (err: any) {
+      setLastError(err.message || "Failed to update debug flags.");
+      setIsInErrorUi(true);
+    }
+  };
+
   const handleRemoveAllPlayers = async () => {
     try {
       const updated = await removeAllAdminPlayers();
@@ -681,6 +692,7 @@ function App() {
                   removeCampaign={handleRemoveCampaign}
                   removeAllCampaigns={handleRemoveAllCampaigns}
                   removePlayer={handleRemovePlayer}
+                  setDebugFlag={handleSetDebugFlag}
                   removeAllPlayers={handleRemoveAllPlayers}
                   finished_players_amount={finishedPlayersAmount}
                   sum_per_challenge={sumPerChallenge}

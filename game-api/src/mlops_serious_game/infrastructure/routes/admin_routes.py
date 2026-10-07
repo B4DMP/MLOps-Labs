@@ -18,6 +18,7 @@ from mlops_serious_game.application.services.admin_service import (
     save_and_reload_config_file,
     trigger_generate_offline_intel_artifacts
 )
+from mlops_serious_game.application.debug_flags import is_enabled as is_debug_enabled, set_flags as set_debug_flags
 from mlops_serious_game.application.services.bug_report_service import (
     BugReportSort,
     delete_bug_report,
@@ -39,7 +40,6 @@ from mlops_serious_game.application.services.teacher_service import (
     update_teacher_password,
 )
 from mlops_serious_game.application.llm_cache import cache_stats
-from mlops_serious_game.config import settings
 from mlops_serious_game.infrastructure.k8s_deploy import (
     NotInClusterError,
     UnknownAppError,
@@ -314,13 +314,27 @@ async def get_llm_cache_stats(_: str = Depends(check_admin_token)):
     return cache_stats()
 
 
+class DebugFlagsUpdateRequest(BaseModel):
+    graph: bool | None = None
+    dossier: bool | None = None
+    playtest: bool | None = None
+
+
+@router.patch("/players/{player_name}/debug-flags")
+async def patch_player_debug_flags(
+    player_name: str, req: DebugFlagsUpdateRequest, _: str = Depends(check_admin_token)
+):
+    updates = req.model_dump(exclude_none=True)
+    if not set_debug_flags(player_name, updates):
+        raise HTTPException(status_code=404, detail=f"Unknown player '{player_name}'")
+    return {"type": "admin_data_update", **get_admin_dashboard_data()}
+
+
 @router.get("/graph-debug")
 async def get_graph_debug(
     email: str = Query(..., description="Player email to inspect"),
     _: str = Depends(check_admin_token),
 ):
-    if not settings.ENABLE_GRAPH_DEBUG:
-        raise HTTPException(status_code=404, detail="Graph debug view is disabled (set ENABLE_GRAPH_DEBUG=true)")
     try:
         from mlops_serious_game.application.graph_service import store as graph_store
         from mlops_serious_game.application.graph_service.debug import build_graph_debug
@@ -337,6 +351,11 @@ async def get_graph_debug(
             user_id = session.scalar(select(User.id).where(User.email == email))
         if user_id is None:
             raise HTTPException(status_code=404, detail=f"Unknown player '{email}'")
+        if not is_debug_enabled("graph", user_id):
+            raise HTTPException(
+                status_code=404,
+                detail="Graph debug is off for this account (enable it in the Players tab or set ENABLE_GRAPH_DEBUG=true)",
+            )
 
         graph = GraphFactory.get_graph()
         replay = graph_store.load_state(user_id)

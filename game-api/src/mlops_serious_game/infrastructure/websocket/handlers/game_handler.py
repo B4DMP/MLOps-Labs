@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from mlops_serious_game.application import debug_flags
+from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, verify_player_token
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.Challenge import Challenge
 from mlops_serious_game.domain.persona_resolver import personalize
@@ -105,19 +107,19 @@ def _with_answer_key_debug(question: dict) -> dict:
     return {**question, "debug": {"correct_id": 0, "correct_text": correct.get("text")}}
 
 
-def _dump_questions(questions: list[Any]) -> list[Any]:
+def _dump_questions(questions: list[Any], user_id: Optional[int] = None) -> list[Any]:
     dumped = [q.model_dump() if hasattr(q, "model_dump") else q for q in questions]
-    if settings.ENABLE_DOSSIER_DEBUG:
+    if debug_flags.is_enabled("dossier", user_id):
         dumped = [_with_answer_key_debug(q) for q in dumped]
     return dumped
 
 
-def get_intro_questions() -> list[Any]:
-    return _dump_questions(QuestionFactory.intro_questions)
+def get_intro_questions(user_id: Optional[int] = None) -> list[Any]:
+    return _dump_questions(QuestionFactory.intro_questions, user_id)
 
 
-def get_outro_questions() -> list[Any]:
-    return _dump_questions(QuestionFactory.outro_questions)
+def get_outro_questions(user_id: Optional[int] = None) -> list[Any]:
+    return _dump_questions(QuestionFactory.outro_questions, user_id)
 
 def get_phases() -> list[Any]:
     return [
@@ -423,7 +425,7 @@ async def handle_game_init(
             "settings": {
                 **user_settings_service.get_settings(user_id),
                 "can_reset_account": settings.ENABLE_RESET_USER,
-                "can_playtest": settings.ENABLE_PLAYTEST_TOOLS,
+                "can_playtest": debug_flags.is_enabled("playtest", user_id),
             },
         }
     )
@@ -623,12 +625,13 @@ async def send_progress_index_payload(
     websocket: WebSocket,
     index: int,
 ) -> None:
+    user_id = verify_player_token(websocket.cookies.get(PLAYER_COOKIE_NAME))
 
     if index == 0:
         await manager.send_event(
             websocket=websocket,
             event="game:progress_change",
-            payload={"progressionIndex": 0, "type": "questions", "questions": get_intro_questions()}
+            payload={"progressionIndex": 0, "type": "questions", "questions": get_intro_questions(user_id)}
         )
     elif index == 1:
         await manager.send_event(
@@ -640,7 +643,7 @@ async def send_progress_index_payload(
         await manager.send_event(
             websocket=websocket,
             event="game:progress_change",
-            payload={"progressionIndex": 3, "type": "questions", "questions": get_outro_questions()}
+            payload={"progressionIndex": 3, "type": "questions", "questions": get_outro_questions(user_id)}
         )
     elif index == 4:
         await manager.send_event(

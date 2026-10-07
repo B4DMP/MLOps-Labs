@@ -35,6 +35,7 @@ from mlops_serious_game.application.pitch_debate_service.state import DialogueOp
 from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, verify_player_token
 from mlops_serious_game.infrastructure.database import IntelItem, GameSession, get_session
 from mlops_serious_game.infrastructure.database.run_scope import current_run_index, run_chain
+from mlops_serious_game.application import debug_flags
 from mlops_serious_game.config import settings
 
 
@@ -146,9 +147,9 @@ def deal_unconfirmed_artifacts(curr_challenge: Challenge, artifacts: list) -> li
     return stances[:MAX_STANCE_ARTIFACTS]
 
 
-def _deck_debug(requirement_id: str) -> Dict[str, Any]:
-    """Answer key for one card in the offline deck. Empty unless ENABLE_DOSSIER_DEBUG is on."""
-    if not settings.ENABLE_DOSSIER_DEBUG:
+def _deck_debug(requirement_id: str, debug_on: bool) -> Dict[str, Any]:
+    """Answer key for one card in the offline deck. Empty unless the dossier debug flag is on."""
+    if not debug_on:
         return {}
     req = RequirementFactory.get_requirement(requirement_id)
     return {"debug": _debug_requirement(req)} if req else {}
@@ -162,6 +163,7 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge, user_id: i
     with no idea where it came from. Reading them costs a couple of clicks and gives the player a
     worked example of a correct tag before their first real call.
     """
+    debug_on = debug_flags.is_enabled("dossier", user_id)
     challenge_artifacts = OfflineIntelArtifactFactory.get_artifacts_for_challenge(curr_challenge.id)
     unconfirmed_artifacts = deal_unconfirmed_artifacts(
         curr_challenge, [art for art in challenge_artifacts if not art.is_known]
@@ -179,7 +181,7 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge, user_id: i
             "artifact_type": art.artifact_type.value if isinstance(art.artifact_type, ArtifactType) else str(art.artifact_type),
             "content": art.content,
             "is_known": False,
-            **_deck_debug(art.requirement_id),
+            **_deck_debug(art.requirement_id, debug_on),
         })
 
 
@@ -202,7 +204,7 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge, user_id: i
             "content": art.content,
             "is_known": True,
             "categorized_type": req.type.value if hasattr(req.type, "value") else str(req.type),
-            **_deck_debug(art.requirement_id),
+            **_deck_debug(art.requirement_id, debug_on),
         })
 
     # The challenge itself leads: how the disputed component stands, then who wants what from it.
@@ -1240,8 +1242,7 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
     successors = authored_successors()
     held_ids = set(items_by_id)
     focus_stage_ids = list(getattr(curr_challenge, "focus_stage_ids", None) or [])
-    # Read once per call so tests can flip the flag on the settings object.
-    debug_on = settings.ENABLE_DOSSIER_DEBUG
+    debug_on = debug_flags.is_enabled("dossier", user_id)
 
     # Per-target totals (analogous to the per-stakeholder `intel_total` below), so the composer
     # and performance dashboard can honestly show "N of M found" for a single component/edge

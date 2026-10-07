@@ -8,6 +8,7 @@ thing standing between a crafted websocket frame and a wiped account.
 
 from fastapi import WebSocket
 
+from mlops_serious_game.application import debug_flags
 from mlops_serious_game.application.services import user_settings_service
 from mlops_serious_game.application.services.admin_service import reset_player
 from mlops_serious_game.config import settings
@@ -15,24 +16,24 @@ from mlops_serious_game.config import settings
 from ..manager import manager
 
 
-async def _send_settings_data(websocket: WebSocket, data: dict) -> None:
+async def _send_settings_data(websocket: WebSocket, data: dict, user_id: int) -> None:
     await manager.send_event(
         websocket=websocket,
         event="settings:data",
         payload={
             **data,
             "can_reset_account": settings.ENABLE_RESET_USER,
-            "can_playtest": settings.ENABLE_PLAYTEST_TOOLS,
+            "can_playtest": debug_flags.is_enabled("playtest", user_id),
         },
     )
 
 
 async def handle_settings_get(websocket: WebSocket, user_id: int, payload: dict) -> None:
-    await _send_settings_data(websocket, user_settings_service.get_settings(user_id))
+    await _send_settings_data(websocket, user_settings_service.get_settings(user_id), user_id)
 
 
 async def handle_settings_update(websocket: WebSocket, user_id: int, payload: dict) -> None:
-    await _send_settings_data(websocket, user_settings_service.update_settings(user_id, payload))
+    await _send_settings_data(websocket, user_settings_service.update_settings(user_id, payload), user_id)
 
 
 async def handle_settings_reset_account(websocket: WebSocket, user_id: int, payload: dict) -> None:
