@@ -92,7 +92,7 @@ def test_outcome_mix_keeps_unfinished_apart_from_vetoed():
         _payload(decisions=[_decision("a", "PASS"), _decision("b", "VETO"), _decision("c", None)]),
         _payload(decisions=[_decision("a", "SOFT_PASS")]),
     ])
-    assert mix == {"PASS": 1, "SOFT_PASS": 1, "VETO": 1, "unfinished": 1}
+    assert mix == {"PASS": 1, "SOFT_PASS": 1, "VETO": 1, "STALEMATE": 0, "unfinished": 1}
 
 
 def test_challenges_rank_by_veto_rate_not_veto_count():

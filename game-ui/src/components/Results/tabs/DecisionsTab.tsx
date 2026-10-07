@@ -8,6 +8,7 @@ const OUTCOME_META: Record<Outcome | "UNFINISHED", { label: string; icon: string
   PASS: { label: "Passed", icon: "ph:check-circle-bold", chip: styles.chipGood },
   SOFT_PASS: { label: "Passed, with reservations", icon: "ph:warning-circle-bold", chip: styles.chipWarn },
   VETO: { label: "Vetoed", icon: "ph:x-circle-bold", chip: styles.chipBad },
+  STALEMATE: { label: "Tabled", icon: "ph:pause-circle-bold", chip: styles.chipBad },
   UNFINISHED: { label: "Not finished", icon: "ph:circle-dashed-bold", chip: styles.chipNeutral },
 };
 
@@ -26,6 +27,7 @@ export default function DecisionsTab({ results }: { results: ResultsPayload }) {
         <StatTile label="Passed" value={count("PASS")} />
         <StatTile label="With reservations" value={count("SOFT_PASS")} hint="Went through, but someone was left unhappy" />
         <StatTile label="Vetoed" value={count("VETO")} />
+        <StatTile label="Tabled" value={count("STALEMATE")} hint="Left unresolved when no proposal could clear the room" />
         <StatTile
           label="Escalation used"
           value={`${used} of ${escalation.total}`}

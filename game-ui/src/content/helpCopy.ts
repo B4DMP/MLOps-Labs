@@ -163,6 +163,16 @@ export const ESCALATIONS = {
       : "No Escalation Points left this playthrough.",
 } as const;
 
+export const TABLE_IT = {
+  button: "Table It",
+  hint: "End this challenge with nothing agreed. No Escalation Point is spent, but people will remember it.",
+  ceiling: {
+    PASS: "A proposal this room accepts does exist. Keep revising.",
+    SOFT_PASS: "The best this room allows is a reluctant yes: someone is always left unhappy. A proposal like that can still get through.",
+    VETO: "Nothing we tried clears this room. Pushing it through costs an Escalation Point and someone will remember it. Tabling it ends the challenge with nothing agreed.",
+  },
+} as const;
+
 export const VETO_FEEDBACK = {
   meansLabel: "What it means",
   means: "Someone with high power can stop the whole plan, and here you cannot push past them. Their objection tells you what to fix.",

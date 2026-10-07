@@ -54,10 +54,15 @@ server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch e
      react, no commit), `pitch:commit`, `pitch:veto_breaker`.
 6. **Outcome** (`scoring.py`): VETO if a high-power stakeholder has a violated boundary or low
    buy-in; SOFT_PASS if only a low-power one objects; else PASS. VETO opens `VetoDialog.tsx`
-   (revise, or Push It Through with an Escalation Point: 3 per run, none in the intro). PASS and
+   (revise; Push It Through with an Escalation Point, 3 per run; or Table It, which ends the
+   challenge in a stalemate with nothing agreed and costs no point. None of the last two in the
+   intro). The dialog also says what a card search found for the room (`pitch:room_ceiling`): a
+   clean pass exists, only a reluctant yes does, or nothing found. PASS and
    SOFT_PASS auto-continue to `ac_simulation.tsx` (`simulation:run`, idempotent per challenge):
-   changes are applied, owners with low buy-in degrade them, grudges fire, the debrief is shown.
-7. **Next**: the *server* picks (`select_next_challenge`, `graph_service/scheduler.py`); the UI
+   changes are applied, owners with low buy-in degrade them, grudges fire (a grudge whose owner is
+   satisfied by this pitch is cleared instead, "make amends"), the debrief is shown.
+7. **Next**: every stakeholder's emotions recover a quarter of the way back to neutral
+   (`challenge_recovery`) as the new challenge's row is created. The *server* picks (`select_next_challenge`, `graph_service/scheduler.py`); the UI
    just reacts to `game:state_update` (back to step 3) or `game:progress_change` (outro
    questionnaire, then `ResultsScreen`: four pillars, grade, epilogue).
 

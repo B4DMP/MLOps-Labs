@@ -56,13 +56,14 @@ GRUDGE_PENALTY_FLOOR = 0.0
 # failure, so this is a nudge rather than a punishment.
 ESCALATION_PENALTY = 0.05
 
-OUTCOME_SCORES: dict[str, float] = {"PASS": 1.0, "SOFT_PASS": 0.5, "VETO": 0.0}
+OUTCOME_SCORES: dict[str, float] = {"PASS": 1.0, "SOFT_PASS": 0.5, "VETO": 0.0, "STALEMATE": 0.0}
 
 # `cause` strings the commit step writes for each outcome (pitch_debate_service/session.py).
 OUTCOME_CAUSES: dict[str, str] = {
     "outcome.pass": "PASS",
     "outcome.soft_pass": "SOFT_PASS",
     "outcome.veto": "VETO",
+    "outcome.stalemate": "STALEMATE",
 }
 
 # Power and interest are "high"/"low" strings on a phase's stakeholder list (domain/Phase.py).

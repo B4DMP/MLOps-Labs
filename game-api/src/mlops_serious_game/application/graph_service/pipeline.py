@@ -103,6 +103,7 @@ class PatternDiff(BaseModel):
 class GrudgeReport(BaseModel):
     created: list[Grudge] = Field(default_factory=list)
     fired: list[FiredGrudge] = Field(default_factory=list)
+    cleared: list[Grudge] = Field(default_factory=list)
 
 
 class StakeholderExecutionDelta(BaseModel):
@@ -308,6 +309,31 @@ def fire_grudges(
             kept.append(aged)
 
     return ops, fired, pending, kept
+
+
+def split_amended(
+    grudges: Sequence[Grudge], reads: Sequence[Any], outcome: str
+) -> tuple[list[Grudge], list[Grudge]]:
+    """Makes amends: a grudge ends early when its owner came out of this pitch satisfied (buy-in
+    over their own line, no boundary crossed) instead of firing once more. Returns (kept, cleared).
+
+    A broken veto or a stalemate never amends: nobody was satisfied by those.
+    """
+    from mlops_serious_game.application.pitch_debate_service.scoring import (
+        OBJECTION_THRESHOLD,
+        VETO_THRESHOLD,
+    )
+
+    if outcome in NO_CARD_OUTCOMES or outcome == VETO_BROKEN:
+        return list(grudges), []
+    satisfied = {
+        r.stakeholder_id
+        for r in reads
+        if not getattr(r, "boundary_violated", False)
+        and r.buy_in >= (VETO_THRESHOLD if r.power == "high" else OBJECTION_THRESHOLD)
+    }
+    kept = [g for g in grudges if g.stakeholder_id not in satisfied]
+    return kept, [g for g in grudges if g.stakeholder_id in satisfied]
 
 
 def grudges_created(
@@ -657,6 +683,11 @@ def simulation_events(
             step="simulation", kind="grudge", subject_id=grudge.stakeholder_id, direction="none",
             cause="grudge.written", params={"st": names.get(grudge.stakeholder_id, grudge.stakeholder_id)},
         ))
+    for cleared in report.grudges.cleared:
+        events.append(GameEvent(
+            step="simulation", kind="grudge", subject_id=cleared.stakeholder_id, direction="up",
+            cause="grudge.cleared", params={"st": names.get(cleared.stakeholder_id, cleared.stakeholder_id)},
+        ))
     for fired in report.grudges.fired:
         events.append(GameEvent(
             step="simulation", kind="grudge", subject_id=fired.stakeholder_id, direction="down", magnitude="clear",
@@ -748,8 +779,9 @@ def simulate(
     }
     state = apply_ops(graph, state, world).state                               # 7
 
+    active_grudges, cleared = split_amended(grudges, reads, outcome)
     grudge_ops, fired, pending, kept = fire_grudges(                           # 9
-        graph, state, grudges, seed, upcoming_world_events
+        graph, state, active_grudges, seed, upcoming_world_events
     )
     grudge_before = {
         (op.target, op.axis): state.value(op.target, op.axis)
@@ -813,7 +845,7 @@ def simulate(
         stage_health=stage_health,
         system_health=system_health,
         patterns=_pattern_diff(before, after, patterns),
-        grudges=GrudgeReport(created=created, fired=fired),
+        grudges=GrudgeReport(created=created, fired=fired, cleared=cleared),
         metric_deltas=metric_deltas(before, after, metrics),                   # 10
         stakeholders=stakeholders,
     )

@@ -119,3 +119,35 @@ describe("VetoDialog intro behaviour", () => {
     expect(screen.queryByRole("button", { name: /Push It Through/ })).not.toBeInTheDocument();
   });
 });
+
+describe("VetoDialog table it and room ceiling", () => {
+  it("lets the player table the challenge even with no Escalation Points left", async () => {
+    const onTableIt = vi.fn();
+    renderDialog({ onTableIt, onVetoBreaker: vi.fn(), escalationPoints: 0 });
+
+    await userEvent.click(screen.getByRole("button", { name: /Table It/ }));
+    expect(onTableIt).toHaveBeenCalledTimes(1);
+  });
+
+  it("says what the room allows once the search has answered, and nothing before", () => {
+    const { rerender } = renderDialog({ onTableIt: vi.fn() });
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+
+    rerender(
+      <VetoDialog
+        isOpen
+        onClose={vi.fn()}
+        onReviseProposal={vi.fn()}
+        vetoInfo={VETO_INFO}
+        getStakeholderColor={() => "#000"}
+        roomCeiling="VETO"
+      />,
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(/Nothing we tried clears this room/);
+  });
+
+  it("hides both in the intro", () => {
+    renderDialog({ isIntro: true, roomCeiling: "VETO" });
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+});

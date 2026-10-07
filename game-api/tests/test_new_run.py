@@ -405,7 +405,8 @@ async def test_a_next_iteration_opens_with_the_gauges_it_inherited(migrated_db):
             .order_by(GameChallenge.id)
         ).first()
         first = (row.metric_values[0], row.emotion_values)
-    assert first == (7, {"model_monica": {"trust": 0.9}})
+    # 0.9 recovers a quarter of the way back to neutral as the next challenge begins.
+    assert first == (7, {"model_monica": {"trust": 0.8}})
 
 
 @pytest.mark.anyio

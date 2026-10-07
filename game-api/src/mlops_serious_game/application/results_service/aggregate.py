@@ -17,7 +17,7 @@ import statistics
 from typing import Any, Iterable, Optional
 
 GRADE_ORDER = ("S", "A", "B", "C", "D", "E")
-OUTCOMES = ("PASS", "SOFT_PASS", "VETO")
+OUTCOMES = ("PASS", "SOFT_PASS", "VETO", "STALEMATE")
 PILLAR_IDS = ("pipeline_health", "stakeholder_relations", "intel_accuracy", "decision_quality")
 
 
@@ -94,7 +94,7 @@ def challenge_difficulty(payloads: list[dict], top: Optional[int] = None) -> lis
                 continue
             row = by_name.setdefault(decision.get("name", "Unknown"), {"played": 0, "vetoes": 0, "soft": 0})
             row["played"] += 1
-            row["vetoes"] += outcome == "VETO"
+            row["vetoes"] += outcome in ("VETO", "STALEMATE")
             row["soft"] += outcome == "SOFT_PASS"
 
     rows = [

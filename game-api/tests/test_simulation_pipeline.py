@@ -218,7 +218,7 @@ def test_grudges_fire_deterministically(real):
             _start(real),
             outcome=PASS,
             card_items=[_item("i1", _raise("data.versioning", 3))],
-            reads=[_read("data_dave")],
+            reads=[_read("data_dave", buy_in=0.1), _read("model_monica", buy_in=0.1)],
             challenge=_challenge(),
             grudges=grudges,
             seed="player_one",
@@ -237,10 +237,21 @@ def test_grudges_fire_deterministically(real):
 def test_a_spent_grudge_stops_firing(real):
     old = [Grudge(stakeholder_id="data_dave", age=1)]
     result = simulate(
-        real, _start(real), outcome=PASS, reads=[_read("data_dave")], challenge=_challenge(), grudges=old
+        real, _start(real), outcome=PASS, reads=[_read("data_dave", buy_in=0.1)], challenge=_challenge(), grudges=old
     )
     assert result.report.grudges.fired, "it fires one last time"
     assert result.grudges == [], "and is then spent"
+
+
+def test_a_grudge_is_cleared_when_its_owner_is_satisfied_this_pitch(real):
+    old = [Grudge(stakeholder_id="data_dave"), Grudge(stakeholder_id="model_monica")]
+    result = simulate(
+        real, _start(real), outcome=PASS, challenge=_challenge(), grudges=old,
+        reads=[_read("data_dave", buy_in=0.9), _read("model_monica", buy_in=0.1)],
+    )
+    assert [g.stakeholder_id for g in result.report.grudges.cleared] == ["data_dave"]
+    assert [f.stakeholder_id for f in result.report.grudges.fired] == ["model_monica"]
+    assert all(g.stakeholder_id != "data_dave" for g in result.grudges)
 
 
 # ---------- outcome branches ----------

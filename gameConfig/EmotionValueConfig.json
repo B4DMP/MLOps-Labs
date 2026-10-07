@@ -256,6 +256,7 @@
       "objection_threshold": 0.3,
       "loss_w": 0.3,
       "grudge_lifetime": 2,
+      "challenge_recovery": 0.25,
       "reframe_hit": 0.7,
       "reframe_partial": 0.4,
       "room_listen": 0.35,

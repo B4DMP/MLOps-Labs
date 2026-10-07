@@ -45,6 +45,7 @@ from .pitch_handler import (
     get_allowed_targets,
     handle_pitch_commit,
     handle_pitch_set_card,
+    handle_pitch_table_it,
     handle_pitch_veto_breaker,
 )
 from .simulation_handler import handle_simulation_run
@@ -243,6 +244,9 @@ async def handle_playtest_skip_challenge(websocket: WebSocket, user_id: int, pay
 
         if not result.found_non_veto:
             broke_it = await _break_the_stood_veto(websocket, user_id, ids)
+            # Out of Escalation Points: table it, the same exit a stuck human has.
+            if not broke_it and await handle_pitch_table_it(websocket, user_id, ids):
+                broke_it = True
             if not broke_it:
                 await manager.send_event(
                     websocket=websocket,

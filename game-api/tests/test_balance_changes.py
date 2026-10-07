@@ -4,9 +4,18 @@ from types import SimpleNamespace
 
 import pytest
 
+from mlops_serious_game.application.graph_service.pipeline import (
+    PASS,
+    SOFT_PASS,
+    STALEMATE,
+    VETO_BROKEN,
+    split_amended,
+)
+from mlops_serious_game.application.pitch_debate_service import session as pitch
 from mlops_serious_game.application.pitch_debate_service.scoring import emotions_norm
 from mlops_serious_game.application.results_service import compute as c
-from mlops_serious_game.domain.emotion import valence_mean
+from mlops_serious_game.domain.emotion import recover_toward_neutral, valence_mean
+from mlops_serious_game.domain.grudge import Grudge
 
 
 # ── 1. Mood is read with stress and perceived risk inverted ──────────────────
@@ -48,6 +57,68 @@ def test_a_soft_pass_in_a_room_that_allowed_a_pass_is_still_half():
 def test_a_pass_never_scores_above_full_marks_and_a_veto_is_still_zero():
     assert c.decision_quality(["PASS"], pars=["SOFT_PASS"]).score == 1.0
     assert c.decision_quality(["VETO"], pars=["SOFT_PASS"]).score == 0.0
+
+
+def test_a_tabled_challenge_scores_nothing():
+    assert c.OUTCOME_CAUSES["outcome.stalemate"] == "STALEMATE"
+    assert c.decision_quality(["STALEMATE"]).score == 0.0
+
+
+# ── 4. Make amends ───────────────────────────────────────────────────────────
+
+
+def _read(st, power, buy_in, boundary=False):
+    return SimpleNamespace(stakeholder_id=st, power=power, buy_in=buy_in, boundary_violated=boundary)
+
+
+def test_a_satisfied_stakeholder_lets_their_grudge_go():
+    grudges = [Grudge(stakeholder_id="ruth"), Grudge(stakeholder_id="emilia")]
+    kept, cleared = split_amended(grudges, [_read("ruth", "low", 0.6), _read("emilia", "low", 0.1)], PASS)
+    assert [g.stakeholder_id for g in cleared] == ["ruth"]
+    assert [g.stakeholder_id for g in kept] == ["emilia"]
+
+
+def test_the_line_to_clear_is_each_stakeholders_own():
+    # 0.35 clears a low-power stakeholder (line 0.3) but not a high-power one (line 0.4).
+    grudges = [Grudge(stakeholder_id="low_one"), Grudge(stakeholder_id="high_one")]
+    reads = [_read("low_one", "low", 0.35), _read("high_one", "high", 0.35)]
+    _, cleared = split_amended(grudges, reads, SOFT_PASS)
+    assert [g.stakeholder_id for g in cleared] == ["low_one"]
+
+
+def test_a_crossed_boundary_never_amends():
+    kept, cleared = split_amended([Grudge(stakeholder_id="ruth")], [_read("ruth", "low", 0.9, boundary=True)], PASS)
+    assert cleared == [] and len(kept) == 1
+
+
+@pytest.mark.parametrize("outcome", [VETO_BROKEN, STALEMATE])
+def test_nothing_is_amended_by_an_override_or_a_stalemate(outcome):
+    kept, cleared = split_amended([Grudge(stakeholder_id="ruth")], [_read("ruth", "low", 0.9)], outcome)
+    assert cleared == [] and len(kept) == 1
+
+
+# ── 5. Time heals ────────────────────────────────────────────────────────────
+
+
+def test_emotions_recover_a_share_of_the_way_to_neutral():
+    healed = recover_toward_neutral({"trust": 0.1, "stress": 0.9, "fairness": 0.5}, 0.25)
+    assert healed == {"trust": 0.2, "stress": 0.8, "fairness": 0.5}
+
+
+def test_no_recovery_changes_nothing():
+    values = {"trust": 0.1}
+    assert recover_toward_neutral(values, 0.0) == values
+
+
+# ── 6. Table it ──────────────────────────────────────────────────────────────
+
+
+def test_tabling_ends_the_challenge_in_a_stalemate_without_a_card():
+    state = pitch.start_pitch(["ruth"]).model_copy(update={"stage": "DONE", "outcome": "VETO"})
+    updated, events = pitch.table_it(state)
+    assert (updated.stage, updated.outcome) == ("DONE", "STALEMATE")
+    assert [e.cause for e in events] == ["outcome.stalemate"]
+    assert not getattr(updated, "overridden_stakeholder_id", None), "no stakeholder is overridden"
 
 
 # ── Pipeline: how much of the damage was won back ────────────────────────────

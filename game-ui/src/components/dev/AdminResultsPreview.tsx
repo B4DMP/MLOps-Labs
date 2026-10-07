@@ -28,7 +28,7 @@ const DASHBOARD: AdminResultsData = {
       intel_accuracy: stats(0.48),
       decision_quality: stats(0.66),
     },
-    outcomes: { PASS: 34, SOFT_PASS: 15, VETO: 9, unfinished: 2 },
+    outcomes: { PASS: 34, SOFT_PASS: 15, VETO: 9, STALEMATE: 1, unfinished: 2 },
     hardest_challenges: [
       { name: "The Platform Choice", played: 12, vetoes: 5, soft_passes: 3, veto_rate: 0.4167 },
       { name: "Subject-Matter Expert Resistance", played: 11, vetoes: 3, soft_passes: 4, veto_rate: 0.2727 },

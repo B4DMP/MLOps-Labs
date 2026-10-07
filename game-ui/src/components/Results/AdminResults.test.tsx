@@ -52,7 +52,7 @@ function dashboard(overrides: Partial<AdminResultsData> = {}): AdminResultsData 
         intel_accuracy: stats(0.4),
         decision_quality: stats(0.7),
       },
-      outcomes: { PASS: 9, SOFT_PASS: 4, VETO: 3, unfinished: 1 },
+      outcomes: { PASS: 9, SOFT_PASS: 4, VETO: 3, STALEMATE: 0, unfinished: 1 },
       hardest_challenges: [{ name: "The Platform Choice", played: 4, vetoes: 3, soft_passes: 0, veto_rate: 0.75 }],
       challenges: [],
       intel: {

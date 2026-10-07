@@ -308,6 +308,7 @@ export default function PitchDebate({
   // Escalation Points (D15): 3 per playthrough, never regenerated. Kept only from `pitch:state`,
   // which always carries the live count, so this never drifts from what the server actually has.
   const [escalationPoints, setEscalationPoints] = useState<number | null>(null);
+  const [roomCeiling, setRoomCeiling] = useState<"PASS" | "SOFT_PASS" | "VETO" | null>(null);
   const [isBreakingVeto, setIsBreakingVeto] = useState(false);
   const [isCommittedLocked, setIsCommittedLocked] = useState(false);
   const hasAutoTransitionedRef = useRef(false);
@@ -829,6 +830,21 @@ export default function PitchDebate({
     });
   }, [isIntro, pitchState, playedIds.length]);
 
+  useWebSocketEvent<{ challenge_id: number; best_outcome: "PASS" | "SOFT_PASS" | "VETO" | null }>(
+    "pitch:room_ceiling",
+    (payload) => {
+      if (payload.challenge_id === currentChallenge) setRoomCeiling(payload.best_outcome);
+    },
+  );
+
+  // Asked once per stood veto, since the search takes a few seconds.
+  useEffect(() => {
+    if (!isVetoDialogOpen || isIntro) return;
+    setRoomCeiling(null);
+    emit("pitch:room_ceiling", base);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVetoDialogOpen, isIntro]);
+
   useWebSocketEvent<PitchStatePayload>("pitch:state", (payload) => {
     setPitchState(payload);
     if (payload.escalation_points !== undefined) {
@@ -875,7 +891,7 @@ export default function PitchDebate({
             setIsVetoDialogOpen(true);
           }
         }
-      } else if (payload.outcome === "PASS" || payload.outcome === "SOFT_PASS") {
+      } else if (payload.outcome === "PASS" || payload.outcome === "SOFT_PASS" || payload.outcome === "STALEMATE") {
         setIsCommittedLocked(true);
         // Covers both an ordinary pass and a broken veto (outcome is "PASS" either way): the
         // dialog has nothing left to say once the card is through.
@@ -1383,13 +1399,19 @@ export default function PitchDebate({
     triggerPlayerSpeech("⚖️ Calling for final decision and committing proposal.");
   };
 
+  const handleTableIt = () => {
+    setIsBreakingVeto(true);
+    emit("pitch:table_it", base);
+  };
+
   const handleVetoBreaker = () => {
     setIsBreakingVeto(true);
     emit("pitch:veto_breaker", base);
   };
 
   const handleProceedToSimulation = () => {
-    const passed = pitchState?.outcome === "PASS" || pitchState?.outcome === "SOFT_PASS";
+    const passed =
+      pitchState?.outcome === "PASS" || pitchState?.outcome === "SOFT_PASS" || pitchState?.outcome === "STALEMATE";
     if (onEndPitch) {
       onEndPitch(passed, pitchedActionCard);
     }
@@ -2569,6 +2591,8 @@ export default function PitchDebate({
         escalationPoints={escalationPoints}
         // The breaker is a real-game tool; the intro walkthrough teaches revising instead.
         onVetoBreaker={isIntro ? undefined : handleVetoBreaker}
+        onTableIt={isIntro ? undefined : handleTableIt}
+        roomCeiling={roomCeiling}
         isBreakingVeto={isBreakingVeto}
         isIntro={isIntro}
         feedback={

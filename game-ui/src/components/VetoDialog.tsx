@@ -3,7 +3,7 @@ import styles from "./VetoDialog.module.css";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import OnceIcon from "./Results/OnceIcon";
 import ROAD_BARRIER_ICON from "./Results/icons/road-barrier.json";
-import { ESCALATIONS, VETO_FEEDBACK } from "../content/helpCopy";
+import { ESCALATIONS, TABLE_IT, VETO_FEEDBACK } from "../content/helpCopy";
 import type { ReactNode } from "react";
 
 export interface VetoInfo {
@@ -38,6 +38,10 @@ interface VetoDialogProps {
   onVetoBreaker?: () => void;
   /** True from the click until the server answers, so the button cannot be pressed twice. */
   isBreakingVeto?: boolean;
+  /** Ends the challenge with nothing agreed, without spending a point. Omit to hide the button. */
+  onTableIt?: () => void;
+  /** Best outcome a search found for this room; null/undefined until it arrives or when unknown. */
+  roomCeiling?: "PASS" | "SOFT_PASS" | "VETO" | null;
   /** Intro walkthrough: footer wording changes (the breaker is hidden by omitting its handler). */
   isIntro?: boolean;
   /** Coach panel shown under the reason box. */
@@ -54,6 +58,8 @@ export default function VetoDialog({
   escalationPoints = null,
   onVetoBreaker,
   isBreakingVeto = false,
+  onTableIt,
+  roomCeiling = null,
   isIntro = false,
   feedback,
 }: VetoDialogProps) {
@@ -149,6 +155,11 @@ export default function VetoDialog({
                 </div>
               )}
               {feedback}
+              {roomCeiling && !isIntro && (
+                <p className={styles.reasonText} role="status">
+                  <Icon icon="ph:compass-bold" /> {TABLE_IT.ceiling[roomCeiling]}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -172,6 +183,12 @@ export default function VetoDialog({
               <Icon icon="ph:arrow-counter-clockwise-bold" />
               <span>Revise Action Card & Re-Pitch</span>
             </button>
+            {onTableIt && (
+              <button type="button" className={styles.vetoBreakerButton} onClick={onTableIt} title={TABLE_IT.hint}>
+                <Icon icon="ph:pause-circle-bold" />
+                <span>{TABLE_IT.button}</span>
+              </button>
+            )}
             {onVetoBreaker && (
               <button
                 type="button"

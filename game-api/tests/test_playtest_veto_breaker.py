@@ -131,8 +131,8 @@ async def test_skip_reports_it_broke_a_veto_via_the_simulation_report(migrated_d
 
 
 @pytest.mark.anyio
-async def test_skip_refuses_only_once_escalation_points_are_actually_exhausted(migrated_db):
-    """The true dead end: no card, and nothing left to force one through."""
+async def test_skip_tables_the_challenge_once_escalation_points_are_exhausted(migrated_db):
+    """No card and nothing left to force one through: the same exit a stuck human has."""
     from mlops_serious_game.application.pitch_debate_service import store as pitch_store
 
     await _seed_player_on_stuck_challenge()
@@ -144,17 +144,14 @@ async def test_skip_refuses_only_once_escalation_points_are_actually_exhausted(m
         events, errors = await _skip()
 
     assert errors == []
-    result = events["playtest:skip_result"]
-    assert result["ok"] is False
-    assert result["reason"] == "no_non_veto_card_and_no_escalation_points"
-    assert result["outcome"] == "VETO"
-    assert "playtest:skipped" not in events
+    assert events["playtest:skipped"]["ok"] is True
+    assert events["graph:delta_report"]["report"]["outcome"] == "STALEMATE"
+    assert "playtest:skip_result" not in events
 
 
 @pytest.mark.anyio
-async def test_a_refusal_from_exhausted_points_still_taints_and_commits_nothing_further(migrated_db):
-    """Refusing to progress is not refusing to have tried: the account is still tainted (D10), and
-    the commit that produced the veto is still on record, but nothing was pushed through."""
+async def test_tabling_from_exhausted_points_taints_and_overrides_nobody(migrated_db):
+    """The account is still tainted (D10), and no stakeholder is overridden: nothing was pushed through."""
     from mlops_serious_game.application.pitch_debate_service import store as pitch_store
     from mlops_serious_game.infrastructure.database.connection import get_session
     from mlops_serious_game.infrastructure.database.models import User
@@ -172,7 +169,7 @@ async def test_a_refusal_from_exhausted_points_still_taints_and_commits_nothing_
         ) is True
 
     state = pitch_store.load_pitch(_uid(), STUCK_PHASE_ID, STUCK_CHALLENGE_ID)
-    assert state.outcome == "VETO"
+    assert state.outcome == "STALEMATE"
     assert state.overridden_stakeholder_id is None
 
 

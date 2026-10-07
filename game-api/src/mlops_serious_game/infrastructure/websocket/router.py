@@ -39,6 +39,8 @@ from .handlers.pitch_handler import (
     handle_pitch_evaluate,
     handle_pitch_set_card,
     handle_pitch_state,
+    handle_pitch_room_ceiling,
+    handle_pitch_table_it,
     handle_pitch_veto_breaker,
 )
 from .handlers.playtest_handler import (
@@ -81,6 +83,8 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "pitch:object": handle_pitch_evaluate,  # Alias for backward compatibility
     "pitch:commit": handle_pitch_commit,
     "pitch:veto_breaker": handle_pitch_veto_breaker,
+    "pitch:table_it": handle_pitch_table_it,
+    "pitch:room_ceiling": handle_pitch_room_ceiling,
     "simulation:run": handle_simulation_run,
     "log:history": handle_log_history,
     "gather:open": handle_gather_open,
