@@ -38,7 +38,7 @@ def _losing_search_result():
     """Stands in for a search that proved no card in the room passes - the trigger condition for
     the fallback - without depending on any one challenge's content staying structurally broken."""
     from mlops_serious_game.application.pitch_debate_service.session import AtomicChange
-    from mlops_serious_game.application.playtest_service import auto_card
+    from mlops_serious_game.application.pitch_debate_service import card_search as auto_card
 
     return auto_card.CardSearchResult(
         changes=[AtomicChange(target="data.ingestion", kind="raise_to", value=1)],

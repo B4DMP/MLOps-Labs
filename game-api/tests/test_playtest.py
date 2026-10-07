@@ -20,7 +20,7 @@ import pytest
 from sqlalchemy import func, select
 
 from mlops_serious_game.application.graph_service.apply import replay, seed_ops
-from mlops_serious_game.application.playtest_service import auto_card
+from mlops_serious_game.application.pitch_debate_service import card_search as auto_card
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.graph import LoggedOp
@@ -39,11 +39,19 @@ pytestmark = pytest.mark.db
 # ── The card search (pure) ───────────────────────────────────────────────────
 
 
-def _world(challenge_id: int = 110):
-    """The real graph at its seed state, and a real challenge's room and intel."""
+def _world(challenge_id: int = 110, entered: bool = False):
+    """The real graph at its seed state, and a real challenge's room and intel.
+
+    `entered` also fires the challenge's `on_enter_ops`, so the room is as the player finds it
+    (the challenge has already broken what it breaks)."""
+    from mlops_serious_game.application.graph_service.apply import apply_ops
+    from mlops_serious_game.application.graph_service.pipeline import _ops_from_raw
+
     graph = GraphFactory.get_graph()
     state = replay(graph, [LoggedOp(seq=i, op=op) for i, op in enumerate(seed_ops(graph))]).state
     challenge = PhaseFactory.get_challenge_by_id(challenge_id)
+    if entered:
+        state = apply_ops(graph, state, _ops_from_raw(challenge.on_enter_ops, f"enter:{challenge.template_id}")).state
     intel = RequirementFactory.get_requirements_for_challenge(challenge_id)
     room = [
         (ps.stakeholder_id, ps.power, ps.interest)
