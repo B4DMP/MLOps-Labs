@@ -21,6 +21,14 @@ Resume position is **server side only**: `handle_game_init` (`game_handler.py`) 
 pitch (one screen), 3 simulation**. `PrePhaseDialog` is an overlay opened when `challengeLoopId`
 is 0 and the `phase:challenge` key changed (skipped if `seenBriefings` has it).
 
+**View as player (admin):** the Admin players table has a "View as" button. It sets an
+`mlops_impersonate` cookie (valid only while the admin cookie is) and opens `Game` for that player
+with a bottom banner and Exit. The websocket is read-only for it: only the load events in
+`READ_ONLY_EVENTS` (`websocket/router.py`) run, every action gets `system:read_only`. The load
+events still write idempotently (`game:init` creates the session row, offline intel loads on-record
+items), and the simulation screen shows no report because `simulation:run` is an action. Profile
+routes (`get_current_player`) refuse while it is active.
+
 **Loop index quirk:** the client sends its *current* index in `game:state_update_request`, the
 server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch end sends 2 (stores
 3 = simulation), simulation Continue sends 3 (stores 4 = "next challenge or end").

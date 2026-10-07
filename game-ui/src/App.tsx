@@ -7,6 +7,7 @@ import { ForgotPassword } from "./components/ForgotPassword";
 import { ResetPassword } from "./components/ResetPassword";
 import Game from "./Game";
 import ErrorDialog from "./components/ErrorDialog";
+import { ImpersonationBanner } from "./components/ImpersonationBanner";
 import { Admin } from "./components/Admin";
 import { Teacher } from "./components/Teacher";
 import LoadingScreen from "./components/LoadingScreen";
@@ -19,6 +20,7 @@ import {
   forgotPassword,
   resetPassword,
   whoami,
+  stopImpersonation as stopImpersonationApi,
   logout as logoutApi,
   adminLogout as adminLogoutApi,
   teacherLogout as teacherLogoutApi,
@@ -32,6 +34,7 @@ import {
   removeAllAdminCampaigns,
   removeAdminPlayer,
   setPlayerDebugFlag,
+  startImpersonation,
   type DebugFlag,
   removeAllAdminPlayers,
 } from "./services/api/admin";
@@ -77,6 +80,8 @@ function App() {
   const [isInResetPasswordUi, setIsInResetPasswordUi] = useState(false);
   const [isInGame, setIsInGame] = useState(false);
   const [player, setPlayer] = useState<PlayerIdentity | null>(null);
+  // An admin viewing the game as `player`, read-only; the server enforces it, this drives the banner.
+  const [isImpersonating, setIsImpersonating] = useState(false);
   // The address a verification / reset code was sent to - only lives between those screens.
   const [pendingEmail, setPendingEmail] = useState("");
   const [startMuted, setStartMuted] = useState(false);
@@ -114,8 +119,9 @@ function App() {
   const [outroQuestionaireAverage, setOutroQuestionaireAverage] = useState(0);
   const [questionaireResults, setQuestionaireResults] = useState<any>([]);
 
-  const enterGameAsPlayer = (loggedInPlayer: PlayerIdentity, muted: boolean) => {
+  const enterGameAsPlayer = (loggedInPlayer: PlayerIdentity, muted: boolean, impersonating = false) => {
     setPlayer(loggedInPlayer);
+    setIsImpersonating(impersonating);
     setStartMuted(muted);
     setIsInLoginUi(false);
     setIsInRegisterUi(false);
@@ -203,7 +209,9 @@ function App() {
     // "/game", "/", and any unrecognized path fall through to the player check - an unknown
     // path lands on Home exactly like "/" does once no player session is found.
     const result = await whoami();
-    if (result.player) {
+    if (result.impersonating) {
+      enterGameAsPlayer(result.impersonating, true, true);
+    } else if (result.player) {
       enterGameAsPlayer(result.player, false);
     } else if (path === "/game") {
       setIsInLoginUi(true);
@@ -236,6 +244,7 @@ function App() {
     setIsInAdminUi(false);
     setIsInTeacherUi(false);
     setPlayer(null);
+    setIsImpersonating(false);
     setAdminToken("");
     setTeacherUserName("");
     setIsInLoginUi(true);
@@ -243,7 +252,33 @@ function App() {
     setLoginError("Your session expired. Please log in again.");
   };
 
+  const handleViewAsPlayer = async (playerName: string) => {
+    try {
+      const started = await startImpersonation(playerName);
+      setIsInAdminUi(false);
+      enterGameAsPlayer({ id: started.user_id, email: started.email }, true, true);
+    } catch (err: any) {
+      setLastError(err.message || "Failed to start viewing as this player.");
+      setIsInErrorUi(true);
+    }
+  };
+
+  const handleExitImpersonation = async () => {
+    try {
+      await stopImpersonationApi();
+    } finally {
+      setIsInGame(false);
+      setPlayer(null);
+      setIsImpersonating(false);
+      await enterAdminUi().catch(() => {});
+    }
+  };
+
   const handleLogout = async () => {
+    if (isImpersonating) {
+      await handleExitImpersonation();
+      return;
+    }
     try {
       await logoutApi();
     } finally {
@@ -677,6 +712,9 @@ function App() {
                     </SettingsProvider>
                   </GlossaryProvider>
                 </WebSocketProvider>
+                {isImpersonating && player && (
+                  <ImpersonationBanner email={player.email} onExit={handleExitImpersonation} />
+                )}
               </motion.div>
             );
           } else if (isInAdminUi) {
@@ -695,6 +733,7 @@ function App() {
                   removeAllCampaigns={handleRemoveAllCampaigns}
                   removePlayer={handleRemovePlayer}
                   setDebugFlag={handleSetDebugFlag}
+                  viewAsPlayer={handleViewAsPlayer}
                   removeAllPlayers={handleRemoveAllPlayers}
                   finished_players_amount={finishedPlayersAmount}
                   sum_per_challenge={sumPerChallenge}

@@ -125,6 +125,67 @@ def test_verify_player_token_rejects_a_signature_valid_token_for_a_user_that_no_
     assert auth_service.verify_player_token(player_token) is None
 
 
+def _impersonation_cookies(user_id: int = 7, *, admin: bool = True, own_player: int | None = None) -> dict:
+    cookies = {auth_service.IMPERSONATE_COOKIE_NAME: auth_service._create_impersonation_token(user_id)}
+    if admin:
+        cookies[auth_service.ADMIN_COOKIE_NAME] = auth_service._create_admin_token()
+    if own_player is not None:
+        cookies[auth_service.PLAYER_COOKIE_NAME] = auth_service._create_player_token(own_player)
+    return cookies
+
+
+def test_resolve_player_prefers_a_valid_impersonation_over_the_own_player_cookie():
+    cookies = _impersonation_cookies(7, own_player=1)
+
+    assert auth_service.resolve_player(cookies) == (7, True)
+    assert auth_service.player_id_from_cookies(cookies) == 7
+
+
+def test_resolve_player_ignores_impersonation_without_a_valid_admin_cookie():
+    cookies = _impersonation_cookies(7, admin=False, own_player=1)
+
+    assert auth_service.resolve_player(cookies) == (1, False)
+    assert auth_service.resolve_player(_impersonation_cookies(7, admin=False)) is None
+
+
+def test_resolve_player_rejects_a_player_token_in_the_impersonation_cookie():
+    cookies = {
+        auth_service.IMPERSONATE_COOKIE_NAME: auth_service._create_player_token(7),
+        auth_service.ADMIN_COOKIE_NAME: auth_service._create_admin_token(),
+    }
+
+    assert auth_service.resolve_player(cookies) is None
+
+
+def test_resolve_player_ignores_impersonation_of_a_user_that_no_longer_exists(monkeypatch):
+    monkeypatch.setattr(auth_service, "player_exists", lambda user_id: False)
+
+    assert auth_service.resolve_player(_impersonation_cookies(7)) is None
+
+
+def test_resolve_player_falls_back_to_the_own_player_cookie():
+    own = {auth_service.PLAYER_COOKIE_NAME: auth_service._create_player_token(1)}
+
+    assert auth_service.resolve_player(own) == (1, False)
+    assert auth_service.resolve_player({}) is None
+
+
+def test_sliding_refresh_impersonation_reissues_near_expiry_only(monkeypatch):
+    near_expiry = {
+        auth_service.IMPERSONATE_COOKIE_NAME: auth_service.create_access_token(
+            data={"sub": "7", "role": "impersonation"}, expires_delta=timedelta(minutes=1)
+        ),
+        auth_service.ADMIN_COOKIE_NAME: auth_service._create_admin_token(),
+    }
+    response = Response()
+    assert auth_service.sliding_refresh_impersonation(near_expiry, response, secure=False) == 7
+    assert auth_service.IMPERSONATE_COOKIE_NAME in _set_cookie_names(response)
+
+    fresh_response = Response()
+    assert auth_service.sliding_refresh_impersonation(_impersonation_cookies(7), fresh_response, secure=False) == 7
+    assert auth_service.IMPERSONATE_COOKIE_NAME not in _set_cookie_names(fresh_response)
+
+
 def test_sliding_refresh_player_reports_logged_out_for_a_user_that_no_longer_exists(monkeypatch):
     monkeypatch.setattr(auth_service, "player_exists", lambda user_id: False)
     fresh_token = auth_service.create_access_token(data={"sub": "1", "role": "player"})

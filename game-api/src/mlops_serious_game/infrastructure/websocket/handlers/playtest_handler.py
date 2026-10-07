@@ -29,7 +29,7 @@ from sqlalchemy import select
 from mlops_serious_game.application.pitch_debate_service import store as pitch_store
 from mlops_serious_game.application.playtest_service import auto_card, service
 from mlops_serious_game.application import debug_flags
-from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, verify_player_token
+from mlops_serious_game.application.services.auth_service import player_id_from_cookies
 from mlops_serious_game.domain.Challenge import Challenge
 from mlops_serious_game.domain.metric_factory import MetricFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
@@ -53,7 +53,7 @@ NON_VETO = ("PASS", "SOFT_PASS")
 
 
 async def _allowed(websocket: WebSocket) -> bool:
-    if debug_flags.is_enabled("playtest", verify_player_token(websocket.cookies.get(PLAYER_COOKIE_NAME))):
+    if debug_flags.is_enabled("playtest", player_id_from_cookies(websocket.cookies)):
         return True
     await manager.send_error(websocket, "Playtest tools are disabled.", code="PLAYTEST_DISABLED")
     return False

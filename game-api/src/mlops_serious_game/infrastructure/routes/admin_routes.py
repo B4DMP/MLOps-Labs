@@ -1,9 +1,16 @@
 import datetime
 from typing import Any, Literal
-from fastapi import APIRouter, HTTPException, Depends, Query, Request
+from fastapi import APIRouter, HTTPException, Depends, Query, Request, Response
+from loguru import logger
 from pydantic import BaseModel
+from sqlalchemy import select
 
-from mlops_serious_game.application.services.auth_service import ADMIN_COOKIE_NAME, verify_admin_token
+from mlops_serious_game.application.services.auth_service import (
+    ADMIN_COOKIE_NAME,
+    CSRF_COOKIE_NAME,
+    set_impersonation_cookie,
+    verify_admin_token,
+)
 from mlops_serious_game.application.services.admin_service import (
     get_admin_dashboard_data,
     get_teacher_dashboard_data,
@@ -45,6 +52,7 @@ from mlops_serious_game.application.services.teacher_service import (
 )
 from mlops_serious_game.application.llm_cache import cache_stats
 from mlops_serious_game.config import settings
+from mlops_serious_game.infrastructure.database import User, get_session
 from mlops_serious_game.infrastructure.k8s_deploy import (
     NotInClusterError,
     UnknownAppError,
@@ -346,6 +354,25 @@ async def patch_player_debug_flags(
     if not set_debug_flags(player_name, updates):
         raise HTTPException(status_code=404, detail=f"Unknown player '{player_name}'")
     return {"type": "admin_data_update", **get_admin_dashboard_data()}
+
+
+@router.post("/players/{player_name}/impersonate")
+async def impersonate_player(
+    player_name: str, request: Request, response: Response, _: str = Depends(check_admin_token)
+):
+    """Starts a view-only session as `player_name` (their email). The websocket refuses every
+    player action while it lasts (websocket/router.py, READ_ONLY_EVENTS)."""
+    with get_session() as session:
+        user = session.scalar(select(User).where(User.email == player_name))
+        user_id, email = (user.id, user.email) if user else (None, None)
+    if user_id is None:
+        raise HTTPException(status_code=404, detail=f"Unknown player '{player_name}'")
+    set_impersonation_cookie(
+        response, user_id, secure=request.url.scheme == "https",
+        existing_csrf=request.cookies.get(CSRF_COOKIE_NAME),
+    )
+    logger.info(f"Admin started viewing as user {user_id} ({email})")
+    return {"type": "impersonation_started", "user_id": user_id, "email": email}
 
 
 @router.get("/graph-debug")

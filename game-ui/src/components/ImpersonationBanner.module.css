@@ -1,0 +1,30 @@
+.banner {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000002;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.5rem 0.4rem 0.9rem;
+  border-radius: 999px;
+  background: #1f2937;
+  color: #fff;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.exit {
+  border: none;
+  border-radius: 999px;
+  padding: 0.2rem 0.8rem;
+  background: #f59e0b;
+  color: #1f2937;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.exit:hover {
+  background: #fbbf24;
+}

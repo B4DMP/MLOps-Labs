@@ -156,8 +156,8 @@ async def determine_intel_items_node(state: OnlineIntelState, config: RunnableCo
     # websocket handshake no longer takes one at all (docs/plans/session-persistence-and-url-routing.md,
     # D-ws-cookie). Only used here to seed a deterministic shuffle, so an unresolvable cookie
     # degrades to "" rather than raising.
-    from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, verify_player_token
-    resolved_user_id = verify_player_token(ws.cookies.get(PLAYER_COOKIE_NAME)) if ws else None
+    from mlops_serious_game.application.services.auth_service import player_id_from_cookies
+    resolved_user_id = player_id_from_cookies(ws.cookies) if ws else None
     user_id = resolved_user_id or ""
     # Folds in how much the player already knows, so a replayed card does not always turn up
     # the exact same order (D49) without needing a dedicated play-count column.

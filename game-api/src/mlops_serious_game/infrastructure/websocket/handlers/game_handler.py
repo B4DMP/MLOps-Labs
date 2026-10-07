@@ -7,7 +7,7 @@ from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from mlops_serious_game.application import debug_flags
-from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, verify_player_token
+from mlops_serious_game.application.services.auth_service import player_id_from_cookies
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.Challenge import Challenge
 from mlops_serious_game.domain.persona_resolver import personalize
@@ -625,7 +625,7 @@ async def send_progress_index_payload(
     websocket: WebSocket,
     index: int,
 ) -> None:
-    user_id = verify_player_token(websocket.cookies.get(PLAYER_COOKIE_NAME))
+    user_id = player_id_from_cookies(websocket.cookies)
 
     if index == 0:
         await manager.send_event(

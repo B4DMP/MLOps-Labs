@@ -111,6 +111,8 @@ interface AdminProps {
   removeAllCampaigns?: () => void;
   removePlayer?: (playerName: string) => void;
   setDebugFlag?: (playerName: string, flag: DebugFlag, enabled: boolean) => void;
+  /** Opens the game as this player sees it, read-only. */
+  viewAsPlayer?: (playerName: string) => void;
   removeAllPlayers?: () => void;
   finished_players_amount: number;
   sum_per_challenge: number[];
@@ -135,6 +137,7 @@ export function Admin({
   removeAllCampaigns,
   removePlayer,
   setDebugFlag,
+  viewAsPlayer,
   removeAllPlayers,
   finished_players_amount,
   sum_per_challenge,
@@ -1594,6 +1597,18 @@ export function Admin({
                                 )}
                               </td>
                               <td className="text-end">
+                                {viewAsPlayer && (
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-primary me-1"
+                                    style={{ fontSize: "0.8rem" }}
+                                    onClick={() => viewAsPlayer(p.name)}
+                                    title={`See the game as ${p.name} sees it (read-only)`}
+                                  >
+                                    <Icon icon="ph:eye-bold" />
+                                    <span className="ms-1">View as</span>
+                                  </button>
+                                )}
                                 {removePlayer && (
                                   confirmDeletePlayer === p.name ? (
                                     <div className="d-inline-flex align-items-center gap-1">

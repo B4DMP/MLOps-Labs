@@ -1,6 +1,7 @@
 import datetime
 import random
 import re
+from collections.abc import Mapping
 from datetime import timedelta, timezone
 from typing import Optional
 
@@ -30,6 +31,8 @@ _SLIDING_REFRESH_THRESHOLD = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES / 2)
 PLAYER_COOKIE_NAME = "mlops_player"
 ADMIN_COOKIE_NAME = "mlops_admin"
 TEACHER_COOKIE_NAME = "mlops_teacher"
+# Separate from the player cookie so an admin's own player session survives impersonating.
+IMPERSONATE_COOKIE_NAME = "mlops_impersonate"
 CSRF_COOKIE_NAME = "mlops_csrf"
 
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -126,6 +129,36 @@ def verify_player_token(token: str) -> int | None:
     return _player_id_from_payload(decode_token(token))
 
 
+def _impersonated_player_id(cookies: Mapping[str, str]) -> int | None:
+    """The user an admin is viewing as, only while the admin cookie is still valid too, so
+    logging the admin out (or letting it lapse) ends the impersonation."""
+    payload = decode_token(cookies.get(IMPERSONATE_COOKIE_NAME))
+    if payload is None or payload.get("role") != "impersonation":
+        return None
+    if not verify_admin_token(cookies.get(ADMIN_COOKIE_NAME, "")):
+        return None
+    try:
+        user_id = int(payload.get("sub"))
+    except (TypeError, ValueError):
+        return None
+    return user_id if player_exists(user_id) else None
+
+
+def resolve_player(cookies: Mapping[str, str]) -> tuple[int, bool] | None:
+    """(user_id, is_impersonation) for a request's cookies, or None if nobody is signed in as a
+    player. A valid impersonation wins over the caller's own player cookie."""
+    impersonated = _impersonated_player_id(cookies)
+    if impersonated is not None:
+        return impersonated, True
+    own = verify_player_token(cookies.get(PLAYER_COOKIE_NAME))
+    return (own, False) if own is not None else None
+
+
+def player_id_from_cookies(cookies: Mapping[str, str]) -> int | None:
+    resolved = resolve_player(cookies)
+    return resolved[0] if resolved else None
+
+
 def get_player_email(user_id: int) -> str | None:
     with get_session() as session:
         return session.scalar(select(User.email).where(User.id == user_id))
@@ -154,6 +187,12 @@ def get_player_llm_provider(user_id: int) -> str | None:
 
 def _create_player_token(user_id: int) -> str:
     return create_access_token(data={"sub": str(user_id), "role": "player"})
+
+
+def _create_impersonation_token(user_id: int) -> str:
+    return create_access_token(
+        data={"sub": str(user_id), "role": "impersonation", "by": settings.ADMIN_USER}
+    )
 
 
 def _create_admin_token() -> str:
@@ -235,6 +274,25 @@ def set_teacher_cookie(
     _set_csrf_cookie_if_absent(response, existing=existing_csrf, secure=secure)
 
 
+def set_impersonation_cookie(
+    response: Response, user_id: int, *, secure: bool, existing_csrf: str | None = None
+) -> None:
+    response.set_cookie(
+        IMPERSONATE_COOKIE_NAME,
+        _create_impersonation_token(user_id),
+        httponly=True,
+        secure=secure,
+        samesite="lax",
+        path="/",
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+    _set_csrf_cookie_if_absent(response, existing=existing_csrf, secure=secure)
+
+
+def clear_impersonation_cookie(response: Response) -> None:
+    response.delete_cookie(IMPERSONATE_COOKIE_NAME, path="/")
+
+
 def clear_player_cookie(response: Response) -> None:
     response.delete_cookie(PLAYER_COOKIE_NAME, path="/")
 
@@ -265,6 +323,20 @@ def sliding_refresh_player(
         return None
     if _remaining_lifetime(payload) < _SLIDING_REFRESH_THRESHOLD:
         set_player_cookie(response, user_id, secure=secure, existing_csrf=existing_csrf)
+    return user_id
+
+
+def sliding_refresh_impersonation(
+    cookies: Mapping[str, str], response: Response, *, secure: bool, existing_csrf: str | None = None
+) -> int | None:
+    """Same as sliding_refresh_player, for the impersonation cookie. Returns the user id being
+    viewed, or None if there's no valid impersonation (including when the admin cookie is gone)."""
+    user_id = _impersonated_player_id(cookies)
+    if user_id is None:
+        return None
+    payload = decode_token(cookies.get(IMPERSONATE_COOKIE_NAME))
+    if _remaining_lifetime(payload) < _SLIDING_REFRESH_THRESHOLD:
+        set_impersonation_cookie(response, user_id, secure=secure, existing_csrf=existing_csrf)
     return user_id
 
 

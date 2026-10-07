@@ -8,9 +8,8 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from mlops_serious_game.application.llm import bind_llm_provider
 from mlops_serious_game.application.persona_service import personas_or_default
 from mlops_serious_game.application.services.auth_service import (
-    PLAYER_COOKIE_NAME,
     get_player_llm_provider,
-    verify_player_token,
+    resolve_player,
 )
 from mlops_serious_game.config import settings
 from mlops_serious_game.infrastructure.database import get_session
@@ -98,6 +97,22 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
 }
 
 
+# What an admin viewing as a player may still send: the screens' own load requests, never an
+# action. Some of these write idempotently (game:init, offline artifacts), as they do when the
+# player reconnects. Anything not listed is refused, so new events are blocked by default.
+READ_ONLY_EVENTS = frozenset({
+    "system:ping",
+    "game:init",
+    "intel:get_offline_artifacts",
+    "intel:get_dossier",
+    "graph:state_request",
+    "pitch:state",
+    "log:history",
+    "results:get",
+    "settings:get",
+})
+
+
 @router.websocket("/ws")
 async def unified_websocket_endpoint(websocket: WebSocket):
     # Defense in depth: SameSite=Lax already stops a cross-site page's WS attempt from carrying
@@ -113,10 +128,11 @@ async def unified_websocket_endpoint(websocket: WebSocket):
     # as anyone by guessing their user_id" gap this replaces. `verify_player_token` also checks
     # that a `User` row still backs the name, so a stale cookie from before a database reset is
     # refused here rather than reaching a handler's DB write.
-    user_id = verify_player_token(websocket.cookies.get(PLAYER_COOKIE_NAME))
-    if user_id is None:
+    resolved = resolve_player(websocket.cookies)
+    if resolved is None:
         await websocket.close(code=4401)
         return
+    user_id, read_only = resolved
 
     await manager.connect(websocket, user_id)
     session_id = f"MLOps_Convo_{user_id}"
@@ -143,6 +159,12 @@ async def unified_websocket_endpoint(websocket: WebSocket):
 
                 if not event_name:
                     await manager.send_error(websocket, "Missing required field: 'event'")
+                    continue
+
+                if read_only and event_name not in READ_ONLY_EVENTS:
+                    await manager.send_event(
+                        websocket, "system:read_only", {"event": event_name}
+                    )
                     continue
 
                 if event_name in EVENT_REGISTRY:

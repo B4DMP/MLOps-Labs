@@ -9,6 +9,7 @@ from mlops_serious_game.application.services.auth_service import (
     authenticate_user,
     change_password as change_password_service,
     clear_admin_cookie,
+    clear_impersonation_cookie,
     clear_player_cookie,
     clear_teacher_cookie,
     confirm_email_change as confirm_email_change_service,
@@ -17,14 +18,15 @@ from mlops_serious_game.application.services.auth_service import (
     register_user,
     request_email_change as request_email_change_service,
     reset_password,
+    resolve_player,
     set_admin_cookie,
     set_player_cookie,
     set_teacher_cookie,
     sliding_refresh_admin,
+    sliding_refresh_impersonation,
     sliding_refresh_player,
     sliding_refresh_teacher,
     verify_email_code,
-    verify_player_token,
 )
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -39,9 +41,12 @@ def get_current_player(request: Request) -> int:
     user id, or a 401 if there isn't a valid one. Distinct from the websocket's own auth
     (infrastructure/websocket/router.py) - same cookie, same verify_player_token, different
     transport."""
-    user_id = verify_player_token(request.cookies.get(PLAYER_COOKIE_NAME))
-    if user_id is None:
+    resolved = resolve_player(request.cookies)
+    if resolved is None:
         raise HTTPException(status_code=401, detail="Not authenticated.")
+    user_id, is_impersonation = resolved
+    if is_impersonation:
+        raise HTTPException(status_code=403, detail="Account changes are disabled while viewing as a player.")
     return user_id
 
 
@@ -195,10 +200,18 @@ async def whoami(request: Request, response: Response):
     teacher = sliding_refresh_teacher(
         request.cookies.get(TEACHER_COOKIE_NAME), response, secure=secure, existing_csrf=existing_csrf
     )
+    impersonated_id = sliding_refresh_impersonation(
+        request.cookies, response, secure=secure, existing_csrf=existing_csrf
+    )
     return {
         "player": {"id": player_id, "email": get_player_email(player_id)} if player_id else None,
         "admin": {"valid": True} if admin_valid else None,
         "teacher": {"id": teacher["id"], "user_name": teacher["user_name"]} if teacher else None,
+        "impersonating": (
+            {"id": impersonated_id, "email": get_player_email(impersonated_id)}
+            if impersonated_id
+            else None
+        ),
     }
 
 
@@ -211,6 +224,12 @@ async def logout(response: Response):
 @router.post("/admin-logout")
 async def admin_logout(response: Response):
     clear_admin_cookie(response)
+    return {"success": True}
+
+
+@router.post("/impersonate/stop")
+async def stop_impersonation(response: Response):
+    clear_impersonation_cookie(response)
     return {"success": True}
 
 
