@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Question } from "./types/Question";
 import { Icon } from "@iconify/react";
 import { useSettings } from "./components/SettingsProvider";
@@ -204,6 +204,12 @@ export default function Questionaire({
 }: QuestionaireProps) {
   const { canPlaytest } = useSettings();
   const [step, setStep] = useState(0);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // The wrapper is its own 100vh scroller, so a new section would otherwise open at the old offset.
+  useEffect(() => {
+    wrapperRef.current?.scrollTo?.({ top: 0 });
+  }, [step]);
   // Dev builds only (`ENABLE_DOSSIER_DEBUG`) - `question.debug` is absent entirely otherwise, so
   // this state has nothing to toggle in a normal build. Several can be open at once, since a
   // section can hold more than one debug-eligible question.
@@ -285,7 +291,7 @@ export default function Questionaire({
   };
 
   return (
-    <div className={styles.wrapper}>
+    <div className={styles.wrapper} ref={wrapperRef}>
       <div className={`card shadow-lg border-0 rounded-4 overflow-hidden ${styles.panel}`}>
         {/* Header */}
         <div className={styles.header}>
