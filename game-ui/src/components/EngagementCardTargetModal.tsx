@@ -10,6 +10,7 @@ import styles from "./EngagementCardTargetModal.module.css";
 import type { EngagementCard } from "../types/EngagementCard";
 import type { Stakeholder } from "./StakeholderProvider";
 import EngagementCardComponent from "./EngagementCardComponent";
+import NarratedText from "./NarratedText";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import { intelTagMeta } from "../types/IntelTag";
 
@@ -105,6 +106,12 @@ export default function EngagementCardTargetModal({
     : isAllStakeholdersCard
     ? selectableStakeholders.length
     : Math.min(card.stakeholder_selection_amount, selectableStakeholders.length);
+
+  const subtitle = isIntelCard
+    ? "Select an unverified dossier finding to authenticate with this engagement card."
+    : isAllStakeholdersCard
+    ? `All ${requiredAmount} active team stakeholders are selected by default. Confirm below to initiate the sync.`
+    : `Choose ${requiredAmount} stakeholder${requiredAmount > 1 ? "s" : ""} to initiate direct dialogue and uncover requirements.`;
 
   // Tag details come from the shared tag module; the class keeps each tag's colour consistent.
   const CATEGORY_CLASS = {
@@ -214,11 +221,8 @@ export default function EngagementCardTargetModal({
                 <span>Target Selection • {card.title}</span>
               </DialogTitle>
               <p className={styles.headerSubtitle}>
-                {isIntelCard
-                  ? "Select an unverified dossier finding to authenticate with this engagement card"
-                  : isAllStakeholdersCard
-                  ? `All ${requiredAmount} active team stakeholders are selected by default. Confirm below to initiate the sync.`
-                  : `Choose ${requiredAmount} stakeholder${requiredAmount > 1 ? "s" : ""} to initiate direct dialogue and uncover requirements`}
+                {/* Only the card and what to do next are read out: the lists below are for browsing. */}
+                <NarratedText text={subtitle} lead={`${card.title}. ${card.description}`} />
               </p>
             </div>
 

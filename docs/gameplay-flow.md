@@ -73,7 +73,8 @@ over" alert.
 ## Where things live
 
 - Narration: `utils/speech.ts` (one global arbiter, instrumentation, session mute), start gate
-  `NarratorGate.tsx`. Tours: `utils/tour.ts` (intro.js, group by `data-intro-group`). Tips:
+  `NarratorGate.tsx`. Engagement card dialogs (target picker, intel verification result) read
+  themselves via `NarratedText.tsx`; chat replies are narrated by `pitch_debate.tsx`. Tours: `utils/tour.ts` (intro.js, group by `data-intro-group`). Tips:
   `CoachTip.tsx` + `useIntroCoach.ts` (silent, seen-flags in localStorage per user).
 - Copy: `content/helpCopy.ts`, `content/graphHelp.ts`, `help` per component in
   `gameConfig/MlopsGraph.json`, glossaries in `gameConfig/*Glossary.json`.
