@@ -22,6 +22,8 @@ from typing import Any, Iterable, Optional
 
 from pydantic import BaseModel, Field
 
+from mlops_serious_game.domain.emotion import valence_mean
+
 # ── Tunables ─────────────────────────────────────────────────────────────────
 # Defaults only. `service.py` overrides them from config so a grade can be retuned after a
 # playtest without a deploy.
@@ -44,7 +46,10 @@ DEFAULT_GRADE_BANDS: tuple[tuple[float, str, str], ...] = (
 )
 
 # What one fired grudge costs the relations pillar, and the floor that penalty can drive it to.
-GRUDGE_PENALTY = 0.08
+GRUDGE_PENALTY = 0.03
+
+# Below this much headroom (share of full health) a challenge did no damage to win back.
+NO_HEADROOM = 0.05
 GRUDGE_PENALTY_FLOOR = 0.0
 
 # What one spent escalation point costs decision quality. Escalation is a legitimate tool, not a
@@ -135,15 +140,72 @@ def pipeline_health(
     )
 
 
+def pipeline_progress(stage_moves: list[tuple[float, float]]) -> Pillar:
+    """How much of what each challenge broke the player put right, averaged over the challenges played.
+
+    Each move is the focus stage's health `(before, after)` on a 0..100 scale, `before` being the
+    state once the challenge had done its damage and `after` the state once the player's card, the
+    world and any grudge had settled. The score is the share of the headroom won back: 0 for
+    a challenge that left the stage no better, 1 for one that restored it fully. A stage the
+    challenge never hurt has no headroom, so it scores what it ended at.
+
+    Reading the run's final graph instead rewards what the world started you with and what you
+    never touched: a stage the player skipped, or one that started healthy, counts as an
+    achievement. Challenges never played contribute nothing here at all, which is also what makes a
+    run of 2-3 challenges gradeable on the same scale as a long one.
+    """
+    if not stage_moves:
+        return Pillar(id="pipeline_health", score=0.0, detail={"reason": "no challenge simulated"})
+
+    scores = []
+    for before, after in stage_moves:
+        before_n, after_n = _clamp(before / 100.0), _clamp(after / 100.0)
+        headroom = 1.0 - before_n
+        scores.append(after_n if headroom < NO_HEADROOM else _clamp((after_n - before_n) / headroom))
+    return Pillar(
+        id="pipeline_health",
+        score=sum(scores) / len(scores),
+        detail={
+            "challenges": len(scores),
+            "per_challenge": [round(s, 3) for s in scores],
+            "mean_gain": round(sum(a - b for b, a in stage_moves) / len(stage_moves), 1),
+        },
+    )
+
+
 # ── Pillar 2: stakeholder relations ──────────────────────────────────────────
+
+
+def _room_weights(room: Iterable[tuple[str, str, str]]) -> dict[str, float]:
+    weights: dict[str, float] = {}
+    for stakeholder_id, power, interest in room:
+        weights[stakeholder_id] = _WEIGHT_OF.get(power, 0.5) * _WEIGHT_OF.get(interest, 0.5)
+    return weights
+
+
+def _weighted_mood(emotion_values: dict[str, dict[str, float]], weights: dict[str, float]) -> Optional[float]:
+    """The room's mood at one moment, or None when nobody in `weights` has a reading."""
+    total = weighted = 0.0
+    for stakeholder_id, weight in weights.items():
+        mood = valence_mean(emotion_values.get(stakeholder_id) or {})
+        if mood is not None:
+            weighted += mood * weight
+            total += weight
+    return weighted / total if total else None
 
 
 def stakeholder_relations(
     emotion_values: dict[str, dict[str, float]],
     room: Iterable[tuple[str, str, str]],
     fired_grudges: int = 0,
+    history: Optional[list[dict[str, dict[str, float]]]] = None,
 ) -> Pillar:
-    """How the room feels at the end, weighted by who actually matters.
+    """How the room feels, weighted by who actually matters.
+
+    `emotion_values` is the room at the end. With a `history` (the room after each challenge, in
+    play order) the score is the mean of those moods with the last counted twice, so a bad first
+    challenge the player repaired reads as a recovery rather than a failure, and a late charm
+    offensive does not erase earlier damage. Without one, only the end counts.
 
     `room` is `(stakeholder_id, power, interest)` as the phases config supplies it. Weighting by
     power x interest is the same reading the game uses everywhere else: leaving a high-power,
@@ -153,15 +215,13 @@ def stakeholder_relations(
     fired is friction the player actually shipped, and it should cost even if the stakeholder
     ended up warm again afterwards.
     """
-    weights: dict[str, float] = {}
-    for stakeholder_id, power, interest in room:
-        weights[stakeholder_id] = _WEIGHT_OF.get(power, 0.5) * _WEIGHT_OF.get(interest, 0.5)
+    weights = _room_weights(room)
 
     weighted_sum = 0.0
     total_weight = 0.0
     per_stakeholder: dict[str, float] = {}
     for stakeholder_id, weight in weights.items():
-        mood = _mean((emotion_values.get(stakeholder_id) or {}).values())
+        mood = valence_mean(emotion_values.get(stakeholder_id) or {})
         if mood is None:
             # No reading at all means they were never in the room, not that they felt nothing.
             continue
@@ -173,6 +233,9 @@ def stakeholder_relations(
         return Pillar(id="stakeholder_relations", score=0.0, detail={"reason": "no room"})
 
     raw = weighted_sum / total_weight
+    run_moods = [m for m in (_weighted_mood(step, weights) for step in history or []) if m is not None]
+    if run_moods:
+        raw = (sum(run_moods) + run_moods[-1]) / (len(run_moods) + 1)
     penalty = GRUDGE_PENALTY * max(0, fired_grudges)
     score = _clamp(raw - penalty, low=GRUDGE_PENALTY_FLOOR)
     return Pillar(
@@ -180,6 +243,7 @@ def stakeholder_relations(
         score=score,
         detail={
             "weighted_mood": round(raw, 3),
+            "run_moods": [round(m, 3) for m in run_moods],
             "fired_grudges": fired_grudges,
             "per_stakeholder": per_stakeholder,
         },
@@ -221,13 +285,24 @@ def intel_accuracy(
 # ── Pillar 4: decision quality ───────────────────────────────────────────────
 
 
-def decision_quality(outcomes: list[str], escalation_spent: int = 0) -> Pillar:
+def decision_quality(
+    outcomes: list[str], escalation_spent: int = 0, pars: Optional[list[str]] = None
+) -> Pillar:
     """Mean outcome across the challenges that reached a commit, less what escalation cost.
+
+    `pars` (aligned with `outcomes`) is the best outcome each room allows. A room that cannot be
+    passed cleanly scores a soft pass as full marks, so a perfect player is not marked down for
+    something the room made unavoidable.
 
     A challenge with no recorded outcome is skipped rather than scored zero: the player may simply
     not have got that far, and an unplayed challenge is not a veto.
     """
-    scored = [OUTCOME_SCORES[o] for o in outcomes if o in OUTCOME_SCORES]
+    scored = []
+    for index, name in enumerate(outcomes):
+        if name not in OUTCOME_SCORES:
+            continue
+        par = OUTCOME_SCORES.get(pars[index], 1.0) if pars and index < len(pars) else 1.0
+        scored.append(min(1.0, OUTCOME_SCORES[name] / par) if par > 0 else 1.0)
     if not scored:
         return Pillar(id="decision_quality", score=0.0, detail={"reason": "no outcome recorded"})
 
@@ -601,7 +676,7 @@ def mood_trajectory(challenges: list[dict[str, Any]]) -> dict[str, Any]:
     for sid in ids:
         points: list[Optional[float]] = []
         for step in steps:
-            mood = _mean((step.get(sid) or {}).values())
+            mood = valence_mean(step.get(sid) or {})
             points.append(round(mood, 3) if mood is not None else None)
         series[sid] = points
     return {"steps": len(steps), "series": series}

@@ -34,6 +34,21 @@ def apply_emotion_delta(
     return updated
 
 
+# Dimensions where lower is better. A calm, unthreatened stakeholder has these near 0.
+NEGATIVE_DIMENSIONS = frozenset({"stress", "perceived_risk"})
+
+
+def valence_mean(values: EmotionValues) -> Optional[float]:
+    """How good the mood is, in [0, 1]: the mean of the dimensions with stress and perceived risk
+    flipped. A plain mean rewards a stressed, frightened stakeholder. None when there is nothing to read."""
+    readings = [
+        (1.0 - v) if dim in NEGATIVE_DIMENSIONS else v
+        for dim, v in values.items()
+        if isinstance(v, (int, float))
+    ]
+    return sum(readings) / len(readings) if readings else None
+
+
 PITCH_SENSITIVITY_WEIGHTS = {
     "trust": 0.25,
     "fairness": 0.28,
