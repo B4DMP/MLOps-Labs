@@ -5,7 +5,7 @@ when it is on here or in the global settings, so a deployment can keep the globa
 and still open the graph debug view or the answer key for one account.
 
 Revision ID: c7d8e9f0a1b3
-Revises: f1e2d3c4b5a6
+Revises: a1d2e3f4b5c6
 Create Date: 2026-10-07 00:00:00.000000
 
 """
@@ -17,7 +17,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = 'c7d8e9f0a1b3'
-down_revision: Union[str, None] = 'f1e2d3c4b5a6'
+down_revision: Union[str, None] = 'a1d2e3f4b5c6'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

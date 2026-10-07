@@ -43,6 +43,13 @@ server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch e
    (`MAX_STANCE_ARTIFACTS`, `intel_handler.py`). Known cards cannot be tagged. Continue to the
    Pitch appears only when every non-known card is tagged. Events: `intel:get_offline_artifacts`,
    `intel:tag_item`, `intel:get_dossier`.
+   - Progressive disclosure: any intel item whose graph target is an edge (`is_edge_requirement`,
+     `intel_handler.py`) is left out of the deck, the dossier and every Gather/online-intel reveal
+     on a player's first playthrough (`is_first_playthrough`, `run_index == 1`) - a new player only
+     has to read intel about components. It starts appearing from the second playthrough on. The
+     requirement itself still counts in scoring (a hidden edge Boundary can still VETO), only its
+     display is gated; `ctx.all_intel` (pitch scoring ground truth) stays unfiltered, while the
+     `intel_total` shown to the player is filtered the same way the dossier is.
 5. **Pitch** (`pitch_debate.tsx`): dossier left; right column = boardroom table (stakeholder
    seats, Pitch Deck plaque, stat chips), chat (`StakeholderInteractionArea.tsx`), engagement card
    shelf.

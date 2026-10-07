@@ -73,6 +73,10 @@ class Campaign(Base):
     # Off by default: phase 0 ("Introduction") is otherwise skipped and the game starts at
     # phase 1 - see game_handler.select_first_challenge.
     intro_phase_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Forces one of "mistral"/"westai"/"groq" for this campaign's players, overriding the
+    # server-wide Mistral -> WestAI -> Groq priority (application/llm.py). NULL uses that
+    # global order.
+    llm_provider: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
 
 class Teacher(Base):
@@ -364,6 +368,23 @@ class BugReportRecipientsRow(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     recipients: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime,
+        default=datetime.datetime.utcnow,
+        onupdate=datetime.datetime.utcnow,
+        nullable=False,
+    )
+
+
+class DefaultLlmProviderRow(Base):
+    """Single-row table (id=1) holding the server-wide default LLM provider, admin-editable via
+    /api/admin/default-llm-provider. NULL (or no row) falls back to the hardcoded
+    Mistral -> WestAI -> Groq env-key priority in application/llm.py."""
+
+    __tablename__ = settings.POSTGRES_DEFAULT_LLM_PROVIDER_TABLE
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    provider: Mapped[str | None] = mapped_column(String(32), nullable=True)
     updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime,
         default=datetime.datetime.utcnow,

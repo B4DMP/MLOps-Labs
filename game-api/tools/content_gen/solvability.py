@@ -36,28 +36,50 @@ def item_changes(req) -> list[dict]:
 
 
 def candidate_changes(graph, state, reqs) -> list:
-    """Distinct slottable changes named by the items that would actually move something."""
+    """Distinct slottable changes named by the items that would actually move something.
+
+    A raise_to is capped to one rung per card (resolve_step_cap), so an item naming a level more
+    than one rung above the current one is only reachable via an intermediate card too - inserted
+    here as its own candidate so the search can actually find the real multi-slot path. Two cases:
+    governance on a target whose automation is still below manual (needs the automation floor
+    first - and a governance raise there is rejected outright, not capped, if that floor is
+    missing), and an automation raise that jumps past manual (broken/absent straight to automated,
+    where the floor after either resting state is always manual, never a skipped level)."""
     from mlops_serious_game.application.pitch_debate_service import session as pitch
     from mlops_serious_game.domain.graph import AutomationState
 
     seen: set[tuple] = set()
     out = []
+
+    def _add_floor(target: str, auto: Optional[int]) -> None:
+        if auto is None:
+            return
+        floor_key = ("raise_to", target, "automation", auto)
+        if floor_key not in seen:
+            seen.add(floor_key)
+            out.append(pitch.AtomicChange(kind="raise_to", target=target, axis="automation", value=auto))
+
     for req in reqs:
         for spec in item_changes(req):
             key = (spec["kind"], spec["target"], spec.get("axis"), spec["value"])
             if key in seen or not graph.is_target(spec["target"]):
                 continue
             if spec["kind"] == "raise_to":
-                if spec["value"] <= state.value(spec["target"], spec["axis"]):
+                current = state.value(spec["target"], spec["axis"])
+                if spec["value"] <= current:
                     continue
-                # Governance on something not yet implemented needs its automation step in the same card.
-                if spec["axis"] == "governance" and state.value(spec["target"], "automation") < AutomationState.MANUAL:
-                    auto = min((a for a in graph.allowed_for(spec["target"], "automation") if a >= AutomationState.MANUAL), default=None)
-                    if auto is not None:
-                        auto_key = ("raise_to", spec["target"], "automation", auto)
-                        if auto_key not in seen:
-                            seen.add(auto_key)
-                            out.append(pitch.AtomicChange(kind="raise_to", target=spec["target"], axis="automation", value=auto))
+                manual_or_above = (a for a in graph.allowed_for(spec["target"], "automation") if a >= AutomationState.MANUAL)
+                if spec["axis"] == "governance" and current < AutomationState.MANUAL:
+                    # Governance on something not yet implemented needs its automation step in the same card.
+                    _add_floor(spec["target"], min(manual_or_above, default=None))
+                elif (
+                    spec["axis"] == "automation"
+                    and current < AutomationState.MANUAL
+                    and spec["value"] > AutomationState.MANUAL
+                ):
+                    # A multi-rung automation jump (broken/absent straight to automated) needs
+                    # the manual floor slotted first.
+                    _add_floor(spec["target"], min(manual_or_above, default=None))
             seen.add(key)
             out.append(pitch.AtomicChange(**spec))
     return out

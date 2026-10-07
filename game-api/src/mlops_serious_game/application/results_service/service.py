@@ -43,6 +43,7 @@ from mlops_serious_game.infrastructure.database.models import (
     User,
 )
 from mlops_serious_game.infrastructure.database.run_scope import (
+    FIRST_RUN,
     current_run_index,
     parent_run,
     run_chain,
@@ -105,9 +106,13 @@ def _intel_facts(
 
     `available` counts the requirements belonging to the challenges this run actually dealt, not
     every requirement in the config: intel for a challenge the player never saw was never theirs
-    to miss.
+    to miss. On the player's first playthrough edge-targeted requirements are excluded from that
+    count too, since they were never offered (docs/gameplay-flow.md): a run's own results should
+    not grade the player against intel the run itself never showed them.
     """
-    from mlops_serious_game.application.intel_handler import intel_rows
+    from mlops_serious_game.application.intel_handler import intel_rows, is_edge_requirement
+
+    hide_edges = (run_index or FIRST_RUN) <= FIRST_RUN
 
     with get_session() as session:
         rows = intel_rows(session, user_id, run_index)
@@ -128,6 +133,8 @@ def _intel_facts(
             requirements = RequirementFactory.get_requirements_for_challenge(challenge_id)
         except Exception:
             continue
+        if hide_edges:
+            requirements = [r for r in requirements if not is_edge_requirement(r)]
         available += len(requirements)
         for requirement in requirements:
             owner = getattr(requirement, "stakeholder_id", None) or compute.ENVIRONMENT

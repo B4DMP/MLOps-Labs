@@ -28,6 +28,10 @@ from mlops_serious_game.application.services.bug_report_settings_service import 
     get_recipients as get_bug_report_recipients,
     update_recipients as update_bug_report_recipients,
 )
+from mlops_serious_game.application.services.default_llm_provider_service import (
+    get_default_llm_provider,
+    update_default_llm_provider,
+)
 from mlops_serious_game.application.services.admin_results import (
     get_player_results,
     get_results_dashboard,
@@ -60,6 +64,8 @@ class CampaignAddRequest(BaseModel):
     is_bot_campaign: bool = False
     require_email_verification: bool = True
     intro_phase_enabled: bool = False
+    # None (the default) means "use the server-wide Mistral -> WestAI -> Groq priority".
+    llm_provider: Literal["mistral", "westai", "groq"] | None = None
 
 
 class CampaignUpdateRequest(BaseModel):
@@ -71,10 +77,19 @@ class CampaignUpdateRequest(BaseModel):
     is_bot_campaign: bool | None = None
     require_email_verification: bool | None = None
     intro_phase_enabled: bool | None = None
+    # Omitted: leave the campaign's provider untouched. "default": clear it back to the
+    # server-wide priority. Any other value pins the campaign to that provider.
+    llm_provider: Literal["mistral", "westai", "groq", "default"] | None = None
 
 
 class ConfigUpdateRequest(BaseModel):
     data: Any
+
+
+class DefaultLlmProviderUpdateRequest(BaseModel):
+    # None clears the explicit default, falling back to the server-wide Mistral -> WestAI ->
+    # Groq env-key priority (application/llm.py).
+    llm_provider: Literal["mistral", "westai", "groq"] | None = None
 
 
 class TeacherCreateRequest(BaseModel):
@@ -141,6 +156,7 @@ async def create_campaign(req: CampaignAddRequest, _: str = Depends(check_admin_
         is_bot_campaign=req.is_bot_campaign,
         require_email_verification=req.require_email_verification,
         intro_phase_enabled=req.intro_phase_enabled,
+        llm_provider=req.llm_provider,
     )
     data = get_admin_dashboard_data()
     return {"type": "admin_data_update", **data}
@@ -159,6 +175,7 @@ async def patch_campaign(campaign_key: str, req: CampaignUpdateRequest, _: str =
             is_bot_campaign=req.is_bot_campaign,
             require_email_verification=req.require_email_verification,
             intro_phase_enabled=req.intro_phase_enabled,
+            llm_provider=req.llm_provider,
         )
         data = get_admin_dashboard_data()
         return {"type": "admin_data_update", **data}
@@ -491,6 +508,18 @@ async def update_bug_report_recipients_route(
     req: BugReportRecipientsUpdateRequest, _: str = Depends(check_admin_token)
 ):
     return {"recipients": update_bug_report_recipients(req.recipients)}
+
+
+@router.get("/default-llm-provider")
+async def get_default_llm_provider_route(_: str = Depends(check_admin_token)):
+    return {"llm_provider": get_default_llm_provider()}
+
+
+@router.post("/default-llm-provider")
+async def update_default_llm_provider_route(
+    req: DefaultLlmProviderUpdateRequest, _: str = Depends(check_admin_token)
+):
+    return {"llm_provider": update_default_llm_provider(req.llm_provider)}
 
 
 @router.get("/deploy/version")

@@ -6,7 +6,9 @@ from langchain_core.runnables import RunnableConfig
 
 from mlops_serious_game.application.graph_service.scheduler import stable_rank
 from mlops_serious_game.application.intel_handler import (
+    filter_edge_intel,
     handle_intel_verification,
+    is_first_playthrough,
     retrieve_intel_items,
     store_intel_item,
 )
@@ -155,15 +157,20 @@ async def determine_intel_items_node(state: OnlineIntelState, config: RunnableCo
     # D-ws-cookie). Only used here to seed a deterministic shuffle, so an unresolvable cookie
     # degrades to "" rather than raising.
     from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, verify_player_token
-    user_id = (verify_player_token(ws.cookies.get(PLAYER_COOKIE_NAME)) or "") if ws else ""
+    resolved_user_id = verify_player_token(ws.cookies.get(PLAYER_COOKIE_NAME)) if ws else None
+    user_id = resolved_user_id or ""
     # Folds in how much the player already knows, so a replayed card does not always turn up
     # the exact same order (D49) without needing a dedicated play-count column.
     seed = f"{user_id}|{curr_challenge.id}|{state['card_id']}|{len(collected_items)}"
+    hide_edges = bool(resolved_user_id) and is_first_playthrough(resolved_user_id)
 
     revealed_by_st: dict[str, list[dict[str, Any]]] = {}
 
     for st_id in state.get("stakeholder_ids", []):
-        all_reqs = RequirementFactory.get_requirements_for_stakeholder_in_challenge(curr_challenge.id, st_id)
+        all_reqs = filter_edge_intel(
+            RequirementFactory.get_requirements_for_stakeholder_in_challenge(curr_challenge.id, st_id),
+            hide_edges,
+        )
         checks, selected_reqs = plan_engagement(
             collected_items, all_reqs, st_id, reveal_count, allowed_types, seed=f"{seed}|{st_id}"
         )

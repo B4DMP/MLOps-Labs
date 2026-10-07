@@ -90,6 +90,9 @@ export async function updateAdminCampaign(
     is_bot_campaign?: boolean;
     require_email_verification?: boolean;
     intro_phase_enabled?: boolean;
+    /** "mistral" | "westai" | "groq" pins the campaign to that provider; "default" clears the
+     * override back to the server-wide Mistral -> WestAI -> Groq priority. */
+    llm_provider?: string;
   }
 ): Promise<AdminDashboardData> {
   const response = await fetch(`${BASE_URL}/api/admin/campaigns/${encodeURIComponent(campaignKey)}`, {
@@ -465,6 +468,21 @@ export function fetchAdminTeacherPreview(campaignKeys: string[]): Promise<Teache
 
 export function fetchBugReportRecipients(): Promise<{ recipients: string[] }> {
   return adminGet("/api/admin/bug-reports/recipients", "Failed to fetch bug report recipients.");
+}
+
+/** "mistral" | "westai" | "groq" | null - null means no explicit default is set, so
+ * get_chat_model falls back to the hardcoded Mistral -> WestAI -> Groq env-key priority. */
+export function fetchDefaultLlmProvider(): Promise<{ llm_provider: string | null }> {
+  return adminGet("/api/admin/default-llm-provider", "Failed to fetch the default LLM provider.");
+}
+
+export function updateDefaultLlmProvider(llmProvider: string | null): Promise<{ llm_provider: string | null }> {
+  return adminMutate(
+    "/api/admin/default-llm-provider",
+    "POST",
+    "Failed to update the default LLM provider.",
+    { llm_provider: llmProvider }
+  );
 }
 
 export interface DeployRestartResult {

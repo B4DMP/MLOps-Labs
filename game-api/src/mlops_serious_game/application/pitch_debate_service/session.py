@@ -721,8 +721,19 @@ def stakeholder_reads(
             if w.stakeholder_id:
                 violated_by_st[w.stakeholder_id] = True
 
-    card_atoms = {f"{op.kind}({op.target}, {op.value})" for op in ops}
-    target_levels = {(op.target, op.axis): int(op.value) for op in ops if op.kind in ("raise_to", "set_to")}
+    # Judge alignment on what the card actually delivers, not what it asks for: a raise_to op is
+    # capped to one rung per slot (resolve_step_cap), so a Driver/Trade-off naming a level past
+    # the next rung must only get credit for the rung the card really reaches.
+    after = apply_ops(graph, state, ops).state if ops else state
+    card_atoms: set[str] = set()
+    target_levels: dict[tuple[str, str], int] = {}
+    for op in ops:
+        if op.kind in ("raise_to", "set_to") and op.axis:
+            achieved = after.value(op.target, op.axis)
+            card_atoms.add(f"{op.kind}({op.target}, {achieved})")
+            target_levels[(op.target, op.axis)] = achieved
+        else:
+            card_atoms.add(f"{op.kind}({op.target}, {op.value})")
 
     reads: list[StakeholderRead] = []
     for room_entry in room:
@@ -842,8 +853,19 @@ def evaluate_pitch(
     prior_objecting = {o.stakeholder_id for o in prior.objections} if prior else set()
 
     ops = atomic_changes_to_ops(graph, state, changes)
-    card_atoms = {f"{op.kind}({op.target}, {op.value})" for op in ops}
-    target_levels = {(op.target, op.axis): int(op.value) for op in ops if op.kind in ("raise_to", "set_to")}
+    # Judge alignment on what the card actually delivers, not what it asks for: a raise_to op is
+    # capped to one rung per slot (resolve_step_cap), so a Driver/Trade-off naming a level past
+    # the next rung must only get credit for the rung the card really reaches.
+    after = apply_ops(graph, state, ops).state if ops else state
+    card_atoms: set[str] = set()
+    target_levels: dict[tuple[str, str], int] = {}
+    for op in ops:
+        if op.kind in ("raise_to", "set_to") and op.axis:
+            achieved = after.value(op.target, op.axis)
+            card_atoms.add(f"{op.kind}({op.target}, {achieved})")
+            target_levels[(op.target, op.axis)] = achieved
+        else:
+            card_atoms.add(f"{op.kind}({op.target}, {op.value})")
 
     # Detect boundary violations
     warnings = boundary_checks(graph, state, all_intel, changes, room_ids)

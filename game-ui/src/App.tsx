@@ -50,6 +50,7 @@ interface Campaign {
   is_test_campaign: boolean;
   is_bot_campaign: boolean;
   require_email_verification: boolean;
+  llm_provider?: string | null;
   users: string[];
 }
 
@@ -452,6 +453,7 @@ function App() {
       is_bot_campaign?: boolean;
       require_email_verification?: boolean;
       intro_phase_enabled?: boolean;
+      llm_provider?: string;
     }
   ) => {
     try {

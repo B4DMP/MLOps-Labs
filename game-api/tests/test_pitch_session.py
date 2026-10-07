@@ -266,10 +266,12 @@ def test_changes_summary_collapses_a_chained_target_to_its_final_step(real):
 
 def test_agreeing_stakeholder_receives_positive_emotions(real):
     state = GraphState.from_config(real)
+    # data.validation starts at automation 1 (absent); a raise_to is capped to one rung per
+    # slot, so the driver must ask for the next rung (2, manual) to be satisfiable in one card.
     driver = _item(
         "d1", "data_dave", "driver",
         categorized_type="driver",
-        suggested=_target("data.validation", 3),
+        suggested=_target("data.validation", 2),
     )
     room = [("data_dave", "high")]
     emotions = {"data_dave": {"fairness": 0.5, "trust": 0.5, "stress": 0.5, "confidence": 0.5, "perceived_risk": 0.5, "interest": 0.5, "sense_of_control": 0.5}}

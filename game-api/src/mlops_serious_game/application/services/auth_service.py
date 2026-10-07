@@ -13,6 +13,9 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 
 from mlops_serious_game.application.services import user_settings_service
+from mlops_serious_game.application.services.default_llm_provider_service import (
+    get_default_llm_provider,
+)
 from mlops_serious_game.application.services.email_service import build_code_email, send_email
 from mlops_serious_game.config import settings
 from mlops_serious_game.infrastructure.database import Campaign, Teacher, User, get_session
@@ -126,6 +129,27 @@ def verify_player_token(token: str) -> int | None:
 def get_player_email(user_id: int) -> str | None:
     with get_session() as session:
         return session.scalar(select(User.email).where(User.id == user_id))
+
+
+def get_player_llm_provider(user_id: int) -> str | None:
+    """The LLM provider `user_id` should use: its campaign's override if it has one, else the
+    admin-configured server-wide default, else None (falls back to the hardcoded Mistral ->
+    WestAI -> Groq env-key order in application/llm.py).
+
+    Mirrors persona_service.personas_or_default: never raises, so a database hiccup degrades to
+    the global default provider instead of closing the websocket.
+    """
+    try:
+        with get_session() as session:
+            campaign_override = session.scalar(
+                select(Campaign.llm_provider)
+                .join(User, User.campaign_id == Campaign.id)
+                .where(User.id == user_id)
+            )
+        return campaign_override or get_default_llm_provider()
+    except Exception as exc:  # noqa: BLE001 - degrade to the server-wide default order
+        logger.warning(f"Falling back to the default LLM provider order for user {user_id}: {exc}")
+        return None
 
 
 def _create_player_token(user_id: int) -> str:
