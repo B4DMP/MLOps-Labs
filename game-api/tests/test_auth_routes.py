@@ -104,7 +104,7 @@ def test_whoami_reflects_no_session(client):
     response = fresh_client.get("/api/auth/whoami")
 
     assert response.status_code == 200
-    assert response.json() == {"player": None, "admin": None, "teacher": None}
+    assert response.json() == {"player": None, "admin": None, "teacher": None, "impersonating": None}
 
 
 def test_whoami_reflects_player_session(client, registered_player):

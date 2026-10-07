@@ -32,7 +32,7 @@ from mlops_serious_game.application.pitch_debate_service.chains import (
     get_intel_artifact_chain,
 )
 from mlops_serious_game.application.pitch_debate_service.state import DialogueOption
-from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, verify_player_token
+from mlops_serious_game.application.services.auth_service import player_id_from_cookies
 from mlops_serious_game.infrastructure.database import IntelItem, GameSession, get_session
 from mlops_serious_game.infrastructure.database.run_scope import FIRST_RUN, current_run_index, run_chain
 from mlops_serious_game.application import debug_flags
@@ -44,7 +44,7 @@ def _user_id_from_ws(ws: WebSocket) -> int:
     `username` query param (docs/plans/session-persistence-and-url-routing.md, D-ws-cookie) - this
     is the one place left that re-derives it from the connection instead of taking it as an
     already-resolved argument."""
-    user_id = verify_player_token(ws.cookies.get(PLAYER_COOKIE_NAME))
+    user_id = player_id_from_cookies(ws.cookies)
     if user_id is None:
         raise ValueError("No valid player session on this websocket connection.")
     return user_id

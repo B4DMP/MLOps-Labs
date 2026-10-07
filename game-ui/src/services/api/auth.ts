@@ -51,6 +51,8 @@ export interface WhoamiResponse {
   player: PlayerIdentity | null;
   admin: { valid: true } | null;
   teacher: { id: number; user_name: string } | null;
+  /** The player an admin is currently viewing as (view-only), when there is one. */
+  impersonating: PlayerIdentity | null;
 }
 
 async function postJson<T>(
@@ -133,9 +135,17 @@ export async function resetPassword(
 export async function whoami(): Promise<WhoamiResponse> {
   const response = await fetch(`${BASE_URL}/api/auth/whoami`, { credentials: "include" });
   if (!response.ok) {
-    return { player: null, admin: null, teacher: null };
+    return { player: null, admin: null, teacher: null, impersonating: null };
   }
   return response.json();
+}
+
+export async function stopImpersonation(): Promise<void> {
+  await fetch(`${BASE_URL}/api/auth/impersonate/stop`, {
+    method: "POST",
+    credentials: "include",
+    headers: { ...csrfHeaders() },
+  });
 }
 
 export async function logout(): Promise<void> {

@@ -220,6 +220,15 @@ export async function setPlayerDebugFlag(
   return response.json();
 }
 
+/** Starts a view-only session as this player (their email); the game then loads as they see it. */
+export function startImpersonation(playerName: string): Promise<{ user_id: number; email: string }> {
+  return adminMutate(
+    `/api/admin/players/${encodeURIComponent(playerName)}/impersonate`,
+    "POST",
+    "Failed to start viewing as this player."
+  );
+}
+
 export async function removeAllAdminPlayers(): Promise<AdminDashboardData> {
   const response = await fetch(`${BASE_URL}/api/admin/players`, {
     method: "DELETE",
