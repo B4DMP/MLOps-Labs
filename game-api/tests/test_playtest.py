@@ -281,7 +281,7 @@ async def _call_jump(target: str, username: str = "alice", flag: bool = True):
     with patch.object(manager, "send_event", new=AsyncMock()) as send_event, \
          patch.object(manager, "send_error", new=AsyncMock()) as send_error, \
          patch.object(settings, "ENABLE_PLAYTEST_TOOLS", flag):
-        await playtest_handler.handle_playtest_jump_to_questionnaire(MagicMock(), username, {"target": target})
+        await playtest_handler.handle_playtest_jump_to_questionnaire(MagicMock(), _uid(username), {"target": target})
     events = {c.kwargs["event"]: c.kwargs["payload"] for c in send_event.await_args_list}
     errors = [c.kwargs.get("code") for c in send_error.await_args_list]
     return events, errors
@@ -292,7 +292,6 @@ async def _call_jump(target: str, username: str = "alice", flag: bool = True):
 async def test_jump_to_questionnaire_taints_and_writes_the_progression_row(migrated_db, target, expected_index):
     from mlops_serious_game.infrastructure.database.connection import get_session
     from mlops_serious_game.infrastructure.database.models import GameProgression
-    from mlops_serious_game.infrastructure.database.user_lookup import get_user_id
 
     user_id = await _begun_game()
     events, errors = await _call_jump(target)
@@ -305,7 +304,7 @@ async def test_jump_to_questionnaire_taints_and_writes_the_progression_row(migra
     with get_session() as session:
         latest = session.scalars(
             select(GameProgression)
-            .where(GameProgression.user_id == get_user_id(session, "alice"))
+            .where(GameProgression.user_id == user_id)
             .order_by(GameProgression.id.desc())
         ).first()
         assert latest.game_progress_index == expected_index

@@ -285,7 +285,7 @@ async def handle_playtest_skip_challenge(websocket: WebSocket, user_id: int, pay
 _QUESTIONNAIRE_TARGETS = {"intro": 0, "outro": 3}
 
 
-async def handle_playtest_jump_to_questionnaire(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_playtest_jump_to_questionnaire(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Jumps straight to the intro or outro questionnaire, to eyeball its content/UI without
     playing through a whole session to reach it. Writes a real `GameProgression` row (the same
     thing `handle_progress_update` does for a normal transition), so it taints the account the
@@ -293,7 +293,7 @@ async def handle_playtest_jump_to_questionnaire(websocket: WebSocket, username: 
     """
     if not await _allowed(websocket):
         return
-    service.taint_user(username)
+    service.taint_user(user_id)
 
     target = payload.get("target")
     index = _QUESTIONNAIRE_TARGETS.get(target)
@@ -302,10 +302,8 @@ async def handle_playtest_jump_to_questionnaire(websocket: WebSocket, username: 
         return
 
     with get_session() as session:
-        user_id = get_user_id(session, username)
         session.add(
             GameProgression(
-                user_name=username,
                 user_id=user_id,
                 run_index=current_run_index(session, user_id),
                 game_progress_index=index,
