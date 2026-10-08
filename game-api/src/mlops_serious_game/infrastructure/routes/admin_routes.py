@@ -52,6 +52,7 @@ from mlops_serious_game.application.services.teacher_service import (
     update_teacher_password,
 )
 from mlops_serious_game.application.llm_cache import cache_stats
+from mlops_serious_game.application.services.token_reset_service import player_in_campaigns, reset_and_notify
 from mlops_serious_game.config import settings
 from mlops_serious_game.infrastructure.database import User, get_session
 from mlops_serious_game.infrastructure.k8s_deploy import (
@@ -278,6 +279,18 @@ async def delete_all_players(_: str = Depends(check_admin_token)):
         return {"type": "admin_data_update", **data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete all players: {str(e)}")
+
+
+@router.post("/players/{player_name}/reset-tokens")
+async def reset_player_tokens(player_name: str, _: str = Depends(check_admin_token)):
+    """Refills the attention tokens of the player's current challenge; nothing else changes."""
+    user_id = player_in_campaigns(player_name, None)
+    if user_id is None:
+        raise HTTPException(status_code=404, detail=f"Unknown player '{player_name}'")
+    result = await reset_and_notify(user_id, "Admin")
+    if result is None:
+        raise HTTPException(status_code=409, detail="This player is not in a challenge right now.")
+    return result
 
 
 @router.delete("/players/{player_name}")

@@ -71,7 +71,8 @@ def test_the_route_404s_a_stranger_409s_an_idle_player_and_pushes_to_the_player(
 
     from fastapi import HTTPException
 
-    from mlops_serious_game.infrastructure.routes import teacher_routes
+    from mlops_serious_game.infrastructure.routes import admin_routes, teacher_routes
+    from mlops_serious_game.infrastructure.websocket.manager import manager
 
     _seed_user("tok_d", campaign_key="camp-tok-d")
     uid = _uid("tok_d")
@@ -81,7 +82,7 @@ def test_the_route_404s_a_stranger_409s_an_idle_player_and_pushes_to_the_player(
         pushed.append((user_id, event, payload))
         return 1
 
-    monkeypatch.setattr(teacher_routes.manager, "send_to_player", fake_push)
+    monkeypatch.setattr(manager, "send_to_player", fake_push)
     monkeypatch.setattr(teacher_routes, "get_teacher_campaign_keys", lambda teacher_id: ["camp-tok-d"])
     teacher = {"id": 1}
     run = lambda email: asyncio.run(teacher_routes.reset_player_tokens(email, teacher))  # noqa: E731
@@ -99,3 +100,11 @@ def test_the_route_404s_a_stranger_409s_an_idle_player_and_pushes_to_the_player(
     out = run("tok_d@example.test")
 
     assert out["notified"] is True and pushed == [(uid, "game:tokens_reset", {"challenge_id": pushed[0][2]["challenge_id"], "attention_tokens": out["attention_tokens"]})]
+
+    # The admin route does the same for any campaign, with no teacher scope.
+    pushed.clear()
+    again = asyncio.run(admin_routes.reset_player_tokens("tok_d@example.test", "token"))
+    assert again["notified"] is True and len(pushed) == 1
+    with pytest.raises(HTTPException) as unknown:
+        asyncio.run(admin_routes.reset_player_tokens("nobody@example.test", "token"))
+    assert unknown.value.status_code == 404

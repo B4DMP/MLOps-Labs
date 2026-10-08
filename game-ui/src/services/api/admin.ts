@@ -239,6 +239,20 @@ export function startImpersonation(playerName: string): Promise<{ user_id: numbe
   );
 }
 
+/** Refills the tokens of the player's current challenge. Nothing else about their game changes. */
+export async function resetAdminPlayerTokens(playerName: string): Promise<{ attention_tokens: number; notified: boolean }> {
+  const response = await fetch(`${BASE_URL}/api/admin/players/${encodeURIComponent(playerName)}/reset-tokens`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeaders() },
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to reset the tokens.");
+  }
+  return response.json();
+}
+
 export async function removeAllAdminPlayers(): Promise<AdminDashboardData> {
   const response = await fetch(`${BASE_URL}/api/admin/players`, {
     method: "DELETE",

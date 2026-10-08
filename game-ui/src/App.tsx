@@ -34,6 +34,7 @@ import {
   removeAllAdminCampaigns,
   removeAdminPlayer,
   setPlayerDebugFlag,
+  resetAdminPlayerTokens,
   startImpersonation,
   type DebugFlag,
   removeAllAdminPlayers,
@@ -733,6 +734,9 @@ function App() {
                   removeAllCampaigns={handleRemoveAllCampaigns}
                   removePlayer={handleRemovePlayer}
                   setDebugFlag={handleSetDebugFlag}
+                  resetTokens={async (name) => {
+                    await resetAdminPlayerTokens(name);
+                  }}
                   viewAsPlayer={handleViewAsPlayer}
                   removeAllPlayers={handleRemoveAllPlayers}
                   finished_players_amount={finishedPlayersAmount}

@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from loguru import logger
 
 from mlops_serious_game.application.services.admin_service import (
     get_campaigns_data,
@@ -7,11 +6,7 @@ from mlops_serious_game.application.services.admin_service import (
 )
 from mlops_serious_game.application.services.auth_service import TEACHER_COOKIE_NAME, verify_teacher_token
 from mlops_serious_game.application.services.teacher_service import get_teacher_campaign_keys
-from mlops_serious_game.application.services.token_reset_service import (
-    player_in_campaigns,
-    reset_current_challenge_tokens,
-)
-from mlops_serious_game.infrastructure.websocket.manager import manager
+from mlops_serious_game.application.services.token_reset_service import player_in_campaigns, reset_and_notify
 
 router = APIRouter(prefix="/api/teacher", tags=["Teacher"])
 
@@ -50,16 +45,7 @@ async def reset_player_tokens(email: str, teacher: dict = Depends(check_teacher_
     user_id = player_in_campaigns(email, get_teacher_campaign_keys(teacher["id"]))
     if user_id is None:
         raise HTTPException(status_code=404, detail="Unknown player")
-    result = reset_current_challenge_tokens(user_id)
+    result = await reset_and_notify(user_id, f"Teacher {teacher['id']}")
     if result is None:
         raise HTTPException(status_code=409, detail="This player is not in a challenge right now.")
-    logger.info(
-        f"Teacher {teacher['id']} reset the tokens of user {user_id} on challenge "
-        f"{result['challenge_id']}: {result['before']} -> {result['after']}"
-    )
-    # The client sends its own token count with every card play, so without this push it would
-    # write the old number straight back.
-    online = await manager.send_to_player(
-        user_id, "game:tokens_reset", {"challenge_id": result["challenge_id"], "attention_tokens": result["after"]}
-    )
-    return {"attention_tokens": result["after"], "notified": online > 0}
+    return result

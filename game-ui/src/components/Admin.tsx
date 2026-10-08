@@ -75,6 +75,8 @@ export interface Player {
   runs?: number;
   /** They used a playtest tool, so their data is left out of the research aggregates. */
   playtestTainted?: boolean;
+  /** 2 while they are playing challenges. */
+  progressIndex?: number;
   /** Per-account debug switches; each is also on for everyone when the API enables it globally. */
   debugFlags?: Partial<Record<DebugFlag, boolean>>;
 }
@@ -112,6 +114,8 @@ interface AdminProps {
   removeAllCampaigns?: () => void;
   removePlayer?: (playerName: string) => void;
   setDebugFlag?: (playerName: string, flag: DebugFlag, enabled: boolean) => void;
+  /** Refills the tokens of the player's current challenge; throws with the server's reason. */
+  resetTokens?: (playerName: string) => Promise<void>;
   /** Opens the game as this player sees it, read-only. */
   viewAsPlayer?: (playerName: string) => void;
   removeAllPlayers?: () => void;
@@ -138,6 +142,7 @@ export function Admin({
   removeAllCampaigns,
   removePlayer,
   setDebugFlag,
+  resetTokens,
   viewAsPlayer,
   removeAllPlayers,
   finished_players_amount,
@@ -418,6 +423,8 @@ export function Admin({
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
   const [confirmDeletePlayer, setConfirmDeletePlayer] = useState<string | null>(null);
+  const [confirmResetTokens, setConfirmResetTokens] = useState<string | null>(null);
+  const [resetNotice, setResetNotice] = useState("");
   const [showDeleteAllWarning, setShowDeleteAllWarning] = useState(false);
   const [showDeleteAllCampaignsWarning, setShowDeleteAllCampaignsWarning] = useState(false);
 
@@ -1478,6 +1485,12 @@ export function Admin({
                   )}
                 </div>
 
+                {resetNotice && (
+                  <div className="alert alert-info py-2 px-3 mb-3 d-flex justify-content-between" role="status">
+                    {resetNotice}
+                    <button type="button" className="btn-close" aria-label="Dismiss" onClick={() => setResetNotice("")} />
+                  </div>
+                )}
                 {/* Players Table */}
                 <div className={`table-responsive ${styles.tableContainer}`}>
                   <table className={`table align-middle ${styles.customTable}`}>
@@ -1626,6 +1639,47 @@ export function Admin({
                                 )}
                               </td>
                               <td className="text-end">
+                                {resetTokens && p.progressIndex === 2 && (
+                                  confirmResetTokens === p.name ? (
+                                    <div className="d-inline-flex gap-1 me-1">
+                                      <button
+                                        type="button"
+                                        className="btn btn-sm btn-primary"
+                                        style={{ fontSize: "0.78rem" }}
+                                        onClick={async () => {
+                                          setConfirmResetTokens(null);
+                                          try {
+                                            await resetTokens(p.name);
+                                            setResetNotice(`Tokens refilled for ${p.name}.`);
+                                          } catch (err: any) {
+                                            setResetNotice(err.message || "Failed to reset the tokens.");
+                                          }
+                                        }}
+                                      >
+                                        Confirm
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="btn btn-sm btn-outline-secondary"
+                                        style={{ fontSize: "0.78rem" }}
+                                        onClick={() => setConfirmResetTokens(null)}
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm btn-outline-secondary me-1"
+                                      style={{ fontSize: "0.8rem" }}
+                                      onClick={() => setConfirmResetTokens(p.name)}
+                                      title="Give this player back the attention tokens of the challenge they are in. Nothing else changes."
+                                    >
+                                      <Icon icon="ph:coin-bold" />
+                                      <span className="ms-1">Reset tokens</span>
+                                    </button>
+                                  )
+                                )}
                                 {viewAsPlayer && (
                                   <button
                                     type="button"
