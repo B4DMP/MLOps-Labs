@@ -1,6 +1,6 @@
 """Content gate: each room's declared `par_outcome` is what a card search can actually reach.
 
-A room with par PASS must have a card (at most 3 changes) the room passes once the challenge has
+A room with par PASS must have a card (at most MAX_ATOMIC_CHANGES changes) the room passes once the challenge has
 broken what it breaks (`on_enter_ops`, from the seed graph and a neutral room); a room that
 declares SOFT_PASS must really have none. So an authoring change that opens or closes a clean pass
 cannot go unnoticed, and the par the grade uses never drifts from the content

@@ -22,8 +22,8 @@ export const GRAPH_EXAMPLE = {
   title: "Worked example: the Honey Vault pitch",
   steps: [
     "Bruce wants Data Ingestion automated, so pick Automate It on Data Ingestion Pipeline.",
-    "Governance (who checks the work) can wait. With three slots, answer the one who can stop you first.",
+    "Governance (who checks the work) can wait. With four slots, answer the one who can stop you first.",
     "Bruce also refuses to accept some things. Your dossier notes say which, and the lines on the canvas show what feeds on what.",
-    "Three changes fit in a proposal. Confirm it and see how the room reacts.",
+    "Four changes fit in a proposal. Confirm it and see how the room reacts.",
   ],
 } as const;

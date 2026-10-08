@@ -393,7 +393,7 @@ def test_items_check_rejects_a_challenge_that_cannot_be_passed_without_a_veto(en
     boundary["holds"] = {"all": [{"component": t, "axis": "automation", "op": "gte", "level": 2} for t in targets]}
     boundary["ops"] = [{"kind": "raise_to", "target": t, "axis": "automation", "value": 2} for t in targets]
     errors = STAGES["items"].check(bad, item, ctx)
-    assert any("no card of at most 3 changes gets past a veto" in e for e in errors)
+    assert any("no card of at most 4 changes gets past a veto" in e for e in errors)
 
 
 def test_items_checks_need_an_axis_on_every_level(env):

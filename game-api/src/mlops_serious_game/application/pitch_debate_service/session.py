@@ -7,6 +7,7 @@ Convincer archetypes and dialogue mini-games are completely removed.
 
 from __future__ import annotations
 
+import re
 import uuid
 from typing import Any, Optional
 
@@ -37,7 +38,7 @@ from mlops_serious_game.domain.graph_predicates import PredicateError, evaluate
 from mlops_serious_game.domain.requirement import IntelTag, item_target_and_level
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
-MAX_ATOMIC_CHANGES = 3
+MAX_ATOMIC_CHANGES = 4
 RISK_GREEN = 0.6
 RISK_AMBER = 0.4
 
@@ -572,26 +573,61 @@ def player_boundary_warnings(graph: TechnicalGraph, warnings: list[BoundaryWarni
     return out
 
 
+_RAISE_ATOM = re.compile(r"^raise_to\((.+), (\d+)\)$")
+
+
+def _atom_credit(
+    atom: str,
+    card_atoms: set[str],
+    target_levels: dict[tuple[str, str], int],
+    state: Optional[GraphState],
+) -> float:
+    """Credit in [0, 1] for one authored driver atom. A `raise_to` atom is met by any level at or
+    above it, and a card that moves the target up without reaching it earns the share of the
+    distance covered (the step cap often stops a card on the first rung)."""
+    if atom in card_atoms:
+        return 1.0
+    m = _RAISE_ATOM.match(atom)
+    if not m:
+        return 0.0
+    target, asked = m.group(1), int(m.group(2))
+    best = 0.0
+    for (t, axis), achieved in target_levels.items():
+        if t != target:
+            continue
+        if achieved >= asked:
+            return 1.0
+        start = state.value(t, axis) if state is not None else None
+        if start is not None and start < asked and achieved > start:
+            best = max(best, (achieved - start) / (asked - start))
+    return best
+
+
 def driver_fulfillment(
     req: Any,
     card_atoms: set[str],
     target_levels: dict[tuple[str, str], int],
+    state: Optional[GraphState] = None,
 ) -> float:
     """Fraction of this Driver satisfied by the card, in [0.0, 1.0].
 
     A Driver with several `atoms` (one per atomic graph operation it names) gets partial credit
-    for however many of them the card covers - the same overlap formula `emotion.py`'s
-    `calculate_demand_alignment` already uses for the non-interactive path. A Driver with no
-    authored atoms falls back to the single target/axis/level check.
+    for however many of them the card covers (`_atom_credit`: a higher level counts, and so does
+    progress toward it). A Driver with no authored atoms falls back to the single
+    target/axis/level check, with the same credit for progress when `state` is given.
     """
     atoms = set(getattr(req, "atoms", None) or (req.get("atoms", []) if isinstance(req, dict) else []))
     if atoms:
-        return len(atoms & card_atoms) / len(atoms)
+        return sum(_atom_credit(a, card_atoms, target_levels, state) for a in atoms) / len(atoms)
     target, asked, axis = item_target_and_level(req)
     key = (target, axis)
     if target and axis and key in target_levels:
-        if asked is None or target_levels[key] >= asked:
+        achieved = target_levels[key]
+        if asked is None or achieved >= asked:
             return 1.0
+        start = state.value(target, axis) if state is not None else None
+        if start is not None and start < asked and achieved > start:
+            return (achieved - start) / (asked - start)
     return 0.0
 
 
@@ -599,8 +635,9 @@ def is_driver_satisfied(
     req: Any,
     card_atoms: set[str],
     target_levels: dict[tuple[str, str], int],
+    state: Optional[GraphState] = None,
 ) -> bool:
-    return driver_fulfillment(req, card_atoms, target_levels) > 0.0
+    return driver_fulfillment(req, card_atoms, target_levels, state) > 0.0
 
 
 def trade_off_fulfillment(
@@ -690,7 +727,7 @@ def calculate_demand_alignment_for_changes(
         if hasattr(r_type, "value"):
             r_type = r_type.value
         if r_type == "driver":
-            f = driver_fulfillment(req, card_atoms, target_levels)
+            f = driver_fulfillment(req, card_atoms, target_levels, state)
             score += (2.0 * f - 1.0)
         elif r_type == "trade_off":
             f = trade_off_fulfillment(req, card_atoms, target_levels, state)

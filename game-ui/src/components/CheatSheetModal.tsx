@@ -157,7 +157,7 @@ const SECTIONS: CheatSheetSection[] = [
       <>
         Each card costs <TokenChip />. You get a limited supply per round.
       </>,
-      "Build your proposal at the PITCH DECK: up to 3 changes to the pipeline.",
+      "Build your proposal at the PITCH DECK: up to 4 changes to the pipeline.",
       <>
         Intel chip: <EmojiIcon name="dotGreen" /> ready to pitch, <EmojiIcon name="dotYellow" /> still thin,{" "}
         <EmojiIcon name="dotRed" /> not enough yet.

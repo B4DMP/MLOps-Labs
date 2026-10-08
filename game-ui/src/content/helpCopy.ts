@@ -125,7 +125,7 @@ export const COMPOSE_GUIDE = {
         : `Governance is who checks the work, and ${name} has its own steps for it.`) +
       (locked
         ? " It unlocks once the component is actually implemented."
-        : " You only have three slots, so answer the person who can stop you first and leave this for later."),
+        : " You only have four slots, so answer the person who can stop you first and leave this for later."),
   }),
   feeds: {
     title: "What feeds on what",

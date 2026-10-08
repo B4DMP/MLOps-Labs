@@ -299,7 +299,7 @@ versioning). Each step must be above its current level and the steps are all dif
 any target and axis where a concession or branch in the same challenge sits lower: a step above it
 forecloses that compromise. Put the steps on targets nobody trades away. The fact
 names the ask as a whole ("asked for the whole data pipeline to run on its own"). A player can only
-put three changes on a card, so such a driver is often met in part, and part credit is the point.
+put four changes on a card, so such a driver is often met in part, and part credit is the point.
 
 One stakeholder, one line. The items of one stakeholder never contradict each other. Their boundaries
 and the two ways out of their trade_offs (concedes and the branches) must stay possible whatever else

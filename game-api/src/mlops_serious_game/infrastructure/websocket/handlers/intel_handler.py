@@ -591,7 +591,7 @@ async def handle_generate_action_card(websocket: WebSocket, user_id: int, payloa
                     metric_values=[],
                     time_stamp=datetime.datetime.utcnow(),
                     messages=[],
-                    attention_tokens=20,
+                    attention_tokens=curr_challenge.attention_tokens,
                     emotion_values={},
                 )
                 db_session.add(new_record)

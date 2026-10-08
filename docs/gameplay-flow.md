@@ -62,9 +62,9 @@ server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch e
    seats, Pitch Deck plaque, stat chips), chat (`StakeholderInteractionArea.tsx`), engagement card
    shelf.
    - Cards (`GameEngagementCards.json`): Verify Intel (`intel:verify_item`), 1-to-1, Probe,
-     Team Sync-Up, Generic Question (`gather:open/ask/close`). 20 attention tokens per challenge.
+     Team Sync-Up, Generic Question (`gather:open/ask/close`). attention tokens per challenge (`attention_tokens` in `GameProgression.json`: 20 in the practice round, 15 in phases 1-2, 12 in phases 3-5).
    - Pitch Deck opens `ComposeActionProposalModal.tsx`: graph of components and edges, two axes
-     (automation, governance), max 3 changes, only allowed targets of the phase stage.
+     (automation, governance), max 4 changes, only allowed targets of the phase stage.
    - Stages `PREPARE -> PITCHED -> DONE`. Events: `pitch:state`, `pitch:evaluate` (stakeholders
      react, no commit), `pitch:commit`, `pitch:veto_breaker`.
 6. **Outcome** (`scoring.py`): VETO if a high-power stakeholder has a violated boundary or low

@@ -2024,7 +2024,7 @@ export default function PitchDebate({
                                             ? "Action card committed"
                                             : isPitchDebating
                                             ? "Wait until all stakeholder messages have appeared in conversation history"
-                                            : "Configure up to 3 graph changes",
+                                            : "Configure up to 4 graph changes",
                                           isPlaqueActive && intelTotalThisPhase > 0
                                             ? `${intelVerifiedThisPhase}/${intelTotalThisPhase} intel verified. ${intelReadinessText}`
                                             : null,
@@ -2043,7 +2043,7 @@ export default function PitchDebate({
                                             ? "Action card committed"
                                             : isPitchDebating
                                             ? "Wait until all stakeholder messages have appeared in conversation history"
-                                            : "Configure up to 3 graph changes",
+                                            : "Configure up to 4 graph changes",
                                           isPlaqueActive && intelTotalThisPhase > 0
                                             ? `${intelVerifiedThisPhase}/${intelTotalThisPhase} intel verified. ${intelReadinessText}`
                                             : null,
@@ -2310,9 +2310,9 @@ export default function PitchDebate({
                                     setComposerFocusTargetId(undefined);
                                     setIsPitchModalOpen(true);
                                   }}
-                                  onMouseEnter={(e) => showInfoTag(e, "Assemble Proposal", "Configure up to 3 graph improvements for action proposal")}
+                                  onMouseEnter={(e) => showInfoTag(e, "Assemble Proposal", "Configure up to 4 graph improvements for action proposal")}
                                   onMouseLeave={hideInfoTag}
-                                  onFocus={(e) => showInfoTag(e, "Assemble Proposal", "Configure up to 3 graph improvements for action proposal")}
+                                  onFocus={(e) => showInfoTag(e, "Assemble Proposal", "Configure up to 4 graph improvements for action proposal")}
                                   onBlur={hideInfoTag}
                                 >
                                   <Icon icon="ph:git-merge-bold" />

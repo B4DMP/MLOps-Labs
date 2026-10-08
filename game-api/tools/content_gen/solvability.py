@@ -86,7 +86,7 @@ def candidate_changes(graph, state, reqs) -> list:
 
 
 def find_veto_free_card(graph, state, reqs, room: list[tuple], emotion_values: Optional[dict] = None) -> Optional[list]:
-    """A card of at most three changes the room does not veto, or None. Exhaustive over `candidate_changes`."""
+    """A card of at most MAX_ATOMIC_CHANGES changes the room does not veto, or None. Exhaustive over `candidate_changes`."""
     from mlops_serious_game.application.pitch_debate_service import session as pitch
     from mlops_serious_game.domain.emotion_factory import EmotionFactory
 
@@ -108,6 +108,7 @@ def room_of(roster: list[dict]) -> list[tuple]:
 
 def veto_free_errors(ctx, challenge: dict, roster: list[dict], reqs: list) -> list[str]:
     """Empty when some card passes; otherwise one message the generator can act on."""
+    from mlops_serious_game.application.pitch_debate_service import session as pitch
     from content_gen.stages.items import challenge_state
 
     if not any(r["power"] == "high" for r in roster):
@@ -117,7 +118,7 @@ def veto_free_errors(ctx, challenge: dict, roster: list[dict], reqs: list) -> li
         return []
     high = sorted(r["stakeholder_id"] for r in roster if r["power"] == "high")
     return [
-        f"no card of at most 3 changes gets past a veto from {high}: boundaries of high power stakeholders must "
+        f"no card of at most {pitch.MAX_ATOMIC_CHANGES} changes gets past a veto from {high}: boundaries of high power stakeholders must "
         "be satisfiable together, and each of them needs at least one driver or trade_off a card can meet. "
         "Loosen a boundary, give a driver a smaller first step, or turn a demand into a trade_off"
     ]

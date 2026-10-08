@@ -20,6 +20,7 @@ import pytest
 from sqlalchemy import func, select
 
 from mlops_serious_game.application.graph_service.apply import replay, seed_ops
+from mlops_serious_game.application.pitch_debate_service import session as pitch
 from mlops_serious_game.application.pitch_debate_service import card_search as auto_card
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
@@ -133,7 +134,7 @@ def test_the_search_finds_a_card_the_room_will_not_veto_on_real_challenges():
     for challenge_id in (110, 114, 116):
         result = _search(_world(challenge_id), budget=auto_card.DEFAULT_BUDGET)
         assert result is not None and result.found_non_veto, challenge_id
-        assert 1 <= len(result.changes) <= 3
+        assert 1 <= len(result.changes) <= pitch.MAX_ATOMIC_CHANGES
 
 
 def test_the_search_is_reproducible_for_a_seed():
@@ -339,7 +340,7 @@ async def test_auto_card_taints_the_account_fills_the_dossier_and_slots_a_card(m
     assert _tainted()
     result = events["playtest:auto_card_result"]
     assert result["ok"] is True and result["outcome"] in ("PASS", "SOFT_PASS")
-    assert 1 <= len(result["changes"]) <= 3
+    assert 1 <= len(result["changes"]) <= pitch.MAX_ATOMIC_CHANGES
 
     # The dossier holds every requirement of the challenge, so the card had something to build on.
     with get_session() as session:

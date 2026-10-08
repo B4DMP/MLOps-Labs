@@ -254,7 +254,7 @@ export interface ComposeActionProposalModalProps {
   guidePaused?: boolean;
 }
 
-const MAX_ATOMIC_CHANGES = 3;
+const MAX_ATOMIC_CHANGES = 4;
 
 /** One dossier note, carrying who it belongs to so clicking it can jump the dossier there. */
 interface LinkedNote {
@@ -1261,8 +1261,8 @@ export default function ComposeActionProposalModal({
             {...tagProps(
               "Proposal Slots",
               atomicChanges.length === MAX_ATOMIC_CHANGES
-                ? "All 3 slots are used - remove one to add another"
-                : "Up to 3 changes can go into one proposal"
+                ? "All 4 slots are used - remove one to add another"
+                : "Up to 4 changes can go into one proposal"
             )}
           >
             <Icon icon="ph:cpu-bold" />
@@ -2218,7 +2218,7 @@ export default function ComposeActionProposalModal({
                 <span className={styles.emptyTitle}>Select a component or a connection</span>
                 <p className={styles.emptyBody}>
                   Click a component, or the handle on the line between two of them. Each step
-                  you add - automation, governance or technology - takes one of your three slots.
+                  you add - automation, governance or technology - takes one of your four slots.
                 </p>
               </div>
             )}

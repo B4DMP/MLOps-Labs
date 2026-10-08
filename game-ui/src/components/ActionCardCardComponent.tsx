@@ -140,7 +140,7 @@ export default function ActionCardCardComponent({
   if (isMinimized) {
     const progressLabel =
       atomicChanges.length > 0
-        ? `${atomicChanges.length}/3 Changes`
+        ? `${atomicChanges.length}/4 Changes`
         : addendums && addendums.length > 0
         ? `${addendums.filter((a) => a.status === "attached").length}/2 Addendums`
         : null;
