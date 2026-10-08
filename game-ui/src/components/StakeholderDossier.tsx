@@ -133,9 +133,10 @@ export interface StakeholderBuyInInfo {
   band?: BuyInBand;
   /** Impatience step from the server (0 clears the tag). */
   impatience?: number;
-  actionCardScore?: number;
-  dialogueScore?: number;
-  emotionScore?: number;
+  /** How well the card meets their demands, -1 to 1. */
+  alignment?: number;
+  /** Mood, 0 (bad) to 1 (good). */
+  emotions?: number;
   total?: number;
   isPersuaded?: boolean;
   // High power vetoes, low power only objects.
@@ -283,13 +284,46 @@ const ARTIFACT_TYPE_LABEL: Record<string, string> = {
  * got here, which the stamp cannot: two confirmed notes can have arrived by very different
  * routes. Player language, one line, no system words.
  */
-export const BUY_IN_BAND_META: Record<BuyInBand, { label: string; fill: number }> = {
-  very_low: { label: "Very low", fill: 12 },
-  low: { label: "Low", fill: 32 },
-  medium: { label: "Medium", fill: 55 },
-  high: { label: "High", fill: 78 },
-  very_high: { label: "Very high", fill: 100 },
+export const BUY_IN_BAND_META: Record<BuyInBand, { label: string; stance: string; notches: number }> = {
+  very_low: { label: "Very low", stance: "Against you", notches: 1 },
+  low: { label: "Low", stance: "Leaning against", notches: 2 },
+  medium: { label: "Medium", stance: "On the fence", notches: 3 },
+  high: { label: "High", stance: "Leaning your way", notches: 4 },
+  very_high: { label: "Very high", stance: "Fully behind you", notches: 5 },
 };
+
+type ReasonDir = "up" | "down" | "flat";
+const REASON_GLYPH: Record<ReasonDir, string> = { up: "▲", down: "▼", flat: "•" };
+
+const BuyInReason: React.FC<{ dir: ReasonDir; text: string }> = ({ dir, text }) => (
+  <li className={styles[`buyInReason_${dir}`]}>
+    <span className={styles.buyInReasonGlyph}>{REASON_GLYPH[dir]}</span> {text}
+  </li>
+);
+
+const fitReason = (alignment: number): { dir: ReasonDir; text: string } =>
+  alignment < -0.33
+    ? { dir: "down", text: "Your proposal goes against what they asked for" }
+    : alignment < 0.33
+    ? { dir: "flat", text: "Your proposal meets only part of what they asked for" }
+    : { dir: "up", text: "Your proposal meets most of what they asked for" };
+
+const moodReason = (emotions: number, feeling?: string): { dir: ReasonDir; text: string } => {
+  const word = feeling ? ` (${feeling.toLowerCase()})` : "";
+  return emotions < 0.4
+    ? { dir: "down", text: `They are in a bad mood${word}` }
+    : emotions <= 0.6
+    ? { dir: "flat", text: `Their mood is neutral${word}` }
+    : { dir: "up", text: `They are in a good mood${word}` };
+};
+
+const BUY_IN_NEXT_STEP: Record<BuyInTone, string> = {
+  resistant: "Rework the proposal toward what they asked for, or ease their mood before you commit.",
+  wavering: "Close. A better fit or a calmer mood tips them your way.",
+  persuaded: "Good for now. Changes that cross them would undo it.",
+};
+
+const BUY_IN_ORDER: BuyInBand[] = ["very_low", "low", "medium", "high", "very_high"];
 
 export type BuyInTone = "resistant" | "wavering" | "persuaded";
 
@@ -304,6 +338,113 @@ export const resolveBuyIn = (info: StakeholderBuyInInfo): { band: BuyInBand; ton
       ? "wavering"
       : "persuaded";
   return { band, tone };
+};
+
+// Open/closed choice is shared across stakeholder tabs so it is made once.
+let buyInExpandedPref = false;
+
+// Five notches, one per band. When the band moves between renders, shows which way it went.
+const BuyInMeter: React.FC<{ info: StakeholderBuyInInfo }> = ({ info }) => {
+  const { band, tone } = resolveBuyIn(info);
+  const meta = BUY_IN_BAND_META[band];
+  const isBoundaryViolated = Boolean(info.boundaryViolated);
+  const isRevealed = info.isRevealed ?? false;
+  const prevBand = useRef<BuyInBand | null>(null);
+  const [move, setMove] = useState<{ dir: "up" | "down"; from: string } | null>(null);
+  const [expanded, setExpanded] = useState(buyInExpandedPref);
+  const toggle = () => {
+    buyInExpandedPref = !expanded;
+    setExpanded(buyInExpandedPref);
+  };
+
+  useEffect(() => {
+    if (!isRevealed) {
+      prevBand.current = null;
+      setMove(null);
+      return;
+    }
+    const prev = prevBand.current;
+    if (prev && prev !== band) {
+      setMove({
+        dir: BUY_IN_ORDER.indexOf(band) > BUY_IN_ORDER.indexOf(prev) ? "up" : "down",
+        from: BUY_IN_BAND_META[prev].stance,
+      });
+    }
+    prevBand.current = band;
+  }, [band, isRevealed]);
+
+  const filled = isRevealed && !isBoundaryViolated ? meta.notches : 0;
+  const stanceText = isBoundaryViolated ? "Line crossed" : meta.stance;
+
+  const stanceTone = isBoundaryViolated ? "resistant" : tone;
+
+  return (
+    <div className={styles.buyInCard}>
+      <button
+        type="button"
+        className={styles.buyInRow}
+        onClick={() => isRevealed && toggle()}
+        disabled={!isRevealed}
+        aria-expanded={isRevealed ? expanded : undefined}
+      >
+        <span className={styles.buyInTitle}>
+          <EmojiIcon name="balanceScale" /> Where they stand
+        </span>
+        <span
+          className={styles.buyInNotches}
+          role="meter"
+          aria-valuemin={0}
+          aria-valuemax={5}
+          aria-valuenow={filled}
+          aria-valuetext={isRevealed ? stanceText : "Not yet revealed"}
+        >
+          {[1, 2, 3, 4, 5].map((n) => (
+            <span
+              key={n}
+              className={`${styles.buyInNotch} ${n <= filled ? styles[`buyInNotchOn_${tone}`] : ""}`}
+            />
+          ))}
+        </span>
+        {isRevealed ? (
+          <>
+            {move && (
+              <span
+                className={move.dir === "up" ? styles.buyInMoveUp : styles.buyInMoveDown}
+                title={`${move.dir === "up" ? "Warmer" : "Cooler"} than before (${move.from})`}
+              >
+                {move.dir === "up" ? "▲" : "▼"}
+              </span>
+            )}
+            <span className={`${styles.buyInStance} ${styles[`buyInStance_${stanceTone}`]}`}>{stanceText}</span>
+            <Icon icon={expanded ? "ph:caret-up-bold" : "ph:caret-down-bold"} className={styles.buyInCaret} />
+          </>
+        ) : (
+          <span className={styles.buyInStancePending}>
+            <Icon icon="ph:lock-simple-bold" /> Pick a card to see
+          </span>
+        )}
+      </button>
+      {isRevealed && expanded && (
+        <div className={styles.buyInDetail}>
+          <div className={styles.buyInScale}>
+            <span>Against you</span>
+            <span>Behind you</span>
+          </div>
+          <ul className={styles.buyInReasons}>
+            {isBoundaryViolated && <BuyInReason dir="down" text="A line of theirs is crossed, whatever else you offer" />}
+            {info.alignment !== undefined && (
+              <BuyInReason {...fitReason(info.alignment)} />
+            )}
+            {info.emotions !== undefined && (
+              <BuyInReason {...moodReason(info.emotions, info.currentEmotion)} />
+            )}
+            {Boolean(info.impatience) && <BuyInReason dir="down" text="They are tired of hearing the same problem again" />}
+          </ul>
+          <div className={styles.buyInHint}>{BUY_IN_NEXT_STEP[tone]}</div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 const PATIENCE_DETAIL = "Bringing them the same problem again wears on them. Answer what they asked for and it eases.";
@@ -1871,87 +2012,10 @@ export default function StakeholderDossier({
           </div>
         </div>
 
-        {/* Buy-In / Persuasion Breakdown Bar Card (Rendered during Pitch Debate when buyInInfoMap prop is provided) */}
+        {/* Buy-in meter (pitch debate only, when buyInInfoMap is provided) */}
         {(() => {
           const buyInInfo = buyInInfoMap ? (buyInInfoMap[st.stakeholder_id] || buyInInfoMap[st.name]) : undefined;
-          if (!buyInInfo) return null;
-
-          const { band, tone } = resolveBuyIn(buyInInfo);
-          const bandMeta = BUY_IN_BAND_META[band];
-          // Bar fill comes from the band; the two segments split it by their relative weight.
-          const cardWeight = buyInInfo.actionCardScore ?? 0;
-          const emotionWeight = buyInInfo.emotionScore ?? 0;
-          const weightSum = cardWeight + emotionWeight;
-          const cardShare = weightSum > 0 ? cardWeight / weightSum : 0.6;
-          const cardPercent = bandMeta.fill * cardShare;
-          const emotionPercent = bandMeta.fill - cardPercent;
-          const isBoundaryViolated = Boolean(buyInInfo.boundaryViolated);
-          const isRevealed = buyInInfo.isRevealed ?? false;
-
-          return (
-            <div className={`${styles.buyInCard} ${!isRevealed ? styles.buyInCardBlurred : ""}`}>
-              <div className={styles.buyInVerticalSpine}>
-                <span className={styles.buyInVerticalText}>Buy-In</span>
-              </div>
-              <div className={`${styles.buyInMainBody} ${!isRevealed ? styles.buyInBlurredContent : ""}`}>
-                {/* Top row: Label, Target & Status badge */}
-                <div className={styles.buyInTopRow}>
-                  <div className="d-flex align-items-center gap-2">
-                    <span style={{ fontSize: "0.74rem", fontWeight: 700, color: "#1e293b" }}>
-                      <EmojiIcon name="balanceScale" /> Buy-In Progress
-                    </span>
-                    <span
-                      className={`badge ${tone === "resistant" ? "bg-danger" : tone === "persuaded" ? "bg-success" : "bg-warning text-dark"}`}
-                      style={{ fontSize: "0.62rem" }}
-                    >
-                      {isBoundaryViolated ? (
-                        <><EmojiIcon name="noEntry" /> Boundary crossed</>
-                      ) : tone === "resistant" ? (
-                        <><EmojiIcon name="noEntry" /> {bandMeta.label}</>
-                      ) : tone === "persuaded" ? (
-                        <><EmojiIcon name="checkMark" /> {bandMeta.label}</>
-                      ) : (
-                        <><EmojiIcon name="warning" /> {bandMeta.label}</>
-                      )}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Stacked progress bar */}
-                <div className="progress position-relative" style={{ height: "16px", backgroundColor: "#e2e8f0", borderRadius: "4px" }}>
-                  {!isBoundaryViolated && cardPercent > 0 && (
-                    <div
-                      className="progress-bar bg-primary"
-                      role="progressbar"
-                      style={{ width: `${cardPercent}%` }}
-                      title="What you proposed"
-                    />
-                  )}
-                  {emotionPercent > 0 && (
-                    <div
-                      className="progress-bar bg-success"
-                      role="progressbar"
-                      style={{ width: `${emotionPercent}%` }}
-                      title={`How they feel right now (${buyInInfo.currentEmotion || "neutral"})`}
-                    />
-                  )}
-                </div>
-
-                {/* Breakdown Legend Row */}
-                <div className={styles.buyInLegendRow}>
-                  <span><EmojiIcon name="cardJoker" /> What you proposed</span>
-                  <span><EmojiIcon name="emotion" /> How they feel right now</span>
-                </div>
-              </div>
-
-              {!isRevealed && (
-                <div className={styles.buyInLockOverlay}>
-                  <Icon icon="ph:lock-simple-bold" style={{ fontSize: "0.85rem", color: "#475569" }} />
-                  <span>Revealed when you assemble an action card</span>
-                </div>
-              )}
-            </div>
-          );
+          return buyInInfo ? <BuyInMeter key={st.stakeholder_id} info={buyInInfo} /> : null;
         })()}
 
           </>

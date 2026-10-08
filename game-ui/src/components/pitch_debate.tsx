@@ -1135,6 +1135,8 @@ export default function PitchDebate({
           r.stakeholder_id,
           {
             band: r.buy_in_band,
+            alignment: r.alignment,
+            emotions: r.emotions,
             impatience: r.impatience,
             isPersuaded: r.band === "green",
             blocks: r.band === "red",

@@ -78,7 +78,7 @@ export const PITCH_GUIDE = {
   },
   reactions: {
     title: "Read the room",
-    body: "The buy-in gauge on each page shows how someone is leaning, in words. When you are ready, commit to hear the decision.",
+    body: "The meter on each page shows where someone stands: five notches, from against you to fully behind you. Change your proposal and watch it move. When you are ready, commit to hear the decision.",
   },
   dismiss: "Got it",
   skip: "Skip the guide",

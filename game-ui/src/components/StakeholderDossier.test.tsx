@@ -93,6 +93,12 @@ describe("resolveBuyIn", () => {
       "Very high",
     ]);
   });
+
+  it("gives each band one more notch and its own stance", () => {
+    const metas = Object.values(BUY_IN_BAND_META);
+    expect(metas.map((m) => m.notches)).toEqual([1, 2, 3, 4, 5]);
+    expect(new Set(metas.map((m) => m.stance)).size).toBe(5);
+  });
 });
 
 describe("impatienceTagLabel", () => {
