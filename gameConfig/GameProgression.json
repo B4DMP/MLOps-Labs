@@ -734,6 +734,7 @@
       "id": 120,
       "phase_id": 2,
       "template_id": "ch_silent_ingestion_failure",
+      "par_outcome": "SOFT_PASS",
       "name": "The Silent Store Gap",
       "description": "A batch of till scan lines from the northern stores was silently dropped during last night's ingestion, causing the model to forecast zero demand for fresh produce. #reliability_ruth# argues that the ingestion pipeline must be fully automated to guarantee every store's data arrives on time, while #data_dave# is willing to accept a manual verification step to ensure data quality before it reaches the feature store.",
       "roundIntroduction": "The nightly store export pipeline failed for a subset of stores without triggering any alerts. The forecast job ran on incomplete data, leading to empty shelves for high demand articles in the affected regions this morning.",
