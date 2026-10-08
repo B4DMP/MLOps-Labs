@@ -226,6 +226,42 @@ export function Register({
 
           </div>
 
+          <div className={`${styles.narrationCard} ${startMuted ? styles.narrationCardMuted : ""}`}>
+            <div className={styles.narrationHeader}>
+              <Icon
+                icon={startMuted ? "ph:speaker-slash-bold" : "ph:speaker-high-bold"}
+                className={styles.narrationIcon}
+              />
+              <div>
+                <div className={styles.narrationTitle}>Voice narration (text-to-speech)</div>
+                <p className={styles.narrationText}>
+                  Stakeholders and the guide speak their lines aloud with synthetic voices. Turn it
+                  off if you're in a quiet place or prefer to read.
+                </p>
+              </div>
+            </div>
+            <div className={styles.narrationToggle} role="group" aria-label="Narration">
+              {([false, true] as const).map((muted) => (
+                <button
+                  key={String(muted)}
+                  type="button"
+                  className={`${styles.narrationOption} ${
+                    startMuted === muted ? styles.narrationOptionActive : ""
+                  }`}
+                  disabled={isLoading}
+                  aria-pressed={startMuted === muted}
+                  onClick={() => setStartMuted(muted)}
+                >
+                  <Icon icon={muted ? "ph:speaker-slash-bold" : "ph:speaker-high-bold"} style={{ fontSize: "1.2rem" }} />
+                  <span>{muted ? "Mute voices" : "Play voices"}</span>
+                </button>
+              ))}
+            </div>
+            <p className={styles.narrationFootnote}>
+              <Icon icon="ph:gear-six-bold" /> You can change this at any time in Settings, under Voice → Mute narration.
+            </p>
+          </div>
+
           <div className={styles.compactRow}>
             <div className={styles.compactCard}>
               <label htmlFor="register-users-on-machine-input" className={styles.formLabel} style={{ marginBottom: 0 }}>
@@ -246,38 +282,6 @@ export function Register({
               />
               <p className={styles.compactHint}>
                 Just so we know how many people played together. This has no effect on gameplay.
-              </p>
-            </div>
-
-            <div className={styles.compactCard}>
-              <div className="d-flex align-items-center gap-2">
-                <Icon
-                  icon={startMuted ? "ph:speaker-slash-bold" : "ph:speaker-high-bold"}
-                  style={{ fontSize: "1rem", color: "rgba(255, 255, 255, 0.9)" }}
-                />
-                <span className={styles.formLabel} style={{ marginBottom: 0 }}>
-                  Narration
-                </span>
-              </div>
-              <div className={`${styles.segmentedToggle} ${styles.compactCardControl}`} role="group" aria-label="Narration">
-                {([false, true] as const).map((muted) => (
-                  <button
-                    key={String(muted)}
-                    type="button"
-                    className={`${styles.segmentedOption} ${
-                      startMuted === muted ? styles.segmentedOptionActive : ""
-                    }`}
-                    disabled={isLoading}
-                    aria-pressed={startMuted === muted}
-                    onClick={() => setStartMuted(muted)}
-                  >
-                    <Icon icon={muted ? "ph:microphone-slash-duotone" : "ph:microphone-duotone"} style={{ fontSize: "1rem" }} />
-                    <span>{muted ? "Muted" : "Speaking"}</span>
-                  </button>
-                ))}
-              </div>
-              <p className={styles.compactHint}>
-                This game uses synthetic voices to voice the stakeholders you'll interact with.
               </p>
             </div>
 
