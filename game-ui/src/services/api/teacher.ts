@@ -1,3 +1,5 @@
+import { csrfHeaders } from "../../utils/csrf";
+
 const API_HOST =
   import.meta.env.VITE_API_HOST ||
   (import.meta.env.MODE === "development"
@@ -50,6 +52,20 @@ export interface TeacherDashboardData {
   total_player_amount: number;
   finished_player_amount: number;
   online_player_amount: number;
+}
+
+/** Refills the tokens of the player's current challenge. Nothing else about their game changes. */
+export async function resetPlayerTokens(email: string): Promise<{ attention_tokens: number; notified: boolean }> {
+  const response = await fetch(`${BASE_URL}/api/teacher/players/${encodeURIComponent(email)}/reset-tokens`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeaders() },
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to reset the tokens.");
+  }
+  return response.json();
 }
 
 async function teacherGet<T>(path: string, failure: string): Promise<T> {

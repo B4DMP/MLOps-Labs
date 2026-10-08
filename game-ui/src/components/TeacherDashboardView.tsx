@@ -11,6 +11,9 @@ export interface TeacherDashboardViewProps {
   /** Called when a poll comes back 401 (the session cookie expired) - only meaningful for the
    * standalone teacher page, which needs to bounce back to login. */
   onAuthFailure?: () => void;
+  /** Refills a player's tokens for their current challenge. Leave out to hide the column (the
+   * admin preview is read-only). */
+  onResetTokens?: (email: string) => Promise<void>;
 }
 
 const DEFAULT_POLL_MS = 5000;
@@ -97,7 +100,10 @@ export function TeacherDashboardView({
   fetchData,
   pollMs = DEFAULT_POLL_MS,
   onAuthFailure,
+  onResetTokens,
 }: TeacherDashboardViewProps) {
+  const [confirmResetEmail, setConfirmResetEmail] = useState<string | null>(null);
+  const [resetNotice, setResetNotice] = useState("");
   const [data, setData] = useState<TeacherDashboardData | null>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -240,6 +246,13 @@ export function TeacherDashboardView({
           </div>
         )}
 
+        {resetNotice && (
+          <div className="alert alert-info py-2 px-3 mb-3 d-flex justify-content-between" role="status">
+            {resetNotice}
+            <button type="button" className="btn-close" aria-label="Dismiss" onClick={() => setResetNotice("")} />
+          </div>
+        )}
+
         <div className={`table-responsive ${styles.tableContainer}`}>
           <table className={`table align-middle ${styles.customTable}`}>
             <thead>
@@ -253,6 +266,7 @@ export function TeacherDashboardView({
                 <SortableHeader field="playTime" label="Play Time" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
                 <SortableHeader field="lastActive" label="Last Active" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
                 <SortableHeader field="runs" label="Runs" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+                {onResetTokens && <th className="text-end">Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -301,12 +315,57 @@ export function TeacherDashboardView({
                       <td className="text-muted font-monospace small">{p.playTime}</td>
                       <td className="text-muted">{formatRelativeTime(p.lastActive)}</td>
                       <td>{p.runs}</td>
+                      {onResetTokens && (
+                        <td className="text-end">
+                          {p.progressIndex === 2 && p.email && (
+                            confirmResetEmail === p.email ? (
+                              <div className="d-inline-flex gap-1">
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-primary"
+                                  style={{ fontSize: "0.78rem" }}
+                                  onClick={async () => {
+                                    setConfirmResetEmail(null);
+                                    try {
+                                      await onResetTokens(p.email);
+                                      setResetNotice(`Tokens refilled for ${p.name}.`);
+                                    } catch (err: any) {
+                                      setResetNotice(err.message || "Failed to reset the tokens.");
+                                    }
+                                  }}
+                                >
+                                  Confirm
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-secondary"
+                                  style={{ fontSize: "0.78rem" }}
+                                  onClick={() => setConfirmResetEmail(null)}
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-secondary"
+                                style={{ fontSize: "0.8rem" }}
+                                onClick={() => setConfirmResetEmail(p.email)}
+                                title="Give this player back the attention tokens of the challenge they are in. Nothing else changes."
+                              >
+                                <Icon icon="ph:coin-bold" />
+                                <span className="ms-1">Reset tokens</span>
+                              </button>
+                            )
+                          )}
+                        </td>
+                      )}
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan={9} className="text-center py-4 text-muted">
+                  <td colSpan={onResetTokens ? 10 : 9} className="text-center py-4 text-muted">
                     {isLoading ? "Loading..." : "No players in the monitored campaigns yet."}
                   </td>
                 </tr>

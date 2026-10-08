@@ -1,7 +1,7 @@
 import { Icon } from "@iconify/react";
 import styles from "./Admin.module.css";
 import { TeacherDashboardView } from "./TeacherDashboardView";
-import { fetchTeacherDashboard } from "../services/api/teacher";
+import { fetchTeacherDashboard, resetPlayerTokens } from "../services/api/teacher";
 
 interface TeacherProps {
   userName: string;
@@ -52,6 +52,9 @@ export function Teacher({ userName, onLogout, onSessionExpired }: TeacherProps) 
               fetchTeacherDashboard(campaignFilter === "all" ? undefined : campaignFilter)
             }
             onAuthFailure={onSessionExpired}
+            onResetTokens={async (email) => {
+              await resetPlayerTokens(email);
+            }}
           />
         </div>
       </div>

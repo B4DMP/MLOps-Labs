@@ -353,6 +353,11 @@ function App({ onLogout }: AppProps) {
       }
     });
 
+    // A teacher refilled this challenge's tokens; the client owns the count between card plays.
+    const unsubTokensReset = subscribe("game:tokens_reset", (data: any) => {
+      if (typeof data.attention_tokens === "number") setAttentionTokens(data.attention_tokens);
+    });
+
     const unsubState = subscribe("game:state_update", (data: any) => {
       if (data.progressionIndex !== undefined) {
         setProgressionIndex(data.progressionIndex);
@@ -743,6 +748,7 @@ function App({ onLogout }: AppProps) {
       unsubInit();
       unsubProgress();
       unsubState();
+      unsubTokensReset();
       unsubChatReceived();
       unsubChatCompleted();
       unsubError();

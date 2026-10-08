@@ -38,6 +38,13 @@ class ConnectionManager:
     def online_user_ids(self) -> set[int]:
         return set(self._player_sockets)
 
+    async def send_to_player(self, user_id: int, event: str, payload: dict) -> int:
+        """Pushes to every live socket of one player. Returns how many were reached."""
+        sent = 0
+        for websocket in list(self._player_sockets.get(user_id, ())):
+            sent += await self.send_event(websocket, event, payload)
+        return sent
+
     async def send_event(
         self,
         websocket: WebSocket,
