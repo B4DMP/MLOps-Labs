@@ -32,6 +32,7 @@ import BugReportsAdmin from "./BugReportsAdmin";
 import LlmCacheAdmin from "./LlmCacheAdmin";
 import {
   fetchAdminDashboard,
+  fetchAdminOnline,
   fetchAdminEmailStatus,
   sendAdminTestEmail,
   fetchBugReportRecipients,
@@ -171,6 +172,21 @@ export function Admin({
       setEmailLoading(false);
     }
   };
+
+  const [onlinePlayers, setOnlinePlayers] = useState<number | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const poll = () =>
+      fetchAdminOnline()
+        .then((n) => !cancelled && setOnlinePlayers(n))
+        .catch(() => {});
+    poll();
+    const id = window.setInterval(poll, 10000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [adminToken]);
 
   useEffect(() => {
     if (activeSubpage === "email" && !emailStatus && !emailLoading) {
@@ -864,6 +880,13 @@ export function Admin({
             </button>
           </div>
 
+          <div className="d-flex align-items-center gap-3">
+            {onlinePlayers !== null && (
+              <span className="small fw-semibold text-nowrap" title="Players connected right now">
+                <Icon icon="ph:circle-fill" style={{ color: onlinePlayers > 0 ? "#22c55e" : "#9ca3af", fontSize: "0.6rem" }} />{" "}
+                {onlinePlayers} online
+              </span>
+            )}
           <div className="text-muted small d-none d-md-block">
             {activeSubpage === "config" && "Modify challenges, intel facts, and stakeholder configs"}
             {activeSubpage === "manager" && `Managing ${campaigns.length} campaigns and ${players.length} players`}
@@ -875,6 +898,7 @@ export function Admin({
             {activeSubpage === "llm_cache" && "How many prompts are cached and how often the caches are hit"}
             {activeSubpage === "email" && "Inspect SMTP configuration and send test emails"}
             {activeSubpage === "deploy" && "Restart the live deployment to pull the latest image and config"}
+          </div>
           </div>
         </div>
 
@@ -1533,7 +1557,12 @@ export function Admin({
                               <td>
                                 <div className="d-flex align-items-center gap-2">
                                   <Icon icon="ph:user-circle-bold" className="text-secondary fs-5" />
-                                  <span className="fw-bold">{p.name}</span>
+                                  <Icon
+                            icon="ph:circle-fill"
+                            title={p.online ? "Online now" : "Offline"}
+                            style={{ color: p.online ? "#22c55e" : "#d1d5db", fontSize: "0.6rem" }}
+                          />
+                          <span className="fw-bold">{p.name}</span>
                                 </div>
                               </td>
                               <td>

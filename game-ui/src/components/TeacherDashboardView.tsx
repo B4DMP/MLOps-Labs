@@ -170,6 +170,13 @@ export function TeacherDashboardView({
         </div>
         <div className={styles.kpiCard}>
           <div className={styles.kpiHeader}>
+            <span className={styles.kpiLabel}>Online Now</span>
+            <Icon icon="ph:broadcast-bold" className={styles.kpiIcon} />
+          </div>
+          <div className={styles.kpiValue}>{data?.online_player_amount ?? 0}</div>
+        </div>
+        <div className={styles.kpiCard}>
+          <div className={styles.kpiHeader}>
             <span className={styles.kpiLabel}>Completed</span>
             <Icon icon="ph:check-circle-bold" className={styles.kpiIcon} />
           </div>
@@ -257,6 +264,11 @@ export function TeacherDashboardView({
                       <td>
                         <div className="d-flex align-items-center gap-2">
                           <Icon icon="ph:user-circle-bold" className="text-secondary fs-5" />
+                          <Icon
+                            icon="ph:circle-fill"
+                            title={p.online ? "Online now" : "Offline"}
+                            style={{ color: p.online ? "#22c55e" : "#d1d5db", fontSize: "0.6rem" }}
+                          />
                           <span className="fw-bold">{p.name}</span>
                           {p.playtestTainted && (
                             <span

@@ -15,6 +15,7 @@ from mlops_serious_game.infrastructure.database import (
     get_session,
 )
 from mlops_serious_game.infrastructure.database.run_scope import FIRST_RUN
+from mlops_serious_game.infrastructure.websocket.manager import manager
 
 # Checkpoint tables are managed internally by LangGraph, not by our ORM models, and are keyed
 # by thread_id rather than by user - these are the thread naming conventions used across the
@@ -95,6 +96,7 @@ def get_player_data() -> dict[str, Any]:
             emails = _emails_by_id(session)
             # 1. Populate all registered users first
             users = session.scalars(select(User)).all()
+            online_ids = manager.online_user_ids()
             campaign_by_key = {c.campaign_key: c for c in session.scalars(select(Campaign)).all()}
             for user in users:
                 campaign = campaign_by_key.get(user.campaign_key)
@@ -110,6 +112,7 @@ def get_player_data() -> dict[str, Any]:
                     "use_questionnaire": campaign.use_questionnaire if campaign else True,
                     "email": user.email,
                     "playtest_tainted": bool(user.playtest_tainted),
+                    "online": user.id in online_ids,
                     "debug_flags": dict(user.debug_flags or {}),
                     "runs": 1,
                 }
@@ -700,7 +703,18 @@ def _build_player_row(name: str, data: dict[str, Any]) -> dict[str, Any]:
         "playtestTainted": bool(data.get("playtest_tainted", False)),
         "debugFlags": {flag: bool((data.get("debug_flags") or {}).get(flag)) for flag in GLOBAL_SETTINGS},
         "lastActive": data["lastPlayed"].isoformat() if data.get("lastPlayed") else None,
+        "online": bool(data.get("online", False)),
     }
+
+
+def count_online_players(campaign_keys: set[str] | None = None) -> int:
+    """Players with a live (non-impersonation) socket right now, optionally within the given
+    campaigns. Playtest/bot accounts count: they are connected."""
+    return sum(
+        1
+        for data in get_player_data().values()
+        if data.get("online") and (campaign_keys is None or data.get("campaign_key") in campaign_keys)
+    )
 
 
 def get_admin_dashboard_data(campaign: str | None = None) -> dict[str, Any]:
@@ -732,6 +746,7 @@ def get_admin_dashboard_data(campaign: str | None = None) -> dict[str, Any]:
         "outro_questionaire_average": calculate_outro_questionaire_average(campaign_key=target_campaign_key),
         "questionaire_results": get_questionaire_results(campaign_key=target_campaign_key),
         "selected_campaign": target_campaign_key,
+        "online_player_amount": count_online_players(),
     }
 
 
@@ -747,6 +762,7 @@ def get_teacher_dashboard_data(campaign_keys: list[str]) -> dict[str, Any]:
             "campaigns": [],
             "total_player_amount": 0,
             "finished_player_amount": 0,
+            "online_player_amount": 0,
         }
 
     _playerdata = get_player_data()
@@ -761,6 +777,7 @@ def get_teacher_dashboard_data(campaign_keys: list[str]) -> dict[str, Any]:
         "campaigns": [c for c in get_campaigns_data() if c["key"] in key_set],
         "total_player_amount": sum(calculate_total_players(campaign_key=k) for k in key_set),
         "finished_player_amount": sum(calculate_finished_players(campaign_key=k) for k in key_set),
+        "online_player_amount": sum(1 for row in playerdata if row["online"]),
     }
 
 

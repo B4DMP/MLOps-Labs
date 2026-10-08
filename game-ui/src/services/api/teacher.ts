@@ -39,6 +39,8 @@ export interface TeacherPlayerRow {
   playtestTainted: boolean;
   /** ISO timestamp of the player's most recent recorded activity, or null if they never played. */
   lastActive: string | null;
+  /** True while the player has a live game connection. */
+  online: boolean;
 }
 
 export interface TeacherDashboardData {
@@ -47,6 +49,7 @@ export interface TeacherDashboardData {
   campaigns: TeacherCampaign[];
   total_player_amount: number;
   finished_player_amount: number;
+  online_player_amount: number;
 }
 
 async function teacherGet<T>(path: string, failure: string): Promise<T> {

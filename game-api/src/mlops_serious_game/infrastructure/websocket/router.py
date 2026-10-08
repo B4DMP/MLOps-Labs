@@ -134,7 +134,7 @@ async def unified_websocket_endpoint(websocket: WebSocket):
         return
     user_id, read_only = resolved
 
-    await manager.connect(websocket, user_id)
+    await manager.connect(websocket, user_id, read_only=read_only)
     session_id = f"MLOps_Convo_{user_id}"
     last_gamestate_id = (0,0,0)
     emotion_values_dict={}

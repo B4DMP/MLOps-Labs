@@ -12,6 +12,7 @@ from mlops_serious_game.application.services.auth_service import (
     verify_admin_token,
 )
 from mlops_serious_game.application.services.admin_service import (
+    count_online_players,
     get_admin_dashboard_data,
     get_teacher_dashboard_data,
     add_campaign,
@@ -126,6 +127,11 @@ def check_admin_token(request: Request):
 async def get_dashboard(campaign: str | None = None, _: str = Depends(check_admin_token)):
     data = get_admin_dashboard_data(campaign=campaign)
     return {"type": "admin_data_update", **data}
+
+
+@router.get("/online")
+async def get_online(_: str = Depends(check_admin_token)):
+    return {"online_player_amount": count_online_players()}
 
 
 @router.get("/results")

@@ -19,6 +19,7 @@ export interface AdminDashboardData {
   players: any[];
   total_player_amount: number;
   finished_player_amount: number;
+  online_player_amount: number;
   metric_sum_per_challenge: number[];
   metric_sum_per_challenge_increase: number[];
   intro_questionaire_average: number;
@@ -45,6 +46,15 @@ export async function fetchAdminDashboard(campaign?: string): Promise<AdminDashb
   }
 
   return response.json();
+}
+
+export async function fetchAdminOnline(): Promise<number> {
+  const response = await fetch(`${BASE_URL}/api/admin/online`, {
+    method: "GET",
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to fetch online players.");
+  return (await response.json()).online_player_amount ?? 0;
 }
 
 export async function addAdminCampaign(
