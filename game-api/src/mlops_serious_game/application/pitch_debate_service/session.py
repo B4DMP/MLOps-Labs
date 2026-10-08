@@ -1247,6 +1247,18 @@ def veto_breaker(
     return updated, events
 
 
+def table_it(state: PitchState) -> tuple[PitchState, list[GameEvent]]:
+    """Gives up on the room: the challenge ends in a stalemate without spending an Escalation Point.
+
+    Only callable on a committed VETO. Nothing is agreed and no card goes in; the pipeline fires the
+    challenge's stalemate events and every low-power stakeholder keeps a grudge. It exists so a room
+    that no card can clear never leaves the player stuck once their Escalation Points are gone.
+    """
+    updated = state.model_copy(update={"stage": "DONE", "outcome": "STALEMATE"})
+    events = [GameEvent(step="simulation", kind="outcome", cause="outcome.stalemate")]
+    return updated, events
+
+
 def _name(names: dict[str, str], st_id: Optional[str]) -> str:
     return names.get(st_id, st_id) if st_id else "them"
 

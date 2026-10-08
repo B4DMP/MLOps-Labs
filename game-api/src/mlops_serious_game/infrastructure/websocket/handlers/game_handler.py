@@ -11,6 +11,7 @@ from mlops_serious_game.application.services.auth_service import player_id_from_
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.Challenge import Challenge
 from mlops_serious_game.domain.persona_resolver import personalize
+from mlops_serious_game.domain.emotion import recover_toward_neutral
 from mlops_serious_game.domain.emotion_factory import EmotionConfig, EmotionFactory
 from mlops_serious_game.domain.briefing_factory import BriefingFactory
 from mlops_serious_game.domain.metric_factory import MetricFactory
@@ -762,6 +763,15 @@ async def store_or_update_challenge(
         )
         prev_session_ev = session.scalars(stmt_ev).first()
         carried_emotion_values = prev_session_ev.emotion_values if prev_session_ev else None
+        is_next_challenge = prev_session_ev is not None and not (
+            prev_session_ev.phase_index == challenge.phase_id and prev_session_ev.challenge_index == challenge.id
+        )
+        if carried_emotion_values and is_next_challenge:
+            # A new challenge starts a little calmer than the last one ended.
+            carried_emotion_values = {
+                sid: recover_toward_neutral(ev, EmotionFactory.get_pitch_tuning().challenge_recovery)
+                for sid, ev in carried_emotion_values.items()
+            }
         if fresh_room:
             carried_emotion_values = _neutral_room()
 

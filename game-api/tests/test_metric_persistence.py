@@ -220,7 +220,8 @@ async def test_an_explicit_payload_value_still_wins_over_the_persisted_one(migra
 async def test_simulation_records_its_own_metric_deltas_on_the_challenge_row(migrated_db):
     """Drives the real pitch -> commit -> simulate chain (the same one `playtest_handler` uses)
     and checks the number the simulation reports is the number that gets written."""
-    from mlops_serious_game.application.playtest_service import auto_card, service
+    from mlops_serious_game.application.pitch_debate_service import card_search as auto_card
+    from mlops_serious_game.application.playtest_service import service
     from mlops_serious_game.domain.phase_factory import PhaseFactory
     from mlops_serious_game.infrastructure.websocket.handlers.pitch_handler import (
         PitchContext, get_allowed_targets, handle_pitch_commit,
@@ -276,7 +277,8 @@ async def test_reopening_the_simulation_screen_does_not_redo_its_one_time_effect
     report's deltas drive - are gated the same way, not repeated once per mount."""
     from mlops_serious_game.application.event_log_service.store import load_events
     from mlops_serious_game.application.pitch_debate_service import store as pitch_store
-    from mlops_serious_game.application.playtest_service import auto_card, service
+    from mlops_serious_game.application.pitch_debate_service import card_search as auto_card
+    from mlops_serious_game.application.playtest_service import service
     from mlops_serious_game.domain.phase_factory import PhaseFactory
     from mlops_serious_game.infrastructure.websocket.handlers.pitch_handler import (
         PitchContext, get_allowed_targets, handle_pitch_commit,

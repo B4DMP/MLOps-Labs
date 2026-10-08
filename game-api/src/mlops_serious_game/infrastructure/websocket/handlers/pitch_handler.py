@@ -5,6 +5,7 @@ Thin on purpose: every rule lives in `pitch_debate_service.session`, every write
 situation, call into session logic, and send back what the screen shows.
 """
 
+import asyncio
 from typing import Any, Optional
 
 from fastapi import WebSocket
@@ -887,6 +888,60 @@ async def handle_pitch_veto_breaker(websocket: WebSocket, user_id: int, payload:
     return True
 
 
+async def handle_pitch_table_it(websocket: WebSocket, user_id: int, payload: dict) -> bool:
+    """Ends a stood veto as a stalemate: nothing is agreed, nothing is pushed through, no point is
+    spent. The way out when no card clears the room and no Escalation Point is left.
+
+    Returns whether the challenge was tabled (False when it answered with an error instead).
+    """
+    ctx = PitchContext(user_id, payload.get("phase_id", 0), payload.get("challenge_id", 0))
+    state = _load_or_start(ctx)
+    if ctx.phase_id in PhaseFactory.demo_phase_ids():
+        await _send(websocket, ctx, state, ctx.view(state), error="Tabling is not available in the introduction")
+        return False
+    if state.stage != "DONE" or state.outcome != "VETO":
+        await _send(websocket, ctx, state, ctx.view(state), error="no veto standing to table")
+        return False
+
+    view = ctx.view(state)
+    updated_state, events = pitch.table_it(state)
+    pitch_store.save_pitch(user_id, ctx.phase_id, ctx.challenge_id, updated_state)
+    await send_events(websocket, user_id, [e.stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id) for e in events])
+    await _send(websocket, ctx, updated_state, view, applied={"ops": 0, "outcome": "STALEMATE"}, veto_info=None)
+    return True
+
+
+def _room_ceiling(user_id: int, ctx: PitchContext) -> Optional[str]:
+    """The best outcome a card search finds for this room as the player knows it, or None when
+    there is nothing legal to build. A sample, not a proof: said as such to the player."""
+    from mlops_serious_game.application.pitch_debate_service import card_search
+
+    result = card_search.search_card(
+        graph=ctx.graph,
+        state=ctx.state,
+        all_intel=list(ctx.all_intel),
+        room=ctx.room,
+        emotions=ctx.emotions,
+        allowed=get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel)),
+        seed=f"ceiling:{user_id}:{ctx.challenge_id}",
+        prefer="best",
+        budget=card_search.CEILING_BUDGET,
+    )
+    return result.outcome if result else None
+
+
+async def handle_pitch_room_ceiling(websocket: WebSocket, user_id: int, payload: dict) -> None:
+    """Tells the veto dialog whether any proposal can still clear this room, so escalating or
+    tabling is a decision with information (docs/plans/shorter-playthrough-and-grade-spread.md)."""
+    ctx = PitchContext(user_id, payload.get("phase_id", 0), payload.get("challenge_id", 0))
+    best = await asyncio.to_thread(_room_ceiling, user_id, ctx)
+    await manager.send_event(
+        websocket=websocket,
+        event="pitch:room_ceiling",
+        payload={"phase_id": ctx.phase_id, "challenge_id": ctx.challenge_id, "best_outcome": best},
+    )
+
+
 def _apply_card(ctx: PitchContext, state: pitch.PitchState, view: pitch.CardView) -> dict[str, Any]:
     """Evaluates card operations in memory for the pitch result. The simulation phase persists the graph changes."""
     ops = pitch.atomic_changes_to_ops(ctx.graph, ctx.state, state.atomic_changes)
@@ -908,4 +963,6 @@ __all__ = [
     "handle_pitch_evaluate",
     "handle_pitch_commit",
     "handle_pitch_veto_breaker",
+    "handle_pitch_table_it",
+    "handle_pitch_room_ceiling",
 ]

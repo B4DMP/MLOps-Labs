@@ -69,7 +69,7 @@ export interface IntelBreakdown {
   confidence: { verified: number; unconfirmed: number };
 }
 
-export type Outcome = "PASS" | "SOFT_PASS" | "VETO";
+export type Outcome = "PASS" | "SOFT_PASS" | "VETO" | "STALEMATE";
 
 export interface DecisionRow {
   position: number;

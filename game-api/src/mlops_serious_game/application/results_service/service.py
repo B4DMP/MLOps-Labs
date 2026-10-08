@@ -20,6 +20,7 @@ from mlops_serious_game.application.event_log_service import store as event_stor
 from mlops_serious_game.application.event_log_service.serialize import serialize_event
 from mlops_serious_game.application.graph_service import store as graph_store
 from mlops_serious_game.application.graph_service.graph_state_view import build_graph_state
+from mlops_serious_game.application.graph_service.phase_stage import stage_for_phase
 from mlops_serious_game.application.graph_service.view import evaluate_graph
 from mlops_serious_game.application.results_service import compute
 from mlops_serious_game.domain.epilogue_factory import epilogue_for
@@ -187,6 +188,54 @@ def _knowledge_correct(additional_data: Any, questions) -> Optional[int]:
     return correct
 
 
+def _stage_moves(user_id: int, run: int, challenge_rows: list[dict]) -> list[tuple[float, float]]:
+    """`(before, after)` health of each challenge's own stage, read from the report its simulation
+    stored: `before` is the stage once the challenge had hit it, `after` once the run's card and
+    its consequences had landed. Only this run's challenges count, and one that never reached its
+    simulation has no report and is left out."""
+    graph = GraphFactory.get_graph()
+    moves: list[tuple[float, float]] = []
+    for row in challenge_rows:
+        if row["run_index"] != run:
+            continue
+        challenge = PhaseFactory.translate_challenge_index(
+            phase_index=row["phase_index"], challenge_index=row["challenge_index"]
+        )
+        stage = stage_for_phase(graph, row["phase_index"])
+        if challenge is None or stage is None:
+            continue
+        report = graph_store.load_report(user_id, f"sim:{challenge.template_id}:3")
+        pair = ((report or {}).get("stage_health") or {}).get(stage.id)
+        if pair:
+            moves.append((float(pair["before"]), float(pair["after"])))
+    return moves
+
+
+def _par_for(key: tuple[int, int]) -> str:
+    """The best outcome the room of `(phase_id, challenge_id)` allows (`Challenge.par_outcome`)."""
+    try:
+        return PhaseFactory.translate_challenge_index(challenge_index=key[1], phase_index=key[0]).par_outcome
+    except Exception:
+        return "PASS"
+
+
+def _distinct_fired_grudges(events: list[Any]) -> int:
+    """How many grudges the player wrote that went on to fire, not how many times they fired.
+
+    A grudge keeps firing for its lifetime, so counting fires charges one soft pass twice or more.
+    Per stakeholder, written and fired events are matched one to one: a grudge that never fired
+    cost nothing yet.
+    """
+    written: dict[str, int] = {}
+    fired: dict[str, int] = {}
+    for event in events:
+        if event.cause == "grudge.written":
+            written[event.subject_id] = written.get(event.subject_id, 0) + 1
+        elif event.cause == "grudge.fired":
+            fired[event.subject_id] = fired.get(event.subject_id, 0) + 1
+    return sum(min(count, fired.get(owner, 0)) for owner, count in written.items())
+
+
 def _gate7_target_rows(graph_view: dict[str, Any]) -> list[dict[str, Any]]:
     """One row per component/edge, for the change-scope and drift-magnitude readings (compute.py)."""
     rows: list[dict[str, Any]] = []
@@ -285,7 +334,7 @@ def build_results(user_id: int, run_index: Optional[int] = None) -> dict[str, An
     latest_phase = max(phase_ids) if phase_ids else None
 
     events = [e for e in event_store.load_events(user_id, run_index=run) if e.challenge_id not in demo_ids]
-    fired_grudges = sum(1 for e in events if e.cause == "grudge.fired")
+    fired_grudges = _distinct_fired_grudges(events)
 
     graph_view = _graph_view(user_id, run, latest_phase)
     baseline_view = _graph_view(user_id, baseline_run, latest_phase) if baseline_run else None
@@ -299,12 +348,22 @@ def build_results(user_id: int, run_index: Optional[int] = None) -> dict[str, An
     intel = _intel_facts(user_id, run, challenge_ids, exclude_challenge_ids=demo_ids)
     counts = intel["counts"]
 
+    outcomes_by_key = compute.outcomes_by_challenge(events)
+    outcomes_in_order = [outcomes_by_key[key] for key in sorted(outcomes_by_key)]
+    stage_moves = _stage_moves(user_id, run, challenge_rows)
     pillars = [
-        compute.pipeline_health(
+        compute.pipeline_progress(stage_moves)
+        if stage_moves
+        else compute.pipeline_health(
             graph_view.get("stages", []),
             baseline_view.get("stages", []) if baseline_view else None,
         ),
-        compute.stakeholder_relations(final_emotions, _room_for_phases(phase_ids), fired_grudges),
+        compute.stakeholder_relations(
+            final_emotions,
+            _room_for_phases(phase_ids),
+            fired_grudges,
+            history=[r["emotion_values"] for r in challenge_rows if r["run_index"] == run and r["emotion_values"]],
+        ),
         compute.intel_accuracy(
             tagged_correct=counts["tagged_correct"],
             tagged_total=counts["tagged_total"],
@@ -312,8 +371,9 @@ def build_results(user_id: int, run_index: Optional[int] = None) -> dict[str, An
             available=counts["available"],
         ),
         compute.decision_quality(
-            compute.outcomes_from_events(events),
+            outcomes_in_order,
             escalation_spent=max(0, DEFAULT_ESCALATION_POINTS - escalation_left),
+            pars=[_par_for(key) for key in sorted(outcomes_by_key)],
         ),
     ]
     overall = compute.overall_score(pillars)

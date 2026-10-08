@@ -48,6 +48,7 @@
 
   "grudge.written": { "text": "{st} will remember this", "group": "grudge" },
   "grudge.fired": { "text": "{st}'s grudge came due", "group": "grudge" },
+  "grudge.cleared": { "text": "{st} felt heard this time and let it go", "group": "grudge" },
 
   "intel.artifact_filed": { "text": "filed as {tag}, about {st}: {detail}", "group": "intel" },
   "intel.on_record": { "text": "already on the record as {tag}, about {st}: {detail}", "group": "intel" },

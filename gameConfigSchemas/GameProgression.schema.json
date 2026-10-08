@@ -159,6 +159,12 @@
             "title": "Fallback",
             "description": "Exactly one per phase; picked when nothing else is eligible"
           },
+          "par_outcome": {
+            "type": "string",
+            "enum": ["PASS", "SOFT_PASS"],
+            "title": "Par outcome",
+            "description": "Best outcome any card can reach in this room. Graded as full marks; PASS unless the room is built so someone always objects. Checked against a card search in tests/test_room_par.py"
+          },
           "repeatable": {
             "type": "boolean",
             "title": "Repeatable"

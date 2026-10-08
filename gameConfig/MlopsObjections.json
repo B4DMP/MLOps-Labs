@@ -242,15 +242,15 @@
       "intel_id": "gen_loyalty_consent_gap_emilia_boundary",
       "stakeholder_id": "efficiency_emilia",
       "kind": "boundary",
-      "text": "I will not let that hand-off ship without a formal sign off, so the proposal is rejected. We need that strict gate in place before any data moves.",
-      "correction": "You filed that under cost concerns, but I was talking about governance. I am setting a hard requirement for formal approval, not estimating a budget."
+      "text": "I will not let the data contracts check run with nobody watching it, so the proposal is rejected. A person has to stay in the loop.",
+      "correction": "You filed that under cost concerns, but I was talking about oversight. I am setting a hard requirement for a person in the loop, not estimating a budget."
     },
     {
       "intel_id": "gen_loyalty_consent_gap_emilia_trade_contracts",
       "stakeholder_id": "efficiency_emilia",
       "kind": "price",
-      "text": "You are treating my concession on the audit scope as a free pass to ignore the cost of rework. If we slow the leaflet cycle to satisfy a full audit, the margin loss on the promotion week will dwarf any compliance gain.",
-      "correction": "I did not say the audit is optional, I said the current partial review is the ceiling we can afford without breaking the buyer schedule. Do not file this as a request to cut corners, it is a hard constraint on our operational tempo."
+      "text": "You are treating my concession on the risk review as a free pass to ignore the cost of rework. If we slow the leaflet cycle to automate that review all the way, the margin loss on the promotion week will dwarf any gain.",
+      "correction": "I did not say the risk review is optional, I said a partly automated review with a person checking it is the ceiling we can afford without breaking the buyer schedule. Do not file this as a request to cut corners, it is a hard constraint on our operational tempo."
     },
     {
       "intel_id": "gen_loyalty_consent_gap_reuben_boundary",
@@ -284,8 +284,8 @@
       "intel_id": "gen_loyalty_consent_gap_ruth_boundary",
       "stakeholder_id": "reliability_ruth",
       "kind": "boundary",
-      "text": "I will not sign off on an evaluation hand-off that lacks formal governance. We need that strict sign off before anything ships to the stores.",
-      "correction": "I am not talking about the code deployment pipeline, but the evaluation workflow itself. The issue is the missing formal review gate, not the automation level of the serving layer."
+      "text": "I will not sign off on acceptance criteria that are still checked by hand. We need that check to run on its own before anything ships to the stores.",
+      "correction": "I am not talking about the deployment pipeline, but the acceptance check itself. The issue is a check that depends on a person remembering to run it, not the sign off form."
     },
     {
       "intel_id": "gen_loyalty_consent_gap_ruth_driver",
@@ -312,7 +312,7 @@
       "intel_id": "gen_loyalty_data_deployment_block_alex_pipeline_driver",
       "stakeholder_id": "automation_alex",
       "kind": "stance",
-      "text": "You are treating my request as a simple automation task, but I need the entire path from the registry to the serving endpoint to be fully automated. I will not accept a partial fix that still leaves manual steps in the critical path for the nightly forecast.",
+      "text": "You are treating my request as a simple automation task, but I need the entire path from CI/CD to the serving endpoint to be fully automated. I will not accept a partial fix that still leaves manual steps in the critical path for the nightly forecast.",
       "correction": "I am not talking about the data pipeline or the feature store, I am talking about the deployment and serving infrastructure. When I said seamless, I meant zero human clicks between a new model version and the live endpoint, not just moving the build step."
     },
     {
@@ -354,8 +354,8 @@
       "intel_id": "gen_loyalty_data_deployment_block_reuben_registry_driver",
       "stakeholder_id": "requirements_reuben",
       "kind": "stance",
-      "text": "You cannot just assume the consent flag is there because the model ran last week. I need a formal sign-off at the registry hand-over so we verify that personal data compliance before the build even starts.",
-      "correction": "I am not asking for a new security tool, I am asking for a strict review of the hand-over process itself. The gap is the missing verification step between the model registry and the pipeline, not the code inside the model."
+      "text": "You cannot just assume the consent flag is there because the model ran last week. I need a formal sign-off on the CI/CD pipeline so we verify that personal data compliance before the build even starts.",
+      "correction": "I am not asking for a new security tool, I am asking for a strict review of the pipeline itself. The gap is the missing verification step before the build, not the code inside the model."
     },
     {
       "intel_id": "gen_loyalty_data_deployment_block_ruth_rollback_trade",
@@ -368,7 +368,7 @@
       "intel_id": "gen_loyalty_data_deployment_block_ruth_serving_driver",
       "stakeholder_id": "reliability_ruth",
       "kind": "stance",
-      "text": "Automating the gateway routing is a start, but it leaves the service itself unmonitored during the morning window. I need continuous health checks that alert us before the first store manager tries to load their order.",
+      "text": "Automating that hand-over is a start, but it leaves the service itself unmonitored during the morning window. I need continuous health checks that alert us before the first store manager tries to load their order.",
       "correction": "You are reading my deployment proposal as a general reliability ask, but I am only talking about the serving layer. I am not asking for model retraining changes, just for the API to prove it is alive before the order window opens."
     },
     {
@@ -641,8 +641,8 @@
       "intel_id": "gen_silent_forecast_failure_monica_retrain_edge",
       "stakeholder_id": "model_monica",
       "kind": "stance",
-      "text": "Automating the hand over just moves the bottleneck, because we still lack a clear definition of what drift actually means for our forecasts. I need that threshold locked in before I wire up any automatic triggers.",
-      "correction": "I did not suggest we skip the review of the new model version, only that the signal to start retraining should not wait for a human to click a button. The governance step stays exactly where it is."
+      "text": "Automating the hand over just moves the bottleneck, because we still lack a clear definition of what drift actually means for our forecasts. I need that threshold locked in before I wire up any automatic alerts.",
+      "correction": "I did not suggest we skip the review of the new model version, only that the signal about drift should not wait for a human to click a button. The governance step stays exactly where it is."
     },
     {
       "intel_id": "gen_silent_forecast_failure_reuben_alert_edge",
@@ -669,7 +669,7 @@
       "intel_id": "gen_silent_forecast_failure_ruth_alert_govern",
       "stakeholder_id": "reliability_ruth",
       "kind": "stance",
-      "text": "I want the alerting system to be fully governed, not just partially reviewed. Every alert needs a formal sign off record so we can prove it was handled.",
+      "text": "I want the rollback mechanism to be fully governed, not just partially reviewed. Every rollback needs a formal sign off record so we can prove it was handled.",
       "correction": "You filed this as a preference for automation, but I am asking for governance. The tools are fine, but the process needs strict approval."
     },
     {
@@ -711,8 +711,8 @@
       "intel_id": "gen_silent_ingestion_failure_reuben_boundary_gov_versioning",
       "stakeholder_id": "requirements_reuben",
       "kind": "boundary",
-      "text": "I will not sign off on versioning without full governance. That is a hard line, and there is no room for negotiation on this point.",
-      "correction": "You are misreading my stance on data retention. I am talking about the audit trail for model versions, not the raw loyalty basket data."
+      "text": "I will not sign off on data validation without full governance. That is a hard line, and there is no room for negotiation on this point.",
+      "correction": "You are misreading my stance on data retention. I am talking about the audit trail for the validation rules, not the raw loyalty basket data."
     },
     {
       "intel_id": "gen_silent_ingestion_failure_reuben_driver_gov_ingest",

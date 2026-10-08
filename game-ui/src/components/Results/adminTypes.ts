@@ -42,7 +42,7 @@ export interface AdminAggregates {
   overall: Stats;
   grades: Record<GradeLetter, number>;
   pillars: Record<PillarId, Stats>;
-  outcomes: { PASS: number; SOFT_PASS: number; VETO: number; unfinished: number };
+  outcomes: { PASS: number; SOFT_PASS: number; VETO: number; STALEMATE: number; unfinished: number };
   hardest_challenges: ChallengeDifficulty[];
   challenges: ChallengeDifficulty[];
   intel: {

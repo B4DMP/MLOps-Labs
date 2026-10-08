@@ -34,6 +34,29 @@ def apply_emotion_delta(
     return updated
 
 
+# Dimensions where lower is better. A calm, unthreatened stakeholder has these near 0.
+NEGATIVE_DIMENSIONS = frozenset({"stress", "perceived_risk"})
+
+
+def recover_toward_neutral(values: EmotionValues, share: float, neutral: float = 0.5) -> EmotionValues:
+    """Moves every dimension `share` of the way back to `neutral`: time takes the edge off."""
+    return {
+        dim: round(v + (neutral - v) * share, 4) if isinstance(v, (int, float)) else v
+        for dim, v in values.items()
+    }
+
+
+def valence_mean(values: EmotionValues) -> Optional[float]:
+    """How good the mood is, in [0, 1]: the mean of the dimensions with stress and perceived risk
+    flipped. A plain mean rewards a stressed, frightened stakeholder. None when there is nothing to read."""
+    readings = [
+        (1.0 - v) if dim in NEGATIVE_DIMENSIONS else v
+        for dim, v in values.items()
+        if isinstance(v, (int, float))
+    ]
+    return sum(readings) / len(readings) if readings else None
+
+
 PITCH_SENSITIVITY_WEIGHTS = {
     "trust": 0.25,
     "fairness": 0.28,
@@ -413,6 +436,7 @@ class PitchTuning(BaseModel):
     objection_threshold: float = Field(default=0.3, description="Buy-in floor below which a low-power stakeholder objects")
     loss_w: float = Field(default=0.3, description="Weight of accumulated loss in the buy-in formula")
     grudge_lifetime: int = Field(default=2, description="How many simulations a grudge keeps firing before it is spent")
+    challenge_recovery: float = Field(default=0.25, description="Share of the distance back to neutral (0.5) every emotion recovers when the next challenge begins")
 
     # D48/D50 (plan 11): Reframe picks an archetype per objection; fit against the stakeholder's
     # true archetype buckets into Direct Hit / Partial / Miss. No secondary for a single answer.

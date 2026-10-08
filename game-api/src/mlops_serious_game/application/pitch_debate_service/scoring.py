@@ -13,6 +13,7 @@ from mlops_serious_game.domain.emotion import (
     calculate_dynamic_weights,
     calculate_pitch_deltas,
     calculate_reactivity,
+    valence_mean,
 )
 
 if TYPE_CHECKING:
@@ -47,11 +48,9 @@ def demand_alignment(
 # ---------------------------------------------------------------------------
 
 def emotions_norm(emotion_values: dict[str, float]) -> float:
-    """Mean of all emotion dimensions for one stakeholder, in [0, 1]."""
-    if not emotion_values:
-        return 0.5
-    vals = [v for v in emotion_values.values() if isinstance(v, (int, float))]
-    return sum(vals) / len(vals) if vals else 0.5
+    """How good one stakeholder's mood is, in [0, 1]; stress and perceived risk count inverted."""
+    mood = valence_mean(emotion_values) if emotion_values else None
+    return 0.5 if mood is None else mood
 
 
 def shift_emotions(

@@ -88,6 +88,7 @@
         "objection_threshold": { "type": "number", "title": "Buy-in floor below which a low-power stakeholder objects", "default": 0.3 },
         "loss_w": { "type": "number", "title": "Weight of accumulated loss in the buy-in formula", "default": 0.3 },
         "grudge_lifetime": { "type": "integer", "title": "Simulations a grudge keeps firing before it is spent", "default": 2 },
+        "challenge_recovery": { "type": "number", "title": "Share of the way back to neutral every emotion recovers when the next challenge begins", "default": 0.25 },
         "reframe_hit": { "type": "number", "title": "Fit at/above this on Reframe is a Direct Hit (D48)", "default": 0.7 },
         "reframe_partial": { "type": "number", "title": "Fit at/above this (below Hit) on Reframe is a Partial (D48)", "default": 0.4 },
         "room_listen": { "type": "number", "title": "Fit below which other high-power seats turn colder on a Reframe (D48)", "default": 0.35 },

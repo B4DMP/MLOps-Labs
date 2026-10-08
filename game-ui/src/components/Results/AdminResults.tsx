@@ -223,6 +223,7 @@ export default function AdminResults({ adminToken, campaigns, metricInfo = {} }:
             <TileRow>
               <StatTile label="Passed" value={agg.outcomes.PASS} />
               <StatTile label="With reservations" value={agg.outcomes.SOFT_PASS} />
+              <StatTile label="Tabled" value={agg.outcomes.STALEMATE ?? 0} />
               <StatTile label="Vetoed" value={agg.outcomes.VETO} />
               <StatTile label="Unfinished" value={agg.outcomes.unfinished} hint="Challenges that never reached a commit" />
             </TileRow>

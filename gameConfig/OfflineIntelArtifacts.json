@@ -74,14 +74,14 @@
       "challenge_id": 114,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "slack_message",
-      "content": "I am willing to let the consent validation remain a manual spot check for the time being. The weekly leaflet deadline is immovable, and introducing a full automated governance gate now would stall the promotion planning cycle. If the audit stays partial, we keep the middle aisle allocation moving on schedule. I accept the residual risk of a delayed consent flag in exchange for meeting the buyer's commitment to the distribution centres. We can revisit the automation scope once the current promotion week clears without a stockout.",
+      "content": "I am willing to let the risk review for new data sources run partly on its own, as long as a person still checks the results before they count. The weekly leaflet deadline is immovable, and a fully automated risk gate now would stall the promotion planning cycle. If the review keeps a person in it, we keep the middle aisle allocation moving on schedule. I accept the residual risk of a slower flag on a new source in exchange for meeting the buyer's commitment to the distribution centres. We can revisit the automation scope once the current promotion week clears without a stockout.",
       "humor_archetype": null,
       "humor_verdict": null,
       "humor_review_reason": null,
       "wrong_descriptions": {
-        "driver": "Pushing the audit all the way through would catch every gap before the next leaflet ships.",
-        "boundary": "She will not accept the audit stalling the weekly leaflet planning cycle entirely.",
-        "fact": "That is simply how far the audit has gotten so far."
+        "driver": "Moving the risk review fully off manual handling would catch every gap before the next leaflet ships.",
+        "boundary": "She will not accept the risk review stalling the weekly leaflet planning cycle entirely.",
+        "fact": "That is simply how far the risk review has been automated so far."
       },
       "is_known": true
     },
@@ -91,14 +91,14 @@
       "challenge_id": 114,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "document",
-      "content": "The promotion calendar does not pause for a data pipeline debate. I am happy to keep the current manual review for the loyalty basket ingestion to protect the weekly leaflet deadlines. However, there is a hard line here. The hand off into the ingestion layer must carry a formal sign off. If that sign off is missing, the data does not move. I will not accept a state where personal data enters the pipeline without that explicit approval. This is not a preference for process; it is the condition under which I can support the current workflow. Without that gate, I cannot sign off on the promotion planning cycle, and the entire allocation schedule stalls.",
+      "content": "The promotion calendar does not pause for a data pipeline debate. I am happy to keep a person checking the loyalty basket contracts to protect the weekly leaflet deadlines, and I can live with some tooling around that check. However, there is a hard line here. The data contracts check must not run fully on its own. If nobody is watching it, a bad contract can stall the leaflet cycle and nobody notices until the allocation schedule is already late. I will not accept a setup with no person in the loop. This is not a preference for process; it is the condition under which I can support the current workflow.",
       "humor_archetype": null,
       "humor_verdict": null,
       "humor_review_reason": null,
       "wrong_descriptions": {
-        "driver": "A formal sign off there would catch a bad consent record before it reaches a report.",
-        "trade_off": "She would accept a lighter check there if the sign off still covers consent fields.",
-        "fact": "That is simply the current sign off status of that hand-off, nothing formal yet."
+        "driver": "Keeping a person in that loop would catch a bad contract before it stalls the leaflet cycle.",
+        "trade_off": "She would accept that check running on its own if someone reviews the contracts afterwards.",
+        "fact": "That is simply how much of the data contracts check runs on its own today."
       },
       "is_known": false
     },
@@ -176,14 +176,14 @@
       "challenge_id": 114,
       "stakeholder_id": "reliability_ruth",
       "artifact_type": "document",
-      "content": "We need to lock down the deployment pipeline before the next retraining cycle. The hand off into model evaluation must carry a formal sign off. I am not willing to release any build that skips this step. If the evaluation does not have that documented approval attached, the deployment stays blocked. This is a hard line for the reliability team. We cannot risk shipping a model that has not been formally verified by the evaluation team. Any attempt to bypass this check will be treated as a critical incident. The sign off is mandatory for every single run, not just the major releases. We need this clarity in the contract so there is no ambiguity about who is responsible for the final gate before the model goes live.",
+      "content": "We need to stop relying on someone eyeballing the acceptance criteria before the next retraining cycle. A sign off that rests on a manual check is not one I can stand behind. I am not willing to release any build whose acceptance criteria were checked by hand alone. This is a hard line for the reliability team. We cannot risk shipping something that has not been verified by a check that runs the same way every time. The criteria need to be checked automatically on every single run, not just the major releases.",
       "humor_archetype": null,
       "humor_verdict": null,
       "humor_review_reason": null,
       "wrong_descriptions": {
-        "driver": "A formal sign off there would catch a bad evaluation run before it reaches a report.",
-        "trade_off": "She would accept a lighter check there if the sign off still covers the riskiest runs.",
-        "fact": "That is simply the sign off status of that hand-off today, nothing formal yet."
+        "driver": "Checking the criteria automatically would catch a bad run before it reaches a report.",
+        "trade_off": "She would accept a manual check there if it still covers the riskiest runs.",
+        "fact": "That is simply how the acceptance criteria are checked today, by hand."
       },
       "is_known": false
     },
@@ -662,14 +662,14 @@
       "challenge_id": 120,
       "stakeholder_id": "requirements_reuben",
       "artifact_type": "document",
-      "content": "I need to be explicit about the versioning controls for the feature store. We will not proceed with any deployment where model or data versioning lacks formal sign off. This is a hard line for compliance. If the versioning process is not fully governed, meaning every change is reviewed and approved by the designated owners before it reaches production, I will block the release. There is no middle ground here. We cannot have untracked changes in a system that handles personal data and drives financial commitments. The governance must be complete and auditable, or the feature store remains offline for us.",
+      "content": "I need to be explicit about the validation controls for the incoming scan lines. We will not proceed with any run where data validation lacks formal sign off. This is a hard line for compliance. If the validation step is not fully governed, meaning every rule change is reviewed and approved by the designated owners before it reaches production, I will block the release. There is no middle ground here. We cannot have untracked changes in a system that handles personal data and drives financial commitments. The governance must be complete and auditable, or the pipeline stays offline for us.",
       "humor_archetype": null,
       "humor_verdict": null,
       "humor_review_reason": null,
       "wrong_descriptions": {
-        "driver": "He wants to add governance to versioning to ensure data quality.",
+        "driver": "He wants to add governance to validation to ensure data quality.",
         "trade_off": "He would accept a manual governance step if it is too slow to automate.",
-        "fact": "That is simply how the versioning setup works today."
+        "fact": "That is simply how the validation setup works today."
       },
       "is_known": false
     },
@@ -1454,12 +1454,12 @@
       "challenge_id": 115,
       "stakeholder_id": "automation_alex",
       "artifact_type": "meeting_notes",
-      "content": "I need the deployment pipeline to run from the model registry straight to the serving endpoint without any manual intervention. The nightly forecast job must be fully automated so it restores itself before the promotion week starts. If we rely on a human to click deploy, the system will miss the morning order window, and every store will order blind. I want the tooling to handle the entire path automatically. More automation in the pipeline is better for reliability. I am open to adding a manual approval step if it keeps the pipeline moving, but the core execution must remain automated to meet the deadline.",
+      "content": "I need the deployment pipeline to run from the CI/CD stage straight to the serving endpoint without any manual intervention. The nightly forecast job must be fully automated so it restores itself before the promotion week starts. If we rely on a human to click deploy, the system will miss the morning order window, and every store will order blind. I want the tooling to handle the entire path automatically. More automation in the pipeline is better for reliability. I am open to adding a manual approval step if it keeps the pipeline moving, but the core execution must remain automated to meet the deadline.",
       "humor_archetype": null,
       "humor_verdict": null,
       "humor_review_reason": null,
       "wrong_descriptions": {
-        "boundary": "The pipeline will not be considered stable if a human has to touch the hand-over between the registry and the build step.",
+        "boundary": "The pipeline will not be considered stable if a human has to touch the hand-over between the CI/CD stage and the serving endpoint.",
         "trade_off": "{automation_alex} would accept a pause in the promotion deadline if the manual steps keep the system from breaking during a release.",
         "fact": "That is simply how the deployment tooling is configured today."
       },
@@ -1539,14 +1539,14 @@
       "challenge_id": 115,
       "stakeholder_id": "requirements_reuben",
       "artifact_type": "slack_message",
-      "content": "I need a formal sign off at the hand over from the model registry to the CI CD pipeline. Right now the consent flag is not verified before the build starts, which is a gap I cannot leave open. I want that review to be explicit and documented so we can trace exactly who approved the release. The more thorough that verification step is, the better. I am not asking for a quick check; I want a complete audit trail that proves the loyalty basket data was handled correctly before any automated deployment proceeds.",
+      "content": "I need a formal sign off on the CI CD pipeline before anything is built. Right now the consent flag is not verified before the build starts, which is a gap I cannot leave open. I want that review to be explicit and documented so we can trace exactly who approved the release. The more thorough that verification step is, the better. I am not asking for a quick check; I want a complete audit trail that proves the loyalty basket data was handled correctly before any automated deployment proceeds.",
       "humor_archetype": null,
       "humor_verdict": null,
       "humor_review_reason": null,
       "wrong_descriptions": {
-        "boundary": "{requirements_reuben} will not allow any model to enter the pipeline without a documented consent check at the registry hand-over.",
+        "boundary": "{requirements_reuben} will not allow any model to enter the pipeline without a documented consent check on the CI/CD pipeline.",
         "trade_off": "{requirements_reuben} would accept a partial review if it is paired with an automated consent validation tool.",
-        "fact": "That is simply how the registry hand-over is currently handled."
+        "fact": "That is simply how the CI/CD pipeline is currently reviewed."
       },
       "is_known": false
     },
@@ -1556,7 +1556,7 @@
       "challenge_id": 115,
       "stakeholder_id": "reliability_ruth",
       "artifact_type": "document",
-      "content": "I have been tracking the morning order window failures and the pattern is clear. We need to automate the hand-over from the serving endpoint to the API gateway. Currently, manual checks create a bottleneck that risks blocking the forecast service during the critical delivery window. I want this routing fully automated so that the system handles the traffic without human intervention. The more we can remove manual steps from this specific path, the more reliable the morning feed becomes for every store. I see no benefit in keeping a human in the loop for this particular routing task, as it only introduces latency and error potential. My goal is to ensure the forecast reaches the ordering system instantly, every night, without anyone having to click a button to start the flow.",
+      "content": "I have been tracking the morning order window failures and the pattern is clear. We need to automate the hand-over from the orchestration layer to the serving endpoint. Currently, manual checks create a bottleneck that risks blocking the forecast service during the critical delivery window. I want this routing fully automated so that the system handles the traffic without human intervention. The more we can remove manual steps from this specific path, the more reliable the morning feed becomes for every store. I see no benefit in keeping a human in the loop for this particular routing task, as it only introduces latency and error potential. My goal is to ensure the forecast reaches the ordering system instantly, every night, without anyone having to click a button to start the flow.",
       "humor_archetype": null,
       "humor_verdict": null,
       "humor_review_reason": null,
@@ -2021,14 +2021,14 @@
       "challenge_id": 119,
       "stakeholder_id": "reliability_ruth",
       "artifact_type": "email",
-      "content": "The three day blind spot that flooded the warehouse is unacceptable. We need the performance monitoring for the forecast job to be fully automated so that any silent failure triggers an immediate alert. I want the alerting system to be governed with strict sign off, meaning every single alert must be acknowledged and resolved with a formal record before it is closed. This ensures we never again miss a degradation until the physical stock hits the floor. The more rigorous the governance on these alerts, the better our overall system reliability becomes. I am pushing for this to be a core requirement for the next sprint, as it directly protects the trust we are trying to rebuild with the store managers.",
+      "content": "The three day blind spot that flooded the warehouse is unacceptable. We need the performance monitoring for the forecast job to be fully automated so that any silent failure triggers an immediate alert. I also want the rollback mechanism to be governed with strict sign off, meaning every single rollback must be approved and recorded formally before it is carried out. When an alert fires we need a way back that is accountable, not a scramble. The more rigorous the governance on rollbacks, the better our overall system reliability becomes. I am pushing for this to be a core requirement for the next sprint, as it directly protects the trust we are trying to rebuild with the store managers.",
       "humor_archetype": null,
       "humor_verdict": null,
       "humor_review_reason": null,
       "wrong_descriptions": {
-        "boundary": "She will not accept an alerting system that does not have a formal sign off for every incident.",
+        "boundary": "She will not accept a rollback that does not have a formal sign off.",
         "trade_off": "She would accept a partial review if the full sign off is blocked by a tooling gap.",
-        "fact": "That is simply the current state of the alerting governance."
+        "fact": "That is simply the current state of the rollback governance."
       },
       "is_known": false
     },
@@ -2055,14 +2055,14 @@
       "challenge_id": 119,
       "stakeholder_id": "model_monica",
       "artifact_type": "meeting_notes",
-      "content": "I want the hand-over from the drift alert to the retraining trigger to be automated. Right now, a human has to see the alert and then manually kick off the retraining job. That delay is unacceptable. When the model detects that demand has shifted, the next version should start training immediately. Every hour we wait is an hour where the forecast is serving stale numbers to the ordering system. I need that connection to be seamless. The more instant the response to drift, the better the predictive performance will be over the long term. I am not looking for a compromise here; I want the full pipeline to react without human latency.",
+      "content": "I want the hand-over from the drift monitor to the alerting system to be automated. Right now, a human has to notice the drift reading and then raise the alert by hand. That delay is unacceptable. When the monitor detects that demand has shifted, the alert should go out immediately so a new version can start training. Every hour we wait is an hour where the forecast is serving stale numbers to the ordering system. I need that connection to be seamless. The more instant the response to drift, the better the predictive performance will be over the long term. I am not looking for a compromise here; I want the pipeline to react without human latency.",
       "humor_archetype": null,
       "humor_verdict": null,
       "humor_review_reason": null,
       "wrong_descriptions": {
-        "boundary": "She will not accept an automated retraining trigger without a rollback mechanism in place.",
-        "trade_off": "She would accept a manual retraining trigger if the model performance is stable and drift is low.",
-        "fact": "That is simply the current state of the retraining trigger hand-over."
+        "boundary": "She will not accept an automated drift alert without a rollback mechanism in place.",
+        "trade_off": "She would accept a manual drift alert if the model performance is stable and drift is low.",
+        "fact": "That is simply the current state of the drift to alert hand-over."
       },
       "is_known": false
     },

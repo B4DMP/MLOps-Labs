@@ -5,6 +5,7 @@ import { StakeholderContext } from "./StakeholderProvider";
 import HoverTooltip from "./HoverToolTip";
 import { intelTagMeta } from "../types/IntelTag";
 import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
+import NarratedText from "./NarratedText";
 import OnceIcon from "./Results/OnceIcon";
 import PUZZLE_SQUARE_ICON from "./Results/icons/puzzle-square.json";
 import WARNING_TRIANGLE_ICON from "./Results/icons/warning-triangle.json";
@@ -68,6 +69,13 @@ export default function IntelVerificationDialog({
       s.name?.toLowerCase().replace(/_/g, " ") === resultData.stakeholderName.toLowerCase().replace(/_/g, " ") ||
       s.id?.toLowerCase().replace(/_/g, " ") === resultData.stakeholderName.toLowerCase().replace(/_/g, " ")
   );
+
+  const sourceName = stakeholder?.name || resultData.stakeholderName;
+  const narrationLead = `${
+    wasCorrect
+      ? `Correct stance identified. You correctly identified this stance as ${trueMeta.label}. The item is now verified in your dossier.`
+      : `Categorization corrected. Originally tagged as ${oldMeta.label}, corrected to ${trueMeta.label}. Updated and verified in your dossier.`
+  } Stance statement from ${sourceName}.`;
 
   return (
     <div
@@ -200,7 +208,9 @@ export default function IntelVerificationDialog({
                   <Icon icon="ph:quotes-bold" />
                   Stance Statement
                 </span>
-                <p className={styles.descriptionText}>{resultData.description}</p>
+                <p className={styles.descriptionText}>
+                  <NarratedText text={resultData.description} lead={narrationLead} />
+                </p>
               </div>
             </div>
           </div>

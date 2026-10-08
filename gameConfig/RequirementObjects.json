@@ -106,14 +106,14 @@
       "challenge_id": 114,
       "stakeholder_id": "efficiency_emilia",
       "type": "trade_off",
-      "description": "{efficiency_emilia} proposed a middle ground on how far the data contracts audit goes. She would accept the audit staying partial if the leaflet planning cycle keeps moving.",
-      "fact": "{efficiency_emilia} proposed a middle ground on how far the data contracts audit goes.",
-      "reading": "She would accept the audit staying partial if the leaflet planning cycle keeps moving.",
+      "description": "{efficiency_emilia} proposed a middle ground on how far the risk review goes. She would accept the risk review running partly on its own, with a person still checking the results, if the leaflet planning cycle keeps moving.",
+      "fact": "{efficiency_emilia} proposed a middle ground on how far the risk review goes.",
+      "reading": "She would accept the risk review running partly on its own, with a person still checking the results, if the leaflet planning cycle keeps moving.",
       "ops": [],
       "concedes": {
-        "target": "req.data_contracts",
+        "target": "req.risk_assessment",
         "axis": "automation",
-        "accepts_max_level": 1
+        "accepts_max_level": 2
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -125,27 +125,27 @@
       "challenge_id": 114,
       "stakeholder_id": "efficiency_emilia",
       "type": "boundary",
-      "description": "{efficiency_emilia} proposed that the hand-off into ingestion carry a formal sign off. She will not accept that hand-off shipping data without that formal sign off in place.",
-      "fact": "{efficiency_emilia} proposed that the hand-off into ingestion carry a formal sign off.",
-      "reading": "She will not accept that hand-off shipping data without that formal sign off in place.",
+      "description": "{efficiency_emilia} proposed that the data contracts check keep a person in the loop for now. She will not accept it running fully on its own before the weekly leaflet is out.",
+      "fact": "{efficiency_emilia} proposed that the data contracts check keep a person in the loop for now.",
+      "reading": "She will not accept it running fully on its own before the weekly leaflet is out.",
       "holds": {
-        "edge": "e.contracts_ingest",
-        "axis": "governance",
-        "op": "gte",
-        "level": 3
+        "component": "req.data_contracts",
+        "axis": "automation",
+        "op": "lte",
+        "level": 2
       },
       "ops": [
         {
           "kind": "raise_to",
-          "target": "e.contracts_ingest",
-          "axis": "governance",
-          "value": 3
+          "target": "req.data_contracts",
+          "axis": "automation",
+          "value": 2
         }
       ],
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
-      "gist": "The hand off into ingestion for loyalty data keeps coming up in efficiency discussions."
+      "gist": "How far the data contracts check can run on its own keeps coming up in efficiency discussions."
     },
     {
       "id": "gen_loyalty_consent_gap_alex_driver",
@@ -229,21 +229,21 @@
       "challenge_id": 114,
       "stakeholder_id": "reliability_ruth",
       "type": "boundary",
-      "description": "{reliability_ruth} proposed that the hand-off into model evaluation carry a formal sign off. She will not accept that hand-off shipping an evaluation without that formal sign off in place.",
-      "fact": "{reliability_ruth} proposed that the hand-off into model evaluation carry a formal sign off.",
-      "reading": "She will not accept that hand-off shipping an evaluation without that formal sign off in place.",
+      "description": "{reliability_ruth} proposed that the acceptance criteria stop being checked by hand. She will not accept sign off that still rests on a manual check.",
+      "fact": "{reliability_ruth} proposed that the acceptance criteria stop being checked by hand.",
+      "reading": "She will not accept sign off that still rests on a manual check.",
       "holds": {
-        "edge": "e.acceptance_eval",
-        "axis": "governance",
+        "component": "req.acceptance_criteria",
+        "axis": "automation",
         "op": "gte",
-        "level": 3
+        "level": 2
       },
       "ops": [
         {
           "kind": "raise_to",
-          "target": "e.acceptance_eval",
-          "axis": "governance",
-          "value": 3
+          "target": "req.acceptance_criteria",
+          "axis": "automation",
+          "value": 2
         }
       ],
       "branch_x_atoms": [],
@@ -807,11 +807,11 @@
       "challenge_id": 120,
       "stakeholder_id": "requirements_reuben",
       "type": "boundary",
-      "description": "{requirements_reuben} proposed that versioning must be fully governed. He will not accept versioning without full governance.",
-      "fact": "{requirements_reuben} proposed that versioning must be fully governed.",
-      "reading": "He will not accept versioning without full governance.",
+      "description": "{requirements_reuben} proposed that data validation must be fully governed. He will not accept validation without full governance.",
+      "fact": "{requirements_reuben} proposed that data validation must be fully governed.",
+      "reading": "He will not accept validation without full governance.",
       "holds": {
-        "component": "data.versioning",
+        "component": "data.validation",
         "axis": "governance",
         "op": "gte",
         "level": 3
@@ -819,7 +819,7 @@
       "ops": [
         {
           "kind": "raise_to",
-          "target": "data.versioning",
+          "target": "data.validation",
           "axis": "governance",
           "value": 3
         }
@@ -1777,27 +1777,21 @@
       "challenge_id": 115,
       "stakeholder_id": "automation_alex",
       "type": "driver",
-      "description": "{automation_alex} asked for the deployment pipeline to run from model registry to serving endpoint without manual intervention. Restoring the nightly forecast job before the promotion week is the only way to avoid blind ordering at the stores.",
-      "fact": "{automation_alex} asked for the deployment pipeline to run from model registry to serving endpoint without manual intervention.",
+      "description": "{automation_alex} asked for the deployment pipeline to run from CI/CD to the serving endpoint without manual intervention. Restoring the nightly forecast job before the promotion week is the only way to avoid blind ordering at the stores.",
+      "fact": "{automation_alex} asked for the deployment pipeline to run from CI/CD to the serving endpoint without manual intervention.",
       "reading": "Restoring the nightly forecast job before the promotion week is the only way to avoid blind ordering at the stores.",
       "metric_id": "automation",
       "suggested": {
-        "target": "e.registry_cicd",
+        "target": "e.orch_serving",
         "axis": "automation",
         "level": 3
       },
       "ops": [
         {
           "kind": "raise_to",
-          "target": "e.cicd_container",
+          "target": "deploy.cicd",
           "axis": "automation",
-          "value": 3
-        },
-        {
-          "kind": "raise_to",
-          "target": "e.container_orch",
-          "axis": "automation",
-          "value": 3
+          "value": 2
         },
         {
           "kind": "raise_to",
@@ -1809,9 +1803,7 @@
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [
-        "raise_to(e.registry_cicd, 3)",
-        "raise_to(e.cicd_container, 3)",
-        "raise_to(e.container_orch, 3)",
+        "raise_to(deploy.cicd, 2)",
         "raise_to(e.orch_serving, 3)"
       ],
       "gist": "The deployment pipeline from model registry to serving endpoint keeps coming up in discussions with {automation_alex}."
@@ -1905,12 +1897,12 @@
       "challenge_id": 115,
       "stakeholder_id": "requirements_reuben",
       "type": "driver",
-      "description": "{requirements_reuben} asked for a full review of the hand-over from the model registry to the CI/CD pipeline. A formal sign-off at the registry hand-over ensures the consent flag is verified before the build.",
-      "fact": "{requirements_reuben} asked for a full review of the hand-over from the model registry to the CI/CD pipeline.",
-      "reading": "A formal sign-off at the registry hand-over ensures the consent flag is verified before the build.",
+      "description": "{requirements_reuben} asked for a full review of the CI/CD pipeline before anything is built. A formal sign-off on the pipeline ensures the consent flag is verified before the build.",
+      "fact": "{requirements_reuben} asked for a full review of the CI/CD pipeline before anything is built.",
+      "reading": "A formal sign-off on the pipeline ensures the consent flag is verified before the build.",
       "metric_id": "requirements",
       "suggested": {
-        "target": "e.registry_cicd",
+        "target": "deploy.cicd",
         "axis": "governance",
         "level": 3
       },
@@ -1925,14 +1917,14 @@
       "challenge_id": 115,
       "stakeholder_id": "reliability_ruth",
       "type": "driver",
-      "description": "{reliability_ruth} proposed automating the hand-over from the serving endpoint to the API gateway. Automated routing of the forecast service ensures the morning order window is never blocked by manual checks.",
-      "fact": "{reliability_ruth} proposed automating the hand-over from the serving endpoint to the API gateway.",
+      "description": "{reliability_ruth} proposed automating the hand-over from the orchestration layer to the serving endpoint. Automated routing of the forecast service ensures the morning order window is never blocked by manual checks.",
+      "fact": "{reliability_ruth} proposed automating the hand-over from the orchestration layer to the serving endpoint.",
       "reading": "Automated routing of the forecast service ensures the morning order window is never blocked by manual checks.",
       "metric_id": "reliability",
       "suggested": {
-        "target": "e.serving_gateway",
+        "target": "e.orch_serving",
         "axis": "automation",
-        "level": 2
+        "level": 3
       },
       "ops": [],
       "branch_x_atoms": [],
@@ -2483,12 +2475,12 @@
       "challenge_id": 119,
       "stakeholder_id": "reliability_ruth",
       "type": "driver",
-      "description": "{reliability_ruth} proposed that the alerting system be governed with strict sign off. She wants the alerting system to have full governance so that every alert is acknowledged and resolved with a formal record.",
-      "fact": "{reliability_ruth} proposed that the alerting system be governed with strict sign off.",
-      "reading": "She wants the alerting system to have full governance so that every alert is acknowledged and resolved with a formal record.",
+      "description": "{reliability_ruth} proposed that the rollback mechanism be governed with strict sign off. She wants rollbacks to have full governance so that every one is approved and recorded formally.",
+      "fact": "{reliability_ruth} proposed that the rollback mechanism be governed with strict sign off.",
+      "reading": "She wants rollbacks to have full governance so that every one is approved and recorded formally.",
       "metric_id": "reliability",
       "suggested": {
-        "target": "ops.alerting",
+        "target": "ops.rollback",
         "axis": "governance",
         "level": 3
       },
@@ -2538,12 +2530,12 @@
       "challenge_id": 119,
       "stakeholder_id": "model_monica",
       "type": "driver",
-      "description": "{model_monica} suggested that the hand-over from alerting to the retraining trigger be automated to speed up model updates. She wants the hand-over from alerting to the retraining trigger to be automated so the model retrains immediately when drift is detected.",
-      "fact": "{model_monica} suggested that the hand-over from alerting to the retraining trigger be automated to speed up model updates.",
-      "reading": "She wants the hand-over from alerting to the retraining trigger to be automated so the model retrains immediately when drift is detected.",
+      "description": "{model_monica} suggested that the hand-over from drift monitoring to alerting be automated to speed up model updates. She wants that hand-over automated so the team hears about drift the moment it is detected.",
+      "fact": "{model_monica} suggested that the hand-over from drift monitoring to alerting be automated to speed up model updates.",
+      "reading": "She wants that hand-over automated so the team hears about drift the moment it is detected.",
       "metric_id": "model",
       "suggested": {
-        "target": "e.alert_retrain",
+        "target": "e.drift_alert",
         "axis": "automation",
         "level": 2
       },

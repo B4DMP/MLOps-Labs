@@ -27,8 +27,10 @@ from fastapi import WebSocket
 from sqlalchemy import select
 
 from mlops_serious_game.application.pitch_debate_service import store as pitch_store
-from mlops_serious_game.application.playtest_service import auto_card, service
 from mlops_serious_game.application import debug_flags
+from mlops_serious_game.application.pitch_debate_service import card_search as auto_card
+from mlops_serious_game.application.playtest_service import service
+from mlops_serious_game.application.playtest_service.profiles import PlayProfile, profile_named
 from mlops_serious_game.application.services.auth_service import player_id_from_cookies
 from mlops_serious_game.domain.Challenge import Challenge
 from mlops_serious_game.domain.metric_factory import MetricFactory
@@ -44,6 +46,7 @@ from .pitch_handler import (
     get_allowed_targets,
     handle_pitch_commit,
     handle_pitch_set_card,
+    handle_pitch_table_it,
     handle_pitch_veto_breaker,
 )
 from .simulation_handler import handle_simulation_run
@@ -99,13 +102,13 @@ def _current(user_id: int) -> Optional[tuple[Challenge, Optional[GameChallenge]]
     return (challenge, None) if challenge else None
 
 
-def _prepare(user_id: int, challenge: Challenge) -> PitchContext:
+def _prepare(user_id: int, challenge: Challenge, profile: PlayProfile) -> PitchContext:
     """Fills the dossier, then builds the context the search reads."""
-    service.auto_gather(user_id, challenge)
+    service.auto_gather(user_id, challenge, profile)
     return PitchContext(user_id, challenge.phase_id, challenge.id)
 
 
-def _search(user_id: int, ctx: PitchContext) -> Optional[auto_card.CardSearchResult]:
+def _search(user_id: int, ctx: PitchContext, profile: PlayProfile) -> Optional[auto_card.CardSearchResult]:
     with get_session() as session:
         run = current_run_index(session, user_id)
     return auto_card.search_card(
@@ -117,6 +120,10 @@ def _search(user_id: int, ctx: PitchContext) -> Optional[auto_card.CardSearchRes
         allowed=get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel)),
         # Reproducible for a given player, run and challenge.
         seed=f"{user_id}:{run}:{ctx.challenge_id}",
+        # A veto is pushed through with an Escalation Point, so aim for one only while any are left.
+        prefer="soft" if profile.prefer == "veto" and pitch_store.escalation_points(user_id) <= 0 else profile.prefer,
+        phase_limit=ctx.phase_id,
+        par=getattr(ctx.challenge, "par_outcome", "PASS"),
     )
 
 
@@ -136,8 +143,9 @@ async def handle_playtest_auto_card(websocket: WebSocket, user_id: int, payload:
         return
     challenge, _row = current
 
-    ctx = await asyncio.to_thread(_prepare, user_id, challenge)
-    result = await asyncio.to_thread(_search, user_id, ctx)
+    profile = profile_named(payload.get("profile"))
+    ctx = await asyncio.to_thread(_prepare, user_id, challenge, profile)
+    result = await asyncio.to_thread(_search, user_id, ctx, profile)
 
     if result is None or not result.found_non_veto:
         # Said plainly instead of slotting a card that would be vetoed: there may simply be no
@@ -218,12 +226,13 @@ async def handle_playtest_skip_challenge(websocket: WebSocket, user_id: int, pay
     challenge, row = current
     ids = {"phase_id": challenge.phase_id, "challenge_id": challenge.id}
 
-    ctx = await asyncio.to_thread(_prepare, user_id, challenge)
+    profile = profile_named(payload.get("profile"))
+    ctx = await asyncio.to_thread(_prepare, user_id, challenge, profile)
     pitched = pitch_store.load_pitch(user_id, challenge.phase_id, challenge.id)
     already_through = bool(pitched and pitched.stage == "DONE" and pitched.outcome in NON_VETO)
 
     if not already_through:
-        result = await asyncio.to_thread(_search, user_id, ctx)
+        result = await asyncio.to_thread(_search, user_id, ctx, profile)
         if result is None:
             await manager.send_event(
                 websocket=websocket,
@@ -236,6 +245,9 @@ async def handle_playtest_skip_challenge(websocket: WebSocket, user_id: int, pay
 
         if not result.found_non_veto:
             broke_it = await _break_the_stood_veto(websocket, user_id, ids)
+            # Out of Escalation Points: table it, the same exit a stuck human has.
+            if not broke_it and await handle_pitch_table_it(websocket, user_id, ids):
+                broke_it = True
             if not broke_it:
                 await manager.send_event(
                     websocket=websocket,
@@ -274,7 +286,7 @@ async def handle_playtest_skip_challenge(websocket: WebSocket, user_id: int, pay
 _QUESTIONNAIRE_TARGETS = {"intro": 0, "outro": 3}
 
 
-async def handle_playtest_jump_to_questionnaire(websocket: WebSocket, username: str, payload: dict) -> None:
+async def handle_playtest_jump_to_questionnaire(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Jumps straight to the intro or outro questionnaire, to eyeball its content/UI without
     playing through a whole session to reach it. Writes a real `GameProgression` row (the same
     thing `handle_progress_update` does for a normal transition), so it taints the account the
@@ -282,7 +294,7 @@ async def handle_playtest_jump_to_questionnaire(websocket: WebSocket, username: 
     """
     if not await _allowed(websocket):
         return
-    service.taint_user(username)
+    service.taint_user(user_id)
 
     target = payload.get("target")
     index = _QUESTIONNAIRE_TARGETS.get(target)
@@ -291,10 +303,8 @@ async def handle_playtest_jump_to_questionnaire(websocket: WebSocket, username: 
         return
 
     with get_session() as session:
-        user_id = get_user_id(session, username)
         session.add(
             GameProgression(
-                user_name=username,
                 user_id=user_id,
                 run_index=current_run_index(session, user_id),
                 game_progress_index=index,
