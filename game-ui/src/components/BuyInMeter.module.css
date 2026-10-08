@@ -1,0 +1,155 @@
+.meter {
+  background: #fffdf8;
+  border: 1.5px dashed #94a3b8;
+  border-radius: 6px;
+  margin: 3px 0 6px 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 5px;
+}
+.rowLive {
+  cursor: help;
+}
+.rowLive:focus-visible {
+  outline: 2px solid #94a3b8;
+  outline-offset: -2px;
+}
+
+.title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.notchesWrap {
+  flex: 1;
+  min-width: 60px;
+  display: flex;
+}
+
+.notches {
+  position: relative;
+  display: flex;
+  gap: 2px;
+  flex: 1;
+}
+.notch {
+  flex: 1;
+  height: 8px;
+  border-radius: 2px;
+  background: #e2e8f0;
+  box-shadow: inset 0 0 0 1px #cbd5e1;
+  transition: background 0.35s ease;
+}
+.notchOn_resistant { background: #dc2626; box-shadow: none; }
+.notchOn_wavering { background: #f59e0b; box-shadow: none; }
+.notchOn_persuaded { background: #16a34a; box-shadow: none; }
+
+/* The veto line: dark tick crossing the notches at the stakeholder's threshold. */
+.line {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  margin-left: -1px;
+  background: #0f172a;
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+.stance {
+  font-size: 0.66rem;
+  font-weight: 700;
+  white-space: nowrap;
+  padding: 1px 8px;
+  border-radius: 999px;
+  color: #fff;
+}
+.stance_resistant { background: #dc2626; }
+.stance_wavering { background: #f59e0b; color: #422006; }
+.stance_persuaded { background: #16a34a; }
+
+.stancePending {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: #64748b;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.moveUp,
+.moveDown {
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.moveUp { color: #15803d; }
+.moveDown { color: #b91c1c; }
+
+/* Hover card. Fixed and portaled; sits above the dossier window (z-index 9999). */
+.cardAnchor {
+  position: fixed;
+  z-index: 10000;
+}
+
+.card {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  background: #fffdf6;
+  border: 1px solid #a9884a;
+  border-radius: 3px 10px 10px 10px;
+  padding: 9px 11px 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+  font-family: 'Inter', system-ui, sans-serif;
+  white-space: normal;
+  cursor: default;
+}
+
+.lineNote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  color: #334155;
+}
+.lineSwatch {
+  width: 2px;
+  height: 11px;
+  background: #0f172a;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.reasons {
+  text-wrap: pretty;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.7rem;
+  color: #334155;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.reasonGlyph { font-weight: 700; }
+.reason_up .reasonGlyph { color: #15803d; }
+.reason_down .reasonGlyph { color: #b91c1c; }
+.reason_flat .reasonGlyph { color: #94a3b8; }
+
+.hint {
+  text-wrap: balance;
+  font-size: 0.66rem;
+  color: #64748b;
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 6px;
+}

@@ -120,6 +120,11 @@ def buy_in_band(value: float) -> str:
     return "very_high"
 
 
+def objection_line(power: str) -> float:
+    """Buy-in below this makes a stakeholder of this power veto (high) or object (low)."""
+    return VETO_THRESHOLD if power == "high" else OBJECTION_THRESHOLD
+
+
 def outcome(
     room: list[tuple[str, str, float, bool]],
     veto_threshold: float = VETO_THRESHOLD,

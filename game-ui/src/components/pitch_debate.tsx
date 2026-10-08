@@ -133,6 +133,8 @@ interface PitchStatePayload {
     band: "green" | "amber" | "red";
     /** Word band from the server; the client keeps no thresholds of its own. */
     buy_in_band?: BuyInBand;
+    /** Buy-in (0 to 1) below which they veto (high power) or object (low). */
+    threshold?: number;
     /** Impatience step, 0 up to the server's cap. */
     impatience?: number;
     /** Nothing new for them last evaluate: no reply, earlier reading stands. */
@@ -1137,6 +1139,8 @@ export default function PitchDebate({
             band: r.buy_in_band,
             alignment: r.alignment,
             emotions: r.emotions,
+            threshold: r.threshold,
+            power: r.power,
             impatience: r.impatience,
             isPersuaded: r.band === "green",
             blocks: r.band === "red",

@@ -19,6 +19,7 @@ from mlops_serious_game.application.pitch_debate_service.scoring import (
     buy_in,
     buy_in_band,
     emotions_norm,
+    objection_line,
     outcome as calc_outcome,
 )
 from mlops_serious_game.domain.emotion import (
@@ -95,6 +96,7 @@ class StakeholderRead(BaseModel):
     emotional_state: str = "neutral"
     emotion_values: dict[str, float] = Field(default_factory=dict)
     buy_in_band: str = "medium"
+    threshold: float = Field(default=0.4, description="Buy-in below this makes them veto or object")
     impatience: int = Field(default=0, description="Impatience steps on show (0 to the configured cap)")
 
 
@@ -805,6 +807,7 @@ def stakeholder_reads(
             emotional_state=st_state,
             emotion_values=ev,
             buy_in_band=buy_in_band(bi),
+            threshold=objection_line(power),
             impatience=min(steps, EmotionFactory.get_pitch_tuning().impatience_cap),
         ))
     return reads

@@ -188,6 +188,12 @@ def test_buy_in_band_cut_points(value, band):
     assert buy_in_band(value) == band
 
 
+def test_reads_carry_the_line_their_power_vetoes_at(real):
+    _, view, _ = _pitch(real, BASE)
+    for read in view.reads:
+        assert read.threshold == (0.4 if read.power == "high" else 0.3)
+
+
 def test_reads_carry_their_band(real):
     _, view, _ = _pitch(real, BASE)
     for read in view.reads:

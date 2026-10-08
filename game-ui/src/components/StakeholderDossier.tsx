@@ -15,6 +15,7 @@ import { faceForEmotionState, iconForEmotionState } from "../utils/emotionFace";
 import { healthBucket, healthBucketColor, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
 import CheatSheetModal from "./CheatSheetModal";
 import HoverTooltip from "./HoverToolTip";
+import BuyInMeter, { type StakeholderBuyInInfo } from "./BuyInMeter";
 
 /** Answer key for one authored item. Only sent when the API runs with ENABLE_DOSSIER_DEBUG. */
 export interface IntelDebugInfo {
@@ -128,25 +129,8 @@ export interface StakeholderDossierEntry {
   debug?: StakeholderDebugInfo;
 }
 
-export type BuyInBand = "very_low" | "low" | "medium" | "high" | "very_high";
-
-// The card renders from `band` alone; every numeric field is optional.
-export interface StakeholderBuyInInfo {
-  band?: BuyInBand;
-  /** Impatience step from the server (0 clears the tag). */
-  impatience?: number;
-  /** How well the card meets their demands, -1 to 1. */
-  alignment?: number;
-  /** Mood, 0 (bad) to 1 (good). */
-  emotions?: number;
-  total?: number;
-  isPersuaded?: boolean;
-  // High power vetoes, low power only objects.
-  blocks?: boolean;
-  currentEmotion?: string;
-  boundaryViolated?: boolean;
-  isRevealed?: boolean;
-}
+export { BUY_IN_BAND_META, resolveBuyIn } from "./BuyInMeter";
+export type { BuyInBand, BuyInTone, StakeholderBuyInInfo } from "./BuyInMeter";
 
 export interface StakeholderDossierProps {
   isOpen: boolean;
@@ -279,174 +263,6 @@ const ARTIFACT_TYPE_LABEL: Record<string, string> = {
   slack_message: "Slack message",
   meeting_notes: "meeting notes",
   document: "document",
-};
-
-/**
- * Where a note came from. The stamp already says how sure the player can be; this says how it
- * got here, which the stamp cannot: two confirmed notes can have arrived by very different
- * routes. Player language, one line, no system words.
- */
-export const BUY_IN_BAND_META: Record<BuyInBand, { label: string; stance: string; notches: number }> = {
-  very_low: { label: "Very low", stance: "Against you", notches: 1 },
-  low: { label: "Low", stance: "Leaning against", notches: 2 },
-  medium: { label: "Medium", stance: "On the fence", notches: 3 },
-  high: { label: "High", stance: "Leaning your way", notches: 4 },
-  very_high: { label: "Very high", stance: "Fully behind you", notches: 5 },
-};
-
-type ReasonDir = "up" | "down" | "flat";
-const REASON_GLYPH: Record<ReasonDir, string> = { up: "▲", down: "▼", flat: "•" };
-
-const BuyInReason: React.FC<{ dir: ReasonDir; text: string }> = ({ dir, text }) => (
-  <li className={styles[`buyInReason_${dir}`]}>
-    <span className={styles.buyInReasonGlyph}>{REASON_GLYPH[dir]}</span> {text}
-  </li>
-);
-
-const fitReason = (alignment: number): { dir: ReasonDir; text: string } =>
-  alignment < -0.33
-    ? { dir: "down", text: "Your proposal goes against what they asked for" }
-    : alignment < 0.33
-    ? { dir: "flat", text: "Your proposal meets only part of what they asked for" }
-    : { dir: "up", text: "Your proposal meets most of what they asked for" };
-
-const moodReason = (emotions: number, feeling?: string): { dir: ReasonDir; text: string } => {
-  const word = feeling ? ` (${feeling.toLowerCase()})` : "";
-  return emotions < 0.4
-    ? { dir: "down", text: `They are in a bad mood${word}` }
-    : emotions <= 0.6
-    ? { dir: "flat", text: `Their mood is neutral${word}` }
-    : { dir: "up", text: `They are in a good mood${word}` };
-};
-
-const BUY_IN_NEXT_STEP: Record<BuyInTone, string> = {
-  resistant: "Rework the proposal toward what they asked for, or ease their mood before you commit.",
-  wavering: "Close. A better fit or a calmer mood tips them your way.",
-  persuaded: "Good for now. Changes that cross them would undo it.",
-};
-
-const BUY_IN_ORDER: BuyInBand[] = ["very_low", "low", "medium", "high", "very_high"];
-
-export type BuyInTone = "resistant" | "wavering" | "persuaded";
-
-// Band wins; the old flags only fill in when the server sent no band.
-export const resolveBuyIn = (info: StakeholderBuyInInfo): { band: BuyInBand; tone: BuyInTone } => {
-  const band: BuyInBand =
-    info.band ?? (info.blocks ? "low" : info.isPersuaded ? "high" : "medium");
-  const tone: BuyInTone =
-    info.boundaryViolated || info.blocks || band === "very_low" || band === "low"
-      ? "resistant"
-      : band === "medium"
-      ? "wavering"
-      : "persuaded";
-  return { band, tone };
-};
-
-// Open/closed choice is shared across stakeholder tabs so it is made once.
-let buyInExpandedPref = false;
-
-// Five notches, one per band. When the band moves between renders, shows which way it went.
-const BuyInMeter: React.FC<{ info: StakeholderBuyInInfo }> = ({ info }) => {
-  const { band, tone } = resolveBuyIn(info);
-  const meta = BUY_IN_BAND_META[band];
-  const isBoundaryViolated = Boolean(info.boundaryViolated);
-  const isRevealed = info.isRevealed ?? false;
-  const prevBand = useRef<BuyInBand | null>(null);
-  const [move, setMove] = useState<{ dir: "up" | "down"; from: string } | null>(null);
-  const [expanded, setExpanded] = useState(buyInExpandedPref);
-  const toggle = () => {
-    buyInExpandedPref = !expanded;
-    setExpanded(buyInExpandedPref);
-  };
-
-  useEffect(() => {
-    if (!isRevealed) {
-      prevBand.current = null;
-      setMove(null);
-      return;
-    }
-    const prev = prevBand.current;
-    if (prev && prev !== band) {
-      setMove({
-        dir: BUY_IN_ORDER.indexOf(band) > BUY_IN_ORDER.indexOf(prev) ? "up" : "down",
-        from: BUY_IN_BAND_META[prev].stance,
-      });
-    }
-    prevBand.current = band;
-  }, [band, isRevealed]);
-
-  const filled = isRevealed && !isBoundaryViolated ? meta.notches : 0;
-  const stanceText = isBoundaryViolated ? "Line crossed" : meta.stance;
-
-  const stanceTone = isBoundaryViolated ? "resistant" : tone;
-
-  return (
-    <div className={styles.buyInCard}>
-      <button
-        type="button"
-        className={styles.buyInRow}
-        onClick={() => isRevealed && toggle()}
-        disabled={!isRevealed}
-        aria-expanded={isRevealed ? expanded : undefined}
-      >
-        <span className={styles.buyInTitle}>
-          <EmojiIcon name="balanceScale" /> Where they stand
-        </span>
-        <span
-          className={styles.buyInNotches}
-          role="meter"
-          aria-valuemin={0}
-          aria-valuemax={5}
-          aria-valuenow={filled}
-          aria-valuetext={isRevealed ? stanceText : "Not yet revealed"}
-        >
-          {[1, 2, 3, 4, 5].map((n) => (
-            <span
-              key={n}
-              className={`${styles.buyInNotch} ${n <= filled ? styles[`buyInNotchOn_${tone}`] : ""}`}
-            />
-          ))}
-        </span>
-        {isRevealed ? (
-          <>
-            {move && (
-              <span
-                className={move.dir === "up" ? styles.buyInMoveUp : styles.buyInMoveDown}
-                title={`${move.dir === "up" ? "Warmer" : "Cooler"} than before (${move.from})`}
-              >
-                {move.dir === "up" ? "▲" : "▼"}
-              </span>
-            )}
-            <span className={`${styles.buyInStance} ${styles[`buyInStance_${stanceTone}`]}`}>{stanceText}</span>
-            <Icon icon={expanded ? "ph:caret-up-bold" : "ph:caret-down-bold"} className={styles.buyInCaret} />
-          </>
-        ) : (
-          <span className={styles.buyInStancePending}>
-            <Icon icon="ph:lock-simple-bold" /> Pick a card to see
-          </span>
-        )}
-      </button>
-      {isRevealed && expanded && (
-        <div className={styles.buyInDetail}>
-          <div className={styles.buyInScale}>
-            <span>Against you</span>
-            <span>Behind you</span>
-          </div>
-          <ul className={styles.buyInReasons}>
-            {isBoundaryViolated && <BuyInReason dir="down" text="A line of theirs is crossed, whatever else you offer" />}
-            {info.alignment !== undefined && (
-              <BuyInReason {...fitReason(info.alignment)} />
-            )}
-            {info.emotions !== undefined && (
-              <BuyInReason {...moodReason(info.emotions, info.currentEmotion)} />
-            )}
-            {Boolean(info.impatience) && <BuyInReason dir="down" text="They are tired of hearing the same problem again" />}
-          </ul>
-          <div className={styles.buyInHint}>{BUY_IN_NEXT_STEP[tone]}</div>
-        </div>
-      )}
-    </div>
-  );
 };
 
 const PATIENCE_DETAIL = "Bringing them the same problem again wears on them. Answer what they asked for and it eases.";
