@@ -390,8 +390,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
+  gap: 0.4rem;
+  flex-wrap: nowrap;
 }
 
 .statChipToken,
@@ -591,6 +591,25 @@
   text-align: center;
   max-width: 112px;
   line-height: 1.15;
+  position: relative;
+}
+
+/* Patience warning pinned to the nameplate's corner, so it adds no row under the seat. */
+.patienceBadge {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #1c1305;
+  border: 1.5px solid #f59e0b;
+  color: #fbbf24;
+  font-size: 0.7rem;
+  cursor: help;
 }
 
 .deskNameplateRow {
@@ -982,33 +1001,6 @@
 .statChipMuted {
   opacity: 0.55;
   filter: grayscale(0.6);
-}
-
-.seatChips {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.2rem;
-  margin-top: 0.2rem;
-  max-width: 112px;
-}
-
-.seatChip {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid #cbd5e1;
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 999px;
-  padding: 0.05rem 0.3rem;
-  font-size: 0.7rem;
-  line-height: 1.3;
-  cursor: help;
-}
-
-.seatChipPatience {
-  border-color: #f59e0b;
-  color: #fbbf24;
-  cursor: default;
 }
 
 .speechBarGroup {

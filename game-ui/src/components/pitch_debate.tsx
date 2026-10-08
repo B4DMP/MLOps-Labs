@@ -1495,6 +1495,20 @@ export default function PitchDebate({
             borderColor: stakeholderColor,
           }}
         >
+          {patienceLabel && (
+            <span
+              className={styles.patienceBadge}
+              tabIndex={0}
+              role="img"
+              aria-label={patienceLabel}
+              onMouseEnter={(e) => showInfoTag(e, patienceLabel)}
+              onMouseLeave={hideInfoTag}
+              onFocus={(e) => showInfoTag(e, patienceLabel)}
+              onBlur={hideInfoTag}
+            >
+              <Icon icon="ph:hourglass-low-bold" />
+            </span>
+          )}
           {nameGivenName ? (
             <>
               <span className={styles.deskNameplateLine}>{nameRoleWord}</span>
@@ -1511,11 +1525,6 @@ export default function PitchDebate({
           )}
         </div>
 
-        {patienceLabel && (
-          <div className={styles.seatChips}>
-            <span className={`${styles.seatChip} ${styles.seatChipPatience}`}>{patienceLabel}</span>
-          </div>
-        )}
       </div>
     );
   };
@@ -2049,6 +2058,7 @@ export default function PitchDebate({
                               <div className={styles.statChipsRowCentered}>
                                 <div
                                   className={styles.statChipToken}
+                                  aria-label={`${tokens} Attention Tokens`}
                                   tabIndex={0}
                                   role="status"
                                   onMouseEnter={(e) => showInfoTag(e, "Attention Tokens", `${tokens} available to spend this phase`)}
@@ -2058,7 +2068,6 @@ export default function PitchDebate({
                                 >
                                   <Icon icon="ph:coin-fill" className={styles.tokenStatIcon} />
                                   <span className={styles.statNumber}>{tokens}</span>
-                                  <span className={styles.statLabel}>Tokens</span>
                                 </div>
 
                                 <div
@@ -2103,6 +2112,7 @@ export default function PitchDebate({
                                 {!isIntro && escalationPoints !== null && (
                                   <div
                                     className={`${styles.statChipEscalation} ${escalationPoints === 0 ? styles.statChipMuted : ""}`}
+                                    aria-label={`${escalationPoints} ${ESCALATIONS.label}`}
                                     tabIndex={0}
                                     role="status"
                                     onMouseEnter={(e) => showInfoTag(e, ESCALATIONS.label, ESCALATIONS.chipHint(escalationPoints))}
@@ -2112,7 +2122,6 @@ export default function PitchDebate({
                                   >
                                     <Icon icon="ph:lightning-bold" className={styles.intelStatIcon} />
                                     <span className={styles.statNumber}>{escalationPoints}</span>
-                                    <span className={styles.statLabel}>{ESCALATIONS.label}</span>
                                   </div>
                                 )}
                               </div>
