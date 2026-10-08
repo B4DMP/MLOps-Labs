@@ -1430,6 +1430,8 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             # `intel_items` (plan 05), it just no longer inflates the denominator past what this
             # challenge holds.
             "intel_total": len(st_pool),
+            # Found notes of this pool, resolved ones included, so the UI's "not found" count is exact.
+            "intel_found": len({r.id for r in st_pool} & held_ids),
             "focus_stage_ids": focus_stage_ids,
         })
 
@@ -1451,6 +1453,7 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             "metric_id": "",
             "intel_items": challenge_intel_entries,
             "intel_total": len(fact_pool),
+            "intel_found": len({r.id for r in fact_pool} & held_ids),
             "focus_stage_ids": focus_stage_ids,
         })
 

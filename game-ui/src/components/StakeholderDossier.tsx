@@ -119,6 +119,8 @@ export interface StakeholderDossierEntry {
   intel_items: IntelEntry[];
   /** How many notes this stakeholder has in the challenge, found or not. */
   intel_total?: number;
+  /** Pool notes the player holds, resolved ones included. */
+  intel_found?: number;
   /** The Challenge-Intel page: Facts about the system, not about anybody. */
   is_challenge_intel?: boolean;
   /** Stages this challenge is about, which the stage filter starts on. */
@@ -516,7 +518,7 @@ const getIntelPips = (st: StakeholderDossierEntry): IntelPipStatus[] => {
   const found = (st.intel_items || [])
     .filter((item) => !isResolvedStatus(item.status))
     .map(getIntelPipStatus);
-  const hiddenCount = Math.max(0, (st.intel_total ?? 0) - found.length);
+  const hiddenCount = Math.max(0, (st.intel_total ?? 0) - (st.intel_found ?? found.length));
   return [...found, ...Array<IntelPipStatus>(hiddenCount).fill("hidden")].sort(
     (a, b) => INTEL_PIP_ORDER.indexOf(a) - INTEL_PIP_ORDER.indexOf(b)
   );

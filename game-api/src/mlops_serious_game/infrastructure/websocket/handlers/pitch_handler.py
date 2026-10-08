@@ -293,6 +293,7 @@ def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView,
         [r for r in ctx.all_intel if not is_edge_requirement(r)]
         if is_first_playthrough(ctx.user_id) else ctx.all_intel
     )
+    counted_pool = {r.id for r in visible_intel if speaker_of(r)}
     allowed_targets = get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel))
     upstream_map = {c.id: pitch.find_pipeline_predecessors(ctx.graph, c.id) for c in ctx.graph.components}
 
@@ -320,13 +321,13 @@ def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView,
         # Same attribution the dossier uses (`speaker_of`): a Fact has no `stakeholder_id` of its
         # own but still counts against its narrator, or the dossier's per-stakeholder totals run
         # ahead of this one.
-        "intel_total": len([r for r in visible_intel if speaker_of(r)]),
-        "intel_verified": len([
-            i for i in held
-            if getattr(i, "challenge_id", None) == ctx.challenge_id
-            and speaker_of(i)
+        "intel_total": len(counted_pool),
+        # Only notes from the counted pool, so verified can never exceed the total.
+        "intel_verified": len({
+            i.id for i in held
+            if i.id in counted_pool
             and counts_toward_readiness(getattr(i, "intel_type", None))
-        ]),
+        }),
         "emotion_deltas": state.emotion_deltas,
         "outcome": state.outcome,
         "presentation_count": getattr(state, "presentation_count", 0),
