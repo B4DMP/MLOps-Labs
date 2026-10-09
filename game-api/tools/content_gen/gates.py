@@ -81,6 +81,24 @@ def run_gates(config_dir, work_dir, scope: str, scope_data: dict | None = None) 
         if not c.get("conflict") or c["conflict"]["type"] not in ctx.scope["conflict_types"]:
             report.errors.append(f"conflict: {c['template_id']} has no usable conflict")
 
+    # 7b. The incident is on record: what the opening world event broke is a Fact the player can read
+    #     from the start, however the conflict is framed.
+    on_record_reqs = {
+        a["requirement_id"]
+        for a in json.loads((ctx.config_dir / "OfflineIntelArtifacts.json").read_text(encoding="utf-8"))["artifacts"]
+        if a.get("is_known")
+    }
+    for c in generated:
+        broken = {op["target"] for op in c.get("on_enter_ops") or [] if op.get("target")}
+        if broken and not any(
+            r.challenge_id == c["id"] and r.type == "fact" and r.asserts is not None
+            and r.asserts.target in broken and r.id in on_record_reqs
+            for r in reqs
+        ):
+            report.errors.append(
+                f"incident: {c['template_id']} opens by breaking {sorted(broken)} but no Fact about it is on record at the start"
+            )
+
     # 8. Voice: no dashes anywhere in generated text.
     texts = [(c["template_id"], c["description"] + " " + c["roundIntroduction"] + " " + c["name"]) for c in generated]
     texts += [(r.id, r.description) for r in reqs]
@@ -122,9 +140,9 @@ def run_gates(config_dir, work_dir, scope: str, scope_data: dict | None = None) 
 
     # 8c. Per challenge: items per stakeholder by quadrant, hand-over and composite coverage. Warnings
     #     until content is regenerated under the new shape; `shape_blocks` turns them into errors.
-    from content_gen.solvability import veto_free_errors
+    from content_gen.solvability import repair_errors, room_of, veto_free_errors
     from content_gen.stages.items import (
-        DEFAULT_STANCE_SHAPE, shape_errors, stance_quotas,
+        DEFAULT_STANCE_SHAPE, challenge_state, shape_errors, stance_quotas,
     )
     from mlops_serious_game.domain.requirement import self_contradictions
 
@@ -146,6 +164,10 @@ def run_gates(config_dir, work_dir, scope: str, scope_data: dict | None = None) 
 
         # 8e. The challenge can be passed without a veto (always blocking).
         report.errors += [f"veto: {c['template_id']}: {m}" for m in veto_free_errors(ctx, c, roster, stances)]
+        report.errors += [
+            f"repair: {c['template_id']}: {m}"
+            for m in repair_errors(ctx.graph, challenge_state(ctx, c), stances, room_of(roster), c, c.get("par_outcome", "PASS"))
+        ]
 
     # 9. Voiced Facts: a Fact is dealt under its narrator's name, so the narrator must be in the room.
     phase_of = {c["id"]: c["phase_id"] for c in generated}

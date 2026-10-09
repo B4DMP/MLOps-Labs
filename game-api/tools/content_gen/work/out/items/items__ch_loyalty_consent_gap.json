@@ -351,25 +351,25 @@
         "key": "reuben_boundary",
         "tag": "boundary",
         "stakeholder_id": "requirements_reuben",
-        "fact": "{requirements_reuben} proposed that data contracts carry a formal sign off before anything uses them.",
+        "fact": "{requirements_reuben} proposed that the consent rules be written into the data contracts before anything uses them.",
         "readings": {
-          "driver": "A formal sign off would catch a missing consent field before it ever reaches a report.",
-          "boundary": "He will not accept data contracts being used without that formal sign off in place.",
-          "trade_off": "He would accept a lighter check if the sign off still covers consent fields specifically.",
-          "fact": "That is simply the review data contracts get today, none at all."
+          "driver": "A written contract would catch a missing consent field before it ever reaches a report.",
+          "boundary": "He will not accept loyalty data being used while the data contracts are missing or broken.",
+          "trade_off": "He would accept a lighter contract if it still covers consent fields specifically.",
+          "fact": "That is simply the state of the data contracts today, broken."
         },
         "holds": {
           "component": "req.data_contracts",
-          "axis": "governance",
+          "axis": "automation",
           "op": "gte",
-          "level": 3
+          "level": 2
         },
         "ops": [
           {
             "kind": "raise_to",
             "target": "req.data_contracts",
-            "axis": "governance",
-            "value": 3
+            "axis": "automation",
+            "value": 2
           }
         ]
       },

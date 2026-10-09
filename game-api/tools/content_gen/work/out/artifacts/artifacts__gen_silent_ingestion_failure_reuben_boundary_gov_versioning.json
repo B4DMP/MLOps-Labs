@@ -10,23 +10,23 @@
       "challenge_id": -1,
       "stakeholder_id": "requirements_reuben",
       "type": "boundary",
-      "description": "{requirements_reuben} proposed that versioning must be fully governed. He will not accept versioning without full governance.",
-      "fact": "{requirements_reuben} proposed that versioning must be fully governed.",
-      "reading": "He will not accept versioning without full governance.",
+      "description": "{requirements_reuben} proposed that no scan lines should reach the forecast without a validation step in place. He will not accept a release where the validation step is missing.",
+      "fact": "{requirements_reuben} proposed that no scan lines should reach the forecast without a validation step in place.",
+      "reading": "He will not accept a release where the validation step is missing.",
       "metric_id": null,
       "suggested": null,
       "holds": {
-        "component": "data.versioning",
-        "axis": "governance",
+        "component": "data.validation",
+        "axis": "automation",
         "op": "gte",
-        "level": 3
+        "level": 2
       },
       "ops": [
         {
           "kind": "raise_to",
-          "target": "data.versioning",
-          "axis": "governance",
-          "value": 3
+          "target": "data.validation",
+          "axis": "automation",
+          "value": 2
         }
       ],
       "concedes": null,
@@ -50,7 +50,7 @@
     }
   },
   "output": {
-    "content": "I need to be explicit about the versioning controls for the feature store. We will not proceed with any deployment where model or data versioning lacks formal sign off. This is a hard line for compliance. If the versioning process is not fully governed, meaning every change is reviewed and approved by the designated owners before it reaches production, I will block the release. There is no middle ground here. We cannot have untracked changes in a system that handles personal data and drives financial commitments. The governance must be complete and auditable, or the feature store remains offline for us.",
+    "content": "I need to be explicit about the validation of the incoming scan lines. We will not proceed with any run where there is no validation step in place before the data moves on. This is a hard line for compliance. If the validation step is missing, meaning bad rows can reach the forecast without anyone or anything checking them, I will block the release. There is no middle ground here. We cannot have unchecked data in a system that handles personal data and drives financial commitments. A step that is in place and checks every load is the minimum, or the pipeline stays offline for us.",
     "reclassified_as": "boundary",
     "reclassify_reason": "The text explicitly defines a non-negotiable condition (formal sign-off and complete governance) whose violation results in a refusal to proceed or release, establishing a hard limit rather than a preference or trade-off."
   }

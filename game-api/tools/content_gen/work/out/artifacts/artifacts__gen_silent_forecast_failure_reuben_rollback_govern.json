@@ -10,27 +10,27 @@
       "challenge_id": -1,
       "stakeholder_id": "requirements_reuben",
       "type": "boundary",
-      "description": "{requirements_reuben} brought up that the rollback mechanism must be governed with full sign off. He will not allow the rollback mechanism to be used without a formal sign off from the security team.",
-      "fact": "{requirements_reuben} brought up that the rollback mechanism must be governed with full sign off.",
-      "reading": "He will not allow the rollback mechanism to be used without a formal sign off from the security team.",
+      "description": "{requirements_reuben} brought up that a failing forecast must never go unnoticed, so alerting has to be in place. He will not accept a release while alerting is missing or broken, even if a person has to raise the alarm by hand.",
+      "fact": "{requirements_reuben} brought up that a failing forecast must never go unnoticed, so alerting has to be in place.",
+      "reading": "He will not accept a release while alerting is missing or broken, even if a person has to raise the alarm by hand.",
       "metric_id": "requirements",
       "suggested": {
-        "target": "ops.rollback",
-        "axis": "governance",
-        "level": 3
+        "target": "ops.alerting",
+        "axis": "automation",
+        "level": 2
       },
       "holds": {
-        "component": "ops.rollback",
-        "axis": "governance",
+        "component": "ops.alerting",
+        "axis": "automation",
         "op": "gte",
-        "level": 3
+        "level": 2
       },
       "ops": [
         {
           "kind": "raise_to",
-          "target": "ops.rollback",
-          "axis": "governance",
-          "value": 3
+          "target": "ops.alerting",
+          "axis": "automation",
+          "value": 2
         }
       ],
       "concedes": null,
@@ -41,7 +41,7 @@
       "atoms": [],
       "asserts": null,
       "refines_id": null,
-      "gist": null
+      "gist": "Whether anyone is alerted about a failing forecast is the subject of a note from {requirements_reuben}."
     },
     "artifact_type": "email",
     "author": {
@@ -54,7 +54,7 @@
     }
   },
   "output": {
-    "content": "During the incident review, {requirements_reuben} stated that the rollback mechanism must be governed with full sign off. He clarified that no automated or manual rollback procedure may be executed without a formal approval from the security team. This requirement is non negotiable and applies to every environment, including production and staging. The team cannot bypass this control to expedite recovery after a silent forecast failure. Any change to the model or data pipeline that triggers a rollback must wait for that explicit sign off. This line is firm and will not be relaxed for operational convenience or speed.",
+    "content": "During the incident review, {requirements_reuben} stated that a failing forecast must never go unnoticed. He clarified that alerting has to be in place before the team can sign off any further release. This requirement is non negotiable and applies to every environment, including production and staging. Alerts that a person raises by hand are acceptable for now, but no alerting at all is not. The team cannot expedite a release while nobody would hear that the forecast has slipped. This line is firm and will not be relaxed for operational convenience or speed.",
     "reclassified_as": "boundary",
     "reclassify_reason": "The text explicitly defines a non-negotiable line that will not be relaxed for speed or convenience, establishing a refusal to bypass the security approval control even under operational pressure."
   }

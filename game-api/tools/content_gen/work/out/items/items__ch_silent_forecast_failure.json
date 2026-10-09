@@ -683,11 +683,11 @@
         "key": "emilia_alert_edge",
         "tag": "trade_off",
         "stakeholder_id": "efficiency_emilia",
-        "fact": "{efficiency_emilia} noted that the hand-over from performance monitoring to alerting can remain disconnected to save on integration costs.",
+        "fact": "{efficiency_emilia} noted that reconnecting the hand-over from performance monitoring to alerting does not need a new integration layer.",
         "readings": {
           "driver": "She wants the hand-over from performance monitoring to alerting to be automated so alerts fire without manual intervention.",
           "boundary": "She will not approve the cost of connecting the performance monitoring output to the alerting service without a clear return on investment.",
-          "trade_off": "She would accept keeping the hand-over from performance monitoring to alerting broken if it avoids the expense of a new integration layer.",
+          "trade_off": "She would accept that hand-over being connected by hand if it avoids the expense of new integration tooling.",
           "fact": "That is simply the current state of the connection between performance monitoring and alerting."
         },
         "metric_id": null,
@@ -700,7 +700,7 @@
         "concedes_loss": null,
         "concedes_target": "e.perf_alert",
         "concedes_axis": "automation",
-        "concedes_max_level": 0,
+        "concedes_max_level": 2,
         "asserts_target": null,
         "asserts_axis": null,
         "asserts_level": null,
@@ -846,15 +846,15 @@
         "key": "monica_retrain_edge",
         "tag": "driver",
         "stakeholder_id": "model_monica",
-        "fact": "{model_monica} suggested that the hand-over from alerting to the retraining trigger be automated to speed up model updates.",
+        "fact": "{model_monica} suggested that the hand-over from performance monitoring to alerting be reconnected so a model problem reaches the team sooner.",
         "readings": {
-          "driver": "She wants the hand-over from alerting to the retraining trigger to be automated so the model retrains immediately when drift is detected.",
-          "boundary": "She will not accept an automated retraining trigger without a rollback mechanism in place.",
-          "trade_off": "She would accept a manual retraining trigger if the model performance is stable and drift is low.",
-          "fact": "That is simply the current state of the retraining trigger hand-over."
+          "driver": "She wants that hand-over working again so the team hears about a slipping forecast as soon as it shows.",
+          "boundary": "She will not accept a model update going out while the hand-over from performance monitoring to alerting stays cut.",
+          "trade_off": "She would accept that hand-over being checked by hand each morning if the forecast stays stable.",
+          "fact": "That is simply the current state of the hand-over from performance monitoring to alerting."
         },
         "metric_id": "model",
-        "suggested_target": "e.alert_retrain",
+        "suggested_target": "e.perf_alert",
         "suggested_axis": "automation",
         "suggested_level": 2,
         "holds": null,
@@ -883,29 +883,29 @@
         "key": "reuben_rollback_govern",
         "tag": "boundary",
         "stakeholder_id": "requirements_reuben",
-        "fact": "{requirements_reuben} brought up that the rollback mechanism must be governed with full sign off.",
+        "fact": "{requirements_reuben} brought up that a failing forecast must never go unnoticed, so alerting has to be in place.",
         "readings": {
           "driver": "He wants the rollback mechanism to be governed so that every rollback is audited and signed off by the security team.",
-          "boundary": "He will not allow the rollback mechanism to be used without a formal sign off from the security team.",
-          "trade_off": "He would accept a partial review if the full sign off is delayed by a compliance audit.",
-          "fact": "That is simply the current state of the rollback governance."
+          "boundary": "He will not accept a release while alerting is missing or broken, even if a person has to raise the alarm by hand.",
+          "trade_off": "He would accept a partial review if the alert is delayed by a compliance audit.",
+          "fact": "That is simply the current state of alerting."
         },
         "metric_id": "requirements",
-        "suggested_target": "ops.rollback",
-        "suggested_axis": "governance",
-        "suggested_level": 3,
+        "suggested_target": "ops.alerting",
+        "suggested_axis": "automation",
+        "suggested_level": 2,
         "holds": {
-          "component": "ops.rollback",
-          "axis": "governance",
+          "component": "ops.alerting",
+          "axis": "automation",
           "op": "gte",
-          "level": 3
+          "level": 2
         },
         "ops": [
           {
             "kind": "raise_to",
-            "target": "ops.rollback",
-            "axis": "governance",
-            "value": 3,
+            "target": "ops.alerting",
+            "axis": "automation",
+            "value": 2,
             "attr": null
           }
         ],

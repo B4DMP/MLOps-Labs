@@ -42,27 +42,27 @@
       "challenge_id": 114,
       "stakeholder_id": "requirements_reuben",
       "type": "boundary",
-      "description": "{requirements_reuben} proposed that data contracts carry a formal sign off before anything uses them. He will not accept data contracts being used without that formal sign off in place.",
-      "fact": "{requirements_reuben} proposed that data contracts carry a formal sign off before anything uses them.",
-      "reading": "He will not accept data contracts being used without that formal sign off in place.",
+      "description": "{requirements_reuben} proposed that the consent rules be written into the data contracts before anything uses them. He will not accept loyalty data being used while the data contracts are missing or broken.",
+      "fact": "{requirements_reuben} proposed that the consent rules be written into the data contracts before anything uses them.",
+      "reading": "He will not accept loyalty data being used while the data contracts are missing or broken.",
       "holds": {
         "component": "req.data_contracts",
-        "axis": "governance",
+        "axis": "automation",
         "op": "gte",
-        "level": 3
+        "level": 2
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "req.data_contracts",
-          "axis": "governance",
-          "value": 3
+          "axis": "automation",
+          "value": 2
         }
       ],
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
-      "gist": "Sign-off on the data contracts, as a requirements question, is the subject of a note from {requirements_reuben}."
+      "gist": "The state of the data contracts, as a requirements question, is the subject of a note from {requirements_reuben}."
     },
     {
       "id": "gen_loyalty_consent_gap_reuben_trade_kpi",
@@ -807,27 +807,27 @@
       "challenge_id": 120,
       "stakeholder_id": "requirements_reuben",
       "type": "boundary",
-      "description": "{requirements_reuben} proposed that data validation must be fully governed. He will not accept validation without full governance.",
-      "fact": "{requirements_reuben} proposed that data validation must be fully governed.",
-      "reading": "He will not accept validation without full governance.",
+      "description": "{requirements_reuben} proposed that no scan lines should reach the forecast without a validation step in place. He will not accept a release where the validation step is missing.",
+      "fact": "{requirements_reuben} proposed that no scan lines should reach the forecast without a validation step in place.",
+      "reading": "He will not accept a release where the validation step is missing.",
       "holds": {
         "component": "data.validation",
-        "axis": "governance",
+        "axis": "automation",
         "op": "gte",
-        "level": 3
+        "level": 2
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "data.validation",
-          "axis": "governance",
-          "value": 3
+          "axis": "automation",
+          "value": 2
         }
       ],
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
-      "gist": "Versioning governance for the Shelfcast pipeline keeps coming up in discussions with {requirements_reuben}."
+      "gist": "The validation step on the incoming scan lines keeps coming up in discussions with {requirements_reuben}."
     },
     {
       "id": "gen_silent_ingestion_failure_emilia_tradeoff_efficiency",
@@ -2284,11 +2284,11 @@
       "challenge_id": 118,
       "stakeholder_id": "efficiency_emilia",
       "type": "boundary",
-      "description": "{efficiency_emilia} proposed that the gateway carry a formal sign off before traffic reaches it. She will not accept the gateway shipping traffic without that formal sign off in place.",
-      "fact": "{efficiency_emilia} proposed that the gateway carry a formal sign off before traffic reaches it.",
-      "reading": "She will not accept the gateway shipping traffic without that formal sign off in place.",
+      "description": "{efficiency_emilia} proposed that the serving layer carry a formal sign off before traffic reaches it. She will not accept the serving layer taking traffic without that formal sign off in place.",
+      "fact": "{efficiency_emilia} proposed that the serving layer carry a formal sign off before traffic reaches it.",
+      "reading": "She will not accept the serving layer taking traffic without that formal sign off in place.",
       "holds": {
-        "component": "deploy.api_gateway",
+        "component": "deploy.serving",
         "axis": "governance",
         "op": "gte",
         "level": 3
@@ -2296,7 +2296,7 @@
       "ops": [
         {
           "kind": "raise_to",
-          "target": "deploy.api_gateway",
+          "target": "deploy.serving",
           "axis": "governance",
           "value": 3
         }
@@ -2304,7 +2304,7 @@
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
-      "gist": "The gateway sign off process keeps coming up whenever you talk to {efficiency_emilia}."
+      "gist": "The serving sign off process keeps coming up whenever you talk to {efficiency_emilia}."
     },
     {
       "id": "gen_shadow_deployment_contract_fact_shadow_broken",
@@ -2419,14 +2419,14 @@
       "challenge_id": 119,
       "stakeholder_id": "efficiency_emilia",
       "type": "trade_off",
-      "description": "{efficiency_emilia} noted that the hand-over from performance monitoring to alerting can remain disconnected to save on integration costs. She would accept keeping the hand-over from performance monitoring to alerting broken if it avoids the expense of a new integration layer.",
-      "fact": "{efficiency_emilia} noted that the hand-over from performance monitoring to alerting can remain disconnected to save on integration costs.",
-      "reading": "She would accept keeping the hand-over from performance monitoring to alerting broken if it avoids the expense of a new integration layer.",
+      "description": "{efficiency_emilia} noted that reconnecting the hand-over from performance monitoring to alerting does not need a new integration layer. She would accept that hand-over being connected by hand if it avoids the expense of new integration tooling.",
+      "fact": "{efficiency_emilia} noted that reconnecting the hand-over from performance monitoring to alerting does not need a new integration layer.",
+      "reading": "She would accept that hand-over being connected by hand if it avoids the expense of new integration tooling.",
       "ops": [],
       "concedes": {
         "target": "e.perf_alert",
         "axis": "automation",
-        "accepts_max_level": 0
+        "accepts_max_level": 2
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -2530,12 +2530,12 @@
       "challenge_id": 119,
       "stakeholder_id": "model_monica",
       "type": "driver",
-      "description": "{model_monica} suggested that the hand-over from drift monitoring to alerting be automated to speed up model updates. She wants that hand-over automated so the team hears about drift the moment it is detected.",
-      "fact": "{model_monica} suggested that the hand-over from drift monitoring to alerting be automated to speed up model updates.",
-      "reading": "She wants that hand-over automated so the team hears about drift the moment it is detected.",
+      "description": "{model_monica} suggested that the hand-over from performance monitoring to alerting be reconnected so a model problem reaches the team sooner. She wants that hand-over working again so the team hears about a slipping forecast as soon as it shows.",
+      "fact": "{model_monica} suggested that the hand-over from performance monitoring to alerting be reconnected so a model problem reaches the team sooner.",
+      "reading": "She wants that hand-over working again so the team hears about a slipping forecast as soon as it shows.",
       "metric_id": "model",
       "suggested": {
-        "target": "e.drift_alert",
+        "target": "e.perf_alert",
         "axis": "automation",
         "level": 2
       },
@@ -2543,40 +2543,40 @@
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
-      "gist": "The model retraining trigger and its alerting hand-over keeps coming up in {model_monica} meetings."
+      "gist": "The hand-over from performance monitoring to alerting keeps coming up whenever you talk to {model_monica}."
     },
     {
       "id": "gen_silent_forecast_failure_reuben_rollback_govern",
       "challenge_id": 119,
       "stakeholder_id": "requirements_reuben",
       "type": "boundary",
-      "description": "{requirements_reuben} brought up that the rollback mechanism must be governed with full sign off. He will not allow the rollback mechanism to be used without a formal sign off from the security team.",
-      "fact": "{requirements_reuben} brought up that the rollback mechanism must be governed with full sign off.",
-      "reading": "He will not allow the rollback mechanism to be used without a formal sign off from the security team.",
+      "description": "{requirements_reuben} brought up that a failing forecast must never go unnoticed, so alerting has to be in place. He will not accept a release while alerting is missing or broken, even if a person has to raise the alarm by hand.",
+      "fact": "{requirements_reuben} brought up that a failing forecast must never go unnoticed, so alerting has to be in place.",
+      "reading": "He will not accept a release while alerting is missing or broken, even if a person has to raise the alarm by hand.",
       "metric_id": "requirements",
       "suggested": {
-        "target": "ops.rollback",
-        "axis": "governance",
-        "level": 3
+        "target": "ops.alerting",
+        "axis": "automation",
+        "level": 2
       },
       "holds": {
-        "component": "ops.rollback",
-        "axis": "governance",
+        "component": "ops.alerting",
+        "axis": "automation",
         "op": "gte",
-        "level": 3
+        "level": 2
       },
       "ops": [
         {
           "kind": "raise_to",
-          "target": "ops.rollback",
-          "axis": "governance",
-          "value": 3
+          "target": "ops.alerting",
+          "axis": "automation",
+          "value": 2
         }
       ],
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
-      "gist": "Governance and sign-off of the rollback mechanism is the subject of a note from {requirements_reuben}."
+      "gist": "Whether anyone is alerted about a failing forecast is the subject of a note from {requirements_reuben}."
     },
     {
       "id": "gen_silent_forecast_failure_reuben_observability_govern",
@@ -2673,14 +2673,14 @@
       "challenge_id": 111,
       "stakeholder_id": "efficiency_emilia",
       "type": "boundary",
-      "description": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero. She will not fund the drift monitoring stack again if it stays at its current cost level.",
+      "description": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero. She will not fund an automated drift monitoring stack again at its current cost, but a manual check is fine.",
       "fact": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero.",
-      "reading": "She will not fund the drift monitoring stack again if it stays at its current cost level.",
+      "reading": "She will not fund an automated drift monitoring stack again at its current cost, but a manual check is fine.",
       "holds": {
         "component": "ops.production_drift_monitoring",
         "axis": "automation",
         "op": "lte",
-        "level": 1
+        "level": 2
       },
       "ops": [
         {

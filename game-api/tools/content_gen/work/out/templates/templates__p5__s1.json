@@ -526,7 +526,7 @@
       "positions": [
         {
           "stakeholder_id": "efficiency_emilia",
-          "wants": 1,
+          "wants": 2,
           "axis": "automation"
         },
         {

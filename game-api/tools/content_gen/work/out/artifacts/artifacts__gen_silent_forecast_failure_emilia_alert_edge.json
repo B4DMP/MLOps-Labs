@@ -10,9 +10,9 @@
       "challenge_id": -1,
       "stakeholder_id": "efficiency_emilia",
       "type": "trade_off",
-      "description": "{efficiency_emilia} noted that the hand-over from performance monitoring to alerting can remain disconnected to save on integration costs. She would accept keeping the hand-over from performance monitoring to alerting broken if it avoids the expense of a new integration layer.",
-      "fact": "{efficiency_emilia} noted that the hand-over from performance monitoring to alerting can remain disconnected to save on integration costs.",
-      "reading": "She would accept keeping the hand-over from performance monitoring to alerting broken if it avoids the expense of a new integration layer.",
+      "description": "{efficiency_emilia} noted that reconnecting the hand-over from performance monitoring to alerting does not need a new integration layer. She would accept that hand-over being connected by hand if it avoids the expense of new integration tooling.",
+      "fact": "{efficiency_emilia} noted that reconnecting the hand-over from performance monitoring to alerting does not need a new integration layer.",
+      "reading": "She would accept that hand-over being connected by hand if it avoids the expense of new integration tooling.",
       "metric_id": null,
       "suggested": null,
       "holds": null,
@@ -22,7 +22,7 @@
         "loss": null,
         "target": "e.perf_alert",
         "axis": "automation",
-        "accepts_max_level": 0
+        "accepts_max_level": 2
       },
       "branch_x": null,
       "branch_y": null,
@@ -44,7 +44,7 @@
     }
   },
   "output": {
-    "content": "I have reviewed the cost implications of the monitoring overhaul proposed by {reliability_ruth}. While I understand the desire for immediate automated alerts, the integration layer required to connect our current performance logs to the alerting system carries a significant expense. I am willing to accept that the hand-over from performance monitoring to alerting remains disconnected and broken for the time being. This gap means we will not catch silent forecast failures instantly, but it allows us to avoid the capital outlay for new tooling. I am prepared to live with this risk to keep the project budget aligned with our broader operational goals.",
+    "content": "I have reviewed the cost implications of the monitoring overhaul proposed by {reliability_ruth}. I understand the wish for instant automated alerts, but the integration layer needed to connect our performance logs to the alerting system carries a significant expense. I am willing to accept the hand-over from performance monitoring to alerting being reconnected by hand for now, with a person passing the reading on, because that avoids the capital outlay for new tooling. It is slower than a fully automatic connection, but it closes the silent gap without a new bill. I am prepared to live with that to keep the project budget aligned with our broader operational goals.",
     "reclassified_as": "trade_off",
     "reclassify_reason": "The author explicitly states they are willing to accept the risk of missing instant alerts in order to avoid significant capital expenditure, prioritizing budget alignment over immediate monitoring capabilities."
   }

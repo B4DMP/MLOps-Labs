@@ -209,7 +209,7 @@ _OBJECTION_COST = 0.03
 SHORTLIST = 100
 
 
-def _health_after(graph, state, card, reads, phase_limit, before_health) -> float:
+def _health_after(graph, state, card, reads, phase_limit, before_health, par_health=None) -> float:
     """What the pipeline pillar would score this card on the phase's own stage: the share of the
     damage the challenge did that the card wins back (`compute.pipeline_progress`). Judged on the
     card alone; the world and grudges that follow in the simulation are not predicted.
@@ -228,8 +228,11 @@ def _health_after(graph, state, card, reads, phase_limit, before_health) -> floa
     after = apply_ops(graph, state, ops, owner_buyin={r.stakeholder_id: r.buy_in for r in reads}).state
     evaluation = evaluate_graph(graph, after, PatternFactory.patterns, PatternFactory.order)
     post = next((sv.health for sv in evaluation.stage_graph.stages if sv.id == stage.id), 0.0) / 100.0
-    headroom = 1.0 - before_health
-    return post if headroom < NO_HEADROOM else max(0.0, min(1.0, (post - before_health) / headroom))
+    ceiling = (par_health or 100) / 100.0
+    headroom = ceiling - before_health
+    if headroom < NO_HEADROOM:
+        return max(0.0, min(1.0, post / ceiling))
+    return max(0.0, min(1.0, (post - before_health) / headroom))
 
 
 def _stage_health_now(graph, state, phase_limit) -> float:
@@ -245,7 +248,7 @@ def _stage_health_now(graph, state, phase_limit) -> float:
 
 
 def _flawless_card(
-    graph, state, all_intel, room, emotions, candidates, rng, budget, phase_limit, par
+    graph, state, all_intel, room, emotions, candidates, rng, budget, phase_limit, par, par_health=None
 ) -> CardSearchResult:
     """The card that leaves the best final grade, not the best room.
 
@@ -275,7 +278,7 @@ def _flawless_card(
         decision = min(1.0, (rank / 2.0) / par_score) if par_score else 1.0
         relations = max(0.0, mean_buy_in - _OBJECTION_COST * objections)
         value = (
-            _W_PIPELINE * _health_after(graph, state, card, view.reads, phase_limit, before_health)
+            _W_PIPELINE * _health_after(graph, state, card, view.reads, phase_limit, before_health, par_health)
             + _W_RELATIONS * relations
             + _W_DECISION * decision
         )
@@ -315,6 +318,7 @@ def search_card(
     prefer: str = "pass",
     phase_limit: Optional[int] = None,
     par: str = "PASS",
+    par_health: Optional[int] = None,
 ) -> Optional[CardSearchResult]:
     """Picks a random card the room will not veto, preferring a clean pass.
 
@@ -333,7 +337,8 @@ def search_card(
         return None
     if prefer == "flawless":
         return _flawless_card(
-            graph, state, all_intel, room, emotions, candidates, rng, max(budget, BEST_BUDGET), phase_limit, par
+            graph, state, all_intel, room, emotions, candidates, rng, max(budget, BEST_BUDGET), phase_limit, par,
+            par_health,
         )
     if prefer == "best":
         return _best_card(graph, state, all_intel, room, emotions, candidates, rng, max(budget, BEST_BUDGET))

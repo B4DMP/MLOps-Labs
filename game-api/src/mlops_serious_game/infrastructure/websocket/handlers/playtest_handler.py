@@ -29,6 +29,7 @@ from sqlalchemy import select
 from mlops_serious_game.application.pitch_debate_service import store as pitch_store
 from mlops_serious_game.application import debug_flags
 from mlops_serious_game.application.pitch_debate_service import card_search as auto_card
+from mlops_serious_game.application.graph_service import store as graph_store
 from mlops_serious_game.application.playtest_service import service
 from mlops_serious_game.application.playtest_service.profiles import PlayProfile, profile_named
 from mlops_serious_game.application.services.auth_service import player_id_from_cookies
@@ -108,6 +109,14 @@ def _prepare(user_id: int, challenge: Challenge, profile: PlayProfile) -> PitchC
     return PitchContext(user_id, challenge.phase_id, challenge.id)
 
 
+def _pre_event_health(user_id: int, ctx: PitchContext) -> Optional[int]:
+    """The focus stage's health before the challenge's event hit it: the grade's ceiling for this room."""
+    pre = graph_store.state_before_batch(user_id, f"enter:{ctx.challenge.template_id}")
+    if pre is None:
+        return None
+    return round(auto_card._stage_health_now(ctx.graph, pre.state, ctx.phase_id) * 100)
+
+
 def _search(user_id: int, ctx: PitchContext, profile: PlayProfile) -> Optional[auto_card.CardSearchResult]:
     with get_session() as session:
         run = current_run_index(session, user_id)
@@ -124,6 +133,7 @@ def _search(user_id: int, ctx: PitchContext, profile: PlayProfile) -> Optional[a
         prefer="soft" if profile.prefer == "veto" and pitch_store.escalation_points(user_id) <= 0 else profile.prefer,
         phase_limit=ctx.phase_id,
         par=getattr(ctx.challenge, "par_outcome", "PASS"),
+        par_health=_pre_event_health(user_id, ctx),
     )
 
 

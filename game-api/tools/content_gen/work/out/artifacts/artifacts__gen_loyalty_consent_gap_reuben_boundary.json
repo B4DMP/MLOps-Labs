@@ -10,23 +10,27 @@
       "challenge_id": -1,
       "stakeholder_id": "requirements_reuben",
       "type": "boundary",
-      "description": "{requirements_reuben} proposed that data contracts carry a formal sign off before anything uses them. He will not accept data contracts being used without that formal sign off in place.",
-      "fact": "{requirements_reuben} proposed that data contracts carry a formal sign off before anything uses them.",
-      "reading": "He will not accept data contracts being used without that formal sign off in place.",
+      "description": "{requirements_reuben} proposed that the consent rules be written into the data contracts before anything uses them. He will not accept loyalty data being used while the data contracts are missing or broken.",
+      "fact": "{requirements_reuben} proposed that the consent rules be written into the data contracts before anything uses them.",
+      "reading": "He will not accept loyalty data being used while the data contracts are missing or broken.",
       "metric_id": null,
-      "suggested": null,
+      "suggested": {
+        "target": "req.data_contracts",
+        "axis": "automation",
+        "level": 2
+      },
       "holds": {
         "component": "req.data_contracts",
-        "axis": "governance",
+        "axis": "automation",
         "op": "gte",
-        "level": 3
+        "level": 2
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "req.data_contracts",
-          "axis": "governance",
-          "value": 3
+          "axis": "automation",
+          "value": 2
         }
       ],
       "concedes": null,
@@ -37,7 +41,7 @@
       "atoms": [],
       "asserts": null,
       "refines_id": null,
-      "gist": null
+      "gist": "The state of the data contracts, as a requirements question, is the subject of a note from {requirements_reuben}."
     },
     "artifact_type": "email",
     "author": {
@@ -50,7 +54,7 @@
     }
   },
   "output": {
-    "content": "The legal audit has confirmed that our current consent records for loyalty basket data are invalid. Until we establish a solid legal basis, this data cannot touch the forecast pipeline. I am mandating that every data contract must carry a formal sign off before it is activated. This is a hard requirement for our governance framework. I will not approve any workflow that allows personal data to flow without that explicit, documented approval. Please ensure the team understands this is not a suggestion or a target for future improvement. It is the baseline for compliance. If a contract lacks that sign off, it must be rejected immediately.",
+    "content": "The legal audit has confirmed that our current consent records for loyalty basket data are invalid. Until we establish a solid legal basis, this data cannot touch the forecast pipeline. I am mandating that data contracts must be in place before anything consumes this data. A contract that is missing or broken means personal data flows with no stated rules, and I will not approve any workflow like that. Please understand this is not a suggestion. Writing the contract by hand and checking it by hand is fine for now, but it has to exist and it has to be in force. If the contracts are missing, nothing goes live.",
     "reclassified_as": "boundary",
     "reclassify_reason": "The text explicitly defines a hard requirement and refusal line, stating that any workflow allowing personal data to flow without documented approval will be rejected, which constitutes a boundary that cannot be crossed."
   }

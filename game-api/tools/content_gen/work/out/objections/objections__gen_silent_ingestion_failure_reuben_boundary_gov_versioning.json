@@ -11,23 +11,23 @@
       "challenge_id": -1,
       "stakeholder_id": "requirements_reuben",
       "type": "boundary",
-      "description": "{requirements_reuben} proposed that versioning must be fully governed. He will not accept versioning without full governance.",
-      "fact": "{requirements_reuben} proposed that versioning must be fully governed.",
-      "reading": "He will not accept versioning without full governance.",
+      "description": "{requirements_reuben} proposed that no scan lines should reach the forecast without a validation step in place. He will not accept a release where the validation step is missing.",
+      "fact": "{requirements_reuben} proposed that no scan lines should reach the forecast without a validation step in place.",
+      "reading": "He will not accept a release where the validation step is missing.",
       "metric_id": null,
       "suggested": null,
       "holds": {
-        "component": "data.versioning",
-        "axis": "governance",
+        "component": "data.validation",
+        "axis": "automation",
         "op": "gte",
-        "level": 3
+        "level": 2
       },
       "ops": [
         {
           "kind": "raise_to",
-          "target": "data.versioning",
-          "axis": "governance",
-          "value": 3
+          "target": "data.validation",
+          "axis": "automation",
+          "value": 2
         }
       ],
       "concedes": null,
@@ -47,7 +47,7 @@
     }
   },
   "output": {
-    "objection": "I will not sign off on versioning without full governance. That is a hard line, and there is no room for negotiation on this point.",
-    "correction": "You are misreading my stance on data retention. I am talking about the audit trail for model versions, not the raw loyalty basket data."
+    "objection": "I will not sign off on a run where there is no validation step in place. That is a hard line, and there is no room for negotiation on this point.",
+    "correction": "You are misreading my stance on data retention. I am talking about having validation of the incoming scan lines in place, not about the raw loyalty basket data."
   }
 }

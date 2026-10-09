@@ -11,9 +11,9 @@
       "challenge_id": -1,
       "stakeholder_id": "efficiency_emilia",
       "type": "trade_off",
-      "description": "{efficiency_emilia} noted that the hand-over from performance monitoring to alerting can remain disconnected to save on integration costs. She would accept keeping the hand-over from performance monitoring to alerting broken if it avoids the expense of a new integration layer.",
-      "fact": "{efficiency_emilia} noted that the hand-over from performance monitoring to alerting can remain disconnected to save on integration costs.",
-      "reading": "She would accept keeping the hand-over from performance monitoring to alerting broken if it avoids the expense of a new integration layer.",
+      "description": "{efficiency_emilia} noted that reconnecting the hand-over from performance monitoring to alerting does not need a new integration layer. She would accept that hand-over being connected by hand if it avoids the expense of new integration tooling.",
+      "fact": "{efficiency_emilia} noted that reconnecting the hand-over from performance monitoring to alerting does not need a new integration layer.",
+      "reading": "She would accept that hand-over being connected by hand if it avoids the expense of new integration tooling.",
       "metric_id": null,
       "suggested": null,
       "holds": null,
@@ -23,7 +23,7 @@
         "loss": null,
         "target": "e.perf_alert",
         "axis": "automation",
-        "accepts_max_level": 0
+        "accepts_max_level": 2
       },
       "branch_x": null,
       "branch_y": null,
@@ -41,7 +41,7 @@
     }
   },
   "output": {
-    "objection": "You are treating my cost saving preference as a permanent abandonment of our monitoring pipeline, which is not what I said. I am asking you to explicitly acknowledge that we are accepting a broken hand over from performance monitoring to alerting to avoid the expense of a new integration layer.",
-    "correction": "Stop filing this under technical debt or risk acceptance, because that is not the frame I used. I am defining a specific business trade off where we choose to keep that hand over broken to save money, and I need that decision recorded as a conscious choice rather than an oversight."
+    "objection": "You are treating my cost saving preference as a refusal to fix the monitoring gap, which is not what I said. I am asking you to acknowledge that a hand-over connected by hand is an acceptable answer here, and that I do not want to pay for a new integration layer.",
+    "correction": "Stop filing this under technical debt or risk acceptance, because that is not the frame I used. I am defining a specific business trade off where we connect that hand-over by hand to save money, and I need that decision recorded as a conscious choice rather than an oversight."
   }
 }

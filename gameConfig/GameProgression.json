@@ -270,7 +270,7 @@
         "positions": [
           {
             "stakeholder_id": "efficiency_emilia",
-            "wants": 1,
+            "wants": 2,
             "axis": "automation"
           },
           {
@@ -438,8 +438,8 @@
         "positions": [
           {
             "stakeholder_id": "requirements_reuben",
-            "wants": 3,
-            "axis": "governance"
+            "wants": 2,
+            "axis": "automation"
           },
           {
             "stakeholder_id": "efficiency_emilia",

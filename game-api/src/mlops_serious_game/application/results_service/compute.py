@@ -141,7 +141,7 @@ def pipeline_health(
     )
 
 
-def pipeline_progress(stage_moves: list[tuple[float, float]]) -> Pillar:
+def pipeline_progress(stage_moves: list[tuple]) -> Pillar:
     """How much of what each challenge broke the player put right, averaged over the challenges played.
 
     Each move is the focus stage's health `(before, after)` on a 0..100 scale, `before` being the
@@ -154,22 +154,30 @@ def pipeline_progress(stage_moves: list[tuple[float, float]]) -> Pillar:
     never touched: a stage the player skipped, or one that started healthy, counts as an
     achievement. Challenges never played contribute nothing here at all, which is also what makes a
     run of 2-3 challenges gradeable on the same scale as a long one.
+
+    A move may carry a third value, the stage's health before the event: the most a player can be
+    asked to win back (a stage that starts with an anti-pattern only a whole run clears can never
+    get back to 100). Progress is measured up to it, the way a decision is measured against `par_outcome`.
     """
     if not stage_moves:
         return Pillar(id="pipeline_health", score=0.0, detail={"reason": "no challenge simulated"})
 
     scores = []
-    for before, after in stage_moves:
+    for move in stage_moves:
+        before, after = move[0], move[1]
+        ceiling_n = _clamp(move[2] / 100.0) if len(move) > 2 and move[2] else 1.0
         before_n, after_n = _clamp(before / 100.0), _clamp(after / 100.0)
-        headroom = 1.0 - before_n
-        scores.append(after_n if headroom < NO_HEADROOM else _clamp((after_n - before_n) / headroom))
+        headroom = ceiling_n - before_n
+        scores.append(
+            _clamp(after_n / ceiling_n) if headroom < NO_HEADROOM else _clamp((after_n - before_n) / headroom)
+        )
     return Pillar(
         id="pipeline_health",
         score=sum(scores) / len(scores),
         detail={
             "challenges": len(scores),
             "per_challenge": [round(s, 3) for s in scores],
-            "mean_gain": round(sum(a - b for b, a in stage_moves) / len(stage_moves), 1),
+            "mean_gain": round(sum(m[1] - m[0] for m in stage_moves) / len(stage_moves), 1),
         },
     )
 

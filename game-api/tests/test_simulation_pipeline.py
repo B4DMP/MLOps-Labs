@@ -358,6 +358,9 @@ class _FakeStore:
     def has_batch(self, user_id, source_id):
         return any(r["source_id"] == source_id for r in self.rows)
 
+    def state_before_batch(self, user_id, source_id):
+        return None
+
     def load_report(self, user_id, source_id):
         matching = [r for r in self.rows if r["source_id"] == source_id]
         return matching[-1]["report"] if matching else None
@@ -377,7 +380,7 @@ def test_run_simulation_replay_returns_the_stored_report_without_recomputing(rea
     import mlops_serious_game.application.graph_service.store as store_module
 
     fake = _FakeStore(_start(real))
-    for name in ("load_state", "has_batch", "load_report", "append_ops"):
+    for name in ("load_state", "has_batch", "load_report", "append_ops", "state_before_batch"):
         monkeypatch.setattr(store_module, name, getattr(fake, name))
 
     challenge = _challenge()

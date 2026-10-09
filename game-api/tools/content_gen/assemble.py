@@ -99,6 +99,25 @@ def _conflict_stakeholder_ids(challenge: dict) -> set[str]:
     return {p.get("stakeholder_id") if isinstance(p, dict) else p.stakeholder_id for p in (positions or [])}
 
 
+# Set by hand per room once the content exists, and checked by tests/test_room_par.py.
+TUNED_FIELDS = ("par_outcome",)
+
+
+def carry_tuning(generated: list[dict], previous: list[dict]) -> None:
+    """Keeps a room's hand-set tuning across re-assembly: the templates do not carry it."""
+    by_template = {c["template_id"]: c for c in previous}
+    for ch in generated:
+        old = by_template.get(ch["template_id"], {})
+        for key in TUNED_FIELDS:
+            if key in old and key not in ch:
+                ch[key] = old[key]
+
+
+def _incident_targets(challenge: dict) -> set[str]:
+    """What the challenge's opening world event breaks."""
+    return {op["target"] for op in challenge.get("on_enter_ops") or [] if op.get("target")}
+
+
 def _stance_target(req) -> Optional[str]:
     """The graph target a stance requirement is about.
 
@@ -118,12 +137,19 @@ def _stance_target(req) -> Optional[str]:
     return None
 
 
-def on_record_ids(requirements, artifacts: dict, conflict_targets: dict, conflict_stakeholders: dict) -> set[str]:
+def on_record_ids(
+    requirements, artifacts: dict, conflict_targets: dict, conflict_stakeholders: dict,
+    incident_targets: Optional[dict] = None,
+) -> set[str]:
     """What each challenge starts with on the public record.
 
     Both stances that frame the conflict, one per stakeholder on either side, and the challenge
     itself: the first Fact about the disputed component, which the whole team already knows. That
     Fact needs a narrator, since an on-record card is something somebody said openly.
+
+    What the opening world event broke is on record too, even when the conflict is about something
+    else (a challenge can break a hand-off and dispute the component beside it): the player must
+    always be able to read what happened.
 
     A conflict stakeholder's stance is matched to the conflict by its graph target when the item
     carries one; some authored Trade-offs concede a metric without naming a target at all (only
@@ -133,7 +159,7 @@ def on_record_ids(requirements, artifacts: dict, conflict_targets: dict, conflic
     """
     from mlops_serious_game.domain.requirement import STANCE_TAGS
 
-    fact_done: set[str] = set()
+    fact_done: set[tuple[str, str]] = set()
     known: set[str] = set()
     matched: dict[str, set[str]] = {}
     fallback: dict[tuple[str, str], str] = {}
@@ -146,10 +172,10 @@ def on_record_ids(requirements, artifacts: dict, conflict_targets: dict, conflic
                 if req.stakeholder_id not in done:
                     done.add(req.stakeholder_id)
                     known.add(req.id)
-        elif (req.type == "fact" and template_id not in fact_done
-              and artifacts[req.id]["inputs"].get("narrator")
-              and req.asserts is not None and req.asserts.target == conflict_targets.get(template_id)):
-            fact_done.add(template_id)
+        elif (req.type == "fact" and artifacts[req.id]["inputs"].get("narrator") and req.asserts is not None
+              and (template_id, req.asserts.target) not in fact_done
+              and req.asserts.target in ({conflict_targets.get(template_id)} | (incident_targets or {}).get(template_id, set()))):
+            fact_done.add((template_id, req.asserts.target))
             known.add(req.id)
     for (template_id, stakeholder_id), req_id in fallback.items():
         if stakeholder_id not in matched.get(template_id, set()):
@@ -173,6 +199,7 @@ def assemble(ctx, dry_run: bool = False) -> dict:
             next_id += 1
         ids[ch["template_id"]] = lock[ch["template_id"]]
     generated = [{"id": ids[ch["template_id"]], **ch, "generated": True} for ch in data["challenges"]]
+    carry_tuning(generated, [c for c in progression["challenges"] if c.get("generated")])
     assign_fallbacks(generated, [c for c in hand_written if not c.get("retired")])
     progression["challenges"] = hand_written + sorted(generated, key=lambda c: c["id"])
     for phase in progression["phases"]:
@@ -192,6 +219,7 @@ def assemble(ctx, dry_run: bool = False) -> dict:
         data["requirements"], data["artifacts"],
         {ch["template_id"]: _conflict_target(ch) for ch in data["challenges"]},
         {ch["template_id"]: _conflict_stakeholder_ids(ch) for ch in data["challenges"]},
+        {ch["template_id"]: _incident_targets(ch) for ch in data["challenges"]},
     )
     for template_id, req in data["requirements"]:
         gist_rec = data["gists"].get(req.id)

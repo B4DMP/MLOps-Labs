@@ -23,14 +23,14 @@
       "challenge_id": 114,
       "stakeholder_id": "requirements_reuben",
       "artifact_type": "email",
-      "content": "The legal audit has confirmed that our current consent records for loyalty basket data are invalid. Until we establish a solid legal basis, this data cannot touch the forecast pipeline. I am mandating that every data contract must carry a formal sign off before it is activated. This is a hard requirement for our governance framework. I will not approve any workflow that allows personal data to flow without that explicit, documented approval. Please ensure the team understands this is not a suggestion or a target for future improvement. It is the baseline for compliance. If a contract lacks that sign off, it must be rejected immediately.",
+      "content": "The legal audit has confirmed that our current consent records for loyalty basket data are invalid. Until we establish a solid legal basis, this data cannot touch the forecast pipeline. I am mandating that data contracts must be in place before anything consumes this data. A contract that is missing or broken means personal data flows with no stated rules, and I will not approve any workflow like that. Please understand this is not a suggestion. Writing the contract by hand and checking it by hand is fine for now, but it has to exist and it has to be in force. If the contracts are missing, nothing goes live.",
       "humor_archetype": null,
       "humor_verdict": null,
       "humor_review_reason": null,
       "wrong_descriptions": {
-        "driver": "A formal sign off would catch a missing consent field before it ever reaches a report.",
-        "trade_off": "He would accept a lighter check if the sign off still covers consent fields specifically.",
-        "fact": "That is simply the review data contracts get today, none at all."
+        "driver": "A written contract would catch a missing consent field before it ever reaches a report.",
+        "trade_off": "He would accept a lighter contract if it still covers consent fields specifically.",
+        "fact": "That is simply the state of the data contracts today, broken."
       },
       "is_known": true
     },
@@ -662,13 +662,13 @@
       "challenge_id": 120,
       "stakeholder_id": "requirements_reuben",
       "artifact_type": "document",
-      "content": "I need to be explicit about the validation controls for the incoming scan lines. We will not proceed with any run where data validation lacks formal sign off. This is a hard line for compliance. If the validation step is not fully governed, meaning every rule change is reviewed and approved by the designated owners before it reaches production, I will block the release. There is no middle ground here. We cannot have untracked changes in a system that handles personal data and drives financial commitments. The governance must be complete and auditable, or the pipeline stays offline for us.",
+      "content": "I need to be explicit about the validation of the incoming scan lines. We will not proceed with any run where there is no validation step in place before the data moves on. This is a hard line for compliance. If the validation step is missing, meaning bad rows can reach the forecast without anyone or anything checking them, I will block the release. There is no middle ground here. We cannot have unchecked data in a system that handles personal data and drives financial commitments. A step that is in place and checks every load is the minimum, or the pipeline stays offline for us.",
       "humor_archetype": null,
       "humor_verdict": null,
       "humor_review_reason": null,
       "wrong_descriptions": {
-        "driver": "He wants to add governance to validation to ensure data quality.",
-        "trade_off": "He would accept a manual governance step if it is too slow to automate.",
+        "driver": "He wants a proper validation step added to improve the quality of the scan lines.",
+        "trade_off": "He would accept a lighter validation step if the full one is too slow to build.",
         "fact": "That is simply how the validation setup works today."
       },
       "is_known": false
@@ -1865,14 +1865,14 @@
       "challenge_id": 118,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "meeting_notes",
-      "content": "{efficiency_emilia} has set a non negotiable condition for the upcoming gateway release. She states that no traffic may be routed through the new gateway unless a formal sign off process is fully established and documented beforehand. This requirement is absolute. She will not approve any deployment that bypasses this governance step, regardless of the urgency of the promotion week or the pressure from supply chain planners to reduce residual stock. The sign off must verify that the allocation logic respects supplier minimum order quantities and lead times before a single order suggestion is generated. Without this strict control, the project does not move forward.",
+      "content": "{efficiency_emilia} has set a non negotiable condition for the upcoming release. She states that no traffic may be routed through the serving layer unless a formal sign off process is fully established and documented beforehand. This requirement is absolute. She will not approve any deployment that bypasses this governance step, regardless of the urgency of the promotion week or the pressure from supply chain planners to reduce residual stock. The sign off must verify that the allocation logic respects supplier minimum order quantities and lead times before a single order suggestion is generated. Without this strict control, the project does not move forward.",
       "humor_archetype": null,
       "humor_verdict": null,
       "humor_review_reason": null,
       "wrong_descriptions": {
-        "driver": "A formal sign off on the gateway would catch a bad release before it reaches customers.",
-        "trade_off": "She would accept a lighter check on the gateway if serving gets fully automated instead.",
-        "fact": "That is simply the sign off status the gateway has today, nothing formal yet."
+        "driver": "A formal sign off on serving would catch a bad release before it reaches customers.",
+        "trade_off": "She would accept a lighter check on serving if the gateway gets fully automated instead.",
+        "fact": "That is simply the sign off status serving has today, nothing formal yet."
       },
       "is_known": false
     },
@@ -1987,7 +1987,7 @@
       "challenge_id": 119,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "meeting_notes",
-      "content": "I have reviewed the cost implications of the monitoring overhaul proposed by {reliability_ruth}. While I understand the desire for immediate automated alerts, the integration layer required to connect our current performance logs to the alerting system carries a significant expense. I am willing to accept that the hand-over from performance monitoring to alerting remains disconnected and broken for the time being. This gap means we will not catch silent forecast failures instantly, but it allows us to avoid the capital outlay for new tooling. I am prepared to live with this risk to keep the project budget aligned with our broader operational goals.",
+      "content": "I have reviewed the cost implications of the monitoring overhaul proposed by {reliability_ruth}. I understand the wish for instant automated alerts, but the integration layer needed to connect our performance logs to the alerting system carries a significant expense. I am willing to accept the hand-over from performance monitoring to alerting being reconnected by hand for now, with a person passing the reading on, because that avoids the capital outlay for new tooling. It is slower than a fully automatic connection, but it closes the silent gap without a new bill. I am prepared to live with that to keep the project budget aligned with our broader operational goals.",
       "humor_archetype": null,
       "humor_verdict": null,
       "humor_review_reason": null,
@@ -2055,14 +2055,14 @@
       "challenge_id": 119,
       "stakeholder_id": "model_monica",
       "artifact_type": "meeting_notes",
-      "content": "I want the hand-over from the drift monitor to the alerting system to be automated. Right now, a human has to notice the drift reading and then raise the alert by hand. That delay is unacceptable. When the monitor detects that demand has shifted, the alert should go out immediately so a new version can start training. Every hour we wait is an hour where the forecast is serving stale numbers to the ordering system. I need that connection to be seamless. The more instant the response to drift, the better the predictive performance will be over the long term. I am not looking for a compromise here; I want the pipeline to react without human latency.",
+      "content": "I want the hand-over from performance monitoring to alerting reconnected. Right now nothing carries a bad reading from the monitor to the people who could act on it, so a slipping forecast keeps serving stale numbers to the ordering system. I do not need it to be clever. I need it connected, so that when the monitor sees the forecast slipping somebody is told the same day and a new model version can start training. Every night without that connection is a night we are guessing. I am not looking for a compromise here; I want that hand-over working again.",
       "humor_archetype": null,
       "humor_verdict": null,
       "humor_review_reason": null,
       "wrong_descriptions": {
-        "boundary": "She will not accept an automated drift alert without a rollback mechanism in place.",
-        "trade_off": "She would accept a manual drift alert if the model performance is stable and drift is low.",
-        "fact": "That is simply the current state of the drift to alert hand-over."
+        "boundary": "She will not accept a model update going out while the hand-over from performance monitoring to alerting stays cut.",
+        "trade_off": "She would accept that hand-over being checked by hand each morning if the forecast stays stable.",
+        "fact": "That is simply the current state of the hand-over from performance monitoring to alerting."
       },
       "is_known": false
     },
@@ -2072,14 +2072,14 @@
       "challenge_id": 119,
       "stakeholder_id": "requirements_reuben",
       "artifact_type": "email",
-      "content": "During the incident review, {requirements_reuben} stated that the rollback mechanism must be governed with full sign off. He clarified that no automated or manual rollback procedure may be executed without a formal approval from the security team. This requirement is non negotiable and applies to every environment, including production and staging. The team cannot bypass this control to expedite recovery after a silent forecast failure. Any change to the model or data pipeline that triggers a rollback must wait for that explicit sign off. This line is firm and will not be relaxed for operational convenience or speed.",
+      "content": "During the incident review, {requirements_reuben} stated that a failing forecast must never go unnoticed. He clarified that alerting has to be in place before the team can sign off any further release. This requirement is non negotiable and applies to every environment, including production and staging. Alerts that a person raises by hand are acceptable for now, but no alerting at all is not. The team cannot expedite a release while nobody would hear that the forecast has slipped. This line is firm and will not be relaxed for operational convenience or speed.",
       "humor_archetype": null,
       "humor_verdict": null,
       "humor_review_reason": null,
       "wrong_descriptions": {
         "driver": "He wants the rollback mechanism to be governed so that every rollback is audited and signed off by the security team.",
-        "trade_off": "He would accept a partial review if the full sign off is delayed by a compliance audit.",
-        "fact": "That is simply the current state of the rollback governance."
+        "trade_off": "He would accept a partial review if the alert is delayed by a compliance audit.",
+        "fact": "That is simply the current state of alerting."
       },
       "is_known": false
     },
@@ -2133,7 +2133,7 @@
         "boundary": "The team will not accept any alerting setup without a working performance monitoring pipeline.",
         "trade_off": "The team would accept a manual review of the logs if the performance monitoring pipeline is not fixed this quarter."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_silent_forecast_failure_fact_alerting_none",

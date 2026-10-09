@@ -11,12 +11,12 @@
       "challenge_id": -1,
       "stakeholder_id": "model_monica",
       "type": "driver",
-      "description": "{model_monica} suggested that the hand-over from alerting to the retraining trigger be automated to speed up model updates. She wants the hand-over from alerting to the retraining trigger to be automated so the model retrains immediately when drift is detected.",
-      "fact": "{model_monica} suggested that the hand-over from alerting to the retraining trigger be automated to speed up model updates.",
-      "reading": "She wants the hand-over from alerting to the retraining trigger to be automated so the model retrains immediately when drift is detected.",
+      "description": "{model_monica} suggested that the hand-over from performance monitoring to alerting be reconnected so a model problem reaches the team sooner. She wants that hand-over working again so the team hears about a slipping forecast as soon as it shows.",
+      "fact": "{model_monica} suggested that the hand-over from performance monitoring to alerting be reconnected so a model problem reaches the team sooner.",
+      "reading": "She wants that hand-over working again so the team hears about a slipping forecast as soon as it shows.",
       "metric_id": "model",
       "suggested": {
-        "target": "e.alert_retrain",
+        "target": "e.perf_alert",
         "axis": "automation",
         "level": 2
       },
@@ -30,7 +30,7 @@
       "atoms": [],
       "asserts": null,
       "refines_id": null,
-      "gist": null
+      "gist": "The hand-over from performance monitoring to alerting keeps coming up whenever you talk to {model_monica}."
     },
     "speaker": {
       "id": "model_monica",
@@ -39,7 +39,7 @@
     }
   },
   "output": {
-    "objection": "Automating the hand over just moves the bottleneck, because we still lack a clear definition of what drift actually means for our forecasts. I need that threshold locked in before I wire up any automatic triggers.",
-    "correction": "I did not suggest we skip the review of the new model version, only that the signal to start retraining should not wait for a human to click a button. The governance step stays exactly where it is."
+    "objection": "You have left the hand-over from performance monitoring to alerting cut, so nobody hears when the forecast slips. I need it reconnected before I can back this.",
+    "correction": "I did not suggest we skip the review of a new model version, only that the signal should not wait on a manual step. The review stays exactly where it is."
   }
 }

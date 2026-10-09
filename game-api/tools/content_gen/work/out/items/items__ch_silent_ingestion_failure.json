@@ -1091,29 +1091,29 @@
         "key": "reuben_boundary_gov_versioning",
         "tag": "boundary",
         "stakeholder_id": "requirements_reuben",
-        "fact": "{requirements_reuben} proposed that versioning must be fully governed.",
+        "fact": "{requirements_reuben} proposed that no scan lines should reach the forecast without a validation step in place.",
         "readings": {
-          "driver": "He wants to add governance to versioning to ensure data quality.",
-          "boundary": "He will not accept versioning without full governance.",
-          "trade_off": "He would accept a manual governance step if it is too slow to automate.",
-          "fact": "That is simply how the versioning setup works today."
+          "driver": "He wants a proper validation step added to improve the quality of the scan lines.",
+          "boundary": "He will not accept a release where the validation step is missing.",
+          "trade_off": "He would accept a lighter validation step if the full one is too slow to build.",
+          "fact": "That is simply how the validation setup works today."
         },
         "metric_id": null,
         "suggested_target": null,
         "suggested_axis": null,
         "suggested_level": null,
         "holds": {
-          "component": "data.versioning",
-          "axis": "governance",
+          "component": "data.validation",
+          "axis": "automation",
           "op": "gte",
-          "level": 3
+          "level": 2
         },
         "ops": [
           {
             "kind": "raise_to",
-            "target": "data.versioning",
-            "axis": "governance",
-            "value": 3,
+            "target": "data.validation",
+            "axis": "automation",
+            "value": 2,
             "attr": null
           }
         ],

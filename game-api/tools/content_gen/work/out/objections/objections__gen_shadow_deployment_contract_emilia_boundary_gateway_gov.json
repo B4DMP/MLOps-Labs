@@ -11,13 +11,17 @@
       "challenge_id": -1,
       "stakeholder_id": "efficiency_emilia",
       "type": "boundary",
-      "description": "{efficiency_emilia} proposed that the gateway carry a formal sign off before traffic reaches it. She will not accept the gateway shipping traffic without that formal sign off in place.",
-      "fact": "{efficiency_emilia} proposed that the gateway carry a formal sign off before traffic reaches it.",
-      "reading": "She will not accept the gateway shipping traffic without that formal sign off in place.",
+      "description": "{efficiency_emilia} proposed that the serving layer carry a formal sign off before traffic reaches it. She will not accept the serving layer taking traffic without that formal sign off in place.",
+      "fact": "{efficiency_emilia} proposed that the serving layer carry a formal sign off before traffic reaches it.",
+      "reading": "She will not accept the serving layer taking traffic without that formal sign off in place.",
       "metric_id": null,
-      "suggested": null,
+      "suggested": {
+        "target": "deploy.serving",
+        "axis": "governance",
+        "level": 3
+      },
       "holds": {
-        "component": "deploy.api_gateway",
+        "component": "deploy.serving",
         "axis": "governance",
         "op": "gte",
         "level": 3
@@ -25,7 +29,7 @@
       "ops": [
         {
           "kind": "raise_to",
-          "target": "deploy.api_gateway",
+          "target": "deploy.serving",
           "axis": "governance",
           "value": 3
         }
@@ -38,7 +42,7 @@
       "atoms": [],
       "asserts": null,
       "refines_id": null,
-      "gist": null
+      "gist": "The serving sign off process keeps coming up whenever you talk to {efficiency_emilia}."
     },
     "speaker": {
       "id": "efficiency_emilia",
@@ -47,7 +51,7 @@
     }
   },
   "output": {
-    "objection": "I will not let us route live traffic through that gateway without a formal sign off in place. That is a hard line for me, and we need to respect the compliance boundary before we talk about speed.",
+    "objection": "I will not let us route live traffic through the serving layer without a formal sign off in place. That is a hard line for me, and we need to respect the compliance boundary before we talk about speed.",
     "correction": "You are misreading my stance as a preference when it is actually a strict requirement. I am not asking for a review, I am demanding a formal gate that blocks deployment until it is passed."
   }
 }

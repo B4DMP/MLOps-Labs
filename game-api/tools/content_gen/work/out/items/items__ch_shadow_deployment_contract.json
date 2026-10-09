@@ -851,15 +851,15 @@
         "key": "emilia_boundary_gateway_gov",
         "tag": "boundary",
         "stakeholder_id": "efficiency_emilia",
-        "fact": "{efficiency_emilia} proposed that the gateway carry a formal sign off before traffic reaches it.",
+        "fact": "{efficiency_emilia} proposed that the serving layer carry a formal sign off before traffic reaches it.",
         "readings": {
-          "driver": "A formal sign off on the gateway would catch a bad release before it reaches customers.",
-          "boundary": "She will not accept the gateway shipping traffic without that formal sign off in place.",
-          "trade_off": "She would accept a lighter check on the gateway if serving gets fully automated instead.",
-          "fact": "That is simply the sign off status the gateway has today, nothing formal yet."
+          "driver": "A formal sign off on serving would catch a bad release before it reaches customers.",
+          "boundary": "She will not accept the serving layer taking traffic without that formal sign off in place.",
+          "trade_off": "She would accept a lighter check on serving if the gateway gets fully automated instead.",
+          "fact": "That is simply the sign off status serving has today, nothing formal yet."
         },
         "holds": {
-          "component": "deploy.api_gateway",
+          "component": "deploy.serving",
           "axis": "governance",
           "op": "gte",
           "level": 3
@@ -867,7 +867,7 @@
         "ops": [
           {
             "kind": "raise_to",
-            "target": "deploy.api_gateway",
+            "target": "deploy.serving",
             "axis": "governance",
             "value": 3
           }

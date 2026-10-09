@@ -256,8 +256,8 @@
       "intel_id": "gen_loyalty_consent_gap_reuben_boundary",
       "stakeholder_id": "requirements_reuben",
       "kind": "boundary",
-      "text": "I am not accepting data contracts that go live without a formal sign off. That is a hard no, and I will not debate it.",
-      "correction": "You are confusing my security requirement with a general process preference. I specifically require a formal sign off on the data contracts themselves before any model consumes them."
+      "text": "I am not accepting loyalty data flowing while the data contracts are missing or broken. That is a hard no, and I will not debate it.",
+      "correction": "You are confusing my security requirement with a general process preference. I specifically require working data contracts in place before any model consumes this data."
     },
     {
       "intel_id": "gen_loyalty_consent_gap_reuben_composite_driver",
@@ -557,7 +557,7 @@
       "intel_id": "gen_shadow_deployment_contract_emilia_boundary_gateway_gov",
       "stakeholder_id": "efficiency_emilia",
       "kind": "boundary",
-      "text": "I will not let us route live traffic through that gateway without a formal sign off in place. That is a hard line for me, and we need to respect the compliance boundary before we talk about speed.",
+      "text": "I will not let us route live traffic through the serving layer without a formal sign off in place. That is a hard line for me, and we need to respect the compliance boundary before we talk about speed.",
       "correction": "You are misreading my stance as a preference when it is actually a strict requirement. I am not asking for a review, I am demanding a formal gate that blocks deployment until it is passed."
     },
     {
@@ -606,8 +606,8 @@
       "intel_id": "gen_silent_forecast_failure_emilia_alert_edge",
       "stakeholder_id": "efficiency_emilia",
       "kind": "price",
-      "text": "You are treating my cost saving preference as a permanent abandonment of our monitoring pipeline, which is not what I said. I am asking you to explicitly acknowledge that we are accepting a broken hand over from performance monitoring to alerting to avoid the expense of a new integration layer.",
-      "correction": "Stop filing this under technical debt or risk acceptance, because that is not the frame I used. I am defining a specific business trade off where we choose to keep that hand over broken to save money, and I need that decision recorded as a conscious choice rather than an oversight."
+      "text": "You are treating my cost saving preference as a refusal to fix the monitoring gap, which is not what I said. I am asking you to acknowledge that a hand-over connected by hand is an acceptable answer here, and that I do not want to pay for a new integration layer.",
+      "correction": "Stop filing this under technical debt or risk acceptance, because that is not the frame I used. I am defining a specific business trade off where we connect that hand-over by hand to save money, and I need that decision recorded as a conscious choice rather than an oversight."
     },
     {
       "intel_id": "gen_silent_forecast_failure_emilia_drift_pause",
@@ -641,8 +641,8 @@
       "intel_id": "gen_silent_forecast_failure_monica_retrain_edge",
       "stakeholder_id": "model_monica",
       "kind": "stance",
-      "text": "Automating the hand over just moves the bottleneck, because we still lack a clear definition of what drift actually means for our forecasts. I need that threshold locked in before I wire up any automatic alerts.",
-      "correction": "I did not suggest we skip the review of the new model version, only that the signal about drift should not wait for a human to click a button. The governance step stays exactly where it is."
+      "text": "You have left the hand-over from performance monitoring to alerting cut, so nobody hears when the forecast slips. I need it reconnected before I can back this.",
+      "correction": "I did not suggest we skip the review of a new model version, only that the signal should not wait on a manual step. The review stays exactly where it is."
     },
     {
       "intel_id": "gen_silent_forecast_failure_reuben_alert_edge",
@@ -662,8 +662,8 @@
       "intel_id": "gen_silent_forecast_failure_reuben_rollback_govern",
       "stakeholder_id": "requirements_reuben",
       "kind": "boundary",
-      "text": "I am not approving a rollback path that lacks a formal security sign off. That is a hard requirement, and we will not proceed without it.",
-      "correction": "I am not asking for a manual override, I am demanding a governed gate. You are confusing a technical step with a compliance control."
+      "text": "I am not approving a release where a failing forecast cannot reach anyone. That is a hard requirement, and we will not proceed without it.",
+      "correction": "I am not asking for a rollback sign off, I am demanding that someone gets alerted. You are confusing a technical step with a compliance control."
     },
     {
       "intel_id": "gen_silent_forecast_failure_ruth_alert_govern",
@@ -711,8 +711,8 @@
       "intel_id": "gen_silent_ingestion_failure_reuben_boundary_gov_versioning",
       "stakeholder_id": "requirements_reuben",
       "kind": "boundary",
-      "text": "I will not sign off on data validation without full governance. That is a hard line, and there is no room for negotiation on this point.",
-      "correction": "You are misreading my stance on data retention. I am talking about the audit trail for the validation rules, not the raw loyalty basket data."
+      "text": "I will not sign off on a run where there is no validation step in place. That is a hard line, and there is no room for negotiation on this point.",
+      "correction": "You are misreading my stance on data retention. I am talking about having validation of the incoming scan lines in place, not about the raw loyalty basket data."
     },
     {
       "intel_id": "gen_silent_ingestion_failure_reuben_driver_gov_ingest",

@@ -6,7 +6,7 @@
   "attempts": 1,
   "inputs": {
     "requirement_id": "gen_loyalty_consent_gap_reuben_boundary",
-    "fact": "{requirements_reuben} proposed that data contracts carry a formal sign off before anything uses them.",
+    "fact": "{requirements_reuben} proposed that the consent rules be written into the data contracts before anything uses them.",
     "metric_id": "requirements",
     "metric_ids": [
       "automation",
@@ -19,7 +19,7 @@
     "challenge_name": "The Loyalty Data Audit"
   },
   "output": {
-    "gist": "Sign-off on the data contracts, as a requirements question, is the subject of a note from {requirements_reuben}.",
+    "gist": "The state of the data contracts, as a requirements question, is the subject of a note from {requirements_reuben}.",
     "verdict_metric_id": "requirements",
     "verdict_reading": "none",
     "verdict_reason": "The gist identifies the topic as a requirements question regarding data contract sign-off but does not express a stance, preference, or commitment to any specific reading."

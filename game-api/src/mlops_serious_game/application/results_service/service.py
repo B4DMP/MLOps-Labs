@@ -188,13 +188,13 @@ def _knowledge_correct(additional_data: Any, questions) -> Optional[int]:
     return correct
 
 
-def _stage_moves(user_id: int, run: int, challenge_rows: list[dict]) -> list[tuple[float, float]]:
+def _stage_moves(user_id: int, run: int, challenge_rows: list[dict]) -> list[tuple]:
     """`(before, after)` health of each challenge's own stage, read from the report its simulation
     stored: `before` is the stage once the challenge had hit it, `after` once the run's card and
-    its consequences had landed. Only this run's challenges count, and one that never reached its
-    simulation has no report and is left out."""
+    its consequences had landed, and the stage's health before the event follows as the ceiling. Only this
+    run's challenges count, and one that never reached its simulation has no report and is left out."""
     graph = GraphFactory.get_graph()
-    moves: list[tuple[float, float]] = []
+    moves: list[tuple] = []
     for row in challenge_rows:
         if row["run_index"] != run:
             continue
@@ -207,7 +207,9 @@ def _stage_moves(user_id: int, run: int, challenge_rows: list[dict]) -> list[tup
         report = graph_store.load_report(user_id, f"sim:{challenge.template_id}:3")
         pair = ((report or {}).get("stage_health") or {}).get(stage.id)
         if pair:
-            moves.append((float(pair["before"]), float(pair["after"])))
+            move = (float(pair["before"]), float(pair["after"]))
+            ceiling = ((report or {}).get("stage_ceiling") or {}).get(stage.id)
+            moves.append(move + (float(ceiling),) if ceiling else move)
     return moves
 
 

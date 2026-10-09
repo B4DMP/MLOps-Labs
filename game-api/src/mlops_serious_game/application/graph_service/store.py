@@ -105,6 +105,15 @@ def snapshot_at(user_id: int, phase_index: int, challenge_template: str) -> Opti
     return replay(GraphFactory.get_graph(), _flatten(rows[: last + 1]))
 
 
+def state_before_batch(user_id: int, source_id: str) -> Optional[Replay]:
+    """State just before the batch logged under `source_id`, or None when there is no such batch."""
+    rows = _rows(user_id)
+    at = next((i for i, r in enumerate(rows) if r.source_id == source_id), None)
+    if at is None:
+        return None
+    return replay(GraphFactory.get_graph(), _flatten(rows[:at]))
+
+
 def has_graph(user_id: int) -> bool:
     """Whether this run already has a graph. A spiral run does, inherited, so `seed_if_empty`
     is a no-op for it and the carried system is not overwritten by a fresh seed."""

@@ -6,7 +6,7 @@
   "attempts": 1,
   "inputs": {
     "requirement_id": "gen_silent_forecast_failure_reuben_rollback_govern",
-    "fact": "{requirements_reuben} brought up that the rollback mechanism must be governed with full sign off.",
+    "fact": "{requirements_reuben} brought up that a failing forecast must never go unnoticed, so alerting has to be in place.",
     "metric_id": "requirements",
     "metric_ids": [
       "automation",
@@ -19,7 +19,7 @@
     "challenge_name": "The Warehouse Flood"
   },
   "output": {
-    "gist": "Governance and sign-off of the rollback mechanism is the subject of a note from {requirements_reuben}.",
+    "gist": "Whether anyone is alerted about a failing forecast is the subject of a note from {requirements_reuben}.",
     "verdict_metric_id": "requirements",
     "verdict_reading": "none",
     "verdict_reason": "The gist identifies a specific governance topic (rollback sign-off) but does not express a stance, preference, or commitment to any specific reading."

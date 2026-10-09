@@ -10,13 +10,17 @@
       "challenge_id": -1,
       "stakeholder_id": "efficiency_emilia",
       "type": "boundary",
-      "description": "{efficiency_emilia} proposed that the gateway carry a formal sign off before traffic reaches it. She will not accept the gateway shipping traffic without that formal sign off in place.",
-      "fact": "{efficiency_emilia} proposed that the gateway carry a formal sign off before traffic reaches it.",
-      "reading": "She will not accept the gateway shipping traffic without that formal sign off in place.",
+      "description": "{efficiency_emilia} proposed that the serving layer carry a formal sign off before traffic reaches it. She will not accept the serving layer taking traffic without that formal sign off in place.",
+      "fact": "{efficiency_emilia} proposed that the serving layer carry a formal sign off before traffic reaches it.",
+      "reading": "She will not accept the serving layer taking traffic without that formal sign off in place.",
       "metric_id": null,
-      "suggested": null,
+      "suggested": {
+        "target": "deploy.serving",
+        "axis": "governance",
+        "level": 3
+      },
       "holds": {
-        "component": "deploy.api_gateway",
+        "component": "deploy.serving",
         "axis": "governance",
         "op": "gte",
         "level": 3
@@ -24,7 +28,7 @@
       "ops": [
         {
           "kind": "raise_to",
-          "target": "deploy.api_gateway",
+          "target": "deploy.serving",
           "axis": "governance",
           "value": 3
         }
@@ -37,7 +41,7 @@
       "atoms": [],
       "asserts": null,
       "refines_id": null,
-      "gist": null
+      "gist": "The serving sign off process keeps coming up whenever you talk to {efficiency_emilia}."
     },
     "artifact_type": "meeting_notes",
     "author": {
@@ -50,7 +54,7 @@
     }
   },
   "output": {
-    "content": "{efficiency_emilia} has set a non negotiable condition for the upcoming gateway release. She states that no traffic may be routed through the new gateway unless a formal sign off process is fully established and documented beforehand. This requirement is absolute. She will not approve any deployment that bypasses this governance step, regardless of the urgency of the promotion week or the pressure from supply chain planners to reduce residual stock. The sign off must verify that the allocation logic respects supplier minimum order quantities and lead times before a single order suggestion is generated. Without this strict control, the project does not move forward.",
+    "content": "{efficiency_emilia} has set a non negotiable condition for the upcoming release. She states that no traffic may be routed through the serving layer unless a formal sign off process is fully established and documented beforehand. This requirement is absolute. She will not approve any deployment that bypasses this governance step, regardless of the urgency of the promotion week or the pressure from supply chain planners to reduce residual stock. The sign off must verify that the allocation logic respects supplier minimum order quantities and lead times before a single order suggestion is generated. Without this strict control, the project does not move forward.",
     "reclassified_as": "boundary",
     "reclassify_reason": "The text explicitly defines a non-negotiable condition and a line whose crossing results in refusal, stating that the project will not move forward without the established sign-off process regardless of external pressure."
   }

@@ -6,7 +6,7 @@
   "attempts": 1,
   "inputs": {
     "requirement_id": "gen_silent_forecast_failure_emilia_alert_edge",
-    "fact": "{efficiency_emilia} noted that the hand-over from performance monitoring to alerting can remain disconnected to save on integration costs.",
+    "fact": "{efficiency_emilia} noted that reconnecting the hand-over from performance monitoring to alerting does not need a new integration layer.",
     "metric_id": "efficiency",
     "metric_ids": [
       "automation",

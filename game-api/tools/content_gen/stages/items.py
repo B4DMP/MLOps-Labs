@@ -8,7 +8,7 @@ from typing import Any, Literal, Optional, Union
 from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
-from content_gen.solvability import veto_free_errors
+from content_gen.solvability import repair_errors, room_of, veto_free_errors
 from content_gen.stages.common import (
     AXES, GAME_RULES, GAME_WORDS, LEVEL_TALK, WISH_WORDS, domain_errors, op_dict, parse_json_field, render,
     system_for, text_errors, tokenize_names,
@@ -699,6 +699,9 @@ class ItemsStage:
                 errors.append(f"hard conflict: one of {sorted(sides)} needs a boundary whose holds refers to {conflict['target']}")
         if not errors:
             errors += veto_free_errors(ctx, c, i["roster"], reqs)
+        if not errors:
+            # Par is not known while generating: a repair that gets past a veto, with room to spare, is the floor.
+            errors += repair_errors(ctx.graph, challenge_state(ctx, c), reqs, room_of(i["roster"]), c, par="SOFT_PASS")
         return errors
 
     def summary(self, output: dict) -> str:

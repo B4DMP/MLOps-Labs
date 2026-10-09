@@ -125,6 +125,9 @@ class DeltaReport(BaseModel):
     world_events: list[WorldEventDelta] = Field(default_factory=list)
     propagated: list[Propagation] = Field(default_factory=list)
     stage_health: dict[str, LevelPair] = Field(default_factory=dict)
+    stage_ceiling: dict[str, int] = Field(
+        default_factory=dict, description="Each stage's health just before the challenge's own event hit it"
+    )
     system_health: LevelPair
     patterns: PatternDiff = Field(default_factory=PatternDiff)
     grudges: GrudgeReport = Field(default_factory=GrudgeReport)
@@ -598,6 +601,17 @@ def _pattern_diff(before: GraphEvaluation, after: GraphEvaluation, patterns: Seq
     )
 
 
+def _pre_event_health(user_id: int, graph: TechnicalGraph, challenge: Any) -> dict[str, int]:
+    """Stage health as it stood before the challenge's event: the most a player can be asked to win back."""
+    from mlops_serious_game.application.graph_service import store
+
+    pre = store.state_before_batch(user_id, f"enter:{challenge.template_id}")
+    if pre is None:
+        return {}
+    ev = evaluate_graph(graph, pre.state, PatternFactory.patterns, PatternFactory.order)
+    return {s.id: round(s.health) for s in ev.stage_graph.stages}
+
+
 def _health(before: GraphEvaluation, after: GraphEvaluation) -> tuple[dict[str, LevelPair], LevelPair]:
     was = {s.id: s.health for s in before.stage_graph.stages}
     now = {s.id: s.health for s in after.stage_graph.stages}
@@ -920,6 +934,7 @@ def run_simulation(
     result = result.model_copy(update={
         "events": simulation_events(result.report, graph, names)
     })
+    result.report.stage_ceiling = _pre_event_health(user_id, graph, challenge)
     if result.ops and not store.has_batch(user_id, source_id):
         store.append_ops(
             user_id,

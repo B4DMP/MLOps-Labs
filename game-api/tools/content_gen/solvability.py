@@ -102,6 +102,84 @@ def find_veto_free_card(graph, state, reqs, room: list[tuple], emotion_values: O
     return None
 
 
+# The incident is fixable with room to spare: several cards at par, and at least two that leave a slot free,
+# so a player is never asked to guess the one four-change combination.
+REPAIR_MIN_AT_PAR = 3
+REPAIR_MIN_SPARE = 2
+_RANK = {"PASS": 2, "SOFT_PASS": 1, "VETO": 0}
+
+
+def incident_of(challenge) -> Optional[tuple[str, str]]:
+    """(target, axis) the challenge's opening world event breaks first, or None."""
+    ops = challenge.get("on_enter_ops") if isinstance(challenge, dict) else getattr(challenge, "on_enter_ops", None)
+    for op in ops or []:
+        if op.get("kind") == "set_to" and op.get("target"):
+            return op["target"], op.get("axis") or "automation"
+    return None
+
+
+def repair_report(
+    graph, state, reqs, room: list[tuple], target: str, axis: str = "automation", par: str = "PASS",
+    emotion_values: Optional[dict] = None, need_at_par: int = REPAIR_MIN_AT_PAR, need_spare: int = REPAIR_MIN_SPARE,
+) -> dict:
+    """How many cards put the broken `target` back to working order (Manual or better) and still get the
+    room's par outcome, and how many of those leave a slot free. Stops as soon as both needs are met.
+
+    Exhaustive over the changes the items name plus the repair itself, so a room where only one
+    four-change card works shows as `at_par == 1`."""
+    from mlops_serious_game.application.pitch_debate_service import session as pitch
+    from mlops_serious_game.domain.emotion_factory import EmotionFactory
+    from mlops_serious_game.domain.graph import AutomationState
+
+    report = {"target": target, "repairing": 0, "at_par": 0, "spare": 0, "best": "VETO", "searched_all": True}
+    if state.value(target, axis) >= AutomationState.MANUAL:
+        return {**report, "at_par": need_at_par, "spare": need_spare}
+    levels = [lv for lv in graph.allowed_for(target, axis) if lv >= AutomationState.MANUAL]
+    if not levels:
+        return report
+    repair = pitch.AtomicChange(kind="raise_to", target=target, axis=axis, value=min(levels))
+    if emotion_values is None:
+        emotion_values = {sid: EmotionFactory.create_default_emotion_values(0.5) for sid, *_ in room}
+    others = [c for c in candidate_changes(graph, state, reqs) if not (c.target == target and c.axis == axis)]
+    wanted = _RANK.get(par, 2)
+    for size in range(0, min(pitch.MAX_ATOMIC_CHANGES - 1, len(others)) + 1):
+        for extra in itertools.combinations(others, size):
+            card = [repair, *extra]
+            view = pitch.card_view(graph=graph, state=state, all_intel=list(reqs), changes=card,
+                                   room=room, emotion_values=emotion_values)
+            report["repairing"] += 1
+            if _RANK.get(view.outcome, 0) > _RANK[report["best"]]:
+                report["best"] = view.outcome
+            if _RANK.get(view.outcome, 0) >= wanted:
+                report["at_par"] += 1
+                if len(card) < pitch.MAX_ATOMIC_CHANGES:
+                    report["spare"] += 1
+            if report["at_par"] >= need_at_par and report["spare"] >= need_spare:
+                report["searched_all"] = False
+                return report
+    return report
+
+
+def repair_errors(graph, state, reqs, room: list[tuple], challenge, par: str = "PASS") -> list[str]:
+    """Empty when the incident can be fixed at par with room to spare; otherwise one message to act on."""
+    incident = incident_of(challenge)
+    if incident is None:
+        return []
+    target, axis = incident
+    r = repair_report(graph, state, [q for q in reqs if q.type != "fact"], room, target, axis, par)
+    # A small room (the demo has two stakeholders) offers few cards at all: half of them is enough there.
+    needed = min(REPAIR_MIN_AT_PAR, max(1, r["repairing"] // 2))
+    spare_needed = min(REPAIR_MIN_SPARE, needed)
+    if r["at_par"] >= needed and r["spare"] >= spare_needed:
+        return []
+    return [
+        f"repairing {target} reaches {par} with only {r['at_par']} of {r['repairing']} cards, {r['spare']} of them leaving a slot free "
+        f"(best outcome {r['best']}; need {needed} and {spare_needed}): a boundary or an unmet demand blocks the fix, or "
+        "every passing card needs all the slots. A repair has to stay inside every high power boundary, and a stakeholder should ask "
+        "for it or accept it, so that fixing what broke is also what the room wants"
+    ]
+
+
 def room_of(roster: list[dict]) -> list[tuple]:
     return [(r["stakeholder_id"], r["power"], r["interest"]) for r in roster]
 

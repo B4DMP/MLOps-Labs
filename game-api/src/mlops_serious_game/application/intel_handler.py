@@ -545,9 +545,20 @@ def is_edge_requirement(item) -> bool:
         from mlops_serious_game.domain.graph_factory import GraphFactory
 
         graph = GraphFactory.get_graph()
-        return graph.is_edge(graph.resolve(target))
+        if not graph.is_edge(graph.resolve(target)):
+            return False
+        return not _is_incident_fact(item, target)
     except Exception:
         return False
+
+
+def _is_incident_fact(item, target: str) -> bool:
+    """A Fact about what the challenge's opening event broke. Never held back as edge intel: the
+    player has to be able to read what happened, even when it was a hand-off."""
+    if getattr(item, "type", None) != IntelTag.FACT:
+        return False
+    challenge = PhaseFactory.get_challenge_by_id(item.challenge_id)
+    return bool(challenge) and any(op.get("target") == target for op in challenge.on_enter_ops or [])
 
 
 def is_first_playthrough(user_id: int) -> bool:

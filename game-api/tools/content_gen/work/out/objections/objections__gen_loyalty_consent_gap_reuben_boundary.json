@@ -11,23 +11,27 @@
       "challenge_id": -1,
       "stakeholder_id": "requirements_reuben",
       "type": "boundary",
-      "description": "{requirements_reuben} proposed that data contracts carry a formal sign off before anything uses them. He will not accept data contracts being used without that formal sign off in place.",
-      "fact": "{requirements_reuben} proposed that data contracts carry a formal sign off before anything uses them.",
-      "reading": "He will not accept data contracts being used without that formal sign off in place.",
+      "description": "{requirements_reuben} proposed that the consent rules be written into the data contracts before anything uses them. He will not accept loyalty data being used while the data contracts are missing or broken.",
+      "fact": "{requirements_reuben} proposed that the consent rules be written into the data contracts before anything uses them.",
+      "reading": "He will not accept loyalty data being used while the data contracts are missing or broken.",
       "metric_id": null,
-      "suggested": null,
+      "suggested": {
+        "target": "req.data_contracts",
+        "axis": "automation",
+        "level": 2
+      },
       "holds": {
         "component": "req.data_contracts",
-        "axis": "governance",
+        "axis": "automation",
         "op": "gte",
-        "level": 3
+        "level": 2
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "req.data_contracts",
-          "axis": "governance",
-          "value": 3
+          "axis": "automation",
+          "value": 2
         }
       ],
       "concedes": null,
@@ -38,7 +42,7 @@
       "atoms": [],
       "asserts": null,
       "refines_id": null,
-      "gist": null
+      "gist": "The state of the data contracts, as a requirements question, is the subject of a note from {requirements_reuben}."
     },
     "speaker": {
       "id": "requirements_reuben",
@@ -47,7 +51,7 @@
     }
   },
   "output": {
-    "objection": "I am not accepting data contracts that go live without a formal sign off. That is a hard no, and I will not debate it.",
-    "correction": "You are confusing my security requirement with a general process preference. I specifically require a formal sign off on the data contracts themselves before any model consumes them."
+    "objection": "I am not accepting loyalty data flowing while the data contracts are missing or broken. That is a hard no, and I will not debate it.",
+    "correction": "You are confusing my security requirement with a general process preference. I specifically require working data contracts in place before any model consumes this data."
   }
 }

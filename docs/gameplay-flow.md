@@ -53,14 +53,18 @@ server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch e
    `intel:tag_item`, `intel:get_dossier`.
    - The dossier's Challenge-Intel page opens with a "What they want" ledger: one row per confirmed
      or on-record stakeholder note (`utils/confirmedIntel.ts`). Unconfirmed notes never appear;
-     clicking a row opens that stakeholder's page.
+     clicking a row opens that stakeholder's page. It is an `introDossier` tour step (shares
+     `data-step="4"` with the notes, ahead of them in the DOM), so it is only highlighted when the
+     tour starts with the dossier on the Challenge-Intel page.
    - Progressive disclosure: any intel item whose graph target is an edge (`is_edge_requirement`,
      `intel_handler.py`) is left out of the deck, the dossier and every Gather/online-intel reveal
      on a player's first playthrough (`is_first_playthrough`, `run_index == 1`) - a new player only
      has to read intel about components. It starts appearing from the second playthrough on. The
      requirement itself still counts in scoring (a hidden edge Boundary can still VETO), only its
      display is gated; `ctx.all_intel` (pitch scoring ground truth) stays unfiltered, while the
-     `intel_total` shown to the player is filtered the same way the dossier is.
+     `intel_total` shown to the player is filtered the same way the dossier is. A Fact about what the
+     challenge's opening event broke is exempt (`_is_incident_fact`) and is always on record at the
+     start, even when it is a hand-off: the player can always read what happened.
 5. **Pitch** (`pitch_debate.tsx`): dossier left; right column = boardroom table (stakeholder
    seats, Pitch Deck plaque, stat chips), chat (`StakeholderInteractionArea.tsx`), engagement card
    shelf.

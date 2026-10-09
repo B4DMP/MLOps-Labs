@@ -7,7 +7,12 @@ cannot go unnoticed, and the par the grade uses never drifts from the content
 (docs/plans/shorter-playthrough-and-grade-spread.md, proposals 2 and 3). No database.
 """
 
+import sys
+from pathlib import Path
+
 import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 
 from mlops_serious_game.application.pitch_debate_service import card_search
 from mlops_serious_game.domain.phase_factory import PhaseFactory
@@ -73,3 +78,17 @@ def test_a_boundary_can_always_be_met_and_a_driver_can_always_be_started(challen
         elif kind == "driver" and named and not (named & allowed) and item.id not in KNOWN_UNREACHABLE:
             stuck.append(f"driver {item.id} only names {sorted(named)}")
     assert not stuck, f"{challenge.template_id}: {stuck}"
+
+
+@pytest.mark.parametrize("challenge", ROOMS, ids=lambda c: c.template_id)
+def test_the_incident_can_be_fixed_at_par_with_room_to_spare(challenge):
+    """What the opening event broke can be put right by a card the room accepts at the room's par, and
+    not only by one four-change combination: several cards pass, and at least one leaves a slot free.
+    A conflict is about how the incident is fixed, never about whether (see
+    content_gen.solvability.repair_report)."""
+    from content_gen.solvability import repair_errors, room_of
+
+    world = _world(challenge.id, entered=True)
+    stances = [r for r in world["all_intel"] if r.type != "fact"]
+    errors = repair_errors(world["graph"], world["state"], stances, world["room"], challenge, challenge.par_outcome)
+    assert not errors, f"{challenge.template_id}: {errors}"

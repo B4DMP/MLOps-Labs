@@ -55,7 +55,7 @@
         "positions": [
           {
             "stakeholder_id": "efficiency_emilia",
-            "wants": 1,
+            "wants": 2,
             "axis": "automation"
           },
           {
@@ -590,7 +590,7 @@
         "fact": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero.",
         "readings": {
           "driver": "She wants to stop paying for the drift tooling to free up the infrastructure bill.",
-          "boundary": "She will not fund the drift monitoring stack again if it stays at its current cost level.",
+          "boundary": "She will not fund an automated drift monitoring stack again at its current cost, but a manual check is fine.",
           "trade_off": "She would accept a manual review of drift reports if it saves the tooling license fee.",
           "fact": "That is simply how the budget allocation for drift monitoring is set today."
         },
@@ -602,7 +602,7 @@
           "component": "ops.production_drift_monitoring",
           "axis": "automation",
           "op": "lte",
-          "level": 1
+          "level": 2
         },
         "ops": [
           {

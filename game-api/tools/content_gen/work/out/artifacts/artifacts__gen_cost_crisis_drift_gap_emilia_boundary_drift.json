@@ -10,16 +10,16 @@
       "challenge_id": -1,
       "stakeholder_id": "efficiency_emilia",
       "type": "boundary",
-      "description": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero. She will not fund the drift monitoring stack again if it stays at its current cost level.",
+      "description": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero. She will not fund an automated drift monitoring stack again at its current cost, but a manual check is fine.",
       "fact": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero.",
-      "reading": "She will not fund the drift monitoring stack again if it stays at its current cost level.",
+      "reading": "She will not fund an automated drift monitoring stack again at its current cost, but a manual check is fine.",
       "metric_id": null,
       "suggested": null,
       "holds": {
         "component": "ops.production_drift_monitoring",
         "axis": "automation",
         "op": "lte",
-        "level": 1
+        "level": 2
       },
       "ops": [
         {

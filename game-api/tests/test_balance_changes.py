@@ -146,6 +146,20 @@ def test_only_the_challenges_played_count_so_a_short_run_is_graded_like_a_long_o
     assert c.pipeline_progress([]).score == 0.0
 
 
+def test_a_room_that_can_never_reach_full_health_is_graded_against_what_it_can_reach():
+    """A stage that starts with an anti-pattern no single challenge clears tops out below 100: its
+    the stage's health before the event is the ceiling, so a full repair still scores one (115 and 118: 88)."""
+    assert c.pipeline_progress([(73, 88)]).score == pytest.approx(0.556, abs=0.001)
+    assert c.pipeline_progress([(73, 88, 88)]).score == 1.0
+    assert c.pipeline_progress([(73, 80, 88)]).score == pytest.approx(7 / 15)
+    assert c.pipeline_progress([(73, 60, 88)]).score == 0.0
+
+
+def test_a_room_with_no_headroom_under_its_par_scores_what_it_ended_at_of_that_par():
+    assert c.pipeline_progress([(86, 88, 88)]).score == 1.0
+    assert c.pipeline_progress([(86, 44, 88)]).score == pytest.approx(0.5)
+
+
 # ── Relations from the whole run ─────────────────────────────────────────────
 
 ROOM = [("a", "high", "high")]
