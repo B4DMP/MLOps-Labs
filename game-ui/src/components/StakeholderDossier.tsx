@@ -15,7 +15,8 @@ import { faceForEmotionState, iconForEmotionState } from "../utils/emotionFace";
 import { healthBucket, healthBucketColor, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
 import CheatSheetModal from "./CheatSheetModal";
 import HoverTooltip from "./HoverToolTip";
-import BuyInMeter, { type StakeholderBuyInInfo } from "./BuyInMeter";
+import { confirmedIntelRows } from "../utils/confirmedIntel";
+import BuyInMeter,{ type StakeholderBuyInInfo } from "./BuyInMeter";
 
 /** Answer key for one authored item. Only sent when the API runs with ENABLE_DOSSIER_DEBUG. */
 export interface IntelDebugInfo {
@@ -1627,6 +1628,91 @@ export default function StakeholderDossier({
     );
   };
 
+  /** Ledger of what each stakeholder is known to want. Confirmed notes only, so it shows nothing the pages don't. */
+  const renderConfirmedSummary = () => {
+    const rows = confirmedIntelRows(effectiveDossierData);
+    const openCount = rows.filter((r) => !r.resolved).length;
+    return (
+      <section className={styles.ledger} aria-label="Confirmed intel summary">
+        <div className={styles.ledgerHead}>
+          <Icon icon="ph:notebook-bold" />
+          <span className={styles.ledgerTitle}>What they want</span>
+          <span className={styles.ledgerCount}>
+            {rows.length === 0 ? "nothing confirmed yet" : `${openCount} open · ${rows.length - openCount} done`}
+          </span>
+        </div>
+        {rows.length === 0 ? (
+          <div className={styles.ledgerEmpty}>
+            Confirm a note on a stakeholder's page and it is filed here.
+          </div>
+        ) : (
+          <table className={styles.ledgerTable}>
+            <tbody>
+              {rows.map((row, idx) => {
+                const meta = intelTagMeta(row.kind);
+                const pageIdx = effectiveDossierData.findIndex((s) => s.stakeholder_id === row.stakeholderId);
+                const sameAsAbove = idx > 0 && rows[idx - 1].stakeholderId === row.stakeholderId;
+                const color = getStakeholderColor(effectiveDossierData[pageIdx]);
+                const verb = row.kind === "driver" ? "Wants" : row.kind === "boundary" ? "Won't cross" : "Would trade";
+                const resolvedMeta = row.resolved ? STATUS_META[row.status ?? ""] : undefined;
+                return (
+                  <tr
+                    key={row.id}
+                    className={`${styles.ledgerRow} ${row.resolved ? styles.ledgerRowDone : ""} ${sameAsAbove ? "" : styles.ledgerRowFirst}`}
+                    tabIndex={0}
+                    onClick={() => requestPageChange(pageIdx)}
+                    onKeyDown={(e) => e.key === "Enter" && requestPageChange(pageIdx)}
+                    title={`Open ${row.stakeholderName}'s page`}
+                  >
+                    <th scope="row" className={styles.ledgerWho} style={{ borderLeftColor: color }}>
+                      {!sameAsAbove && (
+                        <HoverTooltip description={row.stakeholderName}>
+                          <StakeholderAvatarComponent
+                            avatar={stakeholders[row.stakeholderId]?.avatar}
+                            emotion={faceForEmotionState(stakeholders[row.stakeholderId]?.emotional_state || "neutral")}
+                            stakeholderColor={color}
+                            stakeholderId={row.stakeholderId}
+                            isFramed={false}
+                            play_blink_animation={false}
+                            size="30px"
+                            title={row.stakeholderName}
+                          />
+                        </HoverTooltip>
+                      )}
+                    </th>
+                    <td className={styles.ledgerKind} style={{ color: meta.color }}>
+                      <HoverTooltip description={verb}>
+                        <Icon icon={meta.icon} aria-label={verb} />
+                      </HoverTooltip>
+                    </td>
+                    <td className={styles.ledgerWhat}>
+                      <GlossaryText text={row.text} surface="intel_notes" />
+                      {row.giveUp && (
+                        <>
+                          {" "}<span className={styles.ledgerFor}>for</span>{" "}
+                          <GlossaryText text={row.giveUp} surface="intel_notes" />
+                        </>
+                      )}
+                    </td>
+                    <td className={styles.ledgerMark}>
+                      {resolvedMeta ? (
+                        <span className={`${styles.statusBadge} ${styles[resolvedMeta.styleClass]}`}>{resolvedMeta.label}</span>
+                      ) : row.onRecord ? (
+                        <Icon icon="ph:star-bold" className={styles.ledgerOnRecord} aria-label="On record" />
+                      ) : (
+                        <Icon icon="ph:check-circle-bold" className={styles.ledgerConfirmed} aria-label="Confirmed" />
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </section>
+    );
+  };
+
   const renderPageContent = (st: StakeholderDossierEntry) => {
     if (!st) return null;
 
@@ -1671,6 +1757,7 @@ export default function StakeholderDossier({
             box, not an item inside it, so it always ends up on the page's edge. */}
         <div className={styles.pageScroll}>
         {st.is_challenge_intel ? (
+          <>
           <div className={styles.environmentHeader}>
             <Icon icon={intelTagMeta("fact").icon} className={styles.environmentIcon} />
             <div>
@@ -1680,6 +1767,8 @@ export default function StakeholderDossier({
               </div>
             </div>
           </div>
+          {renderConfirmedSummary()}
+          </>
         ) : (
           <>
         {/* Header: Polaroid Snapshot Frame with Caption + Main Info */}

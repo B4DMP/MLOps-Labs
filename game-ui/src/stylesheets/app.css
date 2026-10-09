@@ -178,7 +178,7 @@ a {
 
 /* Color variants for when a step's own copy is calling out something that already has an
    established color elsewhere in the UI (e.g. the Challenge-Intel/on-record pills in
-   offline_intel_gathering.module.css: navPillOnRecordFact is #7c3aed, navPillOnRecord is #1d4ed8)
+   offline_intel_gathering.module.css: navPillOnRecordFact is #dc2626, navPillOnRecord is #1d4ed8)
    - matching it here instead of the default teal makes the tooltip text and the pill it's
    pointing at read as the same thing, not two unrelated highlights. */
 .introjs-tooltiptext mark.mlops-mark-purple {

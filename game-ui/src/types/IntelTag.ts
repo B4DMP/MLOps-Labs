@@ -60,7 +60,7 @@ export const CHALLENGE_INTEL_META: IntelTagMeta = {
   label: "Challenge-Intel",
   shortLabel: "CHI",
   icon: "ph:certificate-duotone",
-  color: "#7c3aed",
+  color: "#dc2626",
   about: "system",
   description: "How the system stands at the start of the challenge.",
   styleKey: "default",

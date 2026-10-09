@@ -578,11 +578,11 @@
     justify-content: center;
 }
 
-/* The on-record Fact is about the system, not a stakeholder: purple keeps it visually apart
-   from the blue stakeholder-stance pill it sits next to. */
+/* The on-record Fact is about the system, not a stakeholder: red (what's broken) keeps it
+   visually apart from the blue stakeholder-stance pill it sits next to. */
 .navPillOnRecordFact {
-    background-color: #7c3aed;
-    border: 1px solid #7c3aed;
+    background-color: #dc2626;
+    border: 1px solid #dc2626;
     opacity: 0.85;
     display: inline-flex;
     align-items: center;
@@ -650,7 +650,7 @@
 .navPillOnRecord:hover,
 .navPillOnRecord:focus-visible { background-color: #1d4ed8; }
 .navPillOnRecordFact:hover,
-.navPillOnRecordFact:focus-visible { background-color: #7c3aed; }
+.navPillOnRecordFact:focus-visible { background-color: #dc2626; }
 .navPillSummary:hover,
 .navPillSummary:focus-visible { background-color: #475569; }
 .navPillSummaryReady:hover,

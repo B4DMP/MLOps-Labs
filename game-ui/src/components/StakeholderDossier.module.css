@@ -1085,7 +1085,7 @@
 }
 
 .categoryBadgeStatic.tagDefault {
-  background: rgba(124, 58, 237, 0.16);
+  background: rgba(220, 38, 38, 0.14);
   transform: rotate(1deg);
 }
 
@@ -1108,9 +1108,9 @@
 }
 
 .tagDefault {
-  background: #ede9fe;
-  color: #6d28d9;
-  border: 1px dashed #a78bfa;
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px dashed #f87171;
 }
 
 .reTagPrompt {
@@ -2332,7 +2332,7 @@
 .environmentIcon {
   flex-shrink: 0;
   font-size: 1.8rem;
-  color: #64748b;
+  color: #dc2626;
 }
 
 .environmentTitle {
@@ -2361,6 +2361,125 @@
 
 .environmentTab {
   font-style: italic;
+}
+
+/* Confirmed-intel ledger: a ruled sheet clipped to the page, one stakeholder block per run. */
+.ledger {
+  margin: 4px 0 10px;
+  padding: 6px 10px 8px;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 25px, rgba(2, 132, 199, 0.09) 25px 26px),
+    #fffdf5;
+  border: 1px solid #e7dfc6;
+  border-radius: 3px;
+  box-shadow: 0 2px 5px rgba(60, 45, 35, 0.14);
+}
+
+.ledgerHead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid #1e293b;
+  color: #1e293b;
+}
+
+.ledgerTitle {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ledgerCount {
+  margin-left: auto;
+  font-size: 0.68rem;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+.ledgerEmpty {
+  padding: 8px 2px 2px;
+  font-size: 0.74rem;
+  font-style: italic;
+  color: #64748b;
+}
+
+.ledgerTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.ledgerRow {
+  cursor: pointer;
+  font-size: 0.74rem;
+  line-height: 1.25;
+  color: #1e293b;
+  outline: none;
+}
+
+.ledgerRow > * {
+  padding: 4px 6px;
+  vertical-align: top;
+}
+
+.ledgerRowFirst > * {
+  border-top: 1px dashed #cbd5e1;
+}
+
+.ledgerRowFirst:first-child > * {
+  border-top: none;
+}
+
+/* Before the hover rule: equal specificity, so hover still wins. */
+.ledgerRow:nth-child(even) {
+  background: rgba(120, 90, 40, 0.045);
+}
+
+.ledgerRow:hover,
+.ledgerRow:focus-visible {
+  background: rgba(2, 132, 199, 0.08);
+}
+
+.ledgerRowDone {
+  opacity: 0.55;
+}
+
+.ledgerWho {
+  width: 42px;
+  border-left: 3px solid #94a3b8;
+  text-align: left;
+}
+
+.ledgerKind {
+  width: 26px;
+  padding: 4px 0;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.ledgerWhat {
+  overflow-wrap: anywhere;
+}
+
+.ledgerFor {
+  font-style: italic;
+  color: #64748b;
+}
+
+.ledgerMark {
+  width: 34px;
+  text-align: right;
+  font-size: 1rem;
+}
+
+.ledgerOnRecord {
+  color: #0284c7;
+}
+
+.ledgerConfirmed {
+  color: #16a34a;
 }
 
 /* Filter the wall by how sure the player is of a note. */

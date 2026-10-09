@@ -51,6 +51,9 @@ server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch e
    (`MAX_STANCE_ARTIFACTS`, `intel_handler.py`). Known cards cannot be tagged. Continue to the
    Pitch appears only when every non-known card is tagged. Events: `intel:get_offline_artifacts`,
    `intel:tag_item`, `intel:get_dossier`.
+   - The dossier's Challenge-Intel page opens with a "What they want" ledger: one row per confirmed
+     or on-record stakeholder note (`utils/confirmedIntel.ts`). Unconfirmed notes never appear;
+     clicking a row opens that stakeholder's page.
    - Progressive disclosure: any intel item whose graph target is an edge (`is_edge_requirement`,
      `intel_handler.py`) is left out of the deck, the dossier and every Gather/online-intel reveal
      on a player's first playthrough (`is_first_playthrough`, `run_index == 1`) - a new player only
