@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup: Case Board tab in the Stakeholder Dossier</title>
+<script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+<script src="shared/avatars.js"></script>
+<style>
+/* Mockup only. Mirrors StakeholderDossier.module.css (leather binder, bookmark tabs, lined page,
+   polaroids, sticky notes). Nothing here is wired to the game. */
+@font-face { font-family: 'Delius'; src: url('../../game-ui/public/fonts/delius-v21-latin-regular.woff2') format('woff2'); }
+:root { --primary-bg: rgb(38,102,130); --secondary-bg: rgb(17,48,62);
+  --ally: #d99a14; --rift: #c0392b; --chain: #3b5bdb; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; font-family: 'Delius', cursive; color: #26211e;
+  background: radial-gradient(1200px 700px at 30% 0%, #1f4b5e 0%, #11303e 55%, #0b1d26 100%); }
+iconify-icon { display: inline-block; vertical-align: -0.125em; }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 18px 20px 40px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; color: #d7e7ee; margin-bottom: 14px; font-size: .82rem; }
+.toolbar h1 { font-size: 1rem; margin: 0 14px 0 0; color: #fff; }
+.toolbar .seg { display: inline-flex; border: 1px solid rgba(255,255,255,.25); border-radius: 8px; overflow: hidden; }
+.toolbar button { font: inherit; background: rgba(255,255,255,.08); color: #e8f3f8; border: 0; padding: 6px 12px; cursor: pointer; }
+.toolbar button + button { border-left: 1px solid rgba(255,255,255,.2); }
+.toolbar button.on { background: #e9c46a; color: #2a1d0e; font-weight: 700; }
+.toolbar .tgl { border: 1px solid rgba(255,255,255,.25); border-radius: 8px; }
+.layout { display: flex; gap: 22px; align-items: flex-start; }
+.stage { position: relative; flex: 0 0 auto; width: 840px; }
+.notesPanel { flex: 1 1 300px; min-width: 260px; max-width: 360px; color: #d7e7ee; font-size: .8rem; line-height: 1.45; display: none; }
+body.notes .notesPanel { display: block; }
+.notesPanel h2 { font-size: .95rem; color: #fff; margin: 0 0 8px; }
+.notesPanel ol { margin: 0; padding: 0; list-style: none; counter-reset: n; }
+.notesPanel li { counter-increment: n; display: grid; grid-template-columns: 24px 1fr; gap: 8px; margin-bottom: 9px; }
+.notesPanel li::before { content: counter(n); width: 22px; height: 22px; border-radius: 50%; background: #e11d48; color: #fff;
+  font-weight: 700; font-size: .72rem; display: grid; place-items: center; }
+.notesPanel b { color: #fff; }
+.callout { position: absolute; z-index: 400; width: 22px; height: 22px; border-radius: 50%; background: #e11d48; color: #fff;
+  font-size: .72rem; font-weight: 700; display: none; place-items: center; box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(0,0,0,.5); pointer-events: none; }
+body.notes .callout { display: grid; }
+
+/* ---------- Binder window (same as .sketchbookWindow) ---------- */
+.win { position: relative; width: 840px; height: 670px; background: #2a211b; border-radius: 12px; display: flex; flex-direction: column;
+  box-shadow: 0 25px 60px rgba(0,0,0,.65), 0 4px 20px rgba(0,0,0,.4), inset 0 0 0 3px #1a1410, inset 0 0 0 6px #4a382c; user-select: none; }
+.binderHeader { background: linear-gradient(180deg,#3d2d23,#251b14); color: #f5ebd9; padding: 8px 16px; display: flex; align-items: center;
+  justify-content: space-between; border-bottom: 3px solid #140d09; box-shadow: inset 0 1px 0 rgba(255,255,255,.1); border-radius: 10px 10px 0 0; }
+.binderTitle { font-size: .75rem; font-weight: 700; letter-spacing: .6px; display: flex; align-items: center; gap: 8px; text-shadow: 1px 1px 2px rgba(0,0,0,.8); }
+.binderTitle iconify-icon { font-size: 1.6rem; color: #d9b978; filter: drop-shadow(1px 1px 1px rgba(0,0,0,.6)); }
+.hbtns { display: flex; }
+.hbtn { width: 30px; height: 28px; display: grid; place-items: center; background: linear-gradient(180deg,#5a4434,#3b2c21); color: #f1e3c6;
+  border: 1px solid #140d09; font-size: 1.05rem; }
+.hbtn + .hbtn { border-left: none; } .hbtn:first-child { border-radius: 4px 0 0 4px; } .hbtn:last-child { border-radius: 0 4px 4px 0; }
+.hbtn.act { background: linear-gradient(180deg,#e9c46a,#c99a2e); color: #2a1d0e; }
+
+.tabsContainer { display: flex; background: #251c15; padding: 4px 8px 0 16px; gap: 3px; width: 100%; margin-bottom: -1px; position: relative; z-index: 42; }
+.tabButton { flex: 1 1 0; min-width: 0; max-width: 148px; position: relative; padding: 3px 4px 5px; border-radius: 5px 5px 0 0; margin-bottom: -2px;
+  background: color-mix(in srgb, var(--tab-color) 12%, #d6c7b2); border: 1px solid color-mix(in srgb, var(--tab-color) 35%, #8c7865);
+  border-top: 3px solid var(--tab-color); border-bottom: none; opacity: .65; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; box-shadow: 0 -2px 4px rgba(0,0,0,.12); overflow: hidden; }
+.tabButton .m { font-size: .6rem; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; color: var(--tab-color); filter: brightness(.7); }
+.tabButton .n { font-size: .74rem; font-weight: 700; line-height: 1.15; color: #1a120b; }
+.tabButton .e { display: flex; gap: 3px; align-items: center; font-size: .62rem; font-weight: 700; color: #64748b; margin-top: 1px; }
+.tabButton .cnt { position: absolute; top: 1px; left: 2px; font-size: .56rem; font-weight: 700; background: rgba(0,0,0,.55); color: #fff; border-radius: 4px; padding: 0 3px; }
+.tabButton .flag { color: #dc2626; font-size: .68rem; }
+.tabButton .tag { position: absolute; top: 1px; right: 2px; font-size: .5rem; font-weight: 700; border-radius: 4px; padding: 0 3px; color: #fff; background: #64748b; }
+.tabButton.earlier { opacity: .5; }
+.tabGap { flex: 0 0 8px; }
+.tabButton.board { --tab-color: #b9722f; max-width: 130px; opacity: 1; z-index: 50; border: 1.5px solid #b9722f; border-top: 4px solid #b9722f; border-bottom: none;
+  background: linear-gradient(180deg,#e5b982,#c99560); box-shadow: 0 -4px 10px rgba(0,0,0,.35); }
+.tabButton.board .n { color: #2b1706; display: flex; align-items: center; gap: 4px; font-size: .78rem; }
+.tabButton.board .e { color: #5a3512; }
+.tabButton.board .pulse { position: absolute; top: 2px; right: 3px; width: 8px; height: 8px; border-radius: 50%; background: #e11d48; box-shadow: 0 0 0 0 rgba(225,29,72,.6); animation: ping 1.8s infinite; }
+@keyframes ping { 70% { box-shadow: 0 0 0 7px rgba(225,29,72,0); } 100% { box-shadow: 0 0 0 0 rgba(225,29,72,0); } }
+
+.flipBook { flex: 1; position: relative; background: #eadecc; margin: 0 2px; z-index: 40; min-height: 0; }
+.bindStrip { height: 10px; background: #1c140e; border-radius: 0 0 10px 10px; margin-top: -1px; }
+.page { position: absolute; inset: 0; display: flex; flex-direction: column; background-color: #f7f4ea; color: #26211e; overflow: hidden;
+  background-image: linear-gradient(90deg, transparent 16px, #ef4444 16px, #ef4444 17.5px, transparent 17.5px), repeating-linear-gradient(#f7f4ea, #f7f4ea 20px, #cbd5e1 21px);
+  box-shadow: inset 25px 0 20px -15px rgba(0,0,0,.25), inset -5px 0 15px rgba(0,0,0,.05); }
+
+/* ---------- Board page ---------- */
+.pgHead { display: flex; align-items: center; justify-content: space-between; padding: 6px 14px 4px 24px; border-bottom: 1.5px dashed #b5a48b; gap: 10px; }
+.pgTitle { font-size: .95rem; font-weight: 700; color: #1a120b; display: flex; align-items: center; gap: 7px; }
+.pgTitle small { font-weight: 400; color: #6b5d4e; font-size: .72rem; }
+.stats { display: flex; gap: 8px; align-items: center; }
+.pill { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,.8); border: 1px solid #cbd5e1; border-radius: 12px; padding: 0 8px; font-size: .74rem; height: 22px; }
+.pill.gold { background: #fff4d0; border-color: #e0b84a; }
+.attempts { display: inline-flex; gap: 4px; align-items: center; }
+.attempts i { width: 10px; height: 10px; border-radius: 50%; background: #c0392b; box-shadow: inset -2px -2px 0 rgba(0,0,0,.25), 0 1px 2px rgba(0,0,0,.4); }
+.attempts i.used { background: #d6cdbd; box-shadow: inset 0 0 0 1.5px #a89a84; }
+
+.pgBody { flex: 1; display: flex; gap: 10px; padding: 8px 12px 6px 24px; min-height: 0; }
+.corkFrame { flex: 0 0 500px; width: 500px; position: relative; border: 6px solid #5a3c24; border-radius: 6px; overflow: hidden; touch-action: none;
+  box-shadow: inset 0 0 22px rgba(60,30,8,.55), 0 3px 8px rgba(0,0,0,.3);
+  background: radial-gradient(rgba(80,48,20,.38) 1px, transparent 1.6px) 0 0/7px 7px, radial-gradient(rgba(255,226,180,.28) 1px, transparent 1.6px) 3px 3px/9px 9px, linear-gradient(135deg, #cfa26c, #a87a4a); }
+.cork { position: absolute; inset: 0; }
+.cork svg.threads { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.polaroid { position: absolute; width: 78px; background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 5px 5px 5px; text-align: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,.35), 0 1px 3px rgba(0,0,0,.15); transform: translate(-50%,-50%) rotate(var(--rot,-2deg)); cursor: crosshair;
+  transition: transform .15s ease, box-shadow .15s ease; z-index: 5; }
+.polaroid:hover, .polaroid.target { transform: translate(-50%,-50%) rotate(0) scale(1.05); box-shadow: 0 6px 16px rgba(0,0,0,.4); }
+.polaroid.target { outline: 3px dashed #fff; outline-offset: 3px; }
+.polaroid.src { outline: 3px solid #e9c46a; outline-offset: 3px; }
+.polaroid .ph { width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 2px; }
+.polaroid .ph svg { width: 100%; height: 100%; display: block; }
+.polaroid .nm { font-size: .72rem; font-weight: 700; line-height: 1.1; margin-top: 3px; color: #1a120b; }
+.polaroid .mt { font-size: .56rem; letter-spacing: .3px; text-transform: uppercase; font-weight: 700; color: var(--c); filter: brightness(.75); }
+.polaroid .tape { position: absolute; top: -8px; left: 17px; width: 44px; height: 15px; background: rgba(245,230,180,.78); border: 1px solid rgba(210,190,140,.5);
+  box-shadow: 0 1px 3px rgba(0,0,0,.1); transform: rotate(-5deg); }
+.polaroid .flags { position: absolute; right: -6px; top: -6px; display: flex; gap: 2px; }
+.polaroid .flags span { background: #fff; border: 1px solid #fca5a5; border-radius: 9px; width: 18px; height: 18px; display: grid; place-items: center; font-size: .72rem; color: #dc2626; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.polaroid.earlier { filter: saturate(.55); }
+.polaroid .eb { position: absolute; left: -9px; top: 22px; background: #475569; color: #fff; font-size: .52rem; font-weight: 700; padding: 1px 5px; border-radius: 4px; transform: rotate(-8deg); }
+
+.pin { position: absolute; width: 11px; height: 11px; border-radius: 50%; transform: translate(-50%,-50%); z-index: 6; pointer-events: none;
+  background: radial-gradient(circle at 35% 30%, #fff8 0 18%, transparent 20%), var(--pc); box-shadow: 0 2px 3px rgba(0,0,0,.5); }
+
+.chip { position: absolute; transform: translate(-50%,-50%); z-index: 7; background: #fffdf5; border: 1.5px solid var(--cc); border-radius: 7px; padding: 2px 8px 2px 5px;
+  display: inline-flex; align-items: center; gap: 4px; font-size: .68rem; font-weight: 700; color: #3b2f22; cursor: pointer; white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0,0,0,.35); transition: transform .12s ease; }
+.chip iconify-icon { color: var(--cc); font-size: .95rem; }
+.chip:hover { transform: translate(-50%,-52%) scale(1.06); }
+.chip.sel { background: var(--cc); color: #fff; } .chip.sel iconify-icon { color: #fff; }
+.chip.hint { border-style: dashed; background: rgba(255,253,245,.92); animation: hintPulse 2.2s ease-in-out infinite; }
+@keyframes hintPulse { 50% { box-shadow: 0 0 0 5px rgba(255,255,255,.55), 0 2px 6px rgba(0,0,0,.35); } }
+.chip.fresh { animation: pop .55s cubic-bezier(.2,1.4,.4,1); }
+@keyframes pop { 0% { transform: translate(-50%,-50%) scale(.2); opacity: 0; } 100% { transform: translate(-50%,-50%) scale(1); opacity: 1; } }
+
+.insight { position: absolute; left: 373px; top: 288px; width: 114px; background: #fffdf5; border: 1px solid #d8cdb4; padding: 7px 8px 8px; font-size: .62rem; line-height: 1.3;
+  transform: rotate(2.2deg); box-shadow: 0 3px 9px rgba(0,0,0,.35); z-index: 4; }
+.insight b { display: block; font-size: .72rem; margin-bottom: 3px; }
+.insight .tape { position: absolute; top: -8px; left: 36px; width: 40px; height: 14px; background: rgba(245,230,180,.78); transform: rotate(3deg); }
+.insight .bar { display: flex; gap: 3px; margin: 4px 0 4px; }
+.insight .bar i { flex: 1; height: 7px; border-radius: 3px; background: #e5dccb; box-shadow: inset 0 0 0 1px #c9bca2; }
+.insight .bar i.on { background: #d99a14; box-shadow: none; }
+
+.chooser { position: absolute; z-index: 30; background: #fffdf5; border: 1.5px solid #5a3c24; border-radius: 8px; padding: 6px; width: 176px; box-shadow: 0 8px 20px rgba(0,0,0,.45); }
+.chooser h4 { margin: 0 0 5px; font-size: .68rem; color: #5a3c24; }
+.chooser button { width: 100%; display: flex; align-items: center; gap: 6px; font: inherit; font-size: .72rem; font-weight: 700; padding: 4px 6px; margin-bottom: 3px;
+  background: #fff; border: 1.5px solid var(--cc); border-radius: 6px; cursor: pointer; color: #3b2f22; text-align: left; }
+.chooser button:hover { background: var(--cc); color: #fff; } .chooser button iconify-icon { color: var(--cc); } .chooser button:hover iconify-icon { color: #fff; }
+.chooser .x { border-color: #94a3b8; --cc: #94a3b8; font-weight: 400; margin-bottom: 0; }
+.toast { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 40; background: rgba(26,18,11,.92); color: #fff7e0; font-size: .72rem; padding: 6px 12px; border-radius: 8px;
+  max-width: 440px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,.4); opacity: 0; transition: opacity .2s; pointer-events: none; }
+.toast.show { opacity: 1; }
+
+/* ---------- Thread file (right column) ---------- */
+.file { flex: 1; min-width: 0; position: relative; background: #fffef9; border: 1px solid #d6cdb6; border-radius: 3px; padding: 10px 11px; display: flex; flex-direction: column; gap: 6px;
+  box-shadow: 0 3px 9px rgba(0,0,0,.18); transform: rotate(.5deg); overflow: hidden; background-image: repeating-linear-gradient(#fffef9, #fffef9 19px, #e9e2cf 20px); }
+.file .tape { position: absolute; top: -7px; left: 90px; width: 52px; height: 15px; background: rgba(245,230,180,.8); transform: rotate(-3deg); border: 1px solid rgba(210,190,140,.5); }
+.fHead { display: flex; gap: 8px; align-items: center; margin-top: 2px; }
+.duo { display: flex; align-items: center; flex: 0 0 auto; }
+.duo .av { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.35); background: #f1f5f9; }
+.duo .av + .av, .duo .mid + .av { margin-left: -8px; }
+.duo .mid { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--cc); color: #fff; z-index: 2; margin-left: -6px; font-size: .8rem; border: 2px solid #fff; }
+.fTitle { font-size: .8rem; font-weight: 700; line-height: 1.2; color: #1a120b; }
+.fSub { font-size: .62rem; color: var(--cc); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
+.sec { font-size: .6rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: #8a7a62; margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+.scene { background: rgba(255,255,255,.8); border: 1px dashed #cfc3a8; border-radius: 6px; padding: 5px 6px; display: flex; flex-direction: column; gap: 4px; }
+.line { display: flex; gap: 5px; align-items: flex-start; }
+.line.r { flex-direction: row-reverse; }
+.line .sm { width: 22px; height: 22px; border-radius: 50%; overflow: hidden; flex: 0 0 22px; border: 1.5px solid #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+.line .b { font-size: .66rem; line-height: 1.3; background: #fff; border: 1px solid #e2d9c3; border-radius: 8px; padding: 3px 7px; max-width: 205px; }
+.line.r .b { background: #eef6ff; border-color: #cfe0f5; }
+.line .b em { display: block; font-style: normal; font-size: .54rem; font-weight: 700; color: #8a7a62; letter-spacing: .3px; }
+.pitch { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.pitch li { display: flex; gap: 5px; font-size: .66rem; line-height: 1.3; }
+.pitch li iconify-icon { color: var(--cc); flex: 0 0 auto; margin-top: 1px; font-size: .9rem; }
+.srcRow { display: flex; gap: 6px; }
+.note { flex: 1; min-width: 0; padding: 4px 6px 5px; border: 1px solid rgba(0,0,0,.06); border-radius: 2px 2px 14px 2px / 2px 2px 4px 2px; background: #fed7aa;
+  box-shadow: 0 2px 5px rgba(0,0,0,.12), 4px 3px 5px -3px rgba(0,0,0,.28); font-size: .6rem; line-height: 1.25; }
+.note:nth-child(2) { background: #fdba74; transform: rotate(.8deg); } .note:nth-child(1) { transform: rotate(-.8deg); }
+.note .tg { display: inline-flex; align-items: center; gap: 3px; font-weight: 700; font-size: .52rem; letter-spacing: .4px; color: #fff; background: var(--tc); border-radius: 3px; padding: 0 4px; margin-bottom: 2px; }
+.note .by { display: block; margin-top: 2px; font-size: .52rem; color: #7a5b3a; }
+.empty { margin: auto; text-align: center; color: #8a7a62; font-size: .72rem; line-height: 1.4; padding: 0 10px; }
+.empty iconify-icon { font-size: 1.8rem; color: #b9722f; display: block; margin: 0 auto 4px; }
+
+/* ---------- Dock ---------- */
+.dock { display: flex; align-items: center; gap: 8px; padding: 5px 12px 6px 24px; border-top: 1.5px dashed #b5a48b; background: rgba(247,244,234,.9); min-height: 42px; }
+.fchip { display: inline-flex; align-items: center; gap: 4px; background: #fff; border: 1.5px solid var(--cc); color: #3b2f22; border-radius: 12px; padding: 1px 9px 1px 6px; font-size: .7rem; font-weight: 700; }
+.fchip iconify-icon { color: var(--cc); }
+.fchip b { background: var(--cc); color: #fff; border-radius: 8px; padding: 0 5px; font-size: .62rem; }
+.dockHint { margin-left: auto; font-size: .66rem; color: #6b5d4e; display: flex; gap: 5px; align-items: center; font-style: italic; max-width: 330px; line-height: 1.25; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="toolbar">
+    <h1>Mockup: Case Board (a new tab in the Stakeholder Dossier)</h1>
+    <span>Board state</span>
+    <span class="seg" id="presets">
+      <button data-p="0">Start of challenge</button><button data-p="1" class="on">Mid-challenge</button><button data-p="2">Board complete</button>
+    </span>
+    <button class="tgl" id="notesBtn"><iconify-icon icon="ph:chat-centered-text-bold"></iconify-icon> Design notes</button>
+    <span style="opacity:.75">Try it: drag from one portrait to another, or click a thread tag.</span>
+  </div>
+
+  <div class="layout">
+    <div class="stage" id="stage">
+      <div class="win" id="win">
+        <div class="binderHeader">
+          <div class="binderTitle"><iconify-icon icon="ph:notebook-duotone"></iconify-icon>STAKEHOLDER DOSSIER <span style="font-weight:400;opacity:.7;letter-spacing:0">· Data Engineering · Loyalty Consent Gap</span></div>
+          <div class="hbtns">
+            <span class="hbtn"><iconify-icon icon="ph:graph-bold"></iconify-icon></span>
+            <span class="hbtn"><iconify-icon icon="ph:gauge-bold"></iconify-icon></span>
+            <span class="hbtn"><iconify-icon icon="ph:clipboard-text-bold"></iconify-icon></span>
+            <span class="hbtn"><iconify-icon icon="ph:list-bullets-bold"></iconify-icon></span>
+            <span class="hbtn"><iconify-icon icon="ph:gear-six-bold"></iconify-icon></span>
+          </div>
+        </div>
+
+        <div class="tabsContainer" id="tabs"></div>
+
+        <div class="flipBook">
+          <div class="page">
+            <div class="pgHead">
+              <div class="pgTitle"><iconify-icon icon="ph:push-pin-bold" style="color:#b9722f"></iconify-icon>Case board <small id="subtitle"></small></div>
+              <div class="stats">
+                <span class="pill gold" id="foundPill"></span>
+                <span class="pill" id="attemptsPill" title="Threads you can still test this challenge"></span>
+              </div>
+            </div>
+            <div class="pgBody">
+              <div class="corkFrame" id="corkFrame"><div class="cork" id="cork">
+                <svg class="threads" id="threads" viewBox="0 0 500 470"></svg>
+              </div></div>
+              <aside class="file" id="file"></aside>
+            </div>
+            <div class="dock">
+              <span class="fchip" style="--cc:var(--ally)"><iconify-icon icon="ph:handshake-bold"></iconify-icon>Allies <b id="cA">0</b></span>
+              <span class="fchip" style="--cc:var(--rift)"><iconify-icon icon="ph:lightning-bold"></iconify-icon>Rifts <b id="cR">0</b></span>
+              <span class="fchip" style="--cc:var(--chain)"><iconify-icon icon="ph:link-simple-bold"></iconify-icon>Chains <b id="cC">0</b></span>
+              <span class="dockHint"><iconify-icon icon="ph:hand-pointing-bold" style="font-size:1.1rem;flex:0 0 auto"></iconify-icon>Draw a thread between two people who might be tied together. Threads you name correctly shape how the pitch plays out.</span>
+            </div>
+          </div>
+        </div>
+        <div class="bindStrip"></div>
+      </div>
+    </div>
+
+    <aside class="notesPanel" id="notesPanel">
+      <h2>Design notes</h2>
+      <ol id="notesList"></ol>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* ======================= data ======================= */
+const BW = 500, BH = 470, PW = 78, PH = 108;
+const PLACE = {
+  alex:   { x: 62,  y: 100, rot: -3 },
+  reuben: { x: 250, y: 100, rot: 1.5 },
+  emilia: { x: 438, y: 100, rot: -2 },
+  dave:   { x: 62,  y: 352, rot: 2 },
+  ruth:   { x: 250, y: 352, rot: -1.5 },
+};
+const EXTRA = {
+  reuben: { emotion: 'Neutral', mood: 'neutral', found: '3/4', flags: ['ph:lightning-fill', 'ph:eye-fill'] },
+  ruth:   { emotion: 'Neutral', mood: 'neutral', found: '2/3', flags: ['ph:lightning-fill', 'ph:eye-fill'] },
+  dave:   { emotion: 'Anxious', mood: 'wince', found: '0/2', flags: ['ph:eye-fill'] },
+  emilia: { emotion: 'Skeptical', mood: 'skeptical', found: '2/2', flags: [] },
+  alex:   { emotion: 'Neutral', mood: 'neutral', found: '1/3', flags: ['ph:lightning-fill'], earlier: true },
+};
+const TYPES = {
+  ally:  { label: 'Allies',  tag: 'Same ask',    icon: 'ph:handshake-bold',   color: 'var(--ally)',  hex: '#d99a14', q: 'They want the same thing from the same step.' },
+  rift:  { label: 'Rift',    tag: 'At odds',     icon: 'ph:lightning-bold',   color: 'var(--rift)',  hex: '#c0392b', q: 'They want opposite things from the same step.' },
+  chain: { label: 'Chain',   tag: 'Depends on',  icon: 'ph:link-simple-bold', color: 'var(--chain)', hex: '#3b5bdb', q: 'One of them cannot get what they want until the other does.' },
+};
+const TAGC = { DRV: '#16a34a', BND: '#2563eb', TRD: '#d97706', CHI: '#7c3aed' };
+const LINKS = {
+  l1: { a: 'alex', b: 'reuben', type: 'ally', title: 'Same ask: risk review off manual',
+    scene: [['alex', 'Every release sits waiting for someone to eyeball the consent records.'], ['reuben', 'That is my chain too. I want the check enforced at the source, not remembered.'], ['alex', 'Then we are asking for the same step. Say it together and it lands.']],
+    pitch: ['One change at the risk review hand-off satisfies both of them.', 'Win Reuben first: Alex eases a notch once he sees it on the card.', 'Leave it out and both object, and Alex is not a voice you can afford to lose.'],
+    notes: [['DRV', 'Move the risk review hand-off and the consent checks off manual handling.', 'Reuben, meeting notes'], ['DRV', 'Push the risk assessment reviews completely off manual handling.', 'Alex, meeting notes']] },
+  l2: { a: 'reuben', b: 'ruth', type: 'chain', title: "Ruth's checks wait on the contracts",
+    scene: [['ruth', "I can't stand behind acceptance checks while the contracts feeding them are broken."], ['reuben', "Contracts first. I'm not signing anything downstream until the consent fields are back."], ['ruth', 'Then my checks are capped until you get there.']],
+    pitch: ["Ruth's request is capped by the data contracts, so on its own it cannot land.", 'Fix the contracts and her ask opens up. Skip it and she objects again.', 'Reuben owns the upstream step, so he is the one to bring along first.'],
+    notes: [['DRV', 'Take the acceptance criteria checks off manual sign-off.', 'Ruth, document'], ['CHI', 'The data contracts are broken: the consent fields are gone from the incoming schema.', 'Challenge intel, email']] },
+  l3: { a: 'reuben', b: 'emilia', type: 'rift', title: 'Who checks the risk review?',
+    scene: [['emilia', 'The leaflet deadline does not move. Somebody has to stay in the loop.'], ['reuben', 'A person in the loop is how the consent check got missed.'], ['emilia', 'Let it run mostly on its own, and a person signs off the result.']],
+    pitch: ['Full automation trips Emilia. She can still slow the rollout if she is ignored.', 'A sign-off step before results count is the compromise her own note offers.', 'Reuben has the veto here, so give him the enforcement and her the sign-off.'],
+    notes: [['BND', 'Will not sign off a release where the chain still needs manual pushing.', 'Reuben, Slack'], ['TRD', 'Accepts the risk review running partly on its own if a person still checks the results.', 'Emilia, Slack']] },
+  l4: { a: 'alex', b: 'emilia', type: 'rift', title: 'Speed or safety net?',
+    scene: [['alex', 'A person rereading every release is why we ship once a month.'], ['emilia', 'A person rereading it is why the leaflet ships on time.'], ['alex', 'We will not get the same answer from you on this step.']],
+    pitch: ["Alex carries the vote and Emilia carries the delay, so one of them will be unhappy.", 'The partial-automation compromise keeps both from refusing outright.', 'Settle Reuben and Emilia first: that already covers most of this.'],
+    notes: [['DRV', 'Push the risk assessment reviews completely off manual handling.', 'Alex, meeting notes'], ['TRD', 'Accepts the risk review running partly on its own if a person still checks the results.', 'Emilia, Slack']] },
+};
+const PRESETS = [
+  { found: [], hint: [], attempts: 3, sel: null },
+  { found: ['l1', 'l2'], hint: ['l3'], attempts: 3, sel: 'l1' },
+  { found: ['l1', 'l2', 'l3', 'l4'], hint: [], attempts: 2, sel: 'l3' },
+];
+let S;
+const $ = (s) => document.querySelector(s);
+const el = (h) => { const t = document.createElement('div'); t.innerHTML = h.trim(); return t.firstChild; };
+const key = (a, b) => [a, b].sort().join('|');
+const truth = (a, b) => Object.entries(LINKS).find(([, l]) => key(l.a, l.b) === key(a, b));
+
+function load(p) { S = JSON.parse(JSON.stringify(PRESETS[p])); S.draft = null; render(); }
+
+/* ======================= geometry ======================= */
+function anchor(from, to) {
+  const c = PLACE[from], o = PLACE[to];
+  const dx = o.x - c.x, dy = o.y - c.y;
+  const t = Math.min(dx ? (PW / 2 + 3) / Math.abs(dx) : 1e9, dy ? (PH / 2 + 3) / Math.abs(dy) : 1e9);
+  return { x: c.x + dx * t, y: c.y + dy * t };
+}
+function curve(l) {
+  let a = anchor(l.a, l.b), b = anchor(l.b, l.a), c;
+  if (l.id === 'l4') { a = { x: 62, y: 154 }; b = { x: 438, y: 154 }; c = { x: 250, y: 330 }; }
+  else if (l.id === 'l2') { a = { x: 250, y: 154 }; b = { x: 250, y: 298 }; c = { x: 258, y: 226 }; }
+  else c = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 + 22 };
+  const mid = { x: (a.x + 2 * c.x + b.x) / 4, y: (a.y + 2 * c.y + b.y) / 4 };
+  if (l.id === 'l2') { mid.x = 254; mid.y = 206; }
+  return { a, b, c, mid };
+}
+
+/* ======================= render ======================= */
+function render() {
+  // tabs
+  const tabs = $('#tabs'); tabs.innerHTML = '';
+  ['reuben', 'ruth', 'dave', 'emilia', 'alex'].forEach((id) => {
+    const p = PEOPLE[id], e = EXTRA[id];
+    tabs.appendChild(el(`<div class="tabButton ${e.earlier ? 'earlier' : ''}" style="--tab-color:${p.color}">
+      <span class="cnt">${e.found}</span>${e.earlier ? '<span class="tag">P1</span>' : ''}
+      <span class="m">${p.metric}</span><span class="n">${p.name}</span>
+      <span class="e"><iconify-icon icon="ph:smiley-meh-bold"></iconify-icon>${e.emotion}${e.flags.map((f) => `<iconify-icon class="flag" icon="${f}"></iconify-icon>`).join('')}</span></div>`));
+  });
+  tabs.appendChild(el('<span class="tabGap"></span>'));
+  tabs.appendChild(el(`<div class="tabButton board" id="tabBoard"><span class="pulse"></span><span class="n"><iconify-icon icon="ph:push-pin-fill"></iconify-icon>Board</span><span class="e">${S.found.length} of 4 threads</span></div>`));
+
+  // header
+  $('#subtitle').textContent = 'who is tied to whom in this challenge';
+  $('#foundPill').innerHTML = `<iconify-icon icon="ph:magnifying-glass-bold"></iconify-icon>${S.found.length} of 4 threads found`;
+  const pins = [0, 1, 2].map((i) => `<i class="${i < S.attempts ? '' : 'used'}"></i>`).join('');
+  $('#attemptsPill').innerHTML = `<iconify-icon icon="ph:needle-bold"></iconify-icon>Threads left <span class="attempts">${pins}</span>`;
+
+  // cork
+  const cork = $('#cork'); cork.querySelectorAll('.polaroid,.pin,.chip,.insight,.chooser').forEach((n) => n.remove());
+  Object.entries(PLACE).forEach(([id, pl]) => {
+    const p = PEOPLE[id], e = EXTRA[id];
+    cork.appendChild(el(`<div class="polaroid ${e.earlier ? 'earlier' : ''}" data-id="${id}" style="left:${pl.x}px;top:${pl.y}px;--rot:${pl.rot}deg;--c:${p.color}">
+      <span class="tape"></span>
+      <div class="flags">${e.flags.filter((f) => f.includes('lightning')).map(() => '<span><iconify-icon icon="ph:lightning-fill"></iconify-icon></span>').join('')}</div>
+      <div class="ph" style="background:${p.color}22">${Avatars.svg(p, e.mood)}</div>
+      <div class="nm">${p.name}</div><div class="mt">${p.metric}</div>${e.earlier ? '<span class="eb">PHASE 1</span>' : ''}</div>`));
+  });
+
+  const svg = $('#threads'); svg.innerHTML = `<defs>
+    <marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="${TYPES.chain.hex}"/></marker></defs>`;
+  const drawThread = (id, mode) => {
+    const l = { id, ...LINKS[id] }, g = curve(l), T = TYPES[l.type];
+    const d = `M${g.a.x},${g.a.y} Q${g.c.x},${g.c.y} ${g.b.x},${g.b.y}`;
+    const dash = mode === 'hint' ? 'stroke-dasharray="6 6"' : l.type === 'rift' ? 'stroke-dasharray="1 0"' : '';
+    const col = mode === 'hint' ? '#fffdf5' : T.hex;
+    svg.insertAdjacentHTML('beforeend', `<path d="${d}" fill="none" stroke="rgba(40,20,5,.45)" stroke-width="4" transform="translate(2,4)" stroke-linecap="round"/>
+      <path d="${d}" fill="none" stroke="${col}" stroke-width="${S.sel === id ? 4 : 3}" ${dash} stroke-linecap="round" ${l.type === 'chain' && mode !== 'hint' ? 'marker-end="url(#ah)"' : ''}/>`);
+    [g.a, g.b].forEach((pt) => cork.appendChild(el(`<span class="pin" style="left:${pt.x}px;top:${pt.y}px;--pc:${mode === 'hint' ? '#e5e7eb' : T.hex}"></span>`)));
+    const chip = el(`<span class="chip ${S.sel === id ? 'sel' : ''} ${mode === 'hint' ? 'hint' : ''} ${S.fresh === id ? 'fresh' : ''}" data-id="${id}" data-mode="${mode}" style="left:${g.mid.x}px;top:${g.mid.y}px;--cc:${mode === 'hint' ? '#8a7a62' : T.hex}">
+      <iconify-icon icon="${mode === 'hint' ? 'ph:question-bold' : T.icon}"></iconify-icon>${mode === 'hint' ? 'Something here?' : T.tag}</span>`);
+    cork.appendChild(chip);
+  };
+  S.found.forEach((id) => drawThread(id, 'found'));
+  S.hint.filter((id) => !S.found.includes(id)).forEach((id) => drawThread(id, 'hint'));
+  S.fresh = null;
+
+  cork.appendChild(el(`<div class="insight"><span class="tape"></span><b>What the board does</b>
+    <div class="bar">${[0, 1, 2, 3].map((i) => `<i class="${i < S.found.length ? 'on' : ''}"></i>`).join('')}</div>
+    Allies back each other in the room, rifts open a compromise, chains show what to fix first.</div>`));
+
+  // dock counts
+  const cnt = (t) => S.found.filter((id) => LINKS[id].type === t).length;
+  $('#cA').textContent = cnt('ally'); $('#cR').textContent = cnt('rift'); $('#cC').textContent = cnt('chain');
+  renderFile();
+  requestAnimationFrame(placeCallouts);
+}
+
+function renderFile() {
+  const f = $('#file');
+  const id = S.sel, l = id && LINKS[id];
+  if (!l || !S.found.includes(id)) {
+    f.innerHTML = `<span class="tape"></span><div class="empty"><iconify-icon icon="ph:cursor-click-bold"></iconify-icon>Nothing selected yet.<br>Click a thread tag, or drag from one portrait to another.<br><br>
+      <span style="font-size:.64rem">Rift, ally or chain: you decide what the link is. Name it right and the file opens.</span></div>`;
+    return;
+  }
+  const T = TYPES[l.type], A = PEOPLE[l.a], B = PEOPLE[l.b];
+  const mood = { ally: ['nod', 'nod'], rift: ['skeptical', 'wince'], chain: ['neutral', 'wince'] }[l.type];
+  const speak = (who, i) => `<div class="line ${who === l.b ? 'r' : ''}"><div class="sm" style="background:${PEOPLE[who].color}33">${Avatars.svg(PEOPLE[who], who === l.a ? mood[0] : mood[1])}</div>
+    <div class="b"><em>${PEOPLE[who].name.toUpperCase()}</em>${l.scene[i][1]}</div></div>`;
+  f.style.setProperty('--cc', T.hex);
+  f.innerHTML = `<span class="tape"></span>
+    <div class="fHead" data-n="7"><div class="duo"><div class="av" style="background:${A.color}33">${Avatars.svg(A, mood[0])}</div>
+      <div class="mid"><iconify-icon icon="${T.icon}"></iconify-icon></div><div class="av" style="background:${B.color}33">${Avatars.svg(B, mood[1])}</div></div>
+      <div><div class="fSub">${T.label}${l.type === 'chain' ? ': ' + A.name + ' then ' + B.name : ''}</div><div class="fTitle">${l.title}</div></div></div>
+    <div class="sec"><iconify-icon icon="ph:ear-bold"></iconify-icon>Overheard in the corridor</div>
+    <div class="scene" id="scene">${l.scene.map(([who], i) => speak(who, i)).join('')}</div>
+    <div class="sec" id="pitchSec"><iconify-icon icon="ph:presentation-chart-bold"></iconify-icon>What it changes in the pitch</div>
+    <ul class="pitch">${l.pitch.map((p) => `<li><iconify-icon icon="${l.type === 'rift' ? 'ph:scales-bold' : l.type === 'chain' ? 'ph:arrow-fat-lines-right-bold' : 'ph:check-circle-bold'}"></iconify-icon><span>${p}</span></li>`).join('')}</ul>
+    <div class="sec" id="srcSec"><iconify-icon icon="ph:paperclip-bold"></iconify-icon>Built from your notes</div>
+    <div class="srcRow">${l.notes.map(([tg, txt, by]) => `<div class="note" style="--tc:${TAGC[tg]}"><span class="tg">${tg}</span><br>${txt}<span class="by">${by}</span></div>`).join('')}</div>`;
+}
+
+/* ======================= interaction ======================= */
+let toastT;
+function toast(msg) { const t = $('#toast') || $('#corkFrame').appendChild(el('<div class="toast" id="toast"></div>')); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 3200); }
+function spend() { S.attempts = Math.max(0, S.attempts - 1); }
+
+$('#cork').addEventListener('click', (e) => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  if (c.dataset.mode === 'hint') return openChooser(c.dataset.id, null, c.offsetLeft, c.offsetTop + 18);
+  S.sel = c.dataset.id; render();
+});
+
+function openChooser(linkId, pair, x, y) {
+  $('#cork').querySelectorAll('.chooser').forEach((n) => n.remove());
+  const ch = el(`<div class="chooser" style="left:${Math.min(Math.max(x - 88, 4), BW - 190)}px;top:${Math.min(y, BH - 150)}px"><h4>What ties these two together?</h4>
+    ${Object.entries(TYPES).map(([k, T]) => `<button data-k="${k}" style="--cc:${T.hex}"><iconify-icon icon="${T.icon}"></iconify-icon>${T.label === 'Rift' ? 'Rift: opposite asks' : T.label === 'Allies' ? 'Allies: same ask' : 'Chain: one waits on the other'}</button>`).join('')}
+    <button class="x" data-k="x">Cancel</button></div>`);
+  ch.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return; e.stopPropagation();
+    if (b.dataset.k === 'x') { ch.remove(); return; }
+    ch.remove();
+    if (LINKS[linkId].type === b.dataset.k) { S.found.push(linkId); S.sel = linkId; S.fresh = linkId; render(); toast('Thread found. The file is open on the right.'); }
+    else { spend(); render(); toast('Not quite. Look again at what each of them actually asked for.'); }
+  });
+  $('#cork').appendChild(ch);
+}
+
+(function drag() {
+  const frame = $('#corkFrame'); let src = null, line = null;
+  const pt = (e) => { const r = $('#cork').getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  frame.addEventListener('pointerdown', (e) => {
+    const p = e.target.closest('.polaroid'); if (!p) return;
+    if (S.attempts === 0) return toast('Out of threads for this challenge. Pitch with what you have.');
+    src = p.dataset.id; p.classList.add('src'); frame.setPointerCapture(e.pointerId);
+    line = document.createElementNS('http://www.w3.org/2000/svg', 'path'); line.setAttribute('stroke', '#fffdf5'); line.setAttribute('stroke-width', 3);
+    line.setAttribute('stroke-dasharray', '6 5'); line.setAttribute('fill', 'none'); $('#threads').appendChild(line);
+  });
+  frame.addEventListener('pointermove', (e) => {
+    if (!src) return; const q = pt(e), s = PLACE[src];
+    line.setAttribute('d', `M${s.x},${s.y} Q${(s.x + q.x) / 2},${(s.y + q.y) / 2 + 20} ${q.x},${q.y}`);
+    document.querySelectorAll('.polaroid').forEach((n) => n.classList.toggle('target', n.dataset.id !== src && n.matches(':hover')));
+  });
+  frame.addEventListener('pointerup', (e) => {
+    if (!src) return; const q = pt(e);
+    const hit = [...document.querySelectorAll('.polaroid')].find((n) => n.dataset.id !== src && n.matches(':hover'));
+    const from = src; src = null; line && line.remove();
+    document.querySelectorAll('.polaroid').forEach((n) => n.classList.remove('src', 'target'));
+    if (!hit) return;
+    const to = hit.dataset.id, t = truth(from, to);
+    if (t && S.found.includes(t[0])) { S.sel = t[0]; render(); return toast('You already have that one pinned.'); }
+    if (!t) { spend(); render(); return toast(`Nothing there. ${PEOPLE[from].name} and ${PEOPLE[to].name} never ask for anything on the same step.`); }
+    openChooser(t[0], [from, to], q.x, q.y);
+  });
+})();
+
+document.querySelectorAll('#presets button').forEach((b) => b.addEventListener('click', () => {
+  document.querySelectorAll('#presets button').forEach((x) => x.classList.toggle('on', x === b)); load(+b.dataset.p);
+}));
+
+/* ======================= design notes ======================= */
+const NOTES = [
+  ['#tabBoard', 'New "Board" tab', 'Sits after the people tabs, so every other tab keeps working as today. The red dot shows when a new thread has been revealed.'],
+  ['.polaroid[data-id=reuben]', 'Portraits are the existing polaroids', 'Same avatar, name and metric. Lightning badge marks decision-makers (high power). Earlier-phase stakeholders stay on the board with a PHASE 1 stamp.'],
+  ['.chip[data-id=l1]', 'Three kinds of thread', 'Gold = allies (same ask on the same step). Red = rift (opposite asks). Blue = chain (one cannot get what they want until the other does).'],
+  ['.chip[data-mode=hint]', 'Cards feed the board', 'A card such as Team Sync-Up can reveal that "something is here" as a dashed thread. The player still has to say what kind of tie it is.'],
+  ['#attemptsPill', 'Limited tries', 'A few pins per challenge stops brute-forcing every pair. A wrong guess costs a pin, not an item.'],
+  ['#corkFrame', 'Draw it yourself', 'Drag between two portraits. The true relations should be derivable from the existing intel items (same target, opposing levels, dependency through the graph), so no new content is needed. To be confirmed against the item schema.'],
+  ['.fHead', 'The thread file', 'Opens when a link is confirmed. Two avatars and the type, then three blocks below.'],
+  ['#scene', 'Overheard scene', 'Which items they disclose and who yields is decided by the engine. The LLM only words the lines, as it does in the pitch today.'],
+  ['#pitchSec', 'What it changes in the pitch', 'Plain-language effects, no numbers: allies lift each other, rifts unlock a compromise, chains say what to fix first.'],
+  ['#srcSec', 'Built from your notes', 'Each thread cites the intel items behind it, so the board is another way to read the dossier, not a separate pile of facts.'],
+  ['.dock', 'Same dock as the dossier', 'Filter chips by thread type, plus a one-line hint for first-time players.'],
+];
+function placeCallouts() {
+  document.querySelectorAll('.callout').forEach((n) => n.remove());
+  const st = $('#stage').getBoundingClientRect();
+  NOTES.forEach(([sel, , ], i) => {
+    const t = document.querySelector(sel); if (!t) return;
+    const r = t.getBoundingClientRect();
+    const c = el(`<span class="callout">${i + 1}</span>`);
+    c.style.left = (r.left - st.left - 8) + 'px'; c.style.top = (r.top - st.top - 8) + 'px'; $('#stage').appendChild(c);
+  });
+}
+$('#notesList').innerHTML = NOTES.map(([, h, t]) => `<li><div><b>${h}.</b> ${t}</div></li>`).join('');
+$('#notesBtn').addEventListener('click', () => { document.body.classList.toggle('notes'); placeCallouts(); });
+if (location.search.includes('notes')) document.body.classList.add('notes');
+addEventListener('resize', placeCallouts);
+const qp = +(new URLSearchParams(location.search).get('p') ?? 1);
+document.querySelectorAll('#presets button').forEach((x) => x.classList.toggle('on', +x.dataset.p === qp));
+load(qp);
+</script>
+</body>
+</html>
