@@ -516,7 +516,17 @@ export default function PowerInterestMatrix({
               const items = categorizedNodes[quad.key] || [];
 
               return (
-                <div key={quad.key} className={`${styles.sectorQuadrant} ${quad.cardStyle}`}>
+                <div
+                  key={quad.key}
+                  className={`${styles.sectorQuadrant} ${quad.cardStyle}`}
+                  {...(quad.key === "high-high" && {
+                    "data-intro-group": "intro2",
+                    "data-title": "Manage Closely",
+                    "data-intro":
+                      "High power and high interest land in <em>'Manage Closely'</em>: they can veto your plan and react strongly to everything you say. Track them down first once you start gathering intel. The others still matter, they just won't sink your pitch if you get to them second.",
+                    "data-step": "5",
+                  })}
+                >
                   <div className={styles.sectorHeader}>
                     <span className={styles.sectorTitle}>
                       <Icon icon={quad.icon} className={styles.sectorIcon} style={{ color: quad.iconColor }} />

@@ -495,7 +495,7 @@ export default function PrePhaseDialog({
                 className={styles.matrixColumn}
                 data-intro-group="intro2"
                 data-title="Power & Interest Radar"
-                data-intro="This is the power/interest radar, and it is worth two minutes. <br /> <br /> <mark>Power</mark> means: can this person stop you? High power can veto your whole plan, low power can only grumble. <br /> <mark>Interest</mark> means: how much do they care? <br /> <br /> Together with power it sets how strongly your proposal moves their mood. <br /> <br /> High power and high interest land in <em>'Manage Closely'</em> - track them down first once you start gathering intel. The others still matter, they just won't sink your pitch if you get to them second."
+                data-intro="This is the power/interest radar, and it is worth two minutes. <br /> <br /> <mark>Power</mark> means: can this person stop you? High power can veto your whole plan, low power can only grumble. <br /> <mark>Interest</mark> means: how much do they care? <br /> <br /> Together with power it sets how strongly your proposal moves their mood."
                 data-step="4"
               >
                 <div className={styles.sectionHeader}>
