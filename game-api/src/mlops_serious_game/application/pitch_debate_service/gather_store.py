@@ -2,8 +2,9 @@
 
 Conversations live on the challenge row, inside `action_card` under the `gather` key, keyed by
 "{card_id}:{stakeholder_id}" - one per target, so a card played against several stakeholders at
-once (Probe Requirements, Team Sync-up) keeps each one's turns separate. Same shelf `pitch`
-already uses for `PitchState` (`pitch_debate_service.store`).
+once (Team Sync-Up) keeps each one's turns separate. A repeatable-target card (Investigate
+Component) reuses the same key across plays instead, so the conversation continues rather than
+resetting. Same shelf `pitch` already uses for `PitchState` (`pitch_debate_service.store`).
 """
 
 from __future__ import annotations

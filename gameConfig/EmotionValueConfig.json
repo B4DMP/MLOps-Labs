@@ -269,6 +269,14 @@
       "impatience_decay": 0.6,
       "impatience_relief": 0.08,
       "case_board_attempts": 5,
-      "ally_lift": 0.05
+      "ally_lift": 0.05,
+      "pep_talk_confidence_gain": 0.08,
+      "pep_talk_control_gain": 0.05,
+      "pen_enabled": true,
+      "pen_max_per_challenge": 1,
+      "pen_leave_player_slots": 1,
+      "pen_trust_gain": { "low": 0.12, "medium": 0.07, "high": 0.03 },
+      "pen_control_gain": { "low": 0.12, "medium": 0.07, "high": 0.03 },
+      "pen_trust_dividend_steps": 2
    }
 }

@@ -156,7 +156,7 @@ async def generate_stakeholder_response(
     responsibilities: str = "",
     priorities: str = "",
     emotion: str = "Neutral",
-    option_type: str = "generic_query",
+    option_type: str = "component_query",
     component_name: str = "",
     revealed_intel_description: str = "",
     revealed_intel_tag: str = "",

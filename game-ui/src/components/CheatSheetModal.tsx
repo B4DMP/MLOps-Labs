@@ -104,13 +104,13 @@ const STAMP_LEGEND: {
   { label: "★ ON RECORD", styleKey: "onRecord", detail: "They said it in the open. Nothing to confirm." },
 ];
 
-/** Mirrors gameConfig/GameEngagementCards.json's six cards, in that file's order. */
+/** Mirrors gameConfig/GameEngagementCards.json's cards, in that file's order. */
 const ENGAGEMENT_CARD_LEGEND: { icon: string; label: string; detail: string }[] = [
   { icon: "ph:certificate-duotone", label: "Verify Intel Item", detail: "Fact-check one unconfirmed note." },
-  { icon: "ph:user-focus-bold", label: "1-to-1 Meeting", detail: "Deep-dive one stakeholder, 3 questions." },
-  { icon: "ph:magnifying-glass-bold", label: "Probe Requirements", detail: "Ask one stakeholder about a component." },
+  { icon: "ph:user-focus-bold", label: "Investigate Component", detail: "Ask one stakeholder about their top requirement or a component. Can target the same stakeholder again." },
   { icon: "ph:users-bold", label: "Team Sync-Up", detail: "Ask everyone at once. Once per phase." },
-  { icon: "ph:chat-teardrop-text-bold", label: "Ask Generic Question", detail: "Cheap read on sentiment and preferences." },
+  { icon: "ph:hourglass-simple-bold", label: "Patience-Reset", detail: "Fully reset one impatient stakeholder's patience." },
+  { icon: "ph:megaphone-bold", label: "Pep-Talk", detail: "Small mood lift for the whole room. Once per phase." },
 ];
 
 const SECTIONS: CheatSheetSection[] = [

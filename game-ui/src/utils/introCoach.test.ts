@@ -181,12 +181,10 @@ describe("veto streak storage", () => {
 
 describe("pickGuideCard", () => {
   const cards = [
-    { id: "eng_2", title: "Probe", token_cost: 3 },
-    { id: "eng_4", title: "Ask", token_cost: 1 },
+    { id: "eng_1", title: "Investigate Component", token_cost: 3 },
   ];
-  it("prefers the probe card, falls back to the cheap one, else none", () => {
-    expect(pickGuideCard(cards, 10)?.id).toBe("eng_2");
-    expect(pickGuideCard(cards, 2)?.id).toBe("eng_4");
+  it("picks Investigate Component when affordable, else none", () => {
+    expect(pickGuideCard(cards, 10)?.id).toBe("eng_1");
     expect(pickGuideCard(cards, 0)).toBeNull();
   });
 });

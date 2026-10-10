@@ -56,8 +56,14 @@ def resolve_step_cap(graph: TechnicalGraph, state: GraphState, op: GraphOp) -> G
     states nobody can raise to on purpose (00-plan.md's governance-requires-implemented
     follow-up), so the rung after either of them is whatever is above ABSENT, mirroring
     graphOptions.ts's `floorOn`. Governance's floor is already its own bottom rung (0), so this
-    changes nothing there."""
+    changes nothing there.
+
+    A Hand the Pen op (`source_id == "pen"`, docs/plans/hand-over-the-pen.md) skips the cap: a
+    High-trust draft can move up to `pen_trust_dividend_steps` rungs in one slot, already computed
+    and validated (never crossing a Boundary) by `pen.draft_for_pen` before this op is built."""
     if op.kind != "raise_to" or op.source_kind != "action_card":
+        return op
+    if op.source_id == "pen":
         return op
     axis: Axis = op.axis
     allowed = graph.allowed_for(op.target, axis)

@@ -315,7 +315,7 @@ async def _send_dossier(websocket: WebSocket, dossier_data: list) -> None:
 
 
 async def handle_play_engagement_card(websocket: WebSocket, user_id: int, payload: dict) -> None:
-    """Handles playing an engagement card (eng_1 - eng_4) during online intel gathering phase."""
+    """Handles playing an engagement card during online intel gathering phase."""
     phase_id = payload.get("phase_id", 0)
     challenge_id = payload.get("challenge_id", 0)
     card_id = payload.get("card_id")

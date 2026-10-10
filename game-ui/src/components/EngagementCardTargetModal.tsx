@@ -34,6 +34,10 @@ export interface EngagementCardTargetModalProps {
   availableStakeholderList: any[];
   isStakeholderActive: (st: any) => boolean;
   cardTargetedStakeholdersMap: Record<string, string[]>;
+  /** When set, only these stakeholders are valid targets for the current card (e.g. Patience-Reset
+   * only accepts a currently-impatient stakeholder). Every other stakeholder is disabled with its
+   * own reason, independent of the "already targeted" lock. */
+  eligibleStakeholderIds?: string[];
   intelItems?: IntelItem[];
   graphState?: any;
   onConfirmStakeholders: (stakeholderIds: string[]) => void;
@@ -51,6 +55,7 @@ export default function EngagementCardTargetModal({
   availableStakeholderList,
   isStakeholderActive,
   cardTargetedStakeholdersMap,
+  eligibleStakeholderIds,
   intelItems = [],
   onConfirmStakeholders,
   onConfirmIntel,
@@ -98,9 +103,12 @@ export default function EngagementCardTargetModal({
   const isIntelCard = card.target_type === "intel" || card.id === "eng_0";
   const isAllStakeholdersCard = card.stakeholder_selection_amount === -1;
   const activeStakeholders = availableStakeholderList.filter(isStakeholderActive);
-  const targetedStakeholderIds = cardTargetedStakeholdersMap[card.id] || [];
+  // A repeatable-target card (Investigate Component, Patience-Reset) can address a stakeholder it
+  // already targeted this challenge again, so it never locks them out here.
+  const targetedStakeholderIds = card.repeatable_target ? [] : (cardTargetedStakeholdersMap[card.id] || []);
+  const eligibleSet = eligibleStakeholderIds ? new Set(eligibleStakeholderIds) : null;
   const selectableStakeholders = activeStakeholders.filter(
-    (st: any) => !targetedStakeholderIds.includes(st.id)
+    (st: any) => !targetedStakeholderIds.includes(st.id) && (!eligibleSet || eligibleSet.has(st.id))
   );
   const requiredAmount = isIntelCard
     ? 1
@@ -293,7 +301,9 @@ export default function EngagementCardTargetModal({
                     <span>
                       {isIntelCard
                         ? "Already verified intel items cannot be verified again."
-                        : "Stakeholders already targeted by this card in this challenge are locked."}
+                        : card.repeatable_target
+                          ? "Can be played on the same stakeholder again, but never asks the same question twice."
+                          : "Stakeholders already targeted by this card in this challenge are locked."}
                     </span>
                   </div>
                 </div>
@@ -505,7 +515,8 @@ export default function EngagementCardTargetModal({
                       {activeStakeholders.map((st) => {
                         const isSelected = selectedStakeholderIds.includes(st.id);
                         const isAlreadyTargeted = targetedStakeholderIds.includes(st.id);
-                        const isSelectable = !isAlreadyTargeted;
+                        const isIneligible = Boolean(eligibleSet) && !eligibleSet!.has(st.id);
+                        const isSelectable = !isAlreadyTargeted && !isIneligible;
                         const stColor = getStakeholderColor(st);
                         const stAvatar = stakeholders[st.id]?.avatar || st.avatar;
 
@@ -514,7 +525,7 @@ export default function EngagementCardTargetModal({
                             key={st.id}
                             block
                             portalTarget={tooltipLayer}
-                            description={isAlreadyTargeted ? undefined : `Click to ${isSelected ? "deselect" : "select"} ${st.name}`}
+                            description={!isSelectable ? undefined : `Click to ${isSelected ? "deselect" : "select"} ${st.name}`}
                           >
                           <div
                             className={`${styles.stakeholderCard} ${isSelected ? styles.stakeholderSelected : ""
@@ -554,7 +565,7 @@ export default function EngagementCardTargetModal({
                                       className={styles.checkedIcon}
                                     />
                                   )}
-                                  {isAlreadyTargeted && (
+                                  {(isAlreadyTargeted || isIneligible) && (
                                     <span style={{ display: "inline-flex" }}>
                                       <Icon
                                         icon="ph:lock-key-fill"
@@ -562,7 +573,7 @@ export default function EngagementCardTargetModal({
                                       />
                                     </span>
                                   )}
-                                  {!isSelected && !isAlreadyTargeted && (
+                                  {!isSelected && !isAlreadyTargeted && !isIneligible && (
                                     <span className={styles.uncheckCircle} />
                                   )}
                                 </div>
@@ -571,6 +582,10 @@ export default function EngagementCardTargetModal({
                               {isAlreadyTargeted ? (
                                 <span className={styles.lockedBadge}>
                                   <Icon icon="ph:lock-key-fill" /> This stakeholder was already targeted by this card in this challenge
+                                </span>
+                              ) : isIneligible ? (
+                                <span className={styles.lockedBadge}>
+                                  <Icon icon="ph:lock-key-fill" /> Not currently impatient
                                 </span>
                               ) : (
                                 <div className={styles.tagRow}>

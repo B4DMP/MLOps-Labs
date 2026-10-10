@@ -14,6 +14,12 @@
 
   "patience.rebuild": { "text": "impatient: {st} sat through another rebuild", "group": "patience" },
   "patience.sound_out": { "text": "impatient: {st} spent a moment weighing your draft", "group": "patience" },
+  "patience.reset": { "text": "relieved: {st}'s patience is fully restored", "group": "patience" },
+  "emotion.pep_talk": { "text": "lifted: {st} feels a little steadier", "group": "emotion" },
+
+  "pen.handed": { "text": "{st} takes the pen on {target}", "group": "card" },
+  "pen.revealed": { "text": "{st} drafted {target} themselves", "group": "card" },
+  "emotion.pen_trust": { "text": "warmer: {st} appreciates being trusted with the pen", "group": "emotion" },
 
   "objection.sound_out_on_board": { "text": "on board: {st} would go along with this card as it stands", "group": "objection" },
   "objection.sound_out_lukewarm": { "text": "lukewarm: {st} would go along, reluctantly", "group": "objection" },

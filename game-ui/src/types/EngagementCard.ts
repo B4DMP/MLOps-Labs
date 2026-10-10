@@ -11,6 +11,8 @@ export interface EngagementCard {
   max_plays_per_phase?: number;
   turns?: number;
   allowed_requirement_types?: string[];
+  repeatable_target?: boolean;
+  effect_kind?: "gather" | "patience_reset" | "pep_talk";
 }
 
 export interface PlayedEngagementCardState {

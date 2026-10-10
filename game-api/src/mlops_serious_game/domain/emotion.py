@@ -457,6 +457,26 @@ class PitchTuning(BaseModel):
     case_board_attempts: int = Field(default=5, description="Wrong or empty thread guesses allowed per challenge")
     ally_lift: float = Field(default=0.05, description="Trust and fairness lift a confirmed ally gets when the stakeholder they back is agreeing, once per pitch")
 
+    # Pep-Talk engagement card: a small, one-time mood lift for the whole room, touching only
+    # confidence and sense of control (not trust/fairness, which a stand-up doesn't earn).
+    pep_talk_confidence_gain: float = Field(default=0.08, description="Pep-Talk: confidence gain per stakeholder, scaled by reactivity")
+    pep_talk_control_gain: float = Field(default=0.05, description="Pep-Talk: sense-of-control gain per stakeholder, scaled by reactivity")
+
+    # Hand the Pen (docs/plans/hand-over-the-pen.md): a stakeholder drafts a component's next
+    # change themselves, instead of the player picking it.
+    pen_enabled: bool = Field(default=True, description="Hand the Pen: whether the composer offers it at all")
+    pen_max_per_challenge: int = Field(default=1, description="Hand the Pen: most times it can be used in one challenge")
+    pen_leave_player_slots: int = Field(default=1, description="Hand the Pen: other slots that must stay free before it can be used")
+    pen_trust_gain: dict[str, float] = Field(
+        default_factory=lambda: {"low": 0.12, "medium": 0.07, "high": 0.03},
+        description="Hand the Pen: trust gain to the holder at the next evaluate, per trust band (more the lower their trust was)",
+    )
+    pen_control_gain: dict[str, float] = Field(
+        default_factory=lambda: {"low": 0.12, "medium": 0.07, "high": 0.03},
+        description="Hand the Pen: sense-of-control gain to the holder at the next evaluate, per trust band",
+    )
+    pen_trust_dividend_steps: int = Field(default=2, description="Hand the Pen: most rungs a High-trust draft can move in one slot")
+
 
 class EmotionConfig(BaseModel):
     """Complete Emotion & CME Configuration object matching EmotionValueConfig.json."""

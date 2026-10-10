@@ -162,6 +162,9 @@ interface PitchStatePayload {
   escalation_points?: number;
   /** True while the intro (demo) phase is running. */
   is_demo?: boolean;
+  /** Hand the Pen (docs/plans/hand-over-the-pen.md): the currently sealed draft, if any. Never
+   *  carries the drafted change itself - only the reservation, so nothing leaks before reveal. */
+  pen?: { stakeholder_id: string; target: string; revealed: boolean } | null;
 }
 
 export default function PitchDebate({
@@ -362,6 +365,12 @@ export default function PitchDebate({
   const setChatMsgsState = onChatMsgsChange ?? setLocalChatMsgs;
   const cardTargetedMap = cardTargetedMapProp !== undefined ? cardTargetedMapProp : localCardTargetedMap;
   const setCardTargetedMap = onCardTargetedStakeholdersMapChange ?? setLocalCardTargetedMap;
+
+  // Patience-Reset only accepts a stakeholder who is currently impatient.
+  const impatientStakeholderIds = useMemo(
+    () => (pitchState?.reads || []).filter((r) => (r.impatience ?? 0) > 0).map((r) => r.stakeholder_id),
+    [pitchState]
+  );
 
   const base = useMemo(
     () => ({ phase_id: currentPhase, challenge_id: currentChallenge }),
@@ -1451,6 +1460,13 @@ export default function PitchDebate({
     emit("pitch:evaluate", { ...base, atomic_changes: newAtomicChanges });
   };
 
+  // Hand the Pen (docs/plans/hand-over-the-pen.md): seals a component to a stakeholder to draft
+  // themselves. Irreversible once sent - the composer's own confirm step is the last chance to
+  // back out.
+  const handleDelegate = (stakeholderId: string, target: string) => {
+    emit("pitch:delegate", { ...base, stakeholder_id: stakeholderId, target, atomic_changes: atomicChanges });
+  };
+
   const handlePitchCommit = () => {
     setIsCommittedLocked(true);
     emit("pitch:commit", { ...base, atomic_changes: atomicChanges });
@@ -1893,6 +1909,8 @@ export default function PitchDebate({
                       lastPitchedChanges={pitchState?.last_pitched_changes}
                       initialSelectedTargetId={composerFocusTargetId}
                       onConfirmProposal={handleConfirmMergeProposal}
+                      pen={pitchState?.pen}
+                      onDelegate={handleDelegate}
                       onOpenCheatSheet={() => setIsCheatSheetOpen(true)}
                       onOpenBoard={() => setBoardRequest((n) => n + 1)}
                       guidePaused={coach.blocked || Boolean(coach.tip) || isCheatSheetOpen}
@@ -2606,6 +2624,7 @@ export default function PitchDebate({
           availableStakeholderList={activeStakeholders as any}
           isStakeholderActive={() => true}
           cardTargetedStakeholdersMap={cardTargetedMap}
+          eligibleStakeholderIds={playingCard?.effect_kind === "patience_reset" ? impatientStakeholderIds : undefined}
           intelItems={unconfirmedNotes}
           graphState={graphState}
           onConfirmStakeholders={handleConfirmPlayCardStakeholders}
