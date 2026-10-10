@@ -17,6 +17,7 @@ import {
   speakAuto,
   splitSentences,
   stripForSpeech,
+  __resetSharedBackendAudioForTests,
 } from "./speech";
 import { fetchTtsAudioUrl } from "./speechBackend";
 
@@ -514,6 +515,7 @@ describe("speakAuto", () => {
   beforeEach(() => {
     mockedFetchTtsAudioUrl.mockReset();
     lastAudio = undefined;
+    __resetSharedBackendAudioForTests();
     (globalThis as Record<string, unknown>).Audio = vi.fn((src: string) => {
       lastAudio = new FakeAudio(src);
       return lastAudio;
@@ -703,6 +705,7 @@ describe("narration arbiter", () => {
     lastAudio = undefined;
     setFakeWebspeech(spoken);
     mockedFetchTtsAudioUrl.mockReset();
+    __resetSharedBackendAudioForTests();
     (globalThis as Record<string, unknown>).Audio = vi.fn((src: string) => {
       lastAudio = new FakeAudio(src);
       return lastAudio;

@@ -39,6 +39,25 @@ let audioUnlocked = false;
 let audioUnlockWaiters: Array<() => void> = [];
 let unlockListenersInstalled = false;
 
+/** Safari/WebKit grants autoplay per `HTMLAudioElement`, not just per document: a fresh
+ *  `new Audio()` some time (or one `await`) after the gesture can still be blocked even though
+ *  `audioUnlocked` is true. Reusing one element for every backend sentence, forever, means only
+ *  the very first play has to clear that gate - every later line, no matter how much later,
+ *  reuses the same already-approved element instead of a brand-new unapproved one. This is what
+ *  made every narration after the first revert to the local fallback voice for the rest of a
+ *  Safari session. */
+let sharedBackendAudio: HTMLAudioElement | null = null;
+function getSharedBackendAudio(): HTMLAudioElement {
+  if (!sharedBackendAudio) sharedBackendAudio = new Audio();
+  return sharedBackendAudio;
+}
+
+/** Test-only: the element otherwise intentionally outlives every call, so a test that swaps in
+ *  its own `Audio` mock needs this cleared first to see it used. */
+export function __resetSharedBackendAudioForTests(): void {
+  sharedBackendAudio = null;
+}
+
 function markAudioUnlocked(): void {
   if (audioUnlocked) return;
   audioUnlocked = true;
@@ -775,7 +794,8 @@ function speakBackendChunks(
           URL.revokeObjectURL(url);
           return;
         }
-        const audio = new Audio(url);
+        const audio = getSharedBackendAudio();
+        audio.src = url;
         currentAudio = audio;
         opts.onSentence?.({ index: i, total: chunks.length, text: chunks[i] });
         try {
