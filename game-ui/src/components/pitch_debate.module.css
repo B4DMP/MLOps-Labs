@@ -139,7 +139,7 @@
 }
 
 .chatMaximizeBtn:hover {
-  transform: scale(1.1) translateY(-1px);
+  transform: scale(1.1);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.65);
   filter: brightness(1.18);
 }
@@ -297,7 +297,7 @@
 .tableCenterPlaque:hover {
   background: rgba(38, 102, 130, 0.3);
   border-color: #38bdf8;
-  transform: translateY(-1px);
+  transform: scale(1.02);
 }
 
 .tableCenterPlaqueActive {
@@ -516,7 +516,7 @@
 .actionButton:hover:not(:disabled) {
   background: linear-gradient(180deg, color-mix(in srgb, var(--secondary-bg, #334155) 80%, white) 0%, var(--secondary-bg, #334155) 100%);
   border-color: rgba(255, 255, 255, 0.28);
-  transform: translateY(-1px);
+  transform: scale(1.02);
 }
 
 .actionButton:disabled,

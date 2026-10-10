@@ -6,7 +6,6 @@ import {
   LEVEL_ICON_SIZE,
   axisMeta,
   formatAxisLevel,
-  levelRungs,
   NODE_TITLE_LH,
   NODE_TITLE_Y,
   NODE_ICON_DISC,
@@ -46,26 +45,35 @@ Object.values(nodeIconSets as Record<string, IconifyJSON>).forEach((iconSet) => 
  * coordinate space would cover only the diagram, not the panel around it. CSS backgrounds on
  * the container cover the whole panel regardless of how small the diagram scales.
  */
-export function NodeDefs({ prefix }: { prefix: string }) {
+export function NodeDefs({ prefix, theme = "light" }: { prefix: string; theme?: "light" | "cork" }) {
+  // "cork": an index card pinned to a corkboard. Warm paper, and a hard offset shadow, because a card
+  // pinned to a board lifts off it at one corner rather than glowing all round.
+  const cork = theme === "cork";
+  const shadow = cork
+    ? { dx: 2, dy: 3.5, sd: 1.1, color: "#2a1a0c", opacity: 0.5 }
+    : { dx: 0, dy: 1.5, sd: 1.8, color: "#0f172a", opacity: 0.14 };
+  const lifted = cork
+    ? { dx: 3, dy: 6, sd: 2, color: "#2a1a0c", opacity: 0.55 }
+    : { dx: 0, dy: 3, sd: 3.2, color: "#0f172a", opacity: 0.2 };
   return (
     <defs>
       <linearGradient id={`${prefix}-face`} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#ffffff" />
-        <stop offset="100%" stopColor="#f5f8fb" />
+        <stop offset="0%" stopColor={cork ? "#fcf8ec" : "#ffffff"} />
+        <stop offset="100%" stopColor={cork ? "#f2e9d2" : "#f5f8fb"} />
       </linearGradient>
       <linearGradient id={`${prefix}-face-selected`} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#ffffff" />
-        <stop offset="100%" stopColor="#e8f2f7" />
+        <stop offset="0%" stopColor={cork ? "#fffbf0" : "#ffffff"} />
+        <stop offset="100%" stopColor={cork ? "#f6ecd2" : "#e8f2f7"} />
       </linearGradient>
       <linearGradient id={`${prefix}-face-broken`} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#fffafa" />
-        <stop offset="100%" stopColor="#fdeced" />
+        <stop offset="0%" stopColor={cork ? "#fdeee8" : "#fffafa"} />
+        <stop offset="100%" stopColor={cork ? "#f4cfc4" : "#fdeced"} />
       </linearGradient>
       <filter id={`${prefix}-shadow`} x="-20%" y="-20%" width="140%" height="150%">
-        <feDropShadow dx="0" dy="1.5" stdDeviation="1.8" floodColor="#0f172a" floodOpacity="0.14" />
+        <feDropShadow dx={shadow.dx} dy={shadow.dy} stdDeviation={shadow.sd} floodColor={shadow.color} floodOpacity={shadow.opacity} />
       </filter>
       <filter id={`${prefix}-shadow-lifted`} x="-25%" y="-25%" width="150%" height="165%">
-        <feDropShadow dx="0" dy="3" stdDeviation="3.2" floodColor="#0f172a" floodOpacity="0.2" />
+        <feDropShadow dx={lifted.dx} dy={lifted.dy} stdDeviation={lifted.sd} floodColor={lifted.color} floodOpacity={lifted.opacity} />
       </filter>
 
       {/* Broken nodes: fractal noise displaces the card's own outline so its edge reads as
@@ -117,7 +125,7 @@ export function NodeDefs({ prefix }: { prefix: string }) {
         </feMerge>
 
         <feDropShadow in="aberrated" dx="0" dy="0" stdDeviation="4" floodColor={NODE_COLORS.broken} floodOpacity="0.55" result="lit" />
-        <feDropShadow in="lit" dx="0" dy="1.5" stdDeviation="1.8" floodColor="#0f172a" floodOpacity="0.14" />
+        <feDropShadow in="lit" dx={shadow.dx} dy={shadow.dy} stdDeviation={shadow.sd} floodColor={shadow.color} floodOpacity={shadow.opacity} />
       </filter>
     </defs>
   );
@@ -151,7 +159,13 @@ export function LevelMeter({
   previewGovernance,
   y,
   width = BOX_W - NODE_PAD_X - 12,
+  emptyColor = LEVEL_EMPTY,
+  thickness = 4,
 }: {
+  /** Colour of the unbuilt cells, for a face the default pale grey would vanish on. */
+  emptyColor?: string;
+  /** Height of a notch; the composer draws them thicker so they read at a glance. */
+  thickness?: number;
   automation: number;
   effectiveAutomation?: number;
   governance?: number;
@@ -175,8 +189,20 @@ export function LevelMeter({
   const runsAt = effectiveAutomation ?? automation;
   const gov = governance ?? 0;
 
-  const notch = (key: string, x: number, fill: string, opacity: number) => (
-    <rect key={key} x={x} y={0} width={cell} height={4} rx={2} fill={fill} opacity={opacity} />
+  // Built notches that run shimmer in a wave along the track; planned ones (your proposal) breathe.
+  const notch = (key: string, x: number, fill: string, opacity: number, live?: "run" | "plan", order = 0) => (
+    <rect
+      key={key}
+      className={live ? `notch-${live}` : undefined}
+      style={live ? { animationDelay: `${order * 0.28}s` } : undefined}
+      x={x}
+      y={0}
+      width={cell}
+      height={thickness}
+      rx={thickness / 2}
+      fill={fill}
+      opacity={opacity}
+    />
   );
 
   return (
@@ -189,20 +215,20 @@ export function LevelMeter({
       {automationRungs.map((r, i) => {
         const x = i * (cell + gap);
         const isPreview = previewAutomation !== undefined && r > automation && r <= previewAutomation;
-        if (isPreview) return notch(`a${r}`, x, NODE_COLORS.selected, 0.4);
+        if (isPreview) return notch(`a${r}`, x, NODE_COLORS.selected, 0.4, "plan", i);
         if (automation === 0 && r === automationRungs[0]) return notch(`a${r}`, x, axisMeta("automation", 0).color, 1);
         if (r <= automation) {
           // Paid for but not delivering: its own rung colour, ghosted.
-          return notch(`a${r}`, x, axisMeta("automation", r).color, r <= runsAt ? 1 : 0.33);
+          return notch(`a${r}`, x, axisMeta("automation", r).color, r <= runsAt ? 1 : 0.33, r <= runsAt ? "run" : undefined, i);
         }
-        return notch(`a${r}`, x, LEVEL_EMPTY, 1);
+        return notch(`a${r}`, x, emptyColor, 1);
       })}
       {governanceRungs.map((r, i) => {
         const x = trackW + groupGap + i * (cell + gap);
         const isPreview = previewGovernance !== undefined && r > gov && r <= previewGovernance;
-        if (isPreview) return notch(`g${r}`, x, NODE_COLORS.selected, 0.4);
-        if (r <= gov) return notch(`g${r}`, x, axisMeta("governance", r).color, 1);
-        return notch(`g${r}`, x, LEVEL_EMPTY, 1);
+        if (isPreview) return notch(`g${r}`, x, NODE_COLORS.selected, 0.4, "plan", automationRungs.length + i);
+        if (r <= gov) return notch(`g${r}`, x, axisMeta("governance", r).color, 1, "run", automationRungs.length + i);
+        return notch(`g${r}`, x, emptyColor, 1);
       })}
     </g>
   );
@@ -213,12 +239,24 @@ export function LevelMeter({
  *  MlopsGraph.json. Iconify's React component renders a real `<svg>` tag (its default
  *  `mode="svg"`), so it nests directly as SVG - no foreignObject needed, which sidesteps that
  *  element's cross-browser sizing quirks. */
-export function NodeIcon({ icon, color }: { icon: string; color: string }) {
-  const cx = NODE_PAD_X + NODE_ICON_DISC;
-  const cy = 4 + NODE_ICON_DISC;
+export function NodeIcon({
+  icon,
+  color,
+  cy = 4 + NODE_ICON_DISC,
+  cx = NODE_PAD_X + NODE_ICON_DISC,
+  discOpacity = 0.13,
+}: {
+  icon: string;
+  color: string;
+  /** Vertical centre, for a node whose title sits in a bar rather than at the top of the face. */
+  cy?: number;
+  /** Horizontal centre, for a node that seats the icon midway between its edge and its title. */
+  cx?: number;
+  discOpacity?: number;
+}) {
   return (
     <g>
-      <circle cx={cx} cy={cy} r={NODE_ICON_DISC} fill={color} opacity={0.13} />
+      <circle cx={cx} cy={cy} r={NODE_ICON_DISC} fill={color} opacity={discOpacity} />
       <g transform={`translate(${cx - NODE_ICON_SIZE / 2}, ${cy - NODE_ICON_SIZE / 2})`}>
         <Icon icon={icon} width={NODE_ICON_SIZE} height={NODE_ICON_SIZE} color={color} />
       </g>
@@ -235,13 +273,18 @@ export function NodeTitleAberration({
   lines,
   x,
   fontWeight,
+  y = (i: number) => NODE_TITLE_Y + i * NODE_TITLE_LH,
   offset = 1.2,
+  fontSize = 11,
 }: {
   lines: string[];
   /** One x per line: the title indents every line clear of the icon when the node carries one. */
   x: (lineIndex: number) => number;
   fontWeight: number | string;
+  /** Baseline per line; the default is the standard top-of-face title. */
+  y?: (lineIndex: number) => number;
   offset?: number;
+  fontSize?: number;
 }) {
   const ghosts: Array<[number, string]> = [
     [-offset, "#00c8e0"],
@@ -254,9 +297,9 @@ export function NodeTitleAberration({
           <text
             key={`${dx}-${i}`}
             x={x(i) + dx}
-            y={NODE_TITLE_Y + i * NODE_TITLE_LH}
+            y={y(i)}
             fill={fill}
-            fontSize={11}
+            fontSize={fontSize}
             fontWeight={fontWeight}
             letterSpacing="0.1"
           >
@@ -279,6 +322,7 @@ export function LevelCaption({
   level,
   governance,
   y,
+  size = 8,
   text,
   color,
 }: {
@@ -287,6 +331,8 @@ export function LevelCaption({
   /** The governance rung; its glyph is drawn only from partial_1 upwards. */
   governance?: number;
   y: number;
+  /** Caption font size; the default suits a node drawn at the dashboard's scale. */
+  size?: number;
   /** Overrides the rung's own word, for the cases that are about something else: a starved
    *  component, a stage the player may only look at, an uncertain upstream. */
   text?: string;
@@ -313,7 +359,7 @@ export function LevelCaption({
         x={NODE_PAD_X + LEVEL_ICON_SIZE + 3}
         y={y}
         fill={tint}
-        fontSize={8}
+        fontSize={size}
         fontWeight={700}
         letterSpacing="0.6"
       >
@@ -332,6 +378,33 @@ export function LevelCaption({
           />
         </g>
       )}
+    </g>
+  );
+}
+
+/**
+ * The border of a broken node, animated as broken: a dim solid outline under a bright one whose
+ * dashes crawl and flicker, plus a cyan and a magenta copy that tear away from it in bursts. Mount
+ * inside the `.node-broken` group so it wiggles with the node; the classes are in `NODE_STATE_ANIM`.
+ */
+export function BrokenBorder({
+  width = BOX_W,
+  height = BOX_H,
+  color = NODE_COLORS.broken,
+  rx = 0,
+}: {
+  width?: number;
+  height?: number;
+  color?: string;
+  rx?: number;
+}) {
+  const edge = { width, height, rx, fill: "none" } as const;
+  return (
+    <g pointerEvents="none" aria-hidden>
+      <rect className="node-border-split-a" {...edge} stroke="#00b8d4" strokeWidth={1.5} />
+      <rect className="node-border-split-b" {...edge} stroke="#ff2a6d" strokeWidth={1.5} />
+      <rect className="node-border-dim" {...edge} stroke={color} strokeWidth={1.75} />
+      <rect className="node-border-crawl" {...edge} stroke={color} strokeWidth={2} />
     </g>
   );
 }
@@ -388,20 +461,96 @@ export function SelectionReticle({
  * costs none, and a transient artifact is what a real signal glitch looks like anyway.
  */
 export const NODE_STATE_ANIM = `
+/* One timeline drives every part of a broken node (the wiggle, the title fringe, the border
+   split), so they always happen together: a constant low jitter and fringe, and two bursts a
+   cycle (a small one at ~40%, the big one at ~90%) where all of them peak at the same moment. */
+/* The node hangs from its pin, so it never slides: it swings about the pin's point (top centre). A
+   constant small sway, and two bursts of a bigger one. */
 @keyframes node-glitch-tick {
-  0%, 88%, 100% { transform: translate(0, 0) skew(0deg); }
-  90% { transform: translate(-1.5px, 1px) skew(-0.8deg); }
-  92% { transform: translate(1.5px, -0.5px) skew(0.5deg); }
-  94% { transform: translate(-0.8px, -1px) skew(0deg); }
-  96% { transform: translate(1px, 0.8px) skew(-0.3deg); }
+  0%, 100% { transform: rotate(0deg); }
+  10% { transform: rotate(0.35deg); }
+  20% { transform: rotate(-0.3deg); }
+  30% { transform: rotate(0.25deg); }
+  38% { transform: rotate(1.6deg); }
+  40% { transform: rotate(-2deg); }
+  42% { transform: rotate(0.8deg); }
+  50% { transform: rotate(-0.35deg); }
+  60% { transform: rotate(0.3deg); }
+  70% { transform: rotate(-0.25deg); }
+  80% { transform: rotate(0.35deg); }
+  90% { transform: rotate(-4deg); }
+  92% { transform: rotate(3.4deg); }
+  94% { transform: rotate(-1.8deg); }
+  96% { transform: rotate(1.2deg); }
 }
 @keyframes node-aberration-tick {
-  0%, 88%, 100% { opacity: 0; }
-  90%, 96% { opacity: 0.8; }
-  97% { opacity: 0; }
+  0%, 100% { opacity: 0.3; }
+  10% { opacity: 0.45; }
+  20% { opacity: 0.25; }
+  30% { opacity: 0.4; }
+  38%, 40%, 42% { opacity: 0.85; }
+  50% { opacity: 0.3; }
+  60% { opacity: 0.45; }
+  70% { opacity: 0.25; }
+  80% { opacity: 0.4; }
+  90%, 92%, 94%, 96% { opacity: 0.95; }
 }
-.node-broken { animation: node-glitch-tick 2.4s ease-in-out infinite; }
-.node-aberration { opacity: 0; animation: node-aberration-tick 2.4s ease-in-out infinite; }
+.node-broken { transform-box: fill-box; transform-origin: 50% 1.5px; animation: node-glitch-tick 2.4s linear infinite; }
+.node-aberration { opacity: 0.3; animation: node-aberration-tick 2.4s linear infinite; }
+
+/* The broken border: a dim solid outline, a bright one that is always breaking up (dashes that crawl
+   around the edge), and cyan and magenta copies that stay a pixel or two apart and tear away in the bursts. */
+@keyframes border-crawl { to { stroke-dashoffset: -68; } }
+@keyframes border-flicker {
+  0%, 30%, 50%, 80%, 100% { opacity: 1; }
+  10% { opacity: 0.8; }
+  20% { opacity: 0.9; }
+  38%, 41% { opacity: 0.35; }
+  60% { opacity: 0.85; }
+  70% { opacity: 0.95; }
+  90%, 93% { opacity: 0.25; }
+  95% { opacity: 1; }
+}
+/* The fringe copies swing about the same pin, a little further than the card, so they fan out of it. */
+@keyframes border-split-a {
+  0%, 100% { opacity: 0.5; transform: rotate(-0.5deg); }
+  10% { opacity: 0.6; transform: rotate(-0.7deg); }
+  20% { opacity: 0.4; transform: rotate(-0.4deg); }
+  30% { opacity: 0.55; transform: rotate(-0.6deg); }
+  38% { opacity: 0.95; transform: rotate(-1.6deg); }
+  41% { opacity: 0.8; transform: rotate(1.2deg); }
+  50% { opacity: 0.5; transform: rotate(-0.5deg); }
+  60% { opacity: 0.6; transform: rotate(-0.7deg); }
+  70% { opacity: 0.4; transform: rotate(-0.4deg); }
+  80% { opacity: 0.55; transform: rotate(-0.6deg); }
+  90% { opacity: 1; transform: rotate(-3deg); }
+  93% { opacity: 0.9; transform: rotate(2.4deg); }
+  96% { opacity: 0.6; transform: rotate(-0.5deg); }
+}
+@keyframes border-split-b {
+  0%, 100% { opacity: 0.5; transform: rotate(0.5deg); }
+  10% { opacity: 0.6; transform: rotate(0.7deg); }
+  20% { opacity: 0.4; transform: rotate(0.4deg); }
+  30% { opacity: 0.55; transform: rotate(0.6deg); }
+  38% { opacity: 0.95; transform: rotate(1.6deg); }
+  41% { opacity: 0.8; transform: rotate(-1.2deg); }
+  50% { opacity: 0.5; transform: rotate(0.5deg); }
+  60% { opacity: 0.6; transform: rotate(0.7deg); }
+  70% { opacity: 0.4; transform: rotate(0.4deg); }
+  80% { opacity: 0.55; transform: rotate(0.6deg); }
+  90% { opacity: 1; transform: rotate(3deg); }
+  93% { opacity: 0.9; transform: rotate(-2.4deg); }
+  96% { opacity: 0.6; transform: rotate(0.5deg); }
+}
+/* The meter: built notches that run shimmer in a wave, planned ones breathe. Only opacity moves. */
+@keyframes notch-run { 0%, 100% { opacity: 1; } 50% { opacity: 0.62; } }
+@keyframes notch-plan { 0%, 100% { opacity: 0.22; } 50% { opacity: 0.75; } }
+.notch-run { animation: notch-run 2.6s ease-in-out infinite; }
+.notch-plan { animation: notch-plan 1.5s ease-in-out infinite; }
+.node-border-dim { opacity: 0.4; }
+.node-border-crawl { stroke-dasharray: 30 6 10 8 4 10; animation: border-crawl 2.4s linear infinite, border-flicker 2.4s linear infinite; }
+.node-border-split-a { transform-box: fill-box; transform-origin: 50% 1.5px; opacity: 0.5; animation: border-split-a 2.4s linear infinite; }
+.node-border-split-b { transform-box: fill-box; transform-origin: 50% 1.5px; opacity: 0.5; animation: border-split-b 2.4s linear infinite; }
 
 /* Edge handles: they grow a little under the pointer, and announce themselves once when the
    canvas opens so a player learns the lines are targets without being told. */
@@ -416,7 +565,9 @@ export const NODE_STATE_ANIM = `
 }
 .edge-handle-reveal { animation: edge-handle-reveal 1.1s ease-in-out 1 both; }
 @media (prefers-reduced-motion: reduce) {
-  .node-broken, .node-aberration, .edge-handle-reveal { animation: none; }
+  .node-broken, .node-aberration, .edge-handle-reveal,
+  .node-border-crawl, .node-border-split-a, .node-border-split-b, .notch-run, .notch-plan { animation: none; }
+  .node-border-split-a, .node-border-split-b, .node-aberration { opacity: 0; }
 }
 `;
 
@@ -605,10 +756,15 @@ export function CrossPhaseStub({
   active,
   onClick,
   length = 30,
+  idleColor = "#0891b2",
+  activeColor = NODE_COLORS.selected,
 }: {
   x: number;
   y: number;
   forward: boolean;
+  /** For a canvas whose ground the default colours do not read on. */
+  idleColor?: string;
+  activeColor?: string;
   /** Vertical offset (in stacked slots) when a node carries more than one stub on the same
    *  side, so they fan out instead of drawing on top of each other. */
   lane?: number;
@@ -625,7 +781,7 @@ export function CrossPhaseStub({
   const gradId = `${prefix}-stub-${id.replace(/\./g, "_")}`;
   // Its own identity colour, not the muted grey used elsewhere for "unknown" or "view only" -
   // a cross-phase dependency is a known, real fact about the diagram, not a fogged-out one.
-  const color = active ? NODE_COLORS.selected : "#0891b2";
+  const color = active ? activeColor : idleColor;
   return (
     <g style={{ cursor: onClick ? "pointer" : undefined }} onClick={onClick}>
       <defs>

@@ -1,0 +1,337 @@
+/* The "What they want" summary: the Challenge-Intel table and its compact form on the case board. */
+/* Confirmed-intel ledger: a ruled sheet clipped to the page, one stakeholder block per run. */
+.ledger {
+  margin: 4px 0 10px;
+  padding: 6px 10px 8px;
+  background: #fffdf5;
+  border: 1px solid #e7dfc6;
+  border-radius: 3px;
+  box-shadow: var(--shadow-card, 0 1px 3px rgba(60, 45, 30, 0.14));
+}
+
+.ledgerHead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid #1e293b;
+  color: #1e293b;
+}
+
+.ledgerTitle {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ledgerCount {
+  margin-left: auto;
+  font-size: var(--fs-xs, 0.62rem);
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+.ledgerEmpty {
+  padding: 8px 2px 2px;
+  font-size: 0.74rem;
+  font-style: italic;
+  color: #64748b;
+}
+
+.ledgerTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.ledgerRow {
+  cursor: pointer;
+  font-size: var(--fs-xs, 0.62rem);
+  line-height: 1.25;
+  color: #1e293b;
+  outline: none;
+}
+
+.ledgerRow > * {
+  padding: 4px 6px;
+  vertical-align: top;
+}
+
+.ledgerRowFirst > * {
+  border-top: var(--hairline, 1px solid rgba(60, 45, 30, 0.16));
+}
+
+.ledgerRowFirst:first-child > * {
+  border-top: none;
+}
+
+/* Before the hover rule: equal specificity, so hover still wins. */
+.ledgerRow:nth-child(even) {
+  background: rgba(120, 90, 40, 0.045);
+}
+
+.ledgerRow:hover,
+.ledgerRow:focus-visible {
+  background: rgba(2, 132, 199, 0.08);
+}
+
+.ledgerRowDone {
+  opacity: 0.55;
+}
+
+.ledgerWho {
+  width: 42px;
+  border-left: 3px solid #94a3b8;
+  text-align: left;
+}
+
+.ledgerKind {
+  width: 26px;
+  padding: 4px 0;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.ledgerWhat {
+  overflow-wrap: anywhere;
+}
+
+.ledgerFor {
+  font-style: italic;
+  color: #64748b;
+}
+
+.ledgerMark {
+  width: 34px;
+  text-align: right;
+  font-size: 1rem;
+}
+
+/* Same chip as .artifactLinkBtn, kept faint until the row is hovered or focused. */
+.ledgerGo {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  padding: 1px 3px;
+  border-radius: 4px;
+  border: 1px solid rgba(28, 25, 23, 0.15);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--secondary-bg, #11303e);
+  font-size: 0.65rem;
+  opacity: 0.45;
+  transition: all var(--transition, 0.2s ease-in-out);
+}
+
+.ledgerRow:hover .ledgerGo,
+.ledgerRow:focus-visible .ledgerGo {
+  opacity: 1;
+  background: var(--primary-bg, #266682);
+  color: #ffffff;
+  border-color: var(--secondary-bg, #11303e);
+}
+
+.ledgerMarkTarget {
+  display: inline-flex;
+  cursor: help;
+  outline: none;
+}
+
+.ledgerOnRecord {
+  color: #0284c7;
+}
+
+.ledgerConfirmed {
+  color: #16a34a;
+}
+
+/* The summary on the case board: tight one-line rows that open up on hover or focus. */
+.ledgerCompact {
+  margin: 0;
+  padding: 4px 8px 4px;
+  background: #fffdf5;
+}
+
+.ledgerCompact .ledgerHead {
+  padding-bottom: 2px;
+}
+
+.ledgerCompact .ledgerRow {
+  font-size: 0.72rem;
+  transition: background-color 0.2s ease, box-shadow 0.25s ease;
+}
+
+.ledgerCompact .ledgerRow > * {
+  padding: 2px 5px;
+}
+
+.ledgerCompact .ledgerWho {
+  width: 32px;
+}
+
+.ledgerCompact .ledgerKind {
+  width: 22px;
+  font-size: 0.95rem;
+}
+
+.ledgerCompact .ledgerMark {
+  width: 28px;
+  font-size: 0.9rem;
+}
+
+/* The row is one line, always: it never grows, so the rows below never move under the cursor. */
+.ledgerCompact .ledgerText {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+}
+
+.ledgerCompact .ledgerWhat {
+  position: relative;
+}
+
+/* The full note, opening over its own row and the rows beneath. Pointer-transparent: hovering still means
+   the row underneath the cursor, so moving down the list lands on every row in turn. Its padding matches
+   the cell's, so the text lands exactly over the clamped line it replaces. */
+.ledgerPeek {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 6;
+  padding: 1px 3px 4px;
+  font: inherit;
+  line-height: inherit;
+  color: #1e293b;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  background: #fffdf5;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1.5px rgba(2, 132, 199, 0.55), 0 10px 22px rgba(60, 45, 35, 0.32);
+  opacity: 0;
+  /* Unrolls downward from the top edge; the negative open insets keep the ring and shadow unclipped. */
+  clip-path: inset(0 -6px 100% -6px);
+  transition: clip-path 0.3s cubic-bezier(0.2, 0.9, 0.25, 1), opacity 0.12s ease;
+}
+
+.ledgerCompact .ledgerRow:hover .ledgerPeek,
+.ledgerCompact .ledgerRow:focus-visible .ledgerPeek,
+.ledgerCompact .ledgerRow:focus-within .ledgerPeek {
+  opacity: 1;
+  clip-path: inset(-6px -6px -40px -6px);
+}
+
+/* The overlay can reach past the last row; leave room so that never adds a scrollbar. */
+.ledgerCompact {
+  padding-bottom: 34px;
+}
+
+.ledgerCompact .ledgerRow:hover,
+.ledgerCompact .ledgerRow:focus-visible {
+  box-shadow: inset 3px 0 0 #0284c7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ledgerCompact .ledgerRow,
+  .ledgerPeek {
+    transition: none;
+  }
+}
+
+/* Summary on the board: step icon, pencil box, and the row lit by hovering its person on the board. */
+.ledgerColHead th {
+  padding: 0 4px 1px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-align: left;
+  text-transform: uppercase;
+  color: #8a7a62;
+}
+
+.ledgerColHead th:last-child {
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.ledgerTarget {
+  text-align: center;
+  font-size: 1rem;
+  color: #475569;
+  cursor: help;
+}
+
+.ledgerPencil {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.ledgerPencil input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #6b5d4e;
+}
+
+/* Two classes, so it beats the zebra stripe and the hover tint. */
+.ledgerRow.ledgerRowLit {
+  background: color-mix(in srgb, var(--lit, #e9c46a) 28%, transparent);
+  box-shadow: inset 3px 0 0 var(--lit, #e9c46a);
+}
+
+.ledgerRowPenciled .ledgerText {
+  text-decoration: line-through;
+  text-decoration-color: rgba(107, 93, 78, 0.55);
+}
+
+/* Tightest version of the summary: the board has little height to spare. */
+.ledgerCompact {
+  padding: 2px 6px 34px 1px;
+}
+
+.ledgerCompact .ledgerHead {
+  gap: 4px;
+  padding-bottom: 1px;
+  border-bottom-width: 1.5px;
+}
+
+.ledgerCompact .ledgerTitle {
+  font-size: 0.7rem;
+}
+
+.ledgerCompact .ledgerCount {
+  font-size: 0.6rem;
+}
+
+.ledgerCompact .ledgerRow {
+  font-size: 0.66rem;
+  line-height: 1.2;
+}
+
+.ledgerCompact .ledgerRow > * {
+  padding: 1px 3px;
+  vertical-align: middle;
+}
+
+.ledgerCompact .ledgerWho {
+  width: 26px;
+  border-left-width: 2px;
+}
+
+.ledgerCompact .ledgerKind,
+.ledgerCompact .ledgerTarget,
+.ledgerCompact .ledgerMark {
+  font-size: 0.85rem;
+}
+
+.ledgerCompact .ledgerColHead th {
+  padding: 0 3px;
+  font-size: 0.58rem;
+}
+
+.ledgerCompact .ledgerPencil input {
+  width: 12px;
+  height: 12px;
+}

@@ -1,0 +1,749 @@
+/* Case board page. Geometry and tokens follow docs/mockups/case-board.html; the cork surface is a
+   wide 760 x 290 space (utils/caseBoardLayout.ts) placed in percent and sized in container units,
+   so it scales with the box the dossier gives it. */
+
+.board {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  color: #26211e;
+}
+
+/* ---------- Header: title, subtitle, and the one-line how-to ---------- */
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  padding: 5px 14px 4px 10px;
+  border-bottom: 1.5px dashed #b5a48b;
+}
+
+.title {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+  white-space: nowrap;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a120b;
+}
+
+.title small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 400;
+  color: #6b5d4e;
+  font-size: 0.72rem;
+}
+
+.titleIcon {
+  align-self: center;
+  color: #b9722f;
+}
+
+.help {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-size: 0.64rem;
+  font-style: italic;
+  line-height: 1.2;
+  color: #6b5d4e;
+}
+
+.help svg {
+  flex: 0 0 auto;
+  font-size: 0.9rem;
+}
+
+.help span {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: 8px 12px 6px 10px;
+  overflow: hidden;
+}
+
+/* ---------- Cork surface ---------- */
+
+.stage {
+  position: relative;
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 900px;
+}
+
+.corkFrame {
+  width: 100%;
+  aspect-ratio: 760 / 290;
+  /* Sizes inside use cqw (1% of this box's width), so the board shrinks as one piece. */
+  container-type: inline-size;
+  position: relative;
+  border: 6px solid #5a3c24;
+  border-radius: 6px;
+  box-sizing: border-box;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  box-shadow: inset 0 0 22px rgba(60, 30, 8, 0.55), 0 3px 8px rgba(0, 0, 0, 0.3);
+  background:
+    /* One lattice for both dots, the light one a pixel off the dark one so each reads as an inset hole. Different tile sizes
+       (7 and 9px) only realign every 63px, which read as clumps and gaps. */
+    radial-gradient(rgba(80, 48, 20, 0.38) 1px, transparent 1.6px) 0 0 / 8px 8px,
+    radial-gradient(rgba(255, 226, 180, 0.28) 1px, transparent 1.6px) 1px 1px / 8px 8px,
+    linear-gradient(135deg, #cfa26c, #a87a4a);
+}
+
+.cork {
+  position: absolute;
+  inset: 0;
+}
+
+.threads {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.shadow {
+  fill: none;
+  stroke: rgba(40, 20, 5, 0.45);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.polaroid {
+  position: absolute;
+  width: 12.6cqw;
+  aspect-ratio: 96 / 92;
+  padding: 0;
+  font: inherit;
+  text-align: center;
+  color: inherit;
+  background: #fff;
+  border: 1.5px solid #fff;
+  border-radius: 5px;
+  cursor: pointer;
+  z-index: 5;
+  transform: translate(-50%, -50%) rotate(var(--rot, -2deg));
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.polaroid:hover,
+.polaroid:focus-visible {
+  transform: translate(-50%, -50%) rotate(0) scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  outline: none;
+}
+
+.polaroid:focus-visible {
+  outline: 3px dashed #fff;
+  outline-offset: 3px;
+}
+
+.src {
+  outline: 3px solid #e9c46a;
+  outline-offset: 3px;
+}
+
+.polaroid img {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* The portrait fills the whole card; the name sits on a half-transparent bar over its foot. */
+.photo {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: 3px;
+}
+
+.nm {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0.25cqw 0.3cqw 0.3cqw;
+  font-size: max(8px, 1.25cqw);
+  font-weight: 700;
+  line-height: 1.1;
+  color: #1a120b;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(2px);
+  border-radius: 0 0 3px 3px;
+}
+
+.tape {
+  position: absolute;
+  z-index: 2; /* above .photo, which is positioned and later in the DOM */
+  top: -1cqw;
+  left: 22%;
+  width: 56%;
+  height: 2cqw;
+  background: rgba(245, 230, 180, 0.78);
+  border: 1px solid rgba(210, 190, 140, 0.5);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transform: rotate(-5deg);
+}
+
+.flags {
+  position: absolute;
+  right: -6px;
+  top: -6px;
+  display: flex;
+  gap: 2px;
+}
+
+.flags span {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  font-size: 0.72rem;
+  color: #dc2626;
+  background: #fff;
+  border: 1px solid #fca5a5;
+  border-radius: 9px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* ---------- Thread tags ---------- */
+
+.chip {
+  position: absolute;
+  z-index: 7;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px 2px 5px;
+  font: inherit;
+  font-size: max(9px, 1.4cqw);
+  font-weight: 700;
+  color: #3b2f22;
+  white-space: nowrap;
+  cursor: pointer;
+  background: #fffdf5;
+  border: 1.5px solid var(--cc);
+  border-radius: 7px;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  transition: transform 0.12s ease;
+}
+
+.chip svg,
+.chip span {
+  color: var(--cc);
+}
+
+.chip:hover {
+  transform: translate(-50%, -52%) scale(1.06);
+}
+
+.chip:focus-visible {
+  outline: 3px dashed #fff;
+  outline-offset: 2px;
+}
+
+.sel {
+  background: var(--cc);
+  color: #fff;
+}
+
+.sel svg,
+.sel span {
+  color: #fff;
+}
+
+.hint {
+  border-style: dashed;
+  background: rgba(255, 253, 245, 0.92);
+  animation: hintPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes hintPulse {
+  50% {
+    box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.55), 0 2px 6px rgba(0, 0, 0, 0.35);
+  }
+}
+
+.fresh {
+  animation: pop 0.55s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+@keyframes pop {
+  0% {
+    transform: translate(-50%, -50%) scale(0.2);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fresh,
+  .hint {
+    animation: none;
+  }
+
+  .polaroid,
+  .chip {
+    transition: none;
+  }
+}
+
+/* ---------- Chooser and toast ---------- */
+
+.chooser {
+  position: absolute;
+  z-index: 60;
+  width: max-content;
+  min-width: 200px;
+  padding: 6px;
+  background: #fffdf5;
+  border: 1.5px solid #5a3c24;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+
+.chooser h4 {
+  margin: 0 0 5px;
+  font-size: 0.68rem;
+  white-space: nowrap;
+  color: #5a3c24;
+}
+
+.chooser button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-bottom: 3px;
+  padding: 4px 8px 4px 6px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap;
+  color: #3b2f22;
+  cursor: pointer;
+  background: #fff;
+  border: 1.5px solid var(--cc);
+  border-radius: 6px;
+}
+
+.chooser button svg {
+  flex: 0 0 auto;
+  color: var(--cc);
+}
+
+.chooser button:hover,
+.chooser button:focus-visible {
+  background: var(--cc);
+  color: #fff;
+  outline: none;
+}
+
+.chooser button:hover svg,
+.chooser button:focus-visible svg {
+  color: #fff;
+}
+
+.chooser .cancel {
+  --cc: #94a3b8;
+  margin-bottom: 0;
+  font-weight: 400;
+}
+
+.sourceHint {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  z-index: 20;
+  padding: 3px 10px;
+  font-size: 0.7rem;
+  color: #fff7e0;
+  background: rgba(26, 18, 11, 0.85);
+  border-radius: 8px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  z-index: 40;
+  max-width: 440px;
+  padding: 6px 12px;
+  font-size: 0.72rem;
+  text-align: center;
+  color: #fff7e0;
+  background: rgba(26, 18, 11, 0.92);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.show {
+  opacity: 1;
+}
+
+/* ---------- Summary under the board: what they want, narrowed to a picked thread ---------- */
+
+.file {
+  flex: 1 1 0;
+  min-height: 88px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+  overflow: hidden auto;
+  scrollbar-width: thin;
+}
+
+.fHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px dotted #cfc3a8;
+}
+
+.duo {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.av {
+  width: 30px;
+  height: 30px;
+  overflow: hidden;
+  background: #f1f5f9;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.mid {
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin: 0 -5px;
+  font-size: 0.75rem;
+  color: #fff;
+  background: var(--cc);
+  border: 2px solid #fff;
+  border-radius: 50%;
+}
+
+.fText {
+  flex: 1;
+  min-width: 0;
+}
+
+.fTitle {
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1a120b;
+}
+
+.fSub {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--cc);
+}
+
+.effect {
+  margin-top: 1px;
+  font-size: 0.64rem;
+  line-height: 1.3;
+  color: #4a3f33;
+}
+
+.showAll {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 7px;
+  font: inherit;
+  font-size: 0.64rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #5a3512;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid #b9722f;
+  border-radius: 9px;
+}
+
+.showAll:hover,
+.showAll:focus-visible {
+  color: #fff;
+  background: #b9722f;
+  outline: none;
+}
+
+/* Answer key, only rendered when the API sends debug data (the dossier debug flag). Same look as the dossier's. */
+.debugPanel {
+  margin-top: auto;
+  padding: 6px 10px;
+  font-size: 0.65rem;
+  text-align: left;
+  color: #1e293b;
+  background: #fefce8;
+  border: 2px dashed #a16207;
+  border-radius: 6px;
+}
+
+.debugPanelTitle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: #a16207;
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.debugRow {
+  margin-top: 6px;
+  padding-top: 4px;
+  border-top: 1px dotted #a16207;
+}
+
+.debugMeta {
+  color: #64748b;
+}
+
+.debugRightText {
+  font-weight: 700;
+  color: #15803d;
+}
+
+.debugWrongText {
+  font-weight: 700;
+  color: #b91c1c;
+}
+
+.debugThread {
+  opacity: 0.7;
+}
+
+.debugThread text {
+  font-size: 11px;
+  font-weight: 700;
+  fill: #3b2f22;
+  paint-order: stroke;
+  stroke: #fffdf5;
+  stroke-width: 3px;
+}
+
+/* ---------- Footer: one line ---------- */
+
+.dock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 3px 12px 3px 24px;
+  white-space: nowrap;
+  background: rgba(247, 244, 234, 0.9);
+  border-top: 1.5px dashed #b5a48b;
+}
+
+.chips {
+  display: flex;
+  gap: 5px;
+}
+
+.fchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 18px;
+  box-sizing: border-box;
+  padding: 0 2px 0 7px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: #3b2f22;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--cc);
+  border-radius: 12px;
+}
+
+.fchip svg {
+  color: var(--cc);
+}
+
+.fchip b {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  padding: 0 4px;
+  font-size: 0.6rem;
+  line-height: 1;
+  color: #fff;
+  background: var(--cc);
+  border-radius: 7px;
+}
+
+.stats {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 18px;
+  padding: 0 7px;
+  font-size: 0.64rem;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+}
+
+.gold {
+  background: #fff4d0;
+  border-color: #e0b84a;
+}
+
+.attempts {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.attempts i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #c0392b;
+  box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.attempts i.used {
+  background: #d6cdbd;
+  box-shadow: inset 0 0 0 1.5px #a89a84;
+}
+
+/* A person hovered here or in the summary below. */
+.lit {
+  z-index: 8;
+  transform: translate(-50%, -50%) rotate(0) scale(1.08);
+  box-shadow: 0 0 0 3px #e9c46a, 0 8px 18px rgba(0, 0, 0, 0.45);
+}
+
+/* One-time explanation of the pencil boxes. */
+.pencilHint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  font-size: 0.66rem;
+  line-height: 1.3;
+  color: #4a3f33;
+  background: #fff4d0;
+  border: 1px solid #e0b84a;
+  border-radius: 6px;
+}
+
+.pencilHint > svg {
+  flex: 0 0 auto;
+  font-size: 1.1rem;
+  color: #b9722f;
+}
+
+.pencilHint > span {
+  flex: 1;
+}
+
+/* Points down and right, at the tick boxes in the column below the note. */
+.pencilHint > .pencilArrow {
+  font-size: 1.3rem;
+  color: #b9722f;
+  animation: pencilArrowNudge 1.6s ease-in-out infinite;
+}
+
+@keyframes pencilArrowNudge {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pencilHint > .pencilArrow {
+    animation: none;
+  }
+}
+
+.pencilHint button {
+  flex: 0 0 auto;
+  padding: 1px 8px;
+  font: inherit;
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: #5a3512;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid #b9722f;
+  border-radius: 9px;
+}
+
+.pencilHint button:hover,
+.pencilHint button:focus-visible {
+  color: #fff;
+  background: #b9722f;
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lit {
+    transition: none;
+  }
+}

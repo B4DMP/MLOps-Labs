@@ -15,6 +15,10 @@ export interface IntelTagMeta {
   /** Iconify icon id. */
   icon: string;
   color: string;
+  /** Pastel paper for surfaces of this type, as on the dossier's post-it notes. */
+  paper: string;
+  /** Dark ink of the same hue, for text on that paper. */
+  ink: string;
   about: "stakeholder" | "system";
   /** One line the player sees while tagging. */
   description: string;
@@ -27,7 +31,9 @@ export const INTEL_TAGS: IntelTagMeta[] = [
     label: "Driver",
     shortLabel: "DRV",
     icon: "ph:target-bold",
-    color: "#16a34a",
+    color: "#0d9488",
+    paper: "#ccfbf1",
+    ink: "#115e59",
     about: "stakeholder",
     description: "Something they want improved. More is better, and they can live with less.",
     styleKey: "preference",
@@ -37,7 +43,9 @@ export const INTEL_TAGS: IntelTagMeta[] = [
     label: "Boundary",
     shortLabel: "BND",
     icon: "ph:prohibit-bold",
-    color: "#2563eb",
+    color: "#dc2626",
+    paper: "#fee2e2",
+    ink: "#b91c1c",
     about: "stakeholder",
     description: "A line they will not cross. Break it and they refuse.",
     styleKey: "requirement",
@@ -48,6 +56,8 @@ export const INTEL_TAGS: IntelTagMeta[] = [
     shortLabel: "TRD",
     icon: "ph:scales-bold",
     color: "#d97706",
+    paper: "#fef3c7",
+    ink: "#92400e",
     about: "stakeholder",
     description: "Something they would give up or accept losing to get what they want.",
     styleKey: "friction",
@@ -59,8 +69,10 @@ export const CHALLENGE_INTEL_META: IntelTagMeta = {
   type: "fact",
   label: "Challenge-Intel",
   shortLabel: "CHI",
-  icon: "ph:certificate-duotone",
+  icon: "ph:seal-warning-duotone",
   color: "#dc2626",
+  paper: "#ffe4e6",
+  ink: "#b91c1c",
   about: "system",
   description: "How the system stands at the start of the challenge.",
   styleKey: "default",
@@ -72,6 +84,8 @@ const FALLBACK: IntelTagMeta = {
   shortLabel: "INTEL",
   icon: "ph:tag-bold",
   color: "#64748b",
+  paper: "#f1f5f9",
+  ink: "#334155",
   about: "stakeholder",
   description: "",
   styleKey: "default",

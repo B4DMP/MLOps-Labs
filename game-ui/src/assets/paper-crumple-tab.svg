@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+  <!-- Generated, not sourced. A tighter relief than paper-crumple.svg, sized for small tab labels; scaled down so it reads as strong as the page. -->
+  <filter id="crumple" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="turbulence" baseFrequency="0.03 0.036" numOctaves="4" seed="5" stitchTiles="stitch" result="h"/>
+    <feDiffuseLighting in="h" surfaceScale="0.45" diffuseConstant="1.05" lighting-color="#fffaf0">
+      <feDistantLight azimuth="235" elevation="66"/>
+    </feDiffuseLighting>
+  </filter>
+  <rect width="240" height="240" filter="url(#crumple)"/>
+</svg>

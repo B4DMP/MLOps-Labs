@@ -1,0 +1,1402 @@
+/* The composer's sidebar: one sheet of paper. Palette and size tokens (--paper, --ink, --sp-*,
+   --fs-*, --row-h ...) come from .proposalContainer in ComposeActionProposalModal.module.css.
+
+   Rules this file keeps: one gutter, hairlines instead of nested frames, one line per row
+   (fixed height, ellipsis, the rest in the tooltip). Only things you act on keep a border. */
+
+/* ── Inspector header band ─────────────────────────────────────────────── */
+
+/* A solid bar in the selected node's own title-bar colour (--bar / --bar-ink, set inline), so the
+   inspector reads as that node's. The owner hangs off it like an ID badge: it is bigger than the
+   bar is tall, and its negative margins keep the bar's height exactly what it was. */
+.band {
+  --bar: var(--ink);
+  --bar-ink: #ffffff;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: calc(var(--row-h) + 10px);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--bar);
+  color: var(--bar-ink);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.28);
+  box-shadow: 0 3px 6px rgba(40, 28, 12, 0.18);
+}
+
+.bandIcon {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 1.9em;
+  height: 1.9em;
+  padding: 0.38em;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--bar-ink) 22%, transparent);
+  color: var(--bar-ink);
+}
+
+.bandTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-hand);
+  font-size: calc(var(--fs-lg) * 1.1);
+  font-weight: 400;
+  color: var(--bar-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 1px color-mix(in srgb, var(--bar) 40%, black);
+}
+
+/* Who owns it: a badge, not a thumbnail. Faces toward the title (the avatar is flipped). */
+.owner {
+  --size: clamp(46px, 5.6vh, 58px);
+  flex-shrink: 0;
+  align-self: flex-start;
+  display: inline-flex;
+  box-sizing: border-box;
+  width: var(--size);
+  height: var(--size);
+  margin: calc(var(--sp-1) * -1) 0 calc(var(--size) * -0.42);
+  padding: 0;
+  border: 3px solid var(--paper);
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--paper);
+  box-shadow: 0 3px 8px rgba(30, 20, 8, 0.4);
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-spring), box-shadow 0.15s ease;
+}
+
+.ownerStatic {
+  cursor: default;
+}
+
+.owner:hover:not(.ownerStatic),
+.owner:focus-visible {
+  transform: scale(1.06) rotate(-3deg);
+  box-shadow: 0 4px 10px rgba(30, 20, 8, 0.5), 0 0 0 2px var(--brass);
+  outline: none;
+}
+
+.bandClose {
+  flex-shrink: 0;
+  display: inline-flex;
+  padding: 3px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--bar-ink);
+  opacity: 0.85;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.bandClose:hover {
+  background: color-mix(in srgb, var(--bar-ink) 22%, transparent);
+  opacity: 1;
+}
+
+.jumpLink {
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.jumpLink:hover {
+  text-decoration-style: solid;
+}
+
+/* ── Body and sections ─────────────────────────────────────────────────── */
+
+/* Room under the badge that hangs off the bar, on the side it hangs. */
+.bodyHang {
+  padding-top: calc(var(--sp-2) + 12px);
+}
+
+.body {
+  padding: var(--sp-2) var(--sp-3) var(--sp-3);
+}
+
+.section + .section,
+.body > .section:not(:first-child) {
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--paper-line);
+}
+
+/* The proposal, docked at the foot of the sheet however short the inspector above it is. */
+.dock {
+  margin-top: auto;
+  padding: var(--sp-2) var(--sp-3) var(--sp-3);
+  border-top: 1px solid var(--paper-line);
+  background: var(--paper-2);
+}
+
+.caption {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--fs-sm);
+  line-height: 1.35;
+  color: var(--ink-mute);
+  text-wrap: pretty;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: calc(var(--row-h) * 0.8);
+  font-family: var(--font-hand);
+  font-size: var(--fs-md);
+  color: var(--ink);
+}
+
+.sectionHeadGovernance {
+  color: #6d28d9;
+}
+
+.sectionRight {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: inherit;
+  font-size: var(--fs-xs);
+  color: var(--ink-mute);
+  white-space: nowrap;
+}
+
+.helpMark {
+  cursor: help;
+  font-size: 1.05em;
+  color: var(--ink-mute);
+}
+
+/* ── Chip row ──────────────────────────────────────────────────────────── */
+
+.chips {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  margin-bottom: var(--sp-2);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: calc(var(--row-h) * 0.8);
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--paper-line);
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.55);
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  white-space: nowrap;
+  min-width: 0;
+  cursor: help;
+}
+
+/* HoverTooltip wraps each chip in a span; let that span shrink so a long label ellipsizes. */
+.chips > span {
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.chips > span > .chip {
+  max-width: 100%;
+  display: inline-flex;
+}
+
+.chipLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+button.chip {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.chipOk {
+  color: #166534;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.chipWarn {
+  color: #9a3412;
+  border-color: #fed7aa;
+  background: #fff7ed;
+}
+
+button.chipWarn:hover {
+  background: #ffedd5;
+}
+
+.pips {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.pip {
+  width: 9px;
+  height: 5px;
+  border-radius: 2px;
+  background: #e3ddd0;
+  border: 1px solid transparent;
+}
+
+.pipPlanned {
+  background: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.pipAbove {
+  background: transparent;
+  border: 1px dashed #cdbfa6;
+}
+
+/* The one place wording is allowed to reach a second line: nothing else in the sheet wraps. */
+.caveat {
+  margin: calc(var(--sp-1) * -1) 0 var(--sp-2);
+  font-size: var(--fs-xs);
+  color: #9a3412;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Notes: ledger rows, as on the case board ──────────────────────────── */
+
+.notes {
+  display: flex;
+  flex-direction: column;
+}
+
+.note {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--row-h);
+  padding: 0 var(--sp-1);
+  border-bottom: 1px solid var(--paper-line);
+  font-size: var(--fs-sm);
+  color: var(--ink);
+  outline: none;
+  transition: background-color 0.2s ease, box-shadow 0.25s ease;
+}
+
+.note:last-child {
+  border-bottom: none;
+}
+
+.noteClickable {
+  cursor: pointer;
+}
+
+.noteClickable:hover,
+.noteClickable:focus-visible {
+  background: rgba(38, 102, 130, 0.08);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* Lit elsewhere (a note hovered in the dossier or on the case board). Two classes beat the hover. */
+.note.noteLit {
+  background: color-mix(in srgb, var(--lit, #e9c46a) 28%, transparent);
+  box-shadow: inset 3px 0 0 var(--lit, #e9c46a);
+}
+
+.noteDone {
+  opacity: 0.55;
+}
+
+.noteWho {
+  flex-shrink: 0;
+  display: inline-flex;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.noteKind {
+  flex-shrink: 0;
+  display: inline-flex;
+  font-size: 1.05em;
+  cursor: help;
+}
+
+.noteText {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.noteMarks {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 1.05em;
+}
+
+.noteMark {
+  display: inline-flex;
+  cursor: help;
+}
+
+.markOnRecord {
+  color: #0284c7;
+}
+
+.markConfirmed {
+  color: #16a34a;
+}
+
+.markSource {
+  color: var(--ink-mute);
+}
+
+.markBoard {
+  color: #b9722f;
+}
+
+.noteGo {
+  flex-shrink: 0;
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.noteClickable:hover .noteGo,
+.noteClickable:focus-visible .noteGo {
+  opacity: 0.8;
+}
+
+/* The rest of the note, unrolling over the rows below on hover. The row never grows. Pointer-
+   transparent, so hovering still means the row under the cursor. Same trick as the case board. */
+.peek {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 6;
+  padding: 3px 6px 5px;
+  font: inherit;
+  line-height: 1.3;
+  color: var(--ink);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  background: var(--paper);
+  border-radius: 4px;
+  box-shadow: 0 0 0 1.5px rgba(38, 102, 130, 0.55), 0 10px 22px rgba(60, 45, 35, 0.32);
+  opacity: 0;
+  clip-path: inset(0 -6px 100% -6px);
+  transition: clip-path 0.3s cubic-bezier(0.2, 0.9, 0.25, 1), opacity 0.12s ease;
+}
+
+.noteClickable:hover .peek,
+.noteClickable:focus-visible .peek,
+.note:focus-within .peek {
+  opacity: 1;
+  clip-path: inset(-6px -6px -40px -6px);
+}
+
+/* ── Option ladder ─────────────────────────────────────────────────────── */
+
+.ladder {
+  position: relative;
+  --dot: clamp(18px, 2.1vh, 22px);
+}
+
+/* The rail the rungs sit on. */
+.ladder::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--sp-1) + var(--dot) / 2 - 1px);
+  top: calc(var(--row-h) / 2);
+  bottom: calc(var(--row-h) / 2);
+  width: 2px;
+  background: #d9cfbc;
+}
+
+.rung {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: var(--row-h);
+  padding: 0 var(--sp-1);
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.rungInfo {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 100%;
+  cursor: help;
+  outline: none;
+}
+
+.dot {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--dot);
+  height: var(--dot);
+  border-radius: 50%;
+  border: 2px solid #d9cfbc;
+  background: var(--paper);
+  color: var(--ink-mute);
+  font-size: calc(var(--dot) * 0.58);
+  transition: transform 0.2s var(--ease-spring);
+}
+
+.rungName {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rungTag {
+  flex-shrink: 0;
+  font-size: var(--fs-xs);
+  color: var(--ink-mute);
+  white-space: nowrap;
+}
+
+.rungNext {
+  background: color-mix(in srgb, var(--rung) 11%, var(--paper));
+}
+
+.rungNext .dot {
+  border-color: var(--rung);
+  color: var(--rung-ink);
+  background: color-mix(in srgb, var(--rung) 16%, var(--paper));
+}
+
+.rungNext:hover .dot {
+  transform: scale(1.1);
+}
+
+.rungSlotted {
+  background: #e6f2f7;
+}
+
+.rungSlotted .dot {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.rungDone .dot {
+  border-color: #2f855a;
+  background: #2f855a;
+  color: #ffffff;
+}
+
+.rungDone .rungName,
+.rungLater .rungName {
+  font-weight: 400;
+  color: var(--ink-mute);
+}
+
+.rungLater .rungInfo {
+  opacity: 0.7;
+}
+
+.rungAction {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Tactile, like the dossier's buttons: a lip that gives way when pressed. */
+.addBtn,
+.removeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: calc(var(--row-h) - 8px);
+  padding: 0 var(--sp-3);
+  border-radius: 6px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
+}
+
+.addBtn {
+  border: 1px solid var(--accent-deep);
+  background: var(--accent);
+  color: #ffffff;
+  box-shadow: 0 2px 0 var(--accent-deep);
+}
+
+.addBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 var(--accent-deep);
+}
+
+.addBtn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 var(--accent-deep);
+}
+
+.addBtn:disabled {
+  background: #a99a82;
+  border-color: #8f8068;
+  box-shadow: 0 2px 0 #8f8068;
+  cursor: not-allowed;
+}
+
+.removeBtn {
+  border: 1px solid #fca5a5;
+  background: #ffffff;
+  color: #b91c1c;
+}
+
+.removeBtn:hover {
+  background: #fee2e2;
+}
+
+/* "IN PLACE": the dossier's rubber stamp, small. */
+.stamp {
+  flex-shrink: 0;
+  font-family: var(--font-hand);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.04em;
+  color: #2f855a;
+  border: 1.5px solid #2f855a;
+  border-radius: 3px;
+  padding: 0 4px;
+  transform: rotate(-3deg);
+  white-space: nowrap;
+}
+
+.locked {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: calc(var(--row-h) * 0.9);
+  padding: 0 var(--sp-1);
+  font-size: var(--fs-sm);
+  color: var(--ink-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Proposal tickets ──────────────────────────────────────────────────── */
+
+.tickets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.ticket {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: calc(var(--row-h) - 2px);
+  padding: 0 var(--sp-2);
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  background: #f4f9fb;
+  transition: box-shadow 0.15s ease, transform 0.15s var(--ease-spring);
+}
+
+.ticket:hover {
+  box-shadow: 0 2px 8px rgba(38, 102, 130, 0.2);
+}
+
+.ticketEmpty {
+  justify-content: center;
+  border: 1px dashed #cdbfa6;
+  background: transparent;
+  color: #a99a82;
+  font-size: var(--fs-xs);
+}
+
+.ticketEmpty:hover {
+  box-shadow: none;
+}
+
+.ticketMain {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: var(--fs-sm);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ticketIndex {
+  flex-shrink: 0;
+  min-width: 1.5em;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: #d8e9f0;
+  color: var(--accent);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-align: center;
+}
+
+.ticketText {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ticketText b {
+  font-weight: 700;
+}
+
+.ticketStep {
+  color: var(--ink-soft);
+}
+
+.ticketAxis {
+  flex-shrink: 0;
+  font-size: 1.05em;
+}
+
+.ticketRemove {
+  flex-shrink: 0;
+  display: inline-flex;
+  padding: 2px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: #b91c1c;
+  cursor: pointer;
+}
+
+.ticketRemove:hover {
+  background: #fee2e2;
+}
+
+/* ── Empty inspector and view-only ─────────────────────────────────────── */
+
+/* A margin note, not a placeholder box. */
+.marginNote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  font-family: var(--font-hand);
+  font-size: var(--fs-md);
+  line-height: 1.35;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.marginNoteIcon {
+  flex-shrink: 0;
+  font-size: 1.4em;
+  color: var(--ink-mute);
+}
+
+.viewOnly {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-sm);
+  background: rgba(60, 45, 30, 0.06);
+  font-size: var(--fs-sm);
+  line-height: 1.35;
+  color: var(--ink-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .note,
+  .peek,
+  .dot,
+  .addBtn,
+  .ticket,
+  .owner {
+    transition: none;
+  }
+}
+
+/* ── Icon legibility ───────────────────────────────────────────────────── */
+/* Icons were sized in em of 10 to 12px text, which is too small to read as a shape. These sit later in
+   the file on purpose: they override the sizes above. */
+.chip > svg,
+.chip > span > svg,
+.noteKind > svg,
+.noteMark > svg,
+.noteGo,
+.locked > svg,
+.addBtn > svg,
+.removeBtn > svg,
+.helpMark,
+.ticketAxis,
+.ticketRemove > svg {
+  width: var(--icon);
+  height: var(--icon);
+  flex-shrink: 0;
+}
+
+.sectionHead > svg,
+.bandClose > svg {
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+  flex-shrink: 0;
+}
+
+.ladder {
+  --dot: clamp(21px, 2.5vh, 26px);
+}
+
+.dot {
+  font-size: calc(var(--dot) * 0.7);
+}
+
+.bandIcon {
+  width: 2.5em;
+  height: 2.5em;
+  padding: 0.5em;
+}
+
+.noteWho {
+  width: 20px;
+  height: 20px;
+}
+
+/* ── Empty state: a hero, centred in the space the inspector will fill ─── */
+.hero {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-4);
+  padding: calc(var(--sp-4) * 2) calc(var(--sp-4) * 1.6);
+  text-align: center;
+}
+
+/* A disc in the same ink as the inspector bar, with a dashed ring that turns slowly: "point at something". */
+.heroDisc {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(64px, 8.5vh, 92px);
+  height: clamp(64px, 8.5vh, 92px);
+  border-radius: 50%;
+  background: #3b2a1e;
+  color: #f7f4ea;
+  font-size: clamp(32px, 4.4vh, 48px);
+  box-shadow: 0 4px 10px rgba(40, 24, 8, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.heroDisc > svg {
+  display: block;
+}
+
+.heroDisc::before {
+  content: "";
+  position: absolute;
+  inset: -9px;
+  border: 2px dashed rgba(91, 75, 58, 0.45);
+  border-radius: 50%;
+  animation: heroRing 28s linear infinite;
+}
+
+@keyframes heroRing {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.heroTitle {
+  margin: 0;
+  font-family: var(--font-hand);
+  font-size: calc(var(--fs-lg) * 1.55);
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.heroBody {
+  margin: 0;
+  max-width: 30ch;
+  font-size: var(--fs-md);
+  line-height: 1.45;
+  color: var(--ink-soft);
+  text-wrap: balance;
+}
+
+.heroSlots {
+  display: flex;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+}
+
+.heroSlot {
+  width: 22px;
+  height: 8px;
+  border-radius: 3px;
+  background: transparent;
+  border: 1.5px dashed #b8a98c;
+}
+
+.heroSlotOn {
+  background: var(--accent);
+  border: 1.5px solid var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroDisc::before {
+    animation: none;
+  }
+}
+
+/* ── The unrolled note must not be clipped ─────────────────────────────── */
+/* The ellipsis needs overflow: hidden, and anything absolutely positioned inside an overflow: hidden box is
+   cut off with it. So the clamped line is its own element and the cell around it, which holds the peek,
+   clips nothing (the same trap the case board's summary had). The peek lands exactly over the line. */
+.noteText {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.noteLine {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.peek {
+  top: -4px;
+  right: -8px;
+  left: -8px;
+  padding: 4px 8px 6px;
+}
+
+/* ── Hover motion ──────────────────────────────────────────────────────── */
+/* Everything here answers a pointer: a light sweeps across, a bar grows from the centre of the edge, icons
+   tilt and swell with a spring, arrows slide in. Nothing lifts. Only transform, opacity and background
+   position move, so none of it reflows a row. */
+
+/* Notes: a hovered note takes the accent colour, opens its extended view, and nothing else moves or grows.
+   The other notes step back a little. */
+.noteClickable {
+  background-image: none;
+  transition: background-color 0.22s ease, opacity 0.22s ease;
+}
+
+.noteClickable::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+
+.noteClickable:hover,
+.noteClickable:focus-visible {
+  background-color: rgba(38, 102, 130, 0.12);
+  box-shadow: none;
+}
+
+.noteClickable:hover::before,
+.noteClickable:focus-visible::before {
+  opacity: 1;
+}
+
+.notes:hover .noteClickable:not(:hover):not(:focus-visible) {
+  opacity: 0.62;
+}
+
+.noteLine {
+  transition: color 0.22s ease;
+}
+
+.noteClickable:hover .noteLine,
+.noteClickable:focus-visible .noteLine {
+  color: var(--accent-deep);
+}
+
+.noteGo {
+  opacity: 0;
+  transform: none;
+  transition: opacity 0.22s ease;
+}
+
+.noteClickable:hover .noteGo,
+.noteClickable:focus-visible .noteGo {
+  opacity: 0.9;
+  transform: none;
+}
+
+
+/* Ladder rows: the ring fills, the step name leans in and gains an underline that draws itself */
+.rungName {
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.rungName::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--rung, var(--accent));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.36s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.dot {
+  transition: transform 0.38s var(--ease-spring), background-color 0.25s ease, color 0.25s ease;
+}
+
+.rungInfo:hover .dot {
+  transform: scale(1.06) rotate(-8deg);
+}
+
+.rungNext .rungInfo:hover .dot {
+  background: var(--rung);
+  color: #ffffff;
+}
+
+.rungNext .rungInfo:hover .rungName,
+.rungSlotted .rungInfo:hover .rungName {
+  transform: translateX(3px);
+}
+
+.rungNext .rungInfo:hover .rungName::after,
+.rungSlotted .rungInfo:hover .rungName::after {
+  transform: scaleX(1);
+}
+
+/* Buttons: a shine crosses them, the glyph spins, and they press rather than lift */
+.addBtn,
+.removeBtn {
+  position: relative;
+  overflow: hidden;
+}
+
+.addBtn > svg,
+.removeBtn > svg {
+  transition: transform 0.4s var(--ease-spring);
+}
+
+.addBtn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.5) 50%, transparent 70%);
+  transform: translateX(-130%);
+  transition: transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+
+.addBtn:hover:not(:disabled) {
+  transform: none;
+  box-shadow: 0 3px 0 var(--accent-deep), 0 4px 10px rgba(17, 48, 62, 0.3);
+}
+
+.addBtn:hover:not(:disabled)::after {
+  transform: translateX(130%);
+}
+
+.addBtn:hover:not(:disabled) > svg {
+  transform: rotate(90deg) scale(1.08);
+}
+
+.addBtn:active:not(:disabled) {
+  transform: scale(0.96) translateY(2px);
+}
+
+.removeBtn:hover > svg {
+  transform: rotate(90deg) scale(1.08);
+}
+
+/* Chips: they swell, the glyph tilts, and the pips rise in a wave */
+.chip {
+  transition: transform 0.34s var(--ease-spring), border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.25s ease;
+}
+
+.chip:hover {
+  transform: none;
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(38, 102, 130, 0.22);
+}
+
+.chipWarn:hover {
+  border-color: #c2410c;
+  box-shadow: 0 2px 8px rgba(194, 65, 12, 0.25);
+}
+
+.chip svg {
+  transition: transform 0.38s var(--ease-spring);
+}
+
+.chip:hover svg {
+  transform: rotate(-10deg) scale(1.08);
+}
+
+.pip {
+  transition: transform 0.34s var(--ease-spring);
+}
+
+.chip:hover .pip {
+  transform: scaleY(1.5);
+}
+
+.chip:hover .pip:nth-child(2) {
+  transition-delay: 0.05s;
+}
+
+.chip:hover .pip:nth-child(3) {
+  transition-delay: 0.1s;
+}
+
+/* Proposal tickets: the same sweep and edge bar as the notes, the index flips, the glyph spins */
+.ticket {
+  position: relative;
+  background-image: linear-gradient(100deg, transparent 32%, rgba(38, 102, 130, 0.16) 50%, transparent 68%);
+  background-size: 280% 100%;
+  background-position: 135% 0;
+  background-repeat: no-repeat;
+  transition: background-position 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease, border-color 0.2s ease;
+}
+
+.ticket:hover {
+  background-position: -35% 0;
+  box-shadow: 0 3px 10px rgba(38, 102, 130, 0.22);
+  border-color: var(--accent-deep);
+}
+
+.ticketIndex,
+.ticketAxis,
+.ticketRemove > svg {
+  transition: transform 0.4s var(--ease-spring);
+}
+
+.ticket:hover .ticketIndex {
+  transform: perspective(60px) rotateX(360deg);
+}
+
+.ticket:hover .ticketAxis {
+  transform: rotate(-16deg) scale(1.1);
+}
+
+.ticketRemove:hover > svg {
+  transform: rotate(90deg) scale(1.1);
+}
+
+.ticketEmpty {
+  background-image: none;
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.ticketEmpty > svg {
+  transition: transform 0.4s var(--ease-spring);
+}
+
+.ticketEmpty:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background-color: rgba(38, 102, 130, 0.06);
+  box-shadow: none;
+}
+
+.ticketEmpty:hover > svg {
+  transform: rotate(90deg) scale(1.12);
+}
+
+/* Header bits */
+.bandClose > svg {
+  transition: transform 0.4s var(--ease-spring);
+}
+
+.bandClose:hover > svg {
+  transform: rotate(90deg) scale(1.08);
+}
+
+.sectionHead > svg,
+.helpMark {
+  transition: transform 0.4s var(--ease-spring);
+}
+
+.sectionHead:hover > svg {
+  transform: rotate(-12deg) scale(1.08);
+}
+
+.helpMark:hover {
+  transform: rotate(-12deg) scale(1.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noteClickable,
+  .noteLine,
+  .noteWho,
+  .noteKind svg,
+  .noteMark svg,
+  .noteGo,
+  .rungName,
+  .rungName::after,
+  .dot,
+  .addBtn,
+  .addBtn::after,
+  .addBtn > svg,
+  .removeBtn > svg,
+  .chip,
+  .chip svg,
+  .pip,
+  .ticket,
+  .ticketIndex,
+  .ticketAxis,
+  .ticketEmpty > svg,
+  .bandClose > svg,
+  .sectionHead > svg,
+  .helpMark {
+    transition: none;
+  }
+}
+
+/* ── Case board hints ──────────────────────────────────────────────────── */
+.heroHint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  max-width: 32ch;
+  margin-top: var(--sp-2);
+  padding-top: var(--sp-4);
+  border-top: 1px dashed #c9bb9e;
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  color: var(--ink-mute);
+  text-wrap: balance;
+}
+
+/* Tactile like the other buttons, but quiet: this is a pointer, not the main action. */
+.heroBtn,
+.boardChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.heroBtn {
+  padding: var(--sp-2) var(--sp-4);
+  border: 1px solid #b8a98c;
+  border-bottom-width: 2px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.heroBtn:hover {
+  background: rgba(38, 102, 130, 0.1);
+  border-color: var(--accent);
+  color: var(--accent-deep);
+}
+
+.heroBtn svg {
+  display: block;
+  width: var(--icon);
+  height: var(--icon);
+}
+
+/* The chip in the notes header: how many threads you tied on the board touch this target. */
+.boardChip {
+  padding: 0 var(--sp-2);
+  height: calc(var(--row-h) * 0.72);
+  border: 1px solid rgba(38, 102, 130, 0.45);
+  border-radius: 9999px;
+  background: rgba(38, 102, 130, 0.08);
+  color: var(--accent-deep);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.boardChip:hover {
+  background: rgba(38, 102, 130, 0.18);
+  border-color: var(--accent);
+}
+
+.boardChip svg {
+  display: block;
+  width: var(--icon);
+  height: var(--icon);
+}
+
+.sectionRight .boardChip {
+  margin-right: var(--sp-2);
+}
+
+/* ── Vertical alignment ────────────────────────────────────────────────── */
+/* Inline SVGs sit on the text baseline with a few pixels of descender space under them, which puts every
+   icon a little off the centre line of the row it is in. As blocks, flex centring does what it says. */
+.chip svg,
+.sectionHead > svg,
+.noteKind svg,
+.noteMark svg,
+.noteGo,
+.noteWho svg,
+.rungInfo svg,
+.rungAction svg,
+.locked > svg,
+.ticket svg,
+.band svg,
+.sectionRight svg,
+.helpMark {
+  display: block;
+}
+
+/* ── Section headers: a band, so there is a step below the inspector bar ── */
+/* Level 1 is the inspector's solid bar; level 2 is these bands (full-bleed, tinted, a filled icon disc and
+   a larger title); level 3 is the rows. Before, level 2 was plain text and level 3 looked as important. */
+.sectionHead {
+  height: auto;
+  min-height: calc(var(--row-h) * 1.1);
+  margin: 0 calc(var(--sp-3) * -1) var(--sp-3);
+  padding: calc(var(--sp-3) * 1.1) var(--sp-3);
+  background: rgba(60, 45, 30, 0.09);
+  border-top: 1px solid rgba(60, 45, 30, 0.22);
+  border-bottom: 1px solid rgba(60, 45, 30, 0.2);
+  /* Pressed into the sheet: shade along the top edge, a lit lip along the bottom. */
+  box-shadow:
+    inset 0 3px 5px -1px rgba(50, 32, 10, 0.26),
+    inset 0 1px 0 rgba(50, 32, 10, 0.12),
+    inset 0 -1px 0 rgba(255, 252, 240, 0.75);
+  font-size: calc(var(--fs-md) * 1.18);
+  color: var(--ink);
+  gap: var(--sp-3);
+}
+
+.sectionHead > svg {
+  box-sizing: border-box;
+  width: calc(var(--icon-lg) * 1.35);
+  height: calc(var(--icon-lg) * 1.35);
+  padding: calc(var(--icon-lg) * 0.3);
+  border-radius: 50%;
+  background: #3b2a1e;
+  color: #f7f4ea;
+}
+
+.sectionHeadGovernance {
+  color: #5b21b6;
+}
+
+.sectionHeadGovernance > svg {
+  background: #6d28d9;
+}
+
+/* The band replaces the old hairline above a section. */
+.body > .section:not(:first-child),
+.section + .section {
+  margin-top: var(--sp-3);
+  padding-top: 0;
+  border-top: none;
+}
+
+.dock > .sectionHead {
+  margin-top: calc(var(--sp-2) * -1);
+}
+
+/* ── Ladder: no row fills ──────────────────────────────────────────────── */
+/* State lives in the dot and the button, so the rows need no tint. Hairlines between rows, like the
+   notes above; the next step is told apart by its heavier name and its Add button. */
+.rung,
+.rungNext,
+.rungSlotted,
+.rungDone,
+.rungLater {
+  background: transparent;
+  border-radius: 0;
+}
+
+.rung + .rung {
+  border-top: 1px solid var(--paper-line);
+}
+
+.rungNext .rungName {
+  font-weight: 700;
+}
+
+.rungSlotted .rungName {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* A numbered ring for a step you can still take; a solid dot for the others. */
+.rungNext .dot {
+  background: var(--paper);
+  border-color: var(--rung);
+  color: var(--rung-ink);
+}
+
+.dotNumber {
+  font-size: 0.85em;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.rungNext:hover .dot {
+  transform: none;
+}

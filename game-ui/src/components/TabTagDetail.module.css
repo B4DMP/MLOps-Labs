@@ -1,0 +1,70 @@
+/* The tag's font (Delius) has one weight, and its detail text is already semi-bold, so the base
+   is forced to regular here; otherwise <b> renders identical to the body. Colors have fallbacks:
+   the tag is portaled out of the dossier's custom-property scope. */
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 4px;
+  text-align: left;
+  font-weight: 400;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 5px;
+  line-height: 1.3;
+}
+
+.key {
+  font-weight: 400;
+  color: #7a5c2e;
+}
+
+.key::after {
+  content: ":";
+}
+
+.chunk {
+  font-weight: 700;
+  color: #2a1f18;
+  white-space: nowrap;
+}
+
+.warn {
+  font-weight: 700;
+  color: #9a3412;
+}
+
+.sub {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 8px;
+  color: #5b4632;
+}
+
+.sub .chunk {
+  font-weight: 400;
+  color: inherit;
+}
+
+.lead {
+  font-weight: 700;
+  color: #2a1f18;
+}
+
+.para {
+  line-height: 1.3;
+}
+
+.muted {
+  color: #7a5c2e;
+}
+
+.sub .chunk b {
+  font-weight: 700;
+  color: #2a1f18;
+}

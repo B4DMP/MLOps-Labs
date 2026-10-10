@@ -36,6 +36,24 @@
   /* Allow 3D page flips without window clipping */
   font-family: var(--dossier-font, 'Delius', cursive);
   user-select: none;
+
+  /* Design tokens. Intel type colours (--intel-*) come from types/IntelTag.ts via the root's style. */
+  --hairline: 1px solid rgba(60, 45, 30, 0.16);
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --label-paper: #f3ead0;
+  --label-line: rgba(110, 85, 45, 0.38);
+  --shadow-card: 0 1px 3px rgba(60, 45, 30, 0.14), 0 1px 1px rgba(60, 45, 30, 0.08);
+  --shadow-note: 0 3px 8px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06), 6px 5px 6px -4px rgba(0, 0, 0, 0.28);
+  --shadow-lift: 0 10px 20px rgba(0, 0, 0, 0.18), 0 3px 6px rgba(0, 0, 0, 0.1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Type scale. Everything stays in the dossier handwriting (Delius); only sizes are tokenised. */
+  --fs-micro: 0.56rem;
+  --fs-xs: 0.62rem;
+  --fs-sm: 0.68rem;
+  --fs-md: 0.9rem;
 }
 
 /* Ensure buttons and form controls inside sketchbook inherit the dossier font */
@@ -97,7 +115,7 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  font-size: 0.62rem;
+  font-size: var(--fs-xs, 0.62rem);
   font-weight: 600;
   font-style: italic;
   color: #d9b978;
@@ -264,7 +282,10 @@
   flex: 1 1 0;
   min-width: 0;
   max-width: 148px;
-  background: color-mix(in srgb, var(--tab-color, #38bdf8) 12%, #d6c7b2);
+  background-color: color-mix(in srgb, var(--tab-color, #38bdf8) 12%, #d6c7b2);
+  /* A tighter, stronger tile than the page's: at tab size the page tile shows no creases. */
+  background-image: url("../assets/paper-crumple-tab.svg");
+  background-blend-mode: multiply;
   border: 1px solid color-mix(in srgb, var(--tab-color, #38bdf8) 35%, #8c7865);
   border-top: 3px solid var(--tab-color, #38bdf8);
   border-bottom: none;
@@ -273,7 +294,7 @@
   border-radius: 5px 5px 0 0;
   cursor: pointer;
   opacity: 0.65;
-  transition: opacity 0.15s ease, filter 0.15s ease, background-color 0.15s ease;
+  transition: opacity 0.15s ease, filter 0.15s ease, background-color 0.15s ease, transform 0.3s var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
   box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.12);
   position: relative;
   z-index: 10;
@@ -288,6 +309,23 @@
 .tabButton:hover:not(.activeTab) {
   opacity: 0.9;
   filter: brightness(1.08);
+  transform: translateY(-2px);
+}
+
+/* The mood word stays on every tab, but only the open one says it loudly. */
+.tabButton:not(.activeTab) .tabEmotionLabel {
+  opacity: 0.7;
+  font-weight: 600;
+}
+
+.tabButton:not(.activeTab) .tabEmotionIcon {
+  opacity: 0.8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabButton:hover:not(.activeTab) {
+    transform: none;
+  }
 }
 
 /* Key-player markers, inline at the end of the tab's emotion row */
@@ -296,6 +334,12 @@
   align-items: center;
   flex-shrink: 0;
   line-height: 1;
+}
+
+.tabPatienceIcon {
+  font-size: 0.68rem;
+  color: #b45309;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.55));
 }
 
 .tabKeyFlagIcon {
@@ -314,18 +358,19 @@
   flex-direction: column;
   align-items: center;
   max-width: 100%;
-  padding: 0 12px;
+  padding: 0 2px;
 }
 
 .tabNameLine {
-  font-size: 0.74rem;
+  font-size: 0.66rem;
   font-weight: 700;
   line-height: 1.15;
   color: #1a120b;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip;
   max-width: 100%;
+  letter-spacing: -0.1px;
 }
 
 .tabEmotionRow {
@@ -345,7 +390,7 @@
 }
 
 .tabEmotionLabel {
-  font-size: 0.62rem;
+  font-size: var(--fs-micro, 0.56rem);
   font-weight: 700;
   text-transform: capitalize;
   letter-spacing: -0.2px;
@@ -358,15 +403,14 @@
 
 .activeTab {
   opacity: 1 !important;
-  background: color-mix(in srgb, var(--tab-color, #38bdf8) 28%, #ffffff) !important;
+  background-color: color-mix(in srgb, var(--tab-color, #38bdf8) 14%, #f7f4ea) !important;
   border: 1.5px solid var(--tab-color, #38bdf8) !important;
   border-top: 4px solid var(--tab-color, #38bdf8) !important;
   border-bottom: none !important;
   margin-bottom: -2px;
   padding-bottom: 5px;
   z-index: 50;
-  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.35) !important;
-  filter: brightness(1.02);
+  box-shadow: 0 -3px 6px rgba(0, 0, 0, 0.28) !important;
 }
 
 .activeTab .tabName {
@@ -411,7 +455,9 @@
   box-shadow:
     inset 25px 0 20px -15px rgba(0, 0, 0, 0.25),
     /* Spine shadow fold */
-    inset -5px 0 15px rgba(0, 0, 0, 0.05);
+    inset -5px 0 15px rgba(0, 0, 0, 0.05),
+    /* Edges of the sheet sit a touch darker than its middle */
+    inset 0 0 70px rgba(110, 85, 45, 0.1);
   /* The frame itself does not scroll: it is a column holding the scrolling wall and, under
      it, the filter dock, which is how the dock lands on the page edge without sticky. */
   overflow: hidden;
@@ -421,11 +467,9 @@
      the frame's edges and the wall's scrollbar sits on the right border. */
   padding: 0;
   background-color: #f7f4ea;
-  background-image:
-    linear-gradient(90deg, transparent 16px, #ef4444 16px, #ef4444 17.5px, transparent 17.5px),
-    repeating-linear-gradient(#f7f4ea,
-      #f7f4ea 20px,
-      #cbd5e1 21px);
+  /* Crumpled-paper tile (generated SVG, see assets/paper-crumple.svg) multiplied onto the cream. */
+  background-image: url("../assets/paper-crumple.svg");
+  background-blend-mode: multiply;
   line-height: 21px;
   color: #26211e;
   animation: pageTurn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
@@ -442,7 +486,7 @@
      earns a horizontal scrollbar for a few pixels nobody wants to scroll to. The
      overhang falls inside the page padding, so clipping it costs nothing. */
   overflow-x: hidden;
-  padding: 10px 16px 0 20px;
+  padding: 10px 14px 0 14px;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: rgba(60, 45, 35, 0.3) transparent;
@@ -474,17 +518,17 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 5px;
-  padding-bottom: 5px;
-  border-bottom: 1.5px dashed #b5a48b;
+  margin-bottom: var(--sp-2, 8px);
+  padding-bottom: var(--sp-2, 8px);
+  border-bottom: var(--hairline, 1px solid rgba(60, 45, 30, 0.16));
 }
 
 /* Taped Polaroid Snapshot */
 .polaroidFrame {
-  width: 88px;
+  width: 74px;
   box-sizing: border-box;
   background: #ffffff;
-  padding: 5px 5px 6px 5px;
+  padding: 4px 4px 5px 4px;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
   transform: rotate(-2deg);
   position: relative;
@@ -506,25 +550,25 @@
   text-align: center;
   width: 100%;
   line-height: 1.15;
-  font-size: 0.72rem;
+  font-size: 0.58rem;
   font-weight: 700;
   color: #1a120b;
   /* The narrower 88px frame can't fit a long single word like "Requirements" on one line at
      any reasonable font-size - let it break mid-word rather than overflow the polaroid. */
-  overflow-wrap: break-word;
-  word-break: break-word;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .sellotape {
   position: absolute;
   top: -8px;
-  left: 22px;
+  left: 50%;
   width: 44px;
   height: 16px;
   background: rgba(245, 230, 180, 0.75);
   border: 1px solid rgba(210, 190, 140, 0.5);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transform: rotate(-5deg);
+  transform: translateX(-50%) rotate(-3deg);
   backdrop-filter: blur(1px);
   z-index: 2;
 }
@@ -553,12 +597,13 @@
 }
 
 .stakeholderRole {
-  font-size: 0.7rem;
+  font-size: var(--fs-sm, 0.68rem);
   color: #2b231c;
   font-weight: 400;
   margin: 0;
   line-height: 1.25;
   letter-spacing: 0.1px;
+  order: 2;
 }
 
 .fieldLabel {
@@ -566,12 +611,24 @@
   color: #1a120b;
 }
 
+.statLabel {
+  order: 1;
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  margin: 0 0 var(--sp-2, 8px);
+  background: var(--label-paper, #f3ead0);
+  border: 1px solid var(--label-line, rgba(110, 85, 45, 0.38));
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35), var(--shadow-card, 0 1px 3px rgba(60, 45, 30, 0.14));
+  overflow: hidden;
+}
+
 .stakeholderMetaRow {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 2px;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  min-height: 22px;
 }
 
 .stakeholderEmotion {
@@ -602,7 +659,7 @@
 }
 
 .powerInterestBadge:hover {
-  transform: translateY(-1px);
+  transform: scale(1.02);
   background: #ffffff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -641,37 +698,41 @@
   border-left: 1px solid rgba(100, 116, 139, 0.3);
 }
 
-/* One narrow bar per gating dimension (top 3), height = bucket level, colour = valence
-   (getEmotionBucketMeta's fillClass) rather than the state's own colour - so low trust reads
-   red and high trust reads green even though both are "the trust bar". */
+/* One track per gating dimension (top 3). The fill rises to 1/3, 2/3 or full for the bucket, and
+   takes the valence colour (getEmotionBucketMeta's fillClass) rather than the state's own, so
+   low trust reads red and high trust green. A neutral stakeholder gets empty tracks with a
+   notch at mid height: nothing is being read yet. */
 .emotionMicroTick {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
   width: 3px;
-  border-radius: 2px;
-  align-self: center;
+  height: 11px;
+  border-radius: 1px;
+  background: rgba(100, 116, 139, 0.2);
+}
+
+.emotionMicroTickFill {
+  width: 100%;
+  border-radius: 1px;
 }
 
 .emotionMicroTickLevel1 {
-  height: 5px;
+  height: 4px;
 }
 
 .emotionMicroTickLevel2 {
-  height: 8px;
+  height: 7px;
 }
 
 .emotionMicroTickLevel3 {
   height: 11px;
 }
 
-/* A neutral stakeholder still has a closest edge - ticks read as hollow/outlined rather than
-   solid, so "leaning toward" reads distinct from "currently" at a glance. */
-.emotionMicroTicksPending {
-  border-left-style: dashed;
-}
-
-.emotionMicroTickPending {
-  background: transparent !important;
-  border: 1px solid currentColor;
-  opacity: 0.55;
+.emotionMicroTickNotch {
+  align-self: center;
+  height: 2px;
+  background: rgba(100, 116, 139, 0.55);
 }
 
 /* Positioning + the 3D viewing context live on this wrapper (top/left set from
@@ -702,7 +763,7 @@
   /* Hinges from the top-left corner, where the card actually attaches to the badge, so it
      reads as dropping open from that point rather than growing from its own center. */
   transform-origin: top left;
-  animation: emotionRevealFlipIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: emotionRevealFlipIn 0.22s var(--ease-spring);
 }
 
 @keyframes emotionRevealFlipIn {
@@ -846,12 +907,12 @@
   font-size: 1.0rem;
   font-weight: 700;
   color: #27272a;
-  margin: 4px 0 4px 0;
+  margin: var(--sp-3, 12px) 0 var(--sp-2, 8px) 0;
   display: flex;
   align-items: center;
   gap: 5px;
-  border-bottom: 1.5px dashed #d1d5db;
-  padding-bottom: 1px;
+  border-bottom: var(--hairline, 1px solid rgba(60, 45, 30, 0.16));
+  padding-bottom: var(--sp-1, 4px);
   letter-spacing: 0.15px;
 }
 
@@ -991,7 +1052,7 @@
 }
 
 .noteCategoryTag:hover {
-  transform: translateY(-1px);
+  transform: scale(1.02);
   filter: brightness(1.05);
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18), 0 2px 5px rgba(0, 0, 0, 0.14);
 }
@@ -1070,47 +1131,47 @@
    alpha) so only the locked badge dims. .noteCategoryTag keeps the bright solid fill from
    those shared classes, since it's the one thing here meant to look inviting to press. */
 .categoryBadgeStatic.tagRequirement {
-  background: rgba(96, 165, 250, 0.16);
+  background: color-mix(in srgb, var(--intel-boundary, #dc2626) 16%, transparent);
   transform: rotate(-2deg);
 }
 
 .categoryBadgeStatic.tagNegotiable {
-  background: rgba(74, 222, 128, 0.16);
+  background: color-mix(in srgb, var(--intel-driver, #0d9488) 16%, transparent);
   transform: rotate(2deg);
 }
 
 .categoryBadgeStatic.tagFriction {
-  background: rgba(251, 191, 36, 0.18);
+  background: color-mix(in srgb, var(--intel-trade-off, #d97706) 16%, transparent);
   transform: rotate(-1.5deg);
 }
 
 .categoryBadgeStatic.tagDefault {
-  background: rgba(220, 38, 38, 0.14);
+  background: color-mix(in srgb, var(--intel-fact, #dc2626) 16%, transparent);
   transform: rotate(1deg);
 }
 
 .tagRequirement {
-  background: #dbeafe;
-  color: #1e40af;
-  border: 1px dashed #60a5fa;
+  background: var(--intel-boundary-paper, #fee2e2);
+  color: var(--intel-boundary-ink, #b91c1c);
+  border: 1px solid color-mix(in srgb, var(--intel-boundary, #dc2626) 55%, white);
 }
 
 .tagNegotiable {
-  background: #dcfce7;
-  color: #166534;
-  border: 1px dashed #4ade80;
+  background: var(--intel-driver-paper, #ccfbf1);
+  color: var(--intel-driver-ink, #115e59);
+  border: 1px solid color-mix(in srgb, var(--intel-driver, #0d9488) 55%, white);
 }
 
 .tagFriction {
-  background: #fef3c7;
-  color: #92400e;
-  border: 1px dashed #fbbf24;
+  background: var(--intel-trade-off-paper, #fef3c7);
+  color: var(--intel-trade-off-ink, #92400e);
+  border: 1px solid color-mix(in srgb, var(--intel-trade-off, #d97706) 55%, white);
 }
 
 .tagDefault {
-  background: #fee2e2;
-  color: #b91c1c;
-  border: 1px dashed #f87171;
+  background: var(--intel-fact-paper, #ffe4e6);
+  color: var(--intel-fact-ink, #b91c1c);
+  border: 1px solid color-mix(in srgb, var(--intel-fact, #dc2626) 55%, white);
 }
 
 .reTagPrompt {
@@ -1125,13 +1186,17 @@
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25) !important;
 }
 
+/* The re-tag picker is a strip of masking tape stuck across the note, not a UI card. The
+   options are small paper swatches in their own type colour (the .tag* classes supply the
+   pastel and ink), and the chosen one is circled in pen. */
 .retagPopover {
-  background: #ffffff;
-  border: 2px solid #334155;
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin: 6px 0 12px 0;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+  background: #efe3c2;
+  border: none;
+  padding: 8px 14px 10px;
+  margin: 6px -4px 12px -4px;
+  box-shadow: 0 1px 3px rgba(60, 45, 35, 0.25);
+  clip-path: polygon(0.8% 0%, 3% 5%, 5% 0%, 97% 3%, 99.4% 0%, 100% 40%, 99% 100%, 96% 94%, 94% 100%, 3% 97%, 0.4% 100%, 0% 55%);
+  transform: rotate(-0.5deg);
   z-index: 60;
   position: relative;
   animation: fadeInRetag 0.2s ease-out;
@@ -1140,58 +1205,65 @@
 @keyframes fadeInRetag {
   from {
     opacity: 0;
-    transform: translateY(-4px);
+    transform: translateY(-4px) rotate(-0.5deg);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) rotate(-0.5deg);
   }
 }
 
 .retagPopoverTitle {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #0f172a;
+  font-family: "Indie Flower", cursive;
+  font-size: 1rem;
+  font-weight: 400;
+  color: #44403c;
   margin-bottom: 6px;
 }
 
 .retagOptionsGrid {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .retagOptionBtn {
-  background: #f8fafc;
-  border: 1.5px solid #cbd5e1;
-  border-radius: 6px;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 2px;
   padding: 3px 10px;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   font-weight: 700;
-  color: #334155;
   cursor: pointer;
-  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.retagOptionBtn:nth-child(odd) {
+  transform: rotate(-1deg);
+}
+
+.retagOptionBtn:nth-child(even) {
+  transform: rotate(0.8deg);
 }
 
 .retagOptionBtn:hover {
-  background: #e2e8f0;
-  transform: translateY(-1px);
-  border-color: #94a3b8;
+  transform: scale(1.02) rotate(0deg);
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.22);
 }
 
 .activeOptionBtn {
-  background: #2563eb !important;
-  color: #ffffff !important;
-  border-color: #1d4ed8 !important;
-  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  box-shadow: 0 0 0 2px #292524;
+  font-weight: 800;
 }
 
 /* Authentic Sticky Note Items */
 .stickyNoteGrid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--sp-2, 8px);
 }
 
 @keyframes fadeInStickyNote {
@@ -1212,23 +1284,29 @@
 }
 
 .stickyNote {
-  /* Status sets the pair, the zebra picks which of the two a given note gets. Defaults are
-     the unconfirmed pair, so a note needs a status class only once it is settled. */
-  --note-bg: #fed7aa;
-  /* Light Orange: your call, not settled yet */
-  --note-bg-alt: #fdba74;
-  background: var(--note-bg);
-  padding: 6px 10px;
+  /* Card type picks the paper colour (--type-bg pair, set by .noteType*). Certainty fades it
+     toward plain paper (--note-strength), the zebra picks which of the pair a note gets. */
+  --type-bg: #fef3c7;
+  --type-bg-alt: #fdeab0;
+  --note-strength: 15%;
+  --note-bg: color-mix(in srgb, var(--type-bg) var(--note-strength), #fbf7ee);
+  --note-bg-alt: color-mix(in srgb, var(--type-bg-alt) var(--note-strength), #f7f1e3);
+  background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, 0.45) 50%, transparent 58%) no-repeat 130% 0 / 260% 100%, var(--note-bg);
+  padding: 5px 10px;
   /* Sticky notes hold themselves on, so none gets a fastener drawn on it. The bottom right
      corner lifts off the page instead: a long shallow sweep along the bottom edge, a short
      one up the side, and a shadow pooling under the tip. */
   border-radius: 2px 2px 30px 2px / 2px 2px 6px 2px;
-  box-shadow:
-    0 3px 8px rgba(0, 0, 0, 0.1),
-    0 1px 2px rgba(0, 0, 0, 0.06),
-    6px 5px 6px -4px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--shadow-note);
   position: relative;
-  transition: box-shadow 0.2s ease;
+  /* translate/rotate/scale are their own properties, so hover can move the note while the
+     entrance animation keeps owning `transform`. The overshoot easing gives it a spring. */
+  transition:
+    box-shadow 0.2s ease,
+    translate 0.4s var(--ease-spring),
+    rotate 0.4s var(--ease-spring),
+    scale 0.4s var(--ease-spring),
+    background-position 0.8s ease-out;
   border: 1px solid rgba(0, 0, 0, 0.06);
   animation: fadeInStickyNote 0.95s cubic-bezier(0.22, 1, 0.36, 1) ease-out forwards;
   will-change: transform, opacity;
@@ -1329,6 +1407,22 @@
   .newStickyNote {
     animation: fadeInStickyNote 0.2s ease-out forwards;
   }
+
+  .stickyNote {
+    transition: box-shadow 0.2s ease;
+  }
+
+  /* Doubled class: this block sits above the hover rules and must outrank them. */
+  .stickyNote.stickyNote:hover {
+    translate: none;
+    rotate: none;
+    scale: none;
+    background-position: 130% 0, 0 0;
+  }
+
+  .stickyNote.stickyNote:hover .rubberStamp {
+    animation: none;
+  }
 }
 
 /* The zebra used to alternate hue, which made the loudest property of a note mean nothing.
@@ -1336,37 +1430,55 @@
    the pile still reads as loose paper rather than a table. */
 .stickyNote:nth-child(odd) {
   --note-rotate: rotate(-1.2deg);
+  --note-undo: 1.2deg;
   transform: var(--note-rotate);
 }
 
 .stickyNote:nth-child(even) {
   --note-rotate: rotate(1deg);
+  --note-undo: -1deg;
   transform: var(--note-rotate);
-  background: var(--note-bg-alt);
+  background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, 0.45) 50%, transparent 58%) no-repeat 130% 0 / 260% 100%, var(--note-bg-alt);
 }
 
-/* Status hues. These set the pair only: the zebra above decides which one lands.
-   Specificity matters here, so never set `background` in these rules. */
-.noteOnRecord {
-  --note-bg: #bae6fd;
-  /* Pastel Blue: said in public, true from the start */
-  --note-bg-alt: #7dd3fc;
-}
+/* Card type hues: classic post-it colours, one pair per type. */
+.noteTypeDriver { --type-bg: var(--intel-driver-paper, #ccfbf1); --type-bg-alt: color-mix(in srgb, var(--intel-driver-paper, #ccfbf1) 86%, var(--intel-driver, #0d9488)); }
+.noteTypeBoundary { --type-bg: var(--intel-boundary-paper, #fee2e2); --type-bg-alt: color-mix(in srgb, var(--intel-boundary-paper, #fee2e2) 86%, var(--intel-boundary, #dc2626)); }
+.noteTypeTradeOff { --type-bg: var(--intel-trade-off-paper, #fef3c7); --type-bg-alt: color-mix(in srgb, var(--intel-trade-off-paper, #fef3c7) 86%, var(--intel-trade-off, #d97706)); }
+.noteTypeFact { --type-bg: var(--intel-fact-paper, #ffe4e6); --type-bg-alt: color-mix(in srgb, var(--intel-fact-paper, #ffe4e6) 86%, var(--intel-fact, #dc2626)); }
 
+/* Certainty is solidity, not hue. Specificity matters here, so never set `background`.
+   Unconfirmed notes need no class: the default --note-strength is the faded draft. */
+
+/* Confirmed: the note at full strength. */
 .noteConfirmed {
-  --note-bg: #bbf7d0;
-  /* Pastel Green: you verified this yourself */
-  --note-bg-alt: #86efac;
+  --note-strength: 100%;
 }
 
-
+/* On record: full strength, like confirmed; the blue stamp tells them apart. */
+.noteOnRecord {
+  --note-strength: 100%;
+}
 
 .stickyNote:hover {
-  transform: translateY(-4deg) rotate(0deg) scale(1.01);
-  box-shadow:
-    0 10px 20px rgba(0, 0, 0, 0.18),
-    0 3px 6px rgba(0, 0, 0, 0.1);
+  /* Peels off the page: lifts, squares up to the reader, and a sheen crosses the paper once. */
+  translate: 0 -4px;
+  rotate: var(--note-undo, 0deg);
+  scale: 1.015;
+  background-position: -30% 0, 0 0;
+  box-shadow: var(--shadow-lift);
   z-index: 15;
+}
+
+/* A stamp re-presses when its note is picked up. Animates `scale`, leaving the stamp's tilt alone. */
+.stickyNote:hover .rubberStamp {
+  animation: stampPress 0.32s var(--ease-spring);
+}
+
+@keyframes stampPress {
+  0% { scale: 1.22; opacity: 0.55; }
+  60% { scale: 0.97; opacity: 1; }
+  100% { scale: 1; }
 }
 
 /* Paperclip detail on sticky notes */
@@ -1411,7 +1523,7 @@
 }
 
 .intelText {
-  font-size: 0.7rem;
+  font-size: var(--fs-sm, 0.68rem);
   font-weight: 400;
   color: #1c1917;
   line-height: 1.25;
@@ -1427,7 +1539,7 @@
 
 /* The half that swaps when the player changes the tag: their reading, not a fact yet. */
 .intelReading {
-  font-style: italic;
+  font-style: normal;
 }
 
 /* Same highlighter-marker trick as .highlightMarker on the stakeholder name: a gradient
@@ -1467,12 +1579,11 @@
   gap: 3px;
   margin-top: 4px;
   padding-top: 3px;
-  border-top: 1px dashed rgba(28, 25, 23, 0.18);
-  font-size: 0.58rem;
+  border-top: 1px solid rgba(60, 45, 30, 0.12);
+  font-size: var(--fs-xs, 0.62rem);
   font-weight: 600;
-  font-style: italic;
   letter-spacing: 0.1px;
-  color: rgba(28, 25, 23, 0.55);
+  color: #44403c;
   line-height: 1.2;
 }
 
@@ -1588,7 +1699,7 @@
 .stampVerified {
   color: #15803d;
   border: 1.5px dashed #15803d;
-  background: rgba(220, 252, 231, 0.65);
+  background: rgba(220, 252, 231, 0.92);
   transform: rotate(-3deg);
   /* Torn-edge silhouette instead of a clean rounded rect - each variant gets its own jitter
      so the four don't read as the same die-cut shape. */
@@ -1600,7 +1711,7 @@
 .stampOnRecord {
   color: #1d4ed8;
   border: 1.5px solid #1d4ed8;
-  background: rgba(219, 234, 254, 0.65);
+  background: rgba(219, 234, 254, 0.92);
   transform: rotate(2deg);
   clip-path: polygon(0% 5%, 5% 1%, 96% 0%, 100% 8%, 97% 95%, 100% 100%, 3% 99%, 0% 92%);
 }
@@ -1777,22 +1888,6 @@
 }
 
 /* Found/total, opposite corner from the NEW/SHIFTED change badge so the two never collide. */
-.tabIntelCountBadge {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  z-index: 2;
-  font-size: 0.5rem;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  line-height: 1;
-  padding: 1px 3px;
-  border-radius: 3px;
-  pointer-events: none;
-  background: rgba(26, 18, 11, 0.72);
-  color: #f5ebd9;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
 
 /* ==========================================================================
    INTEL PIPS
@@ -1861,8 +1956,8 @@
   position: absolute;
   left: 6px;
   right: 6px;
-  bottom: 2px;
-  height: 2px;
+  bottom: 1px;
+  height: 3px;
   border-radius: 1px;
   display: flex;
   background: rgba(26, 18, 11, 0.12);
@@ -1942,7 +2037,7 @@
   border-radius: 999px;
   background: #2a1f18;
   color: #f5ebd9;
-  font-size: 0.6rem;
+  font-size: var(--fs-micro, 0.56rem);
   font-weight: 800;
   line-height: 14px;
   box-shadow: 0 0 0 1px rgba(245, 235, 217, 0.35), 0 2px 4px rgba(0, 0, 0, 0.4);
@@ -2006,18 +2101,18 @@
   border: 1px solid #7a5c2e;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 5px 12px rgba(0, 0, 0, 0.5);
   transform-origin: top center;
-  animation: headerHoverTagFlipIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: headerHoverTagFlipIn 0.22s var(--ease-spring);
 }
 
 .headerHoverTagLabel {
-  font-size: 0.68rem;
+  font-size: var(--fs-xs, 0.62rem);
   font-weight: 700;
   letter-spacing: 0.2px;
 }
 
 .headerHoverTagDetail {
   margin-top: 2px;
-  font-size: 0.6rem;
+  font-size: var(--fs-xs, 0.62rem);
   font-weight: 600;
   color: #5b4632;
   letter-spacing: 0.1px;
@@ -2070,10 +2165,10 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 4px 6px;
-  margin: 0 0 6px 0;
+  margin: 0 0 var(--sp-2, 8px) 0;
   padding: 4px 6px;
   background: rgba(241, 245, 249, 0.55);
-  border: 1px dashed #cbd5e1;
+  border: var(--hairline, 1px solid rgba(60, 45, 30, 0.16));
   border-radius: 5px;
 }
 
@@ -2096,7 +2191,7 @@
   border: none;
   background: transparent;
   color: #475569;
-  font-size: 0.56rem;
+  font-size: var(--fs-micro, 0.56rem);
   font-weight: 700;
   letter-spacing: 0.5px;
   line-height: 1.4;
@@ -2105,7 +2200,8 @@
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.phaseGroup .phaseChip + .phaseChip {
+.phaseGroup .phaseChip + .phaseChip,
+.phaseGroup > span + span > .phaseChip {
   border-left: 1px solid #cbd5e1;
 }
 
@@ -2184,7 +2280,7 @@
   border: none;
   outline: none;
   background: transparent;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs, 0.62rem);
   color: #1e293b;
 }
 
@@ -2193,24 +2289,32 @@
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid rgba(60, 45, 30, 0.2);
   border-radius: 4px;
-  background: #fffdf8;
-  color: #64748b;
-  font-size: 0.68rem;
+  background: rgba(255, 255, 255, 0.55);
+  color: #57534e;
+  font-size: var(--fs-xs, 0.62rem);
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
 }
 
+.collapseToggle {
+  transition: transform 0.15s ease;
+}
+
+.collapseToggle:hover {
+  transform: scale(1.02);
+}
+
 .collapseToggleOn {
-  background: #1e293b;
-  border-color: #1e293b;
-  color: #f8fafc;
+  background: rgba(60, 45, 30, 0.1);
+  border-color: rgba(60, 45, 30, 0.34);
+  color: #292524;
 }
 
 .filterHint {
-  font-size: 0.65rem;
+  font-size: var(--fs-xs, 0.62rem);
   font-style: italic;
   color: #94a3b8;
 }
@@ -2234,7 +2338,7 @@
 .chainLayer {
   display: flex;
   gap: 5px;
-  font-size: 0.68rem;
+  font-size: var(--fs-xs, 0.62rem);
   line-height: 1.25;
   color: #7c6a52;
 }
@@ -2242,7 +2346,7 @@
 .chainLayerPhase {
   flex-shrink: 0;
   font-weight: 700;
-  font-size: 0.6rem;
+  font-size: var(--fs-micro, 0.56rem);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: #a8977f;
@@ -2258,7 +2362,7 @@
   border-radius: 3px;
   background: rgba(250, 247, 239, 0.75);
   color: #8a7862;
-  font-size: 0.65rem;
+  font-size: var(--fs-xs, 0.62rem);
   font-style: italic;
   cursor: help;
 }
@@ -2297,7 +2401,7 @@
 .statusBadge {
   padding: 1px 5px;
   border-radius: 3px;
-  font-size: 0.55rem;
+  font-size: var(--fs-micro, 0.56rem);
   font-weight: 800;
   letter-spacing: 0.04em;
   white-space: nowrap;
@@ -2326,7 +2430,7 @@
   gap: 10px;
   margin-bottom: 8px;
   padding-bottom: 6px;
-  border-bottom: 2px dashed #cbd5e1;
+  border-bottom: var(--hairline, 1px solid rgba(60, 45, 30, 0.16));
 }
 
 .environmentIcon {
@@ -2363,125 +2467,6 @@
   font-style: italic;
 }
 
-/* Confirmed-intel ledger: a ruled sheet clipped to the page, one stakeholder block per run. */
-.ledger {
-  margin: 4px 0 10px;
-  padding: 6px 10px 8px;
-  background:
-    repeating-linear-gradient(180deg, transparent 0 25px, rgba(2, 132, 199, 0.09) 25px 26px),
-    #fffdf5;
-  border: 1px solid #e7dfc6;
-  border-radius: 3px;
-  box-shadow: 0 2px 5px rgba(60, 45, 35, 0.14);
-}
-
-.ledgerHead {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding-bottom: 4px;
-  border-bottom: 2px solid #1e293b;
-  color: #1e293b;
-}
-
-.ledgerTitle {
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.ledgerCount {
-  margin-left: auto;
-  font-size: 0.68rem;
-  color: #64748b;
-  font-variant-numeric: tabular-nums;
-}
-
-.ledgerEmpty {
-  padding: 8px 2px 2px;
-  font-size: 0.74rem;
-  font-style: italic;
-  color: #64748b;
-}
-
-.ledgerTable {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-.ledgerRow {
-  cursor: pointer;
-  font-size: 0.74rem;
-  line-height: 1.25;
-  color: #1e293b;
-  outline: none;
-}
-
-.ledgerRow > * {
-  padding: 4px 6px;
-  vertical-align: top;
-}
-
-.ledgerRowFirst > * {
-  border-top: 1px dashed #cbd5e1;
-}
-
-.ledgerRowFirst:first-child > * {
-  border-top: none;
-}
-
-/* Before the hover rule: equal specificity, so hover still wins. */
-.ledgerRow:nth-child(even) {
-  background: rgba(120, 90, 40, 0.045);
-}
-
-.ledgerRow:hover,
-.ledgerRow:focus-visible {
-  background: rgba(2, 132, 199, 0.08);
-}
-
-.ledgerRowDone {
-  opacity: 0.55;
-}
-
-.ledgerWho {
-  width: 42px;
-  border-left: 3px solid #94a3b8;
-  text-align: left;
-}
-
-.ledgerKind {
-  width: 26px;
-  padding: 4px 0;
-  text-align: center;
-  font-size: 1.1rem;
-}
-
-.ledgerWhat {
-  overflow-wrap: anywhere;
-}
-
-.ledgerFor {
-  font-style: italic;
-  color: #64748b;
-}
-
-.ledgerMark {
-  width: 34px;
-  text-align: right;
-  font-size: 1rem;
-}
-
-.ledgerOnRecord {
-  color: #0284c7;
-}
-
-.ledgerConfirmed {
-  color: #16a34a;
-}
-
 /* Filter the wall by how sure the player is of a note. */
 .confFilters {
   display: flex;
@@ -2494,7 +2479,7 @@
   border: 1px solid rgba(0, 0, 0, 0.16);
   border-radius: 999px;
   padding: 2px 10px;
-  font-size: 0.7rem;
+  font-size: var(--fs-xs, 0.62rem);
   color: #475569;
   cursor: pointer;
   white-space: nowrap;
@@ -2536,7 +2521,7 @@
   align-items: center;
   justify-content: center;
   padding: 0 2px;
-  border-right: 1px dashed rgba(15, 23, 42, 0.18);
+  border-right: 1px solid rgba(60, 45, 30, 0.12);
 }
 
 .notePhaseName {
@@ -2586,7 +2571,7 @@
 
 .collapseToggle {
   padding: 1px 7px;
-  font-size: 0.64rem;
+  font-size: var(--fs-xs, 0.62rem);
 }
 
 .notePhaseName {
@@ -2627,7 +2612,7 @@
   color: #fff;
   border-radius: 5px;
   padding: 2px 7px;
-  font-size: 0.62rem;
+  font-size: var(--fs-xs, 0.62rem);
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
@@ -2675,13 +2660,142 @@
   background: #fffbeb;
 }
 
-.tabPatienceBadge {
+/* Case board tab: sits after the people tabs, in cork brown. */
+.boardTab {
+  flex: 0 0 auto;
+  width: max-content;
+  min-width: max-content;
+  padding-right: 9px;
+  padding-left: 9px;
+  margin-left: 6px;
+  opacity: 0.9;
+  /* Same paper as the other tabs. The board is told apart by the dark wood of its frame as the
+     top edge (--tab-color, from CaseBoardTab) and a cork-coloured pin; the cork stays on the board. */
+}
+
+.boardTabPulse {
   position: absolute;
-  bottom: 3px;
-  right: 3px;
-  z-index: 2;
+  top: 3px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  background: #c0392b;
+  border-radius: 50%;
+  animation: boardTabPing 1.8s infinite;
+}
+
+@keyframes boardTabPing {
+  0% {
+    box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.6);
+  }
+
+  70%,
+  100% {
+    box-shadow: 0 0 0 7px rgba(192, 57, 43, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boardTabPulse {
+    animation: none;
+  }
+}
+
+
+/* Segments of the stat group: the badges lose their own pill and share the label. */
+.stakeholderMetaRow > .powerInterestBadge {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  flex: 1 1 auto;
+  justify-content: center;
+  padding: 0 4px;
+  gap: 2px;
+  font-size: var(--fs-xs, 0.62rem);
+  white-space: nowrap;
+}
+
+.stakeholderMetaRow > .powerInterestBadge + .powerInterestBadge {
+  border-left: 1px dotted var(--label-line, rgba(110, 85, 45, 0.38));
+}
+
+.stakeholderMetaRow > .powerInterestBadge:hover,
+.stakeholderMetaRow > .powerInterestBadge:focus-visible {
+  background: rgba(110, 85, 45, 0.1);
+  transform: none;
+  outline: none;
+}
+
+/* Only the icons and bars grow: scaling the segment spills its background, scaling text crowds the dividers. */
+.stakeholderMetaRow > .powerInterestBadge :is(.metricIcon, .levelBars) {
+  transition: transform 0.15s ease;
+}
+
+.stakeholderMetaRow > .powerInterestBadge:hover :is(.metricIcon, .levelBars),
+.stakeholderMetaRow > .powerInterestBadge:focus-visible :is(.metricIcon, .levelBars) {
+  transform: scale(1.25);
+}
+
+/* The intel cards fan out a little on hover (they rest at -4deg / 3deg). */
+.stakeholderMetaRow .intelPip {
+  transition: transform 0.15s ease;
+}
+
+.stakeholderMetaRow > .powerInterestBadge:hover .intelPip,
+.stakeholderMetaRow > .powerInterestBadge:focus-visible .intelPip {
+  transform: rotate(-14deg);
+}
+
+.stakeholderMetaRow > .powerInterestBadge:hover .intelPip:nth-child(even),
+.stakeholderMetaRow > .powerInterestBadge:focus-visible .intelPip:nth-child(even) {
+  transform: rotate(12deg);
+}
+
+.stakeholderMetaRow .metricIcon {
+  font-size: 0.78rem;
+}
+
+/* Signal bars beside the power and interest icons: 1 lit = Low, 3 lit = High. */
+.stakeholderMetaRow .levelBars {
   display: inline-flex;
-  font-size: 0.75rem;
-  color: #b45309;
-  pointer-events: none;
+  align-items: flex-end;
+  gap: 0;
+  height: 9px;
+}
+
+.levelBar {
+  width: 3px;
+  flex: none;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.1;
+}
+
+.levelBar:nth-child(1) { height: 3px; }
+.levelBar:nth-child(2) { height: 6px; }
+.levelBar:nth-child(3) { height: 9px; }
+
+.levelBar.levelBarOn { opacity: 1; }
+
+/* Lit bars ramp with the level (lo, med, hi); unlit ones stay flat and faint. */
+.levelBar.levelBarOn:nth-child(1) { opacity: 0.35; }
+.levelBar.levelBarOn:nth-child(2) { opacity: 0.65; }
+.levelBar.levelBarOn:nth-child(3) { opacity: 1; }
+
+.stakeholderMetaRow > .patienceTag {
+  background: rgba(217, 119, 6, 0.16);
+  color: #92400e;
+}
+
+.boardTab .tabNameLine svg {
+  color: #a87a4a;
+}
+
+/* The open tab is the page's own cream, where the same texture reads stronger: a cream veil softens it. */
+.tabButton.activeTab {
+  background-image:
+    linear-gradient(rgba(247, 244, 234, 0.35), rgba(247, 244, 234, 0.35)),
+    url("../assets/paper-crumple-tab.svg");
+  background-blend-mode: normal, multiply;
 }

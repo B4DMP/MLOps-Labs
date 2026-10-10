@@ -1,0 +1,27 @@
+/* Portaled out of the composer, so no custom properties from it: literals only. */
+.root {
+  white-space: normal;
+  text-align: left;
+  font-weight: 400;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2b2118;
+  line-height: 1.3;
+}
+
+.line {
+  margin-top: 2px;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: #4a3a2a;
+  text-wrap: pretty;
+}
+
+.line b {
+  font-weight: 700;
+  white-space: nowrap;
+  color: #266682;
+}

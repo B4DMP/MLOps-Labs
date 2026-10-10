@@ -118,6 +118,10 @@ interface PitchStatePayload {
   last_pitched_changes?: AtomicChange[];
   allowed_targets?: string[];
   upstream_map?: Record<string, string[]>;
+  compromise_pairs?: Array<{ relation_id: string; a: string; b: string; target: string; item_ids: string[] }>;
+  shared_steps?: Array<{ relation_id: string; target: string; a_name: string; b_name: string }>;
+  ally_pairs?: Array<{ relation_id: string; a: string; b: string; a_name: string; b_name: string; item_ids: string[] }>;
+  after_notes?: Array<{ relation_id: string; target: string; waits: string; after: string; after_name: string; via?: string | null }>;
   card_item_ids: string[];
   trade_off_branches?: Record<string, "X" | "Y">;
   available_items: any[];
@@ -218,6 +222,10 @@ export default function PitchDebate({
   const [composerFocusTargetId, setComposerFocusTargetId] = useState<string | undefined>(undefined);
   const [isChatMaximized, setIsChatMaximized] = useState(false);
   const [highlightedIntelId, setHighlightedIntelId] = useState<string | null>(null);
+  // Notes hovered on the case board / in the composer, each lit on the other side.
+  const [boardLitIds, setBoardLitIds] = useState<ReadonlyMap<string, string>>(new Map());
+  const [composerLitIds, setComposerLitIds] = useState<ReadonlyMap<string, string>>(new Map());
+  const [boardRequest, setBoardRequest] = useState(0);
   const [eventsOpen, setEventsOpen] = useState(false);
   const [events, setEvents] = useState<GameEventPayload[]>([]);
   const [singleArtifactForReview, setSingleArtifactForReview] = useState<IntelArtifact | null>(null);
@@ -1791,10 +1799,13 @@ export default function PitchDebate({
                   activeStakeholderId={selectedStakeholderId}
                   onActiveStakeholderChange={(id) => setSelectedStakeholderId(id ?? "")}
                   highlightedIntelId={highlightedIntelId}
+                  litIntelIds={composerLitIds}
+                  onLitIntelChange={setBoardLitIds}
                   currentPhase={currentPhase}
                   currentChallenge={currentChallenge}
                   buyInInfoMap={buyInInfoMap}
                   cheatSheetActiveSection="Pitch & Debate"
+                  openBoardRequest={boardRequest}
                   onClose={() => {}}
                   onPerformanceToggle={onPerformanceToggle ? onPerformanceToggle : () => setShowDashboard(!showDashboard)}
                   isPerformanceOpen={isPerformanceOpen || showDashboard}
@@ -1839,9 +1850,16 @@ export default function PitchDebate({
                       initialSelectedTargetId={composerFocusTargetId}
                       onConfirmProposal={handleConfirmMergeProposal}
                       onOpenCheatSheet={() => setIsCheatSheetOpen(true)}
+                      onOpenBoard={() => setBoardRequest((n) => n + 1)}
                       guidePaused={coach.blocked || Boolean(coach.tip) || isCheatSheetOpen}
                       allowedTargets={pitchState?.allowed_targets || []}
                       upstreamMap={pitchState?.upstream_map || {}}
+                      compromisePairs={pitchState?.compromise_pairs || []}
+                      afterNotes={pitchState?.after_notes || []}
+                      sharedSteps={pitchState?.shared_steps || []}
+                      allyPairs={pitchState?.ally_pairs || []}
+                      litIntelIds={boardLitIds}
+                      onLitIntel={(id) => setComposerLitIds(new Map(id ? [[id, "#e9c46a"]] : []))}
                       predictions={pitchState?.predictions || []}
                       boundaryWarnings={pitchState?.boundary_warnings || []}
                       intelItems={allIntelItems}

@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import { EmojiIcon } from "../utils/emojiIcons";
 import styles from "./StakeholderDossier.module.css";
-import { StakeholderContext, type EmotionGatingInfo, type EmotionGatingDimension } from "./StakeholderProvider";
+import { StakeholderContext } from "./StakeholderProvider";
 
 import { MetricsContext } from "./MetricProvider";
 import { PhasesContext, isFirstPlayablePhase, type PhaseData } from "./PhaseProvider";
@@ -14,9 +14,16 @@ import { CHALLENGE_INTEL_META, INTEL_TAGS, intelTagMeta } from "../types/IntelTa
 import { faceForEmotionState, iconForEmotionState } from "../utils/emotionFace";
 import { healthBucket, healthBucketColor, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
 import CheatSheetModal from "./CheatSheetModal";
-import HoverTooltip from "./HoverToolTip";
-import { confirmedIntelRows } from "../utils/confirmedIntel";
+import HoverTooltip, { HoverTooltipTheme } from "./HoverToolTip";
+import TabTagDetail from "./TabTagDetail";
+import StakeholderStatGroup, { INTEL_PIP_META, describeIntelPips, intelPipParts, type IntelPipStatus } from "./StakeholderStatGroup";
 import BuyInMeter,{ type StakeholderBuyInInfo } from "./BuyInMeter";
+import CaseBoard from "./CaseBoard";
+import BoardTab, { boardPortraits } from "./CaseBoardTab";
+import ConfirmedSummary, { type ConfirmedSummaryProps } from "./ConfirmedSummary";
+import { useGraphTargets } from "./useGraphTargets";
+import "./graph/nodeChrome"; // registers the offline node icons the summary draws
+import { useCaseBoard } from "./useCaseBoard";
 
 /** Answer key for one authored item. Only sent when the API runs with ENABLE_DOSSIER_DEBUG. */
 export interface IntelDebugInfo {
@@ -148,6 +155,10 @@ export interface StakeholderDossierProps {
    *  player switches to the Challenge-Intel page, since no stakeholder is showing there. */
   onActiveStakeholderChange?: (stakeholderId: string | null) => void;
   highlightedIntelId?: string | null;
+  /** Notes the pitch composer is hovering; lit in the case board's summary. */
+  litIntelIds?: ReadonlyMap<string, string>;
+  /** Notes the case board is hovering (a thread or a summary row), so the composer can light them too. */
+  onLitIntelChange?: (ids: ReadonlyMap<string, string>) => void;
   currentPhase?: number;
   currentChallenge?: number;
   canClose?: boolean;
@@ -180,6 +191,8 @@ export interface StakeholderDossierProps {
    * sheet scrolls to it and gives it a one-time pop when opened. Omit where no screen maps
    * cleanly (e.g. the briefing itself never embeds the dossier). */
   cheatSheetActiveSection?: "Briefing" | "Digging for Intel" | "Pitch & Debate" | "Simulate";
+  /** Bump to open the Case board tab from outside (it only has an effect when the room has a board). */
+  openBoardRequest?: number;
 }
 
 /** One authored item's answer key: true tag, graph target and the artifact it is read off. */
@@ -247,6 +260,22 @@ const CHANGE_BADGE_PULSE_TIMEOUT_MS = 15000;
 /** Dwell on a tab before its marker counts as seen. */
 const CHANGE_BADGE_SEEN_MS = 1000;
 
+/** Intel type colours as CSS variables, so the stylesheet never repeats a hex from IntelTag.ts. */
+const INTEL_TOKEN_STYLE = Object.fromEntries(
+  [...INTEL_TAGS, CHALLENGE_INTEL_META].flatMap((tag) => {
+    const k = tag.type.replace(/_/g, "-");
+    return [[`--intel-${k}`, tag.color], [`--intel-${k}-paper`, tag.paper], [`--intel-${k}-ink`, tag.ink]];
+  })
+) as React.CSSProperties;
+
+/** Left-edge tint of a note's gradient, by card type. */
+const NOTE_TYPE_CLASS: Record<string, string> = {
+  driver: styles.noteTypeDriver,
+  boundary: styles.noteTypeBoundary,
+  trade_off: styles.noteTypeTradeOff,
+  fact: styles.noteTypeFact,
+};
+
 const TAG_STYLE_CLASS: Record<string, string> = {
   requirement: styles.tagRequirement,
   preference: styles.tagNegotiable,
@@ -265,8 +294,6 @@ const ARTIFACT_TYPE_LABEL: Record<string, string> = {
   meeting_notes: "meeting notes",
   document: "document",
 };
-
-const PATIENCE_DETAIL = "Bringing them the same problem again wears on them. Answer what they asked for and it eases.";
 
 export const impatienceTagLabel = (impatience?: number): string | null =>
   !impatience || impatience < 1 ? null : impatience >= 2 ? "Out of patience" : "Losing patience";
@@ -303,16 +330,6 @@ const getSourceCaption = (item: IntelEntry): { icon: string; text: string; title
   }
 };
 
-type IntelPipStatus = "on_record" | "confirmed" | "unconfirmed" | "hidden";
-
-/** Pips follow the stamps' colours, so they teach the player nothing new. */
-const INTEL_PIP_META: Record<IntelPipStatus, { label: string; styleClass: string }> = {
-  on_record: { label: "On record", styleClass: styles.pipOnRecord },
-  confirmed: { label: "Confirmed", styleClass: styles.pipConfirmed },
-  unconfirmed: { label: "Unconfirmed", styleClass: styles.pipUnconfirmed },
-  hidden: { label: "Not found yet", styleClass: styles.pipHidden },
-};
-
 /** Settled first, so the row fills up from the left like a progress bar. */
 const INTEL_PIP_ORDER: IntelPipStatus[] = ["on_record", "confirmed", "unconfirmed", "hidden"];
 
@@ -341,301 +358,9 @@ const getIntelPips = (st: StakeholderDossierEntry): IntelPipStatus[] => {
   );
 };
 
-/** Hover text for a pip row, e.g. "3 of 4 notes found: 1 on record, 2 unconfirmed". */
-const describeIntelPips = (pips: IntelPipStatus[]): string => {
-  const countOf = (status: IntelPipStatus) => pips.filter((p) => p === status).length;
-  const breakdown = (["on_record", "confirmed", "unconfirmed"] as const)
-    .filter((status) => countOf(status) > 0)
-    .map((status) => `${countOf(status)} ${INTEL_PIP_META[status].label.toLowerCase()}`);
-  const summary = `${pips.length - countOf("hidden")} of ${pips.length} notes found`;
-  return breakdown.length > 0 ? `${summary}: ${breakdown.join(", ")}` : summary;
-};
-
-/** Display labels for the emotion factory's 7 dimensions (game-api EmotionValueConfig.json).
- * Short enough for a badge; never the raw score, only the bucket the backend already sorted it into. */
-const EMOTION_DIMENSION_LABEL: Record<string, string> = {
-  trust: "Trust",
-  interest: "Interest",
-  stress: "Stress",
-  confidence: "Confidence",
-  perceived_risk: "Perceived risk",
-  sense_of_control: "Sense of control",
-  fairness: "Fairness",
-};
-
-/** One-line, player-facing "how to move this" hint per dimension - shown as a hover/focus
- * tooltip on that dimension's row in the reveal card. Framed as an action, not a mechanic.
- * Source: docs/plans/pitch-debate-and-intel-item-redesign/02-stakeholder-emotion-changes.md
- * (section 2.4) and the malus/veto tables (sections 3-4) - keep in sync with whatever actually
- * moves that dimension in domain/emotion.py. */
-const EMOTION_DIMENSION_HINT: Record<string, string> = {
-  trust: "Deliver what you promised them",
-  interest: "Keep addressing what they actually asked for",
-  stress: "Resolve their blockers, avoid boundary breaches",
-  confidence: "Ship clean, working simulation runs",
-  perceived_risk: "Close compliance and safety gaps",
-  sense_of_control: "Give their agenda a real seat at the table",
-  fairness: "Match their share of demands with a share of slots",
-};
-
-/** Level/tick styling for each bucket. The backend only ever hands over one of three buckets, so
- * the reveal shows exactly three discrete steps rather than a continuous-looking bar - `level` is
- * how many of the three segments light up, never a percentage. */
-const EMOTION_BUCKET_META: Record<
-  "low" | "medium" | "high",
-  { label: string; level: 1 | 2 | 3; fillClass: string; wordClass: string }
-> = {
-  low: { label: "Low", level: 1, fillClass: styles.emotionFillLow, wordClass: styles.emotionWordLow },
-  medium: { label: "Med", level: 2, fillClass: styles.emotionFillMedium, wordClass: styles.emotionWordMedium },
-  high: { label: "High", level: 3, fillClass: styles.emotionFillHigh, wordClass: styles.emotionWordHigh },
-};
-
-/** Dimensions where a *drop* is the good outcome for the stakeholder (less stress, less
- *  perceived risk). Mirrors ac_simulation.tsx's INVERTED_EMOTION_DIMENSIONS - everything else
- *  defaults to "higher is better". */
-const INVERTED_EMOTION_DIMENSIONS = new Set(["stress", "perceived_risk", "frustration", "fear", "anxiety"]);
-
-/** Good/bad colours, independent of the low/medium/high magnitude above - a dimension's reading
- *  can be low-magnitude and still bad news (low trust) or high-magnitude and good news (high
- *  trust), so the colour can't just follow the bucket directly. Green matches .pipConfirmed's
- *  existing "good" green elsewhere in this stylesheet. */
-const EMOTION_VALENCE_COLOR = {
-  good: { fillClass: styles.emotionFillGood, wordClass: styles.emotionWordGood },
-  bad: { fillClass: styles.emotionFillHigh, wordClass: styles.emotionWordHigh },
-};
-
-/**
- * Bucket styling for one dimension's reading. `level`/`label` stay true to the actual magnitude
- * bucket (a "High" stress reading is still labelled High), but the fill/word colour is chosen by
- * whether that bucket is good or bad news for this specific dimension.
- */
-const getEmotionBucketMeta = (metric: string, bucket: "low" | "medium" | "high") => {
-  const magnitude = EMOTION_BUCKET_META[bucket] || EMOTION_BUCKET_META.medium;
-  if (bucket === "medium") return magnitude;
-  const inverted = INVERTED_EMOTION_DIMENSIONS.has(metric.toLowerCase());
-  const isGood = inverted ? bucket === "low" : bucket === "high";
-  const valence = EMOTION_VALENCE_COLOR[isGood ? "good" : "bad"];
-  return { ...magnitude, fillClass: valence.fillClass, wordClass: valence.wordClass };
-};
-
-/** Screen-reader text for the emotion reveal, since the visual card is aria-hidden. */
-const describeGatingDimensions = (dims: { metric: string; bucket: string }[] | undefined): string => {
-  if (!dims || dims.length === 0) return "";
-  return dims
-    .map((d) => {
-      const bucketLabel = EMOTION_BUCKET_META[d.bucket as "low" | "medium" | "high"]?.label || d.bucket;
-      return `${EMOTION_DIMENSION_LABEL[d.metric] || d.metric}: ${bucketLabel}`;
-    })
-    .join(", ");
-};
-
-/** Breathing room kept between the reveal card and both the badge and the viewport edge,
- * mirroring HoverToolTip.tsx's own EDGE_MARGIN. */
-const EMOTION_REVEAL_EDGE_MARGIN = 8;
-
-/**
- * The emotion badge plus its hover/focus reveal card. The card is portaled to document.body
- * (same pattern as HoverToolTip.tsx) rather than absolutely positioned inside the badge: the
- * dossier page scrolls and its sticky notes each carry their own CSS transform for the paper
- * tilt, which makes every note its own stacking context independent of z-index - an absolutely
- * positioned descendant of the scrolling page can never out-rank that from the inside, no matter
- * how high its z-index goes. Rendering outside that DOM subtree and positioning it from the
- * badge's on-screen rect sidesteps the problem entirely.
- */
-const EmotionRevealBadge: React.FC<{
-  emotionDisplay: string;
-  emotionColor: string;
-  gatingInfo?: EmotionGatingInfo;
-  fullDimensions?: EmotionGatingDimension[];
-}> = ({ emotionDisplay, emotionColor, gatingInfo, fullDimensions }) => {
-  const gatingDims = gatingInfo?.dimensions || [];
-  const hasReveal = gatingDims.length > 0;
-  const isCurrent = gatingInfo?.is_current ?? true;
-  // Neutral is its own reading, not a discount on some other mood - the dimensions shown are
-  // simply the ones with the most room to move, named without borrowing a state that hasn't
-  // actually triggered.
-  const revealTitle = isCurrent ? `Why ${emotionDisplay.toLowerCase()}` : "Steady for now";
-
-  const gatingMetrics = new Set(gatingDims.map((d) => d.metric));
-  // All 7 dimensions, gating ones first (in their gating order), then the rest in the fixed,
-  // stable order EMOTION_DIMENSION_LABEL's keys already give - falls back to just the gating
-  // dims if the full set hasn't arrived yet.
-  const allDims: EmotionGatingDimension[] =
-    fullDimensions && fullDimensions.length > 0
-      ? [
-          ...gatingDims,
-          ...Object.keys(EMOTION_DIMENSION_LABEL)
-            .filter((metric) => !gatingMetrics.has(metric))
-            .map((metric) => fullDimensions.find((d) => d.metric === metric))
-            .filter((d): d is EmotionGatingDimension => Boolean(d)),
-        ]
-      : gatingDims;
-
-  const [show, setShow] = useState(false);
-  const anchorRef = useRef<HTMLDivElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [coords, setCoords] = useState({ top: 0, left: 0 });
-
-  const hideTimeoutRef = useRef<number | null>(null);
-  const clearHideTimeout = () => {
-    if (hideTimeoutRef.current !== null) {
-      window.clearTimeout(hideTimeoutRef.current);
-      hideTimeoutRef.current = null;
-    }
-  };
-
-  const handleShow = () => {
-    clearHideTimeout();
-    if (anchorRef.current) {
-      const rect = anchorRef.current.getBoundingClientRect();
-      setCoords({ top: rect.bottom + EMOTION_REVEAL_EDGE_MARGIN, left: rect.left });
-    }
-    setShow(true);
-  };
-  // Hides on a short delay rather than instantly: moving the mouse from the badge down into the
-  // portaled card crosses a small gap that belongs to neither element, and closing the instant
-  // that gap is entered would make the card impossible to hover into (and its per-dimension
-  // `title` hints impossible to read). handleShow - fired by either the badge or the card itself
-  // - cancels the pending hide before it fires.
-  const handleHide = () => {
-    clearHideTimeout();
-    hideTimeoutRef.current = window.setTimeout(() => setShow(false), 200);
-  };
-  // Keyboard blur has no such gap to bridge, so it hides immediately.
-  const handleBlur = () => {
-    clearHideTimeout();
-    setShow(false);
-  };
-
-  useEffect(() => clearHideTimeout, []);
-
-  // Flip above the badge when the card would run off the bottom of the window, and keep it
-  // inside the viewport horizontally. Mirrors HoverToolTip's own layout pass.
-  useLayoutEffect(() => {
-    if (!show || !cardRef.current || !anchorRef.current) return;
-    const anchor = anchorRef.current.getBoundingClientRect();
-    const box = cardRef.current.getBoundingClientRect();
-
-    let top = anchor.bottom + EMOTION_REVEAL_EDGE_MARGIN;
-    if (top + box.height > window.innerHeight - EMOTION_REVEAL_EDGE_MARGIN) {
-      const above = anchor.top - EMOTION_REVEAL_EDGE_MARGIN - box.height;
-      top =
-        above >= EMOTION_REVEAL_EDGE_MARGIN
-          ? above
-          : Math.max(EMOTION_REVEAL_EDGE_MARGIN, window.innerHeight - EMOTION_REVEAL_EDGE_MARGIN - box.height);
-    }
-    const left = Math.min(
-      Math.max(anchor.left, EMOTION_REVEAL_EDGE_MARGIN),
-      window.innerWidth - EMOTION_REVEAL_EDGE_MARGIN - box.width
-    );
-
-    setCoords((prev) => (prev.top === top && prev.left === left ? prev : { top, left }));
-  }, [show]);
-
-  const ariaLabel = hasReveal
-    ? `Emotional state: ${emotionDisplay}. ${describeGatingDimensions(gatingDims)}`
-    : undefined;
-
-  return (
-    <div
-      ref={anchorRef}
-      className={`${styles.powerInterestBadge} ${styles.emotionBadge}`}
-      tabIndex={hasReveal ? 0 : undefined}
-      title={hasReveal ? undefined : `Emotional State: "${emotionDisplay}"`}
-      aria-label={ariaLabel}
-      onMouseEnter={hasReveal ? handleShow : undefined}
-      onMouseLeave={hasReveal ? handleHide : undefined}
-      onFocus={hasReveal ? handleShow : undefined}
-      onBlur={hasReveal ? handleBlur : undefined}
-    >
-      <Icon
-        icon={iconForEmotionState(emotionDisplay)}
-        className={styles.metricIcon}
-        style={{ color: emotionColor }}
-      />
-      <span style={{ color: emotionColor, fontWeight: 700 }}>{emotionDisplay.toUpperCase()}</span>
-      {hasReveal && (
-        <span
-          className={`${styles.emotionMicroTicks} ${!isCurrent ? styles.emotionMicroTicksPending : ""}`}
-          aria-hidden="true"
-        >
-          {gatingDims.slice(0, 3).map((dim, idx) => {
-            const meta = getEmotionBucketMeta(dim.metric, dim.bucket as "low" | "medium" | "high");
-            const levelClass =
-              meta.level === 1
-                ? styles.emotionMicroTickLevel1
-                : meta.level === 2
-                ? styles.emotionMicroTickLevel2
-                : styles.emotionMicroTickLevel3;
-            return (
-              <span
-                key={idx}
-                className={`${styles.emotionMicroTick} ${levelClass} ${
-                  !isCurrent ? styles.emotionMicroTickPending : meta.fillClass
-                }`}
-              />
-            );
-          })}
-        </span>
-      )}
-      {hasReveal &&
-        show &&
-        createPortal(
-          <div
-            className={styles.emotionRevealAnchor}
-            style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
-            onMouseEnter={handleShow}
-            onMouseLeave={handleHide}
-          >
-            <div
-              ref={cardRef}
-              className={`${styles.emotionRevealCard} ${!isCurrent ? styles.emotionRevealCardPending : ""}`}
-              aria-hidden="true"
-            >
-              <div className={styles.emotionRevealTitle}>{revealTitle}</div>
-              <div className={styles.emotionRevealDims}>
-                {allDims.map((dim, idx) => {
-                  const meta = getEmotionBucketMeta(dim.metric, dim.bucket as "low" | "medium" | "high");
-                  const isGating = gatingMetrics.has(dim.metric);
-                  return (
-                    <div className={styles.emotionDimRow} key={idx}>
-                      {/* Portals to document.body (HoverTooltip's default), same as the reveal
-                          card itself - NOT into the card's own subtree. That subtree sits under
-                          .emotionRevealAnchor, which sets `perspective` for the card's flip
-                          animation; `perspective` (like `transform`) creates a new containing
-                          block for `position: fixed` descendants, which silently breaks this
-                          tooltip's viewport-relative coordinates. Staying above HoverTooltip's own
-                          z-index (see HoverToolTip.module.css) is what keeps it visible instead. */}
-                      <HoverTooltip description={EMOTION_DIMENSION_HINT[dim.metric] || ""}>
-                        <span
-                          className={`${styles.emotionDimName} ${
-                            isGating ? styles.emotionDimNameGating : ""
-                          }`}
-                        >
-                          {EMOTION_DIMENSION_LABEL[dim.metric] || dim.metric}
-                          <Icon icon="ph:info-bold" className={styles.emotionDimHintIcon} />
-                        </span>
-                      </HoverTooltip>
-                      <span className={styles.emotionDimSegments}>
-                        {[1, 2, 3].map((seg) => (
-                          <span
-                            key={seg}
-                            className={`${styles.emotionDimSegment} ${seg === meta.level ? meta.fillClass : ""}`}
-                          />
-                        ))}
-                      </span>
-                      <span className={`${styles.emotionDimWord} ${meta.wordClass}`}>{meta.label}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
-    </div>
-  );
-};
+/** A hovered note lights its node on the pitch composer, in this colour. */
+const NOTE_LIT_COLOR = "#e9c46a";
+const NO_LIT_NOTES: ReadonlyMap<string, string> = new Map();
 
 /** Breathing room between a header button's hover tag and the viewport edge. */
 const HEADER_TAG_EDGE_MARGIN = 6;
@@ -660,7 +385,9 @@ const HeaderIconButton: React.FC<{
   onClick?: () => void;
   /** Overrides the leather-button look for a differently-styled anchor, e.g. .topNavArrow. */
   buttonClassName?: string;
-}> = ({ icon, label, detail, ariaLabel, active, disabled, badge, onClick, buttonClassName }) => {
+  /** Tints the icon, for a button whose subject has its own colour. */
+  iconColor?: string;
+}> = ({ icon, label, detail, ariaLabel, active, disabled, badge, onClick, buttonClassName, iconColor }) => {
   const [show, setShow] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
   const tagRef = useRef<HTMLDivElement>(null);
@@ -702,7 +429,7 @@ const HeaderIconButton: React.FC<{
       aria-label={ariaLabel}
     >
       <span className={styles.buttonIconWrap}>
-        <Icon icon={icon} />
+        <Icon icon={icon} style={iconColor ? { color: iconColor } : undefined} />
         {badge}
       </span>
       {show &&
@@ -814,7 +541,9 @@ export default function StakeholderDossier({
   activeStakeholderId,
   speakingStakeholderId = null,
   onActiveStakeholderChange,
-  highlightedIntelId,
+  highlightedIntelId: highlightedIntelProp,
+  litIntelIds,
+  onLitIntelChange,
   currentPhase: propPhase,
   currentChallenge: propChallenge = 0,
   canClose = true,
@@ -833,6 +562,7 @@ export default function StakeholderDossier({
   isSettingsOpen = false,
   onOpenArtifact,
   cheatSheetActiveSection,
+  openBoardRequest = 0,
 }: StakeholderDossierProps) {
   const { emit, subscribe } = useGameWebSocket();
   const { stakeholders, emotionColors: contextEmotionColors } = useContext(StakeholderContext) || {
@@ -847,6 +577,21 @@ export default function StakeholderDossier({
   };
   const currentPhase = propPhase ?? contextPhase ?? 0;
   const currentChallenge = propChallenge;
+
+  // Case board (docs/plans/case-board.md): one more tab after the people, shown only when the
+  // server says this room has a board.
+  const { board, outcome: boardOutcome, connect: connectThread, togglePencil } = useCaseBoard(currentPhase, currentChallenge);
+  const [boardOpen, setBoardOpen] = useState(false);
+  // The host (the pitch composer) asks for the Board tab by bumping this number.
+  const lastBoardRequest = useRef(openBoardRequest);
+  useEffect(() => {
+    if (openBoardRequest !== lastBoardRequest.current) {
+      lastBoardRequest.current = openBoardRequest;
+      if (board.visible) setBoardOpen(true);
+    }
+  }, [openBoardRequest, board.visible]);
+
+  const graphTargets = useGraphTargets(board.visible, currentPhase);
 
   // Badges the Performance button with the project graph's overall health, the same number
   // PerformanceDashboard itself shows. Only asked for when that button exists.
@@ -872,14 +617,14 @@ export default function StakeholderDossier({
   // inside .map() loops, where a per-element hook call would break the Rules of Hooks.
   const [infoTag, setInfoTag] = useState<{
     label: string;
-    detail?: string;
+    detail?: React.ReactNode;
     top: number;
     anchorX: number;
     left: number;
   } | null>(null);
   const infoTagRef = useRef<HTMLDivElement>(null);
 
-  const showInfoTag = (e: React.SyntheticEvent, label: string, detail?: string) => {
+  const showInfoTag = (e: React.SyntheticEvent, label: string, detail?: React.ReactNode) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const anchorX = rect.left + rect.width / 2;
     setInfoTag({ label, detail, top: rect.bottom + HEADER_TAG_EDGE_MARGIN, anchorX, left: anchorX });
@@ -916,6 +661,15 @@ export default function StakeholderDossier({
 
   /** The cheat sheet is static reference content, so it needs no state from outside. */
   const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
+
+  // A note picked from the "What they want" summary is lit like a prop-driven highlight, for a few seconds.
+  const [summaryFocusId, setSummaryFocusId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!summaryFocusId) return;
+    const timer = setTimeout(() => setSummaryFocusId(null), 4000);
+    return () => clearTimeout(timer);
+  }, [summaryFocusId]);
+  const highlightedIntelId = highlightedIntelProp ?? summaryFocusId;
 
   // Track fading out highlight state
   const [fadingOutIntelId, setFadingOutIntelId] = useState<string | null>(null);
@@ -1173,6 +927,7 @@ export default function StakeholderDossier({
     if (targetIndex < 0 || targetIndex >= totalPages) return;
     if (targetIndex !== challengeIntelIndex) lastPersonPage.current = targetIndex;
     setActiveRetagNoteId(null);
+    setBoardOpen(false);
     setCurrentPageIndex(targetIndex);
     if (onActiveStakeholderChange) {
       onActiveStakeholderChange(
@@ -1444,7 +1199,7 @@ export default function StakeholderDossier({
           className={`${styles.rubberStamp} ${styles.stampVerified}`}
           {...stampTagProps("Confirmed", "You verified this yourself by talking to them.")}
         >
-          ✓ CONFIRMED
+          <Icon icon="ph:certificate-duotone" style={{ verticalAlign: "-0.15em" }} /> CONFIRMED
         </div>
       );
     }
@@ -1543,12 +1298,8 @@ export default function StakeholderDossier({
       >
         {pagePhases.length > 0 && (
           <div className={styles.phaseRow}>
-            <button
-              className={`${styles.phaseChip} ${styles.phaseChipNow} ${nowOnly ? styles.phaseChipOn : ""}`}
-              onClick={() => setPhaseFilter(nowOnly ? new Set() : new Set([currentPhase]))}
-              disabled={!hasNowNotes && !nowOnly}
-              aria-pressed={nowOnly}
-              title={
+            <HoverTooltip
+              description={
                 nowOnly
                   ? "Show notes from every phase again"
                   : hasNowNotes
@@ -1556,35 +1307,46 @@ export default function StakeholderDossier({
                     : `Nothing found in ${nowLabel} yet`
               }
             >
-              Now
-            </button>
+              <button
+                className={`${styles.phaseChip} ${styles.phaseChipNow} ${nowOnly ? styles.phaseChipOn : ""}`}
+                onClick={() => setPhaseFilter(nowOnly ? new Set() : new Set([currentPhase]))}
+                disabled={!hasNowNotes && !nowOnly}
+                aria-pressed={nowOnly}
+              >
+                Now
+              </button>
+            </HoverTooltip>
             {/* The dock has room for a word per phase; the full name is on the spine and in the tooltip. */}
             <div className={styles.phaseGroup}>
               {pagePhases.map((phase) => {
                 const label = phaseLabel(phase, phases);
                 const on = phaseFilter.has(phase);
                 return (
-                  <button
+                  <HoverTooltip
                     key={phase}
-                    className={`${styles.phaseChip} ${on ? styles.phaseChipOn : ""}`}
-                    onClick={() => togglePhase(phase)}
-                    aria-pressed={on}
-                    title={on ? `Stop filtering on ${label}` : `Show only what you found in ${label}`}
+                    description={on ? `Stop filtering on ${label}` : `Show only what you found in ${label}`}
                   >
-                    {phaseShortLabel(phase, phases)}
-                  </button>
+                    <button
+                      className={`${styles.phaseChip} ${on ? styles.phaseChipOn : ""}`}
+                      onClick={() => togglePhase(phase)}
+                      aria-pressed={on}
+                    >
+                      {phaseShortLabel(phase, phases)}
+                    </button>
+                  </HoverTooltip>
                 );
               })}
             </div>
             {phaseFilterActive && (
-              <button
-                className={styles.phaseChipClear}
-                onClick={() => setPhaseFilter(new Set())}
-                title="Show notes from every phase again"
-                aria-label="Show every phase"
-              >
-                <Icon icon="ph:x-bold" />
-              </button>
+              <HoverTooltip description="Show notes from every phase again">
+                <button
+                  className={styles.phaseChipClear}
+                  onClick={() => setPhaseFilter(new Set())}
+                  aria-label="Show every phase"
+                >
+                  <Icon icon="ph:x-bold" />
+                </button>
+              </HoverTooltip>
             )}
           </div>
         )}
@@ -1602,19 +1364,19 @@ export default function StakeholderDossier({
             {([
               ["all", "ph:stack-bold", "All", "Everything you have written down"],
               ["unconfirmed", "ph:question-bold", "Unconfirmed", "You have not checked these yet. Wrong ones cost you in the room."],
-              ["verified", "ph:check-circle-bold", "Verified", "You checked these yourself."],
+              ["verified", "ph:certificate-duotone", "Verified", "You checked these yourself."],
               ["on_record", "ph:star-bold", "On record", "Said openly to the whole team. Nothing left to confirm."],
             ] as const).map(([key, icon, label, hint]) => (
-              <button
-                key={key}
-                className={`${styles.confChip} ${confFilter === key ? styles.confChipOn : ""}`}
-                onClick={() => setConfFilter(key)}
-                title={`${label}: ${hint}`}
-                aria-label={label}
-              >
-                <Icon icon={icon} />
-                <span className={styles.confTip}>{label}</span>
-              </button>
+              <HoverTooltip key={key} description={hint}>
+                <button
+                  className={`${styles.confChip} ${confFilter === key ? styles.confChipOn : ""}`}
+                  onClick={() => setConfFilter(key)}
+                  aria-label={label}
+                >
+                  <Icon icon={icon} />
+                  <span className={styles.confTip}>{label}</span>
+                </button>
+              </HoverTooltip>
             ))}
           </div>
         </div>
@@ -1628,89 +1390,24 @@ export default function StakeholderDossier({
     );
   };
 
-  /** Ledger of what each stakeholder is known to want. Confirmed notes only, so it shows nothing the pages don't. */
-  const renderConfirmedSummary = () => {
-    const rows = confirmedIntelRows(effectiveDossierData);
-    const openCount = rows.filter((r) => !r.resolved).length;
-    return (
-      <section className={styles.ledger} aria-label="Confirmed intel summary">
-        <div className={styles.ledgerHead}>
-          <Icon icon="ph:notebook-bold" />
-          <span className={styles.ledgerTitle}>What they want</span>
-          <span className={styles.ledgerCount}>
-            {rows.length === 0 ? "nothing confirmed yet" : `${openCount} open · ${rows.length - openCount} done`}
-          </span>
-        </div>
-        {rows.length === 0 ? (
-          <div className={styles.ledgerEmpty}>
-            Confirm a note on a stakeholder's page and it is filed here.
-          </div>
-        ) : (
-          <table className={styles.ledgerTable}>
-            <tbody>
-              {rows.map((row, idx) => {
-                const meta = intelTagMeta(row.kind);
-                const pageIdx = effectiveDossierData.findIndex((s) => s.stakeholder_id === row.stakeholderId);
-                const sameAsAbove = idx > 0 && rows[idx - 1].stakeholderId === row.stakeholderId;
-                const color = getStakeholderColor(effectiveDossierData[pageIdx]);
-                const verb = row.kind === "driver" ? "Wants" : row.kind === "boundary" ? "Won't cross" : "Would trade";
-                const resolvedMeta = row.resolved ? STATUS_META[row.status ?? ""] : undefined;
-                return (
-                  <tr
-                    key={row.id}
-                    className={`${styles.ledgerRow} ${row.resolved ? styles.ledgerRowDone : ""} ${sameAsAbove ? "" : styles.ledgerRowFirst}`}
-                    tabIndex={0}
-                    onClick={() => requestPageChange(pageIdx)}
-                    onKeyDown={(e) => e.key === "Enter" && requestPageChange(pageIdx)}
-                    title={`Open ${row.stakeholderName}'s page`}
-                  >
-                    <th scope="row" className={styles.ledgerWho} style={{ borderLeftColor: color }}>
-                      {!sameAsAbove && (
-                        <HoverTooltip description={row.stakeholderName}>
-                          <StakeholderAvatarComponent
-                            avatar={stakeholders[row.stakeholderId]?.avatar}
-                            emotion={faceForEmotionState(stakeholders[row.stakeholderId]?.emotional_state || "neutral")}
-                            stakeholderColor={color}
-                            stakeholderId={row.stakeholderId}
-                            isFramed={false}
-                            play_blink_animation={false}
-                            size="30px"
-                            title={row.stakeholderName}
-                          />
-                        </HoverTooltip>
-                      )}
-                    </th>
-                    <td className={styles.ledgerKind} style={{ color: meta.color }}>
-                      <HoverTooltip description={verb}>
-                        <Icon icon={meta.icon} aria-label={verb} />
-                      </HoverTooltip>
-                    </td>
-                    <td className={styles.ledgerWhat}>
-                      <GlossaryText text={row.text} surface="intel_notes" />
-                      {row.giveUp && (
-                        <>
-                          {" "}<span className={styles.ledgerFor}>for</span>{" "}
-                          <GlossaryText text={row.giveUp} surface="intel_notes" />
-                        </>
-                      )}
-                    </td>
-                    <td className={styles.ledgerMark}>
-                      {resolvedMeta ? (
-                        <span className={`${styles.statusBadge} ${styles[resolvedMeta.styleClass]}`}>{resolvedMeta.label}</span>
-                      ) : row.onRecord ? (
-                        <Icon icon="ph:star-bold" className={styles.ledgerOnRecord} aria-label="On record" />
-                      ) : (
-                        <Icon icon="ph:check-circle-bold" className={styles.ledgerConfirmed} aria-label="Confirmed" />
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </section>
-    );
+  /** Everything the "What they want" summary needs from the dossier, for both screens that show it. */
+  const summaryProps: ConfirmedSummaryProps = {
+    pages: effectiveDossierData,
+    stakeholders,
+    colorOf: getStakeholderColor,
+    statusStamp: (status) => {
+      const meta = STATUS_META[status ?? ""];
+      return meta && { label: meta.label, title: meta.title, className: `${styles.statusBadge} ${styles[meta.styleClass]}` };
+    },
+    onOpenStakeholder: (stakeholderId, intelId) => {
+      const idx = effectiveDossierData.findIndex((st) => st.stakeholder_id === stakeholderId);
+      if (idx === -1) return;
+      requestPageChange(idx);
+      setSummaryFocusId(intelId ?? null);
+    },
+    onShowInfo: showInfoTag,
+    onHideInfo: hideInfoTag,
+    graphTargets,
   };
 
   const renderPageContent = (st: StakeholderDossierEntry) => {
@@ -1739,14 +1436,8 @@ export default function StakeholderDossier({
       activeEmotionColors[emotionDisplay] ||
       activeEmotionColors[emotionDisplay.toLowerCase()] ||
       "#64748b";
-    const powerDetail =
-      (st.power || stObj?.power || "").toLowerCase() === "high"
-        ? "High power. Can this person stop you? Yes: they can veto the whole plan."
-        : "Low power. Can this person stop you? No: they can only grumble.";
-    const interestDetail =
-      (st.interest || stObj?.interest || "").toLowerCase() === "high"
-        ? "High interest. They care a lot, so your words and your proposal move their mood strongly. Together with power, it sets how strongly they react."
-        : "Low interest. They care less, so your words and your proposal move their mood gently. Together with power, it sets how strongly they react.";
+    const powerHigh = (st.power || stObj?.power || "").toLowerCase() === "high";
+    const interestHigh = (st.interest || stObj?.interest || "").toLowerCase() === "high";
     const patienceLabel = impatienceTagLabel(
       (buyInInfoMap?.[st.stakeholder_id] ?? buyInInfoMap?.[st.name])?.impatience,
     );
@@ -1757,7 +1448,6 @@ export default function StakeholderDossier({
             box, not an item inside it, so it always ends up on the page's edge. */}
         <div className={styles.pageScroll}>
         {st.is_challenge_intel ? (
-          <>
           <div className={styles.environmentHeader}>
             <Icon icon={intelTagMeta("fact").icon} className={styles.environmentIcon} />
             <div>
@@ -1767,8 +1457,6 @@ export default function StakeholderDossier({
               </div>
             </div>
           </div>
-          {renderConfirmedSummary()}
-          </>
         ) : (
           <>
         {/* Header: Polaroid Snapshot Frame with Caption + Main Info */}
@@ -1792,10 +1480,10 @@ export default function StakeholderDossier({
                 stakeholderColor={stakeholderColor}
                 stakeholderId={st.stakeholder_id}
                 isFramed={false}
+                portrait
                 isSpeaking={speakingStakeholderId === st.stakeholder_id}
                 play_blink_animation={false}
                 size="100%"
-                title={st.name}
                 isHovered={hoveredPolaroidStId === st.stakeholder_id}
               />
             </div>
@@ -1819,111 +1507,27 @@ export default function StakeholderDossier({
                 surface="dossier_profile"
               />
             </div>
-            <div className={styles.stakeholderMetaRow}>
-              <EmotionRevealBadge
-                emotionDisplay={emotionDisplay}
-                emotionColor={emotionColor}
-                gatingInfo={stObj?.emotion_dimensions}
-                fullDimensions={stObj?.emotion_dimensions_full}
-              />
-              <div
-                className={styles.powerInterestBadge}
-                tabIndex={0}
-                aria-label={`Power: ${powerDetail}`}
-                onMouseEnter={(e) => showInfoTag(e, "Power", powerDetail)}
-                onMouseLeave={hideInfoTag}
-                onFocus={(e) => showInfoTag(e, "Power", powerDetail)}
-                onBlur={hideInfoTag}
-              >
-                <Icon
-                  icon="ph:lightning-bold"
-                  className={styles.metricIcon}
-                  style={{
-                    color: (st.power || stObj?.power || "").toLowerCase() === "high" ? "#dc2626" : "#2563eb",
-                  }}
-                />
-                <span
-                  style={{
-                    color: (st.power || stObj?.power || "").toLowerCase() === "high" ? "#dc2626" : "#2563eb",
-                    fontWeight: 700,
-                  }}
-                >
-                  {(st.power || stObj?.power || "low").toUpperCase()}
-                </span>
-              </div>
-              <div
-                className={styles.powerInterestBadge}
-                tabIndex={0}
-                aria-label={`Interest: ${interestDetail}`}
-                onMouseEnter={(e) => showInfoTag(e, "Interest", interestDetail)}
-                onMouseLeave={hideInfoTag}
-                onFocus={(e) => showInfoTag(e, "Interest", interestDetail)}
-                onBlur={hideInfoTag}
-              >
-                <Icon
-                  icon="ph:eye-bold"
-                  className={styles.metricIcon}
-                  style={{
-                    color: (st.interest || stObj?.interest || "").toLowerCase() === "high" ? "#dc2626" : "#2563eb",
-                  }}
-                />
-                <span
-                  style={{
-                    color: (st.interest || stObj?.interest || "").toLowerCase() === "high" ? "#dc2626" : "#2563eb",
-                    fontWeight: 700,
-                  }}
-                >
-                  {(st.interest || stObj?.interest || "low").toUpperCase()}
-                </span>
-              </div>
-              {patienceLabel && (
-                <div
-                  className={`${styles.powerInterestBadge} ${styles.patienceTag}`}
-                  tabIndex={0}
-                  aria-label={`${patienceLabel}: ${PATIENCE_DETAIL}`}
-                  onMouseEnter={(e) => showInfoTag(e, patienceLabel, PATIENCE_DETAIL)}
-                  onMouseLeave={hideInfoTag}
-                  onFocus={(e) => showInfoTag(e, patienceLabel, PATIENCE_DETAIL)}
-                  onBlur={hideInfoTag}
-                >
-                  <Icon icon="ph:hourglass-medium-bold" className={styles.metricIcon} />
-                  <span>{patienceLabel}</span>
-                </div>
-              )}
-              {intelPips.length > 0 && (
-                <div
-                  className={styles.powerInterestBadge}
-                  tabIndex={0}
-                  aria-label={`Intel: ${describeIntelPips(intelPips)}`}
-                  onMouseEnter={(e) => showInfoTag(e, "Intel", describeIntelPips(intelPips))}
-                  onMouseLeave={hideInfoTag}
-                  onFocus={(e) => showInfoTag(e, "Intel", describeIntelPips(intelPips))}
-                  onBlur={hideInfoTag}
-                >
-                  <Icon icon="ph:push-pin-bold" className={`${styles.metricIcon} ${styles.intelBadgeInk}`} />
-                  <span className={styles.intelPips}>
-                    {intelPips.map((status, idx) => (
-                      <span
-                        key={idx}
-                        className={`${styles.intelPip} ${INTEL_PIP_META[status].styleClass}`}
-                        title={INTEL_PIP_META[status].label}
-                      />
-                    ))}
-                  </span>
-                  <span className={styles.intelBadgeInk} style={{ fontWeight: 700 }}>
-                    {intelPips.length - hiddenIntelCount}/{intelPips.length}
-                  </span>
-                </div>
-              )}
+            <div className={styles.statLabel}>
+            <StakeholderStatGroup
+              emotionDisplay={emotionDisplay}
+              emotionColor={emotionColor}
+              gatingInfo={stObj?.emotion_dimensions}
+              fullDimensions={stObj?.emotion_dimensions_full}
+              powerHigh={powerHigh}
+              interestHigh={interestHigh}
+              patienceLabel={patienceLabel}
+              intelPips={intelPips}
+              showInfoTag={showInfoTag}
+              hideInfoTag={hideInfoTag}
+            />
+            {/* Buy-in bar (pitch debate only, when buyInInfoMap is provided) */}
+            {(() => {
+              const buyInInfo = buyInInfoMap ? (buyInInfoMap[st.stakeholder_id] || buyInInfoMap[st.name]) : undefined;
+              return buyInInfo ? <BuyInMeter key={st.stakeholder_id} info={buyInInfo} embedded /> : null;
+            })()}
             </div>
           </div>
         </div>
-
-        {/* Buy-in meter (pitch debate only, when buyInInfoMap is provided) */}
-        {(() => {
-          const buyInInfo = buyInInfoMap ? (buyInInfoMap[st.stakeholder_id] || buyInInfoMap[st.name]) : undefined;
-          return buyInInfo ? <BuyInMeter key={st.stakeholder_id} info={buyInInfo} /> : null;
-        })()}
 
           </>
         )}
@@ -1933,35 +1537,19 @@ export default function StakeholderDossier({
           <span className={styles.doodleIcon}></span>{" "}
           {st.is_challenge_intel ? "Facts by stage" : "Challenge-Specific Stance"}
           <span className={styles.sectionTitleActions}>
-          <button
-            className={`${styles.collapseToggle} ${collapseAddressed ? styles.collapseToggleOn : ""}`}
-            onClick={() => setCollapseAddressed(!collapseAddressed)}
-            title="Fold the notes somebody has already acted on down to one line each"
-          >
-            <Icon
-              icon={collapseAddressed ? "ph:arrows-out-line-vertical-bold" : "ph:arrows-in-line-vertical-bold"}
-            />
-            <span>Collapse done</span>
-          </button>
+          <HoverTooltip description="Fold the notes somebody has already acted on down to one line each">
+            <button
+              className={`${styles.collapseToggle} ${collapseAddressed ? styles.collapseToggleOn : ""}`}
+              onClick={() => setCollapseAddressed(!collapseAddressed)}
+            >
+              <Icon
+                icon={collapseAddressed ? "ph:arrows-out-line-vertical-bold" : "ph:arrows-in-line-vertical-bold"}
+              />
+              <span>Collapse done</span>
+            </button>
+          </HoverTooltip>
           </span>
         </div>
-
-        {st.debug && (
-          <div className={styles.debugPanel}>
-            <button className={styles.debugPanelTitle} onClick={() => toggleDebug(`page-${st.stakeholder_id}`)}>
-              <Icon icon="ph:bug-bold" /> Answer key (debug): {st.debug.missing_intel.length} not found yet
-            </button>
-            {openDebugId === `page-${st.stakeholder_id}` && (
-              <>
-                {st.debug.missing_intel.map((info) => (
-                  <div key={info.id} className={styles.debugMissing}>
-                    <DebugRequirement info={info} />
-                  </div>
-                ))}
-              </>
-            )}
-          </div>
-        )}
 
         {/* One card per refinement chain: the newest link is the headline (D24) */}
         {pageChains.length > 0 ? (
@@ -1985,22 +1573,23 @@ export default function StakeholderDossier({
                 </div>
               ) : null;
               if (collapseAddressed && isResolvedStatus(item.status)) {
-                const collapsedMeta = STATUS_META[item.status];
+                const collapsedMeta = STATUS_META[item.status ?? ""];
                 return (
                   <React.Fragment key={`${st.stakeholder_id}-collapsed-wrap-${item.id}`}>
                     {resolvedGroupTitle}
-                    <button
-                      className={styles.collapsedNote}
-                      onClick={() => setCollapseAddressed(false)}
-                      title={`${collapsedMeta.title} Click to unfold every note again.`}
-                    >
-                      <Icon
-                        icon={(CATEGORY_META[item.categorized_type || "driver"] || CATEGORY_META.driver).icon}
-                        style={{ color: (CATEGORY_META[item.categorized_type || "driver"] || CATEGORY_META.driver).color }}
-                      />
-                      <span className={styles.collapsedText}>{item.description}</span>
-                      <span className={`${styles.statusBadge} ${styles[collapsedMeta.styleClass]}`}>{collapsedMeta.label}</span>
-                    </button>
+                    <HoverTooltip description={`${collapsedMeta.title} Click to unfold every note again.`} block>
+                      <button
+                        className={styles.collapsedNote}
+                        onClick={() => setCollapseAddressed(false)}
+                      >
+                        <Icon
+                          icon={(CATEGORY_META[item.categorized_type || "driver"] || CATEGORY_META.driver).icon}
+                          style={{ color: (CATEGORY_META[item.categorized_type || "driver"] || CATEGORY_META.driver).color }}
+                        />
+                        <span className={styles.collapsedText}>{item.description}</span>
+                        <span className={`${styles.statusBadge} ${styles[collapsedMeta.styleClass]}`}>{collapsedMeta.label}</span>
+                      </button>
+                    </HoverTooltip>
                   </React.Fragment>
                 );
               }
@@ -2027,7 +1616,7 @@ export default function StakeholderDossier({
                 item.artifact || (item.artifact_type && (item.source === "offline_artifact" || item.source === "public_record"))
               );
               const sourceCaption = getSourceCaption(item);
-              // Paper colour matches the stamp: orange still open, blue public, green earned.
+              // Certainty shows as solidity: unconfirmed notes stay faded, the rest get full colour.
               const noteStatusClass = isUnconfirmed
                 ? ""
                 : isPublicRecord
@@ -2068,6 +1657,8 @@ export default function StakeholderDossier({
                   id={`intel-sticky-${noteId}`}
                   data-intel-id={item.id}
                   data-intel-description={item.description}
+                  onMouseEnter={() => onLitIntelChange?.(new Map([[item.id, NOTE_LIT_COLOR]]))}
+                  onMouseLeave={() => onLitIntelChange?.(NO_LIT_NOTES)}
                   draggable={draggableIntel}
                   onDragStart={(e) => {
                     if (!draggableIntel) return;
@@ -2075,7 +1666,7 @@ export default function StakeholderDossier({
                     e.dataTransfer.setData("intelItemId", item.id);
                     e.dataTransfer.effectAllowed = "copy";
                   }}
-                  className={`${styles.stickyNote} ${noteStatusClass} ${isRetagging ? styles.retagActive : ""} ${isHighlighted ? styles.highlightedStickyNote : ""} ${isFadingOut ? styles.fadingOutStickyNote : ""} ${isNewIntel ? styles.newStickyNote : ""}`}
+                  className={`${styles.stickyNote} ${NOTE_TYPE_CLASS[typeKey] || ""} ${noteStatusClass} ${isRetagging ? styles.retagActive : ""} ${isHighlighted ? styles.highlightedStickyNote : ""} ${isFadingOut ? styles.fadingOutStickyNote : ""} ${isNewIntel ? styles.newStickyNote : ""}`}
                 >
                   <span
                     className={styles.notePhaseSpine}
@@ -2149,48 +1740,53 @@ export default function StakeholderDossier({
                     </div>
                     <div className={styles.cardCornerStamp}>
                       {item.debug && (
-                        <button
-                          className={`${styles.debugToggle} ${
-                            item.debug.correct_tag === item.categorized_type ? styles.debugRight : styles.debugWrong
-                          }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleDebug(noteId);
-                          }}
-                          title={`Debug: true tag is ${item.debug.correct_tag}`}
-                        >
-                          <Icon icon="ph:bug-bold" />
-                        </button>
+                        <HoverTooltip description={`Debug: true tag is ${item.debug.correct_tag}`} labelsChild>
+                          <button
+                            className={`${styles.debugToggle} ${
+                              item.debug.correct_tag === item.categorized_type ? styles.debugRight : styles.debugWrong
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleDebug(noteId);
+                            }}
+                          >
+                            <Icon icon="ph:bug-bold" />
+                          </button>
+                        </HoverTooltip>
                       )}
                       {item.debug && item.debug.artifact && (
-                        <button
-                          className={`${styles.debugToggle} ${
-                            item.debug.artifact.humor_archetype ? styles.debugRight : styles.debugWrong
-                          }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleDebug(noteId);
-                          }}
-                          title={
+                        <HoverTooltip
+                          description={
                             item.debug.artifact.humor_archetype
                               ? `Debug: humor applied (${item.debug.artifact.humor_archetype})`
                               : "Debug: no humor applied"
                           }
+                          labelsChild
                         >
-                          <Icon icon={item.debug.artifact.humor_archetype ? "ph:mask-happy-bold" : "ph:mask-happy"} />
-                        </button>
+                          <button
+                            className={`${styles.debugToggle} ${
+                              item.debug.artifact.humor_archetype ? styles.debugRight : styles.debugWrong
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleDebug(noteId);
+                            }}
+                          >
+                            <Icon icon={item.debug.artifact.humor_archetype ? "ph:mask-happy-bold" : "ph:mask-happy"} />
+                          </button>
+                        </HoverTooltip>
                       )}
-                      {item.status && STATUS_META[item.status] && (
+                      {item.status && STATUS_META[item.status ?? ""] && (
                         <span
-                          className={`${styles.statusBadge} ${styles[STATUS_META[item.status].styleClass]}`}
+                          className={`${styles.statusBadge} ${styles[STATUS_META[item.status ?? ""].styleClass]}`}
                           tabIndex={0}
-                          aria-label={`${STATUS_META[item.status].label}: ${STATUS_META[item.status].title}`}
-                          onMouseEnter={(e) => showInfoTag(e, STATUS_META[item.status].label, STATUS_META[item.status].title)}
+                          aria-label={`${STATUS_META[item.status ?? ""].label}: ${STATUS_META[item.status ?? ""].title}`}
+                          onMouseEnter={(e) => showInfoTag(e, STATUS_META[item.status ?? ""].label, STATUS_META[item.status ?? ""].title)}
                           onMouseLeave={hideInfoTag}
-                          onFocus={(e) => showInfoTag(e, STATUS_META[item.status].label, STATUS_META[item.status].title)}
+                          onFocus={(e) => showInfoTag(e, STATUS_META[item.status ?? ""].label, STATUS_META[item.status ?? ""].title)}
                           onBlur={hideInfoTag}
                         >
-                          {STATUS_META[item.status].label}
+                          {STATUS_META[item.status ?? ""].label}
                         </span>
                       )}
                       {renderRubberStamp(item.intel_type, isPublicRecord)}
@@ -2205,7 +1801,7 @@ export default function StakeholderDossier({
                         {Object.entries(CATEGORY_META).map(([typeOptKey, metaOpt]) => (
                           <button
                             key={typeOptKey}
-                            className={`${styles.retagOptionBtn} ${typeOptKey === typeKey ? styles.activeOptionBtn : ""}`}
+                            className={`${styles.retagOptionBtn} ${metaOpt.styleClass} ${typeOptKey === typeKey ? styles.activeOptionBtn : ""}`}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleReTagIntel(item.id, typeOptKey);
@@ -2364,6 +1960,26 @@ export default function StakeholderDossier({
           </div>
         )}
 
+        {st.debug && (
+          <div className={styles.debugPanel}>
+            <button className={styles.debugPanelTitle} onClick={() => toggleDebug(`page-${st.stakeholder_id}`)}>
+              <Icon icon="ph:bug-bold" /> Answer key (debug): {st.debug.missing_intel.length} not found yet
+            </button>
+            {openDebugId === `page-${st.stakeholder_id}` && (
+              <>
+                {st.debug.missing_intel.map((info) => (
+                  <div key={info.id} className={styles.debugMissing}>
+                    <DebugRequirement info={info} />
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Below the facts: what's broken first, then who wants what. */}
+        {st.is_challenge_intel && <ConfirmedSummary {...summaryProps} />}
+
         </div>
 
         {/* The filter strip is the foot of the page: last item in the page column,
@@ -2391,14 +2007,24 @@ export default function StakeholderDossier({
     onOpenPhaseBriefing || onPerformanceToggle || challengeIntelIndex >= 0 || onLogToggle || onSettingsToggle
   );
 
+  // Case board inputs.
+  const portraits = boardPortraits(effectiveDossierData, board.people, stakeholders, getStakeholderColor);
+  // A person on the board: go to their page.
+  const openBoardStakeholder = (stakeholderId: string) => {
+    const idx = effectiveDossierData.findIndex((st) => st.stakeholder_id === stakeholderId);
+    if (idx !== -1) requestPageChange(idx);
+  };
+  const showBoardTab = board.visible && portraits.length >= 3;
+
   if (!isOpen && !isEmbedded) return null;
 
-  const windowContent = (
+  const windowBody = (
     <div
       ref={windowRef}
       className={styles.sketchbookWindow}
-      style={
-        isEmbedded
+      style={{
+        ...INTEL_TOKEN_STYLE,
+        ...(isEmbedded
           ? {
             position: "relative",
             top: "0px",
@@ -2411,8 +2037,8 @@ export default function StakeholderDossier({
           : {
             top: `${Math.max(10, position.y)}px`,
             left: `${Math.max(10, position.x)}px`,
-          }
-      }
+          }),
+      }}
     >
       {/* Header Drag Handle */}
       <div className={styles.binderHeader} onMouseDown={isEmbedded ? undefined : handleMouseDown}>
@@ -2425,7 +2051,7 @@ export default function StakeholderDossier({
           data-intro-group="introDossier"
           data-title="Dossier Toolbar"
           data-intro="This is the game's main menu. <ul>
-                    <li><mark><iconify-icon icon='ph:projector-screen-chart-bold'></iconify-icon> Phase Briefing</mark> and <mark><iconify-icon icon='ph:certificate-duotone'></iconify-icon> Challenge-Intel</mark> give you info what you're actually solving for.</li>
+                    <li><mark><iconify-icon icon='ph:projector-screen-chart-bold'></iconify-icon> Phase Briefing</mark> and <mark class='mlops-mark-red'><iconify-icon icon='ph:seal-warning-duotone'></iconify-icon> Challenge-Intel</mark> give you info what you're actually solving for.</li>
                     <li><mark><iconify-icon icon='ph:gauge-bold'></iconify-icon> Performance</mark> shows how the pipeline is holding up right now.</li>
                     <li><mark><iconify-icon icon='ph:scroll-bold'></iconify-icon> Log</mark> is your paper trail if you forget what you've already found.</li>
                     <li><mark><iconify-icon icon='ph:gear-six-bold'></iconify-icon> Settings</mark> gives access to the user profile and voiceover options.</li>
@@ -2535,9 +2161,11 @@ export default function StakeholderDossier({
             />
           </div>
           {canClose && (
-            <button className={styles.closeButton} onClick={onClose} title="Close Sketchbook">
-              ✕
-            </button>
+            <HoverTooltip description="Close Sketchbook" labelsChild>
+              <button className={styles.closeButton} onClick={onClose}>
+                ✕
+              </button>
+            </HoverTooltip>
           )}
         </div>
       </div>
@@ -2579,7 +2207,7 @@ export default function StakeholderDossier({
               activeEmotionColors[emotion] ||
               activeEmotionColors[emotion.toLowerCase()] ||
               "#64748b";
-            const isActive = idx === currentPageIndex;
+            const isActive = idx === currentPageIndex && !boardOpen;
             const isHighPower = (st.power || stObj?.power || "").toLowerCase() === "high";
             const isHighInterest = (st.interest || stObj?.interest || "").toLowerCase() === "high";
             const keyPlayerHint = [
@@ -2599,7 +2227,6 @@ export default function StakeholderDossier({
                 : `Shifted this phase${change.shiftText ? `: ${change.shiftText}` : ""}`
               : "";
             const tabPips = getIntelPips(st);
-            const tabFoundCount = tabPips.filter((status) => status !== "hidden").length;
             // Stakeholder names are authored "<role/category> <given name>" (e.g. "Requirements
             // Reuben"): split on the first space so the tab always breaks there, on its own two
             // lines, rather than wherever the browser happens to wrap a too-narrow single line.
@@ -2608,13 +2235,24 @@ export default function StakeholderDossier({
             const tabPatience = impatienceTagLabel(
               (buyInInfoMap?.[st.stakeholder_id] ?? buyInInfoMap?.[st.name])?.impatience,
             );
-            const tabTagDetail = [
+            // Plain text for the aria-label; the hover tag gets the structured version below.
+            const tabTagText = [
               `Emotional State: ${emotion}`,
               tabPatience,
               keyPlayerHint || null,
               changeHint || null,
               tabPips.length > 0 ? `Intel: ${describeIntelPips(tabPips)}` : null,
             ].filter(Boolean).join("\n");
+            const intelParts = tabPips.length > 0 ? intelPipParts(tabPips) : null;
+            const tabTagDetail = (
+              <TabTagDetail
+                emotion={emotion}
+                patience={tabPatience}
+                keyFlags={keyPlayerHint ? keyPlayerHint.split(", ") : []}
+                changeHint={changeHint}
+                intel={intelParts}
+              />
+            );
 
             return (
               <button
@@ -2622,7 +2260,7 @@ export default function StakeholderDossier({
                 ref={idx === currentPageIndex ? activeTabRef : null}
                 className={`${styles.tabButton} ${isActive ? styles.activeTab : ""}`}
                 onClick={() => requestPageChange(idx)}
-                aria-label={`${st.name}: ${tabTagDetail}`}
+                aria-label={`${st.name}: ${tabTagText}`}
                 onMouseEnter={(e) => showInfoTag(e, st.name, tabTagDetail)}
                 onMouseLeave={hideInfoTag}
                 onFocus={(e) => showInfoTag(e, st.name, tabTagDetail)}
@@ -2643,16 +2281,6 @@ export default function StakeholderDossier({
                     {change.isNew ? "NEW" : "SHIFTED"}
                   </span>
                 )}
-                {tabPatience && (
-                  <span className={styles.tabPatienceBadge} title={tabPatience}>
-                    <Icon icon="ph:hourglass-medium-bold" />
-                  </span>
-                )}
-                {tabPips.length > 0 && (
-                  <span className={styles.tabIntelCountBadge} title={describeIntelPips(tabPips)}>
-                    {tabFoundCount}/{tabPips.length}
-                  </span>
-                )}
                 <span className={styles.tabName}>
                   {tabGivenName ? (
                     <>
@@ -2668,23 +2296,22 @@ export default function StakeholderDossier({
                     icon={iconForEmotionState(emotion)}
                     className={styles.tabEmotionIcon}
                   />
-                  <span className={styles.tabEmotionLabel} title={`Emotional State: ${emotion}`}>
+                  <span className={styles.tabEmotionLabel}>
                     {emotion}
                   </span>
                   {isHighPower && (
-                    <span
-                      className={styles.tabKeyFlag}
-                      title="High power: strong authority"
-                    >
+                    <span className={styles.tabKeyFlag}>
                       <Icon icon="ph:lightning-fill" className={styles.tabKeyFlagIcon} />
                     </span>
                   )}
                   {isHighInterest && (
-                    <span
-                      className={styles.tabKeyFlag}
-                      title="High interest: closely engaged"
-                    >
+                    <span className={styles.tabKeyFlag}>
                       <Icon icon="ph:eye-fill" className={styles.tabKeyFlagIcon} />
+                    </span>
+                  )}
+                  {tabPatience && (
+                    <span className={styles.tabKeyFlag}>
+                      <Icon icon="ph:hourglass-medium-fill" className={styles.tabPatienceIcon} />
                     </span>
                   )}
                 </div>
@@ -2705,6 +2332,7 @@ export default function StakeholderDossier({
               </button>
             );
           })}
+          {showBoardTab && <BoardTab board={board} open={boardOpen} onOpen={() => { setActiveRetagNoteId(null); setBoardOpen(true); }} />}
         </div>
       )}
 
@@ -2712,13 +2340,28 @@ export default function StakeholderDossier({
       <div className={styles.notebookBindingContainer}>
         {/* Paper Canvas */}
         <div className={styles.flipBookWrapper}>
-          <div className={styles.pageBase} key={currentPageIndex}>
-            {renderPageContent(activeStakeholder)}
+          <div className={styles.pageBase} key={boardOpen && showBoardTab ? "board" : currentPageIndex}>
+            {boardOpen && showBoardTab ? (
+              <CaseBoard
+                board={board}
+                outcome={boardOutcome}
+                portraits={portraits}
+                renderSummary={(context) => <ConfirmedSummary {...summaryProps} board={context} />}
+                onOpenStakeholder={openBoardStakeholder}
+                onConnect={connectThread}
+                onTogglePencil={togglePencil}
+                outerLitIds={litIntelIds}
+                onLitChange={onLitIntelChange}
+              />
+            ) : (
+              renderPageContent(activeStakeholder)
+            )}
           </div>
         </div>
       </div>
     </div>
   );
+  const windowContent = <HoverTooltipTheme variant="parchment">{windowBody}</HoverTooltipTheme>;
 
   const cheatSheet = (
     <CheatSheetModal

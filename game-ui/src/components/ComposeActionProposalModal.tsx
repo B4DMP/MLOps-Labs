@@ -1,10 +1,17 @@
-import { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef, type CSSProperties } from "react";
-import { createPortal } from "react-dom";
+import { useState, useEffect, useMemo, useCallback, useRef, type CSSProperties } from "react";
 import { Icon } from "@iconify/react";
-import { EMOJI_ICON } from "../utils/emojiIcons";
 import styles from "./ComposeActionProposalModal.module.css";
+import sb from "./composeSidebar/ComposeSidebar.module.css";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import { AnimatePresence } from "motion/react";
+import HoverTooltip, { HoverTooltipTheme, useTooltipController } from "./HoverToolTip";
+import ComposeTagDetail, { type TagLine } from "./composeSidebar/ComposeTagDetail";
+import IntelNoteRows, { type LinkedNote, type NoteBoardMark } from "./composeSidebar/IntelNoteRows";
+import OptionLadder from "./composeSidebar/OptionLadder";
+import ProposalTickets, { type ProposalEntry } from "./composeSidebar/ProposalTickets";
+import { AxisChip, Chip, ChipRow, DependencyChip, type DependencyState } from "./composeSidebar/StatusChips";
+import { firstSentence } from "../utils/firstSentence";
+import { litTargets } from "../utils/litTargets";
 import CoachTip, { type CoachIconKey } from "./CoachTip";
 import { useGuideNarration } from "./useGuideNarration";
 import { useNarratorGate } from "./useNarratorGate";
@@ -30,11 +37,11 @@ import { describeHandoff } from "../utils/edgeSummary";
 import { GRAPH_HINTS, GRAPH_HINT_OPTION, GRAPH_HINT_TARGET } from "../content/graphHelp";
 import { COACH_TIPS, COMPOSE_GUIDE, PITCH_GUIDE } from "../content/helpCopy";
 import type { Stakeholder } from "./StakeholderProvider";
-import type { StakeholderDossierEntry, IntelEntry } from "./StakeholderDossier";
+import type { StakeholderDossierEntry } from "./StakeholderDossier";
 import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
 import { useGlossaryHighlighter } from "./glossary/GlossaryText";
 import {
-  CappedChainGlyph,
+
   CrossPhaseStub,
   EDGE_FLOW_ANIM,
   edgeStrokeWidth,
@@ -43,6 +50,7 @@ import {
   NodeDefs,
   NodeIcon,
   NodeTitleAberration,
+  BrokenBorder,
   LevelCaption,
   NODE_STATE_ANIM,
   SelectionReticle,
@@ -57,9 +65,8 @@ import {
   NODE_METER_Y,
   NODE_PAD_X,
   NODE_TITLE_LH,
-  NODE_TITLE_Y,
-  NODE_RX,
-  RAIL_W,
+
+
   nodeFace,
   compactLayout,
   crossPhaseExplanation,
@@ -68,10 +75,7 @@ import {
   formatAxisLevel,
   formatTrigger,
   AUTOMATION_META,
-  AXIS_TITLES,
   GOVERNANCE_META,
-  LEVEL_EMPTY,
-  axisMeta,
   levelRungs,
   TRIGGER_ICONS,
   wrapLabel,
@@ -81,7 +85,6 @@ import type { AtomicChange, ItemPrediction } from "../types/ActionCard";
 import {
   AXES,
   addOption,
-  ceilingOn,
   describeAtomicChange,
   dropUnscopedChanges,
   isImplemented,
@@ -92,7 +95,6 @@ import {
   projectedOn,
   removeChangeAt,
   type GraphOption,
-  type OptionStatus,
   type OptionTarget,
 } from "../utils/graphOptions";
 
@@ -216,6 +218,18 @@ export interface ComposeActionProposalModalProps {
   onConfirmProposal: (atomicChanges: AtomicChange[]) => void;
   allowedTargets?: string[];
   upstreamMap?: Record<string, string[]>;
+  /** Case board rifts the player confirmed that a Trade-off can settle: the notes behind each side. */
+  compromisePairs?: Array<{ relation_id: string; a: string; b: string; target: string; item_ids: string[] }>;
+  /** Case board chains the player confirmed: this target's change comes after another person's step. */
+  afterNotes?: Array<{ relation_id: string; target: string; waits: string; after: string; after_name: string; via?: string | null }>;
+  /** Case board shared steps the player confirmed: two people have a stance on this target. */
+  sharedSteps?: Array<{ relation_id: string; target: string; a_name: string; b_name: string }>;
+  /** Case board allies the player confirmed (pushing the same way): the notes behind each side. */
+  allyPairs?: Array<{ relation_id: string; a: string; b: string; a_name: string; b_name: string; item_ids: string[] }>;
+  /** Notes lit elsewhere (hovered on the case board); shown lit here. */
+  litIntelIds?: ReadonlyMap<string, string>;
+  /** Told which note the cursor is on here (null: none), so the case board can light it too. */
+  onLitIntel?: (intelId: string | null) => void;
   /** One entry per (target, axis) slotted. */
   predictions?: ItemPrediction[];
   boundaryWarnings?: Array<{
@@ -250,46 +264,91 @@ export interface ComposeActionProposalModalProps {
   /** Shows a "?" in the header that asks the host to open the cheat sheet on its MLOps Graph
    *  tab. The composer stays mounted underneath so the replayed walkthrough can find its markup. */
   onOpenCheatSheet?: () => void;
+  /** Opens the dossier's Case board tab, which sits beside the composer. The hints about it show only when given. */
+  onOpenBoard?: () => void;
   /** The host has something else on screen (cheat sheet, coach tip, tour, start gate); the guide waits. */
   guidePaused?: boolean;
 }
 
 const MAX_ATOMIC_CHANGES = 4;
+const EMPTY_LIT: ReadonlyMap<string, string> = new Map();
 
-/** One dossier note, carrying who it belongs to so clicking it can jump the dossier there. */
-interface LinkedNote {
-  item: IntelEntry;
-  stakeholderName: string;
-  stakeholderId?: string;
+/** Nodes are index cards pinned to the corkboard: warm ink for outline and text, a brown title bar
+ *  when all is well, and a colour only when something needs attention. */
+const CARD = {
+  ink: "#2b2118",
+  bar: "#3b2a1e",
+  proposed: "#1d7f94",
+  select: "#3b2412",
+  predecessor: "#1d4ed8",
+  empty: "#bfae8a",
+  broken: "#9d1c2a",
+  capped: "#9a3f0b",
+  uncertain: "#76530b",
+  viewOnly: "#6e5f4d",
+} as const;
+/** Height of a node's title bar: two lines of title, centred. */
+const BAR_H = 34;
+
+/**
+ * A node's title bar carries its state. Healthy is plain ink: only what needs attention takes a
+ * colour, so a problem is the first thing the eye lands on. The inspector's header mirrors it.
+ */
+function nodeBar(s: { otherPhase: boolean; broken: boolean; uncertain: boolean; capped: boolean }): {
+  fill: string;
+  ink: string;
+} {
+  const fill = s.otherPhase
+    ? CARD.viewOnly
+    : s.broken
+    ? CARD.broken
+    : s.uncertain
+    ? CARD.uncertain
+    : s.capped
+    ? CARD.capped
+    : CARD.bar;
+  return { fill, ink: "#ffffff" };
 }
 
-const NOTE_SOURCE_META: Record<string, { icon: string; label: string }> = {
-  public_record: { icon: "ph:megaphone-duotone", label: "Said openly in the team channel" },
-  interview: { icon: "ph:chats-circle-bold", label: "They told you this directly" },
-  debate: { icon: "ph:microphone-stage-bold", label: "Came out during the pitch" },
-  offline_artifact: { icon: "ph:file-text-bold", label: "You read this in a document" },
+/** Strings on the board: the line colours, chosen to read on cork. Arrowheads use the same. */
+const EDGE_ON_CORK: Record<string, string> = {
+  "arr-default": "#efe3c8",
+  "arr-viewonly": "#c4b595",
+  "arr-primary": "#7fdcec",
+  "arr-predecessor": "#9dbcff",
+  "arr-success": "#55d38c",
+  "arr-danger": "#ff6678",
+  "arr-warning": "#ffa04a",
 };
+const LIT_GLOW = "rgba(255, 246, 205, 0.95)";
 
-function noteSourceMeta(item: IntelEntry) {
-  return NOTE_SOURCE_META[(item.source || "offline_artifact").toLowerCase()] ?? NOTE_SOURCE_META.offline_artifact;
+/** A card's tilt, fixed by its id: pinned cards are never quite square to the board. */
+function cardTilt(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 997;
+  return ((h % 5) - 2) * 0.3;
 }
 
 /**
- * Canvas legend, shown on hover rather than permanently occupying a toolbar row. It reads the
- * node in the order the node is drawn: the rail down its left edge says how it is doing, the
- * meter along its bottom says how far it is built, and the corner marks say what you may do
- * with it here.
+ * Canvas legend, shown on hover rather than permanently occupying a toolbar row. It reads a card in the
+ * order it is drawn: the title bar says how it is doing, the meter along its bottom says how far it is
+ * built, the flag and outline say what you may do with it, and the strings between cards say how
+ * automated the hand-off is.
  */
+const LEGEND_BAR: CSSProperties = { width: "22px", height: "8px", borderRadius: "1px" };
+const LEGEND_STRING: CSSProperties = { width: "22px", height: "3px", borderRadius: "2px", boxShadow: "0 0 0 1px rgba(40, 24, 8, 0.3)" };
 const LEGEND_GROUPS: Array<{
   heading: string;
   items: Array<{ label: string; swatch?: CSSProperties; glyph?: string; icon?: string; iconColor?: string }>;
 }> = [
   {
-    heading: "Status rail",
+    heading: "Title bar (state)",
     items: [
-      { label: "Running as built", swatch: { background: NODE_COLORS.healthy } },
-      { label: "Held back by a bottleneck", swatch: { background: NODE_COLORS.capped } },
-      { label: "Broken", swatch: { background: NODE_COLORS.broken } },
+      { label: "Running as built", swatch: { ...LEGEND_BAR, background: CARD.bar } },
+      { label: "Held back by a bottleneck", swatch: { ...LEGEND_BAR, background: CARD.capped } },
+      { label: "Upstream still unknown", swatch: { ...LEGEND_BAR, background: CARD.uncertain } },
+      { label: "Broken: its border tears", swatch: { ...LEGEND_BAR, background: CARD.broken } },
+      { label: "Another phase: view only", swatch: { ...LEGEND_BAR, background: CARD.viewOnly } },
     ],
   },
   {
@@ -300,7 +359,8 @@ const LEGEND_GROUPS: Array<{
         swatch: { background: rung.color },
       })),
       { label: "Built but not running", swatch: { background: AUTOMATION_META[3].color, opacity: 0.33 } },
-      { label: "Not built", swatch: { background: LEVEL_EMPTY } },
+      { label: "Planned in your proposal", swatch: { background: NODE_COLORS.selected, opacity: 0.45 } },
+      { label: "Not built", swatch: { background: CARD.empty } },
     ],
   },
   {
@@ -310,214 +370,37 @@ const LEGEND_GROUPS: Array<{
         label: `${i + 1}. ${rung.label}`,
         swatch: { background: rung.color },
       })),
-      { label: "Above this target's ceiling", swatch: { border: `1px dashed ${LEVEL_EMPTY}`, background: "transparent" } },
+      { label: "Above this target's ceiling", swatch: { border: `1px dashed ${CARD.empty}`, background: "transparent" } },
+    ],
+  },
+  {
+    heading: "Strings (hand-offs)",
+    items: [
+      { label: "Automated", swatch: { ...LEGEND_STRING, background: EDGE_ON_CORK["arr-success"] } },
+      { label: "Partly automated or manual", swatch: { ...LEGEND_STRING, background: EDGE_ON_CORK["arr-warning"] } },
+      { label: "Stalled", swatch: { ...LEGEND_STRING, background: EDGE_ON_CORK["arr-danger"] } },
+      { label: "Not yet rated", swatch: { ...LEGEND_STRING, background: EDGE_ON_CORK["arr-default"] } },
+      { label: "In your proposal, or selected", swatch: { ...LEGEND_STRING, background: EDGE_ON_CORK["arr-primary"] } },
+      { label: "Another phase: view only", swatch: { ...LEGEND_STRING, background: EDGE_ON_CORK["arr-viewonly"] } },
     ],
   },
   {
     heading: "Marks",
     items: [
-      { label: "In your proposal", icon: EMOJI_ICON.power.icon, iconColor: EMOJI_ICON.power.color },
-      { label: "Another phase - view only", icon: "noto:eye" },
-      { label: "Dashed outline: undiscovered", swatch: { border: "1.5px dashed #94a3b8", background: "#f8fafc" } },
-      { label: "Flat pale face: another phase", swatch: { border: "1.5px solid #cbd5e1", background: "#eef2f7" } },
+      { label: "Flag: a step of yours is attached", icon: "ph:hammer-duotone", iconColor: CARD.proposed },
+      { label: "Corner brackets: selected", icon: "ph:corners-out-bold", iconColor: CARD.select },
+      { label: "Dashed outline: another phase, view only", swatch: { border: `1.5px dashed ${CARD.ink}`, background: "#fcf8ec" } },
       {
-        label: "Handle on a line: the connection is editable",
+        label: "Lifted with a shadow: a note you are pointing at",
+        swatch: { border: `1px solid ${CARD.ink}`, background: "#fcf8ec", boxShadow: "0 3px 3px rgba(40, 24, 8, 0.45)" },
+      },
+      {
+        label: "Handle on a string: the connection is editable",
         swatch: { border: "1.25px solid #64748b", background: "#ffffff", borderRadius: "9999px", height: "11px" },
       },
     ],
   },
 ];
-
-/**
- * What each axis means depends on whether the target is a component or a hand-off between
- * two (00-plan.md §2.2), so the two sections of an inspector are introduced accordingly.
- */
-const AXIS_HINTS: Record<"component" | "edge", Record<Axis, string>> = {
-  component: {
-    automation: "Who does the work: a person, or tooling.",
-    governance: "How closely this component's own output is reviewed.",
-  },
-  edge: {
-    automation: "Whether the hand-off fires by itself, or only when someone asks.",
-    governance: "Whether this hand-off needs sign-off before it may happen.",
-  },
-};
-
-const AXIS_ICONS: Record<Axis, string> = {
-  automation: "ph:lightning-bold",
-  governance: "ph:shield-check-bold",
-};
-
-/** A small row of pips for one axis, in that axis's own colours, for the inspector header. */
-function AxisPipRow({ axis, level, projected, ceiling }: { axis: Axis; level: number; projected: number; ceiling: number }) {
-  return (
-    <span className={styles.axisPips} aria-hidden>
-      {[1, 2, 3].map((r) => {
-        const above = r > ceiling;
-        const built = axis === "automation" && level === 0 ? r === 1 : r <= level;
-        const planned = !built && r <= projected;
-        return (
-          <span
-            key={r}
-            className={`${styles.axisPip} ${above ? styles.axisPipAbove : ""} ${planned ? styles.axisPipPlanned : ""}`}
-            style={built ? { background: axisMeta(axis, level === 0 ? 0 : r).color, borderColor: "transparent" } : undefined}
-          />
-        );
-      })}
-    </span>
-  );
-}
-
-/**
- * One axis of one target, as the ladder of authored options that climbs it. Every option is a
- * single ready-made step: the player adds the next one by name, and sees the ones already in
- * place, the ones already in the proposal, and the ones that need a step below them first.
- * There is no level to type and no trigger to choose - an edge's automation option already
- * says what starts the hand-off.
- */
-function OptionLadder({
-  axis,
-  target,
-  kind,
-  changes,
-  slotsFull,
-  onAdd,
-  onRemove,
-}: {
-  axis: Axis;
-  target: OptionTarget;
-  kind: "component" | "edge";
-  changes: AtomicChange[];
-  slotsFull: boolean;
-  onAdd: (option: GraphOption) => void;
-  onRemove: (option: GraphOption) => void;
-}) {
-  const nominal = nominalOn(target, axis);
-  const projected = projectedOn(target, axis, changes);
-  const ceiling = ceilingOn(target, axis);
-  const options = optionsOn(target, axis);
-  const now = axisMeta(axis, nominal);
-  // Nothing to review on a target nobody has implemented yet - there's no governance ladder to
-  // climb until an automation step has landed it at manual or above.
-  const governanceLocked = axis === "governance" && !isImplemented(target, changes);
-
-  const statusLabel: Record<OptionStatus, string> = {
-    done: "In place",
-    slotted: "In proposal",
-    next: "",
-    later: "Needs the step above",
-  };
-
-  return (
-    <div
-      className={`${styles.axisSection} ${axis === "governance" ? styles.axisSectionGovernance : ""}`}
-      data-coach={axis === "governance" ? "compose-governance" : undefined}
-    >
-      <div className={styles.axisHeader}>
-        <span className={styles.formLabel}>
-          <Icon icon={AXIS_ICONS[axis]} />
-          <span>{AXIS_TITLES[axis]}</span>
-        </span>
-        <span
-          className={styles.axisNow}
-          style={{ ["--rung" as string]: now.color, ["--rung-ink" as string]: now.ink }}
-          title={`${AXIS_TITLES[axis]} today: ${now.label}`}
-        >
-          <Icon icon={now.icon} aria-hidden />
-          <span>{now.label}</span>
-          <AxisPipRow axis={axis} level={nominal} projected={projected} ceiling={ceiling} />
-        </span>
-      </div>
-      <span className={styles.axisHint}>
-        {AXIS_HINTS[kind][axis]}
-        {governanceLocked && " Nothing to review until it's implemented."}
-      </span>
-
-      {governanceLocked ? (
-        <span className={styles.axisEmpty}>
-          <Icon icon="ph:lock-simple-bold" /> Implement It Manually on automation first - you can't govern something that
-          doesn't exist yet.
-        </span>
-      ) : options.length === 0 ? (
-        <span className={styles.axisEmpty}>
-          {nominal >= ceiling
-            ? `${formatAxisLevel(axis, ceiling)} is as far as this goes on ${AXIS_TITLES[axis].toLowerCase()}.`
-            : `No ${AXIS_TITLES[axis].toLowerCase()} step is on offer here.`}
-        </span>
-      ) : (
-        <div className={styles.optionList} role="list">
-          {options.map((option) => {
-            const status = optionStatus(target, axis, option, changes);
-            const rung = axisMeta(axis, option.to_level);
-            const showDescription = option.description && option.description.trim() !== option.name.trim();
-            return (
-              <div
-                key={`${axis}-${option.to_level}`}
-                role="listitem"
-                data-coach-option={`${axis}-${option.to_level}`}
-                className={`${styles.optionRow} ${
-                  status === "next"
-                    ? styles.optionRowNext
-                    : status === "slotted"
-                    ? styles.optionRowSlotted
-                    : status === "done"
-                    ? styles.optionRowDone
-                    : styles.optionRowLater
-                }`}
-                style={{ ["--rung" as string]: rung.color, ["--rung-ink" as string]: rung.ink }}
-              >
-                <Icon icon={status === "done" ? "ph:check-circle-bold" : rung.icon} className={styles.optionIcon} aria-hidden />
-                <div className={styles.optionText}>
-                  <span className={styles.optionName}>{optionDisplayName(target, axis, option)}</span>
-                  {showDescription && <span className={styles.optionDesc}>{option.description}</span>}
-                  <span className={styles.optionMeta}>
-                    <span className={styles.optionTag} title={`${AXIS_TITLES[axis]} rung this step lands on`}>
-                      → {rung.label}
-                    </span>
-                    {option.trigger && (
-                      <span className={styles.optionTag} title="What starts the hand-off once this is in place">
-                        {TRIGGER_ICONS[option.trigger] ?? "?"} {formatTrigger(option.trigger)}
-                      </span>
-                    )}
-                  </span>
-                </div>
-                <div className={styles.optionAction}>
-                  {status === "next" ? (
-                    <button
-                      type="button"
-                      className={styles.optionAddBtn}
-                      disabled={slotsFull}
-                      onClick={() => onAdd(option)}
-                      title={slotsFull ? `All ${MAX_ATOMIC_CHANGES} slots are used` : "Add this step to the proposal - one slot"}
-                    >
-                      <Icon icon="ph:plus-bold" />
-                      <span>{slotsFull ? "Slots full" : "Add"}</span>
-                    </button>
-                  ) : status === "slotted" ? (
-                    <button
-                      type="button"
-                      className={styles.optionRemoveBtn}
-                      onClick={() => onRemove(option)}
-                      title="Take this step (and any step after it on this axis) back out"
-                    >
-                      <Icon icon="ph:x-bold" />
-                      <span>{statusLabel.slotted}</span>
-                    </button>
-                  ) : (
-                    <span className={styles.optionState}>
-                      {status === "later" && <Icon icon="ph:lock-simple-bold" />}
-                      {statusLabel[status]}
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function ComposeActionProposalModal({
   isOpen,
@@ -530,6 +413,12 @@ export default function ComposeActionProposalModal({
   onConfirmProposal,
   allowedTargets = [],
   upstreamMap = {},
+  compromisePairs = [],
+  afterNotes = [],
+  sharedSteps = [],
+  allyPairs = [],
+  litIntelIds = EMPTY_LIT,
+  onLitIntel,
   predictions = [],
   boundaryWarnings: _boundaryWarnings = [],
   // Superseded by dossierData's own intel_total for the header's found/total count, which
@@ -538,16 +427,23 @@ export default function ComposeActionProposalModal({
   graphState: propGraphState = null,
   dossierData = [],
   stakeholders = {},
+  getStakeholderColor,
   onOpenStakeholder,
   onSelectIntel,
   intelTotal = 0,
   intelVerified = 0,
   onOpenCheatSheet,
+  onOpenBoard,
   guidePaused = false,
 }: ComposeActionProposalModalProps) {
   const { emit, subscribe, userId } = useGameWebSocket();
   const gate = useNarratorGate();
   const highlight = useGlossaryHighlighter("action_proposal");
+  // The ally threads this note sits behind, named by the person on the other side.
+  const allyOf = (note: LinkedNote) =>
+    allyPairs
+      .filter((p) => p.item_ids.includes(note.item.id))
+      .map((p) => ({ relation_id: p.relation_id, other: note.stakeholderId === p.a ? p.b_name : p.a_name }));
 
   const [localGraphState, setLocalGraphState] = useState<GraphStatePayload | null>(propGraphState);
   // A saved proposal can carry a stale duplicate slot for the same (target, axis) (see
@@ -576,6 +472,8 @@ export default function ComposeActionProposalModal({
   // Whether to leave the composer, or discard its slots, needs confirming first: null means
   // no confirmation is pending, otherwise which action is waiting on one.
   const [confirmingLeave, setConfirmingLeave] = useState<"close" | "discard" | null>(null);
+  // The "PROPOSED" stamp lands for a beat before the composer closes.
+  const [stamping, setStamping] = useState(false);
 
   // Slotted changes only ever reach the parent (and the stakeholders) via Confirm - closing
   // the composer any other way, or discarding, throws away anything since the last confirm.
@@ -622,79 +520,13 @@ export default function ComposeActionProposalModal({
     return () => window.removeEventListener("beforeunload", handler);
   }, [isOpen, isDirty]);
 
-  // Hover/focus info tag (ported from StakeholderDossier.tsx / pitch_debate.tsx's own
-  // showInfoTag) - a flip-in tag anchored to whatever's hovered/focused, replacing plain
-  // `title` tooltips throughout the composer's chrome and canvas. Flips above its anchor
-  // when there isn't room below (the footer buttons sit right at the window's bottom edge),
-  // the same pass StakeholderDossier's EmotionRevealBadge and HoverToolTip.tsx already do.
-  const [infoTag, setInfoTag] = useState<{
-    label: string;
-    detail?: string;
-    anchorTop: number;
-    anchorBottom: number;
-    anchorX: number;
-    top: number;
-    left: number;
-    placement: "above" | "below";
-  } | null>(null);
-  const infoTagRef = useRef<HTMLDivElement>(null);
-
-  const showInfoTag = (e: React.SyntheticEvent, label: string, detail?: string) => {
-    const rect = (e.currentTarget as Element).getBoundingClientRect();
-    const anchorX = rect.left + rect.width / 2;
-    setInfoTag({
-      label,
-      detail,
-      anchorTop: rect.top,
-      anchorBottom: rect.bottom,
-      anchorX,
-      top: rect.bottom + 6,
-      left: anchorX,
-      placement: "below",
-    });
-  };
-  const hideInfoTag = () => setInfoTag(null);
-
-  /** Spread onto any element to give it the hover/focus tag in one line, same shape as the
-   *  dossier's own stampTagProps. */
-  const tagProps = (label: string, detail?: string) => ({
-    onMouseEnter: (e: React.SyntheticEvent) => showInfoTag(e, label, detail),
-    onMouseLeave: hideInfoTag,
-    onFocus: (e: React.SyntheticEvent) => showInfoTag(e, label, detail),
-    onBlur: hideInfoTag,
-  });
-
-  useLayoutEffect(() => {
-    if (!infoTag || !infoTagRef.current) return;
-    const box = infoTagRef.current.getBoundingClientRect();
-    const half = box.width / 2;
-    const left = Math.min(Math.max(infoTag.anchorX, 6 + half), window.innerWidth - 6 - half);
-
-    let top = infoTag.anchorBottom + 6;
-    let placement: "above" | "below" = "below";
-    if (top + box.height > window.innerHeight - 6) {
-      const above = infoTag.anchorTop - 6 - box.height;
-      if (above >= 6) {
-        top = above;
-        placement = "above";
-      } else {
-        top = Math.max(6, window.innerHeight - 6 - box.height);
-      }
-    }
-
-    setInfoTag((prev) =>
-      prev && prev.left === left && prev.top === top && prev.placement === placement
-        ? prev
-        : prev && { ...prev, left, top, placement }
+  // One tooltip for the whole composer, drawn by the same box as HoverTooltip. `tagProps` binds it
+  // to what a HoverTooltip wrapper would break: SVG nodes and edges, the stage chevrons, header chips.
+  const tip = useTooltipController();
+  const tagProps = (label: string, detail?: string | TagLine[]) =>
+    tip.bind(
+      <ComposeTagDetail label={label} lines={detail === undefined ? undefined : Array.isArray(detail) ? detail : [detail]} />
     );
-  }, [infoTag?.anchorX, infoTag?.anchorTop, infoTag?.anchorBottom, infoTag?.label, infoTag?.detail]);
-
-  useEffect(() => {
-    if (!infoTag) return;
-    const handleScroll = () => hideInfoTag();
-    window.addEventListener("scroll", handleScroll, true);
-    return () => window.removeEventListener("scroll", handleScroll, true);
-  }, [infoTag]);
 
   useEffect(() => {
     if (propGraphState) {
@@ -725,8 +557,8 @@ export default function ComposeActionProposalModal({
       }
       setHoveredCompId(null);
       setHoveredEdgeId(null);
-      setInfoTag(null);
       setConfirmingLeave(null);
+      setStamping(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialAtomicChangesResolved, initialSelectedTargetId]);
@@ -944,6 +776,17 @@ export default function ComposeActionProposalModal({
     });
     return byTarget;
   }, [dossierData]);
+
+  // The nodes and lines behind notes lit elsewhere (hovered in the dossier or on the case board).
+  // Only the stage on screen is drawn on; a lit target on another stage marks that stage's tab.
+  const { litTargetIds, litStageIds } = useMemo(() => {
+    const { targets, stages } = litTargets(
+      litIntelIds,
+      dossierData,
+      (id) => (allComponentsMap.get(id) ?? allComponentsMap.get(allEdgesMap.get(id)?.from_id ?? ""))?.stage_id
+    );
+    return { litTargetIds: targets, litStageIds: stages };
+  }, [litIntelIds, dossierData, allComponentsMap, allEdgesMap]);
 
   const slotsFull = atomicChanges.length >= MAX_ATOMIC_CHANGES;
 
@@ -1214,15 +1057,253 @@ export default function ComposeActionProposalModal({
   useGuideNarration(guide ? `compose-${guide.id}` : null, guide?.body ?? "");
 
   const handleConfirm = () => {
+    if (stamping) return;
     // Confirming ends the guide: the player has seen how it works.
     if (isIntro) markGuide(...Object.values(COMPOSE_KEYS).filter((k) => k !== COMPOSE_KEYS.off && k !== COMPOSE_KEYS.cappedTip));
-    onConfirmProposal(atomicChanges);
-    onClose();
+    const send = () => {
+      onConfirmProposal(atomicChanges);
+      onClose();
+    };
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+      send();
+      return;
+    }
+    setStamping(true);
+    window.setTimeout(send, 380);
   };
 
   if (!isOpen) return null;
 
+  // ── Sidebar values ──
+  const BOARD_ALLY_DETAIL =
+    "You tied these two together on the case board: both want this step moved the same way, though not necessarily to the same level. When one of them backs your card, the other warms to it.";
+  const boardMarksFor = (note: LinkedNote): NoteBoardMark[] => [
+    ...allyOf(note).map((n) => ({
+      key: n.relation_id,
+      icon: "ph:handshake-duotone",
+      label: `Pushing the same way as ${n.other}`,
+      detail: BOARD_ALLY_DETAIL,
+    })),
+    ...(compromisePairs.some((p) => p.item_ids.includes(note.item.id))
+      ? [
+          {
+            key: `compromise-${note.item.id}`,
+            icon: "ph:scales-duotone",
+            label: "Compromise pair",
+            detail: "You tied these two notes together on the case board: a Trade-off can settle it.",
+          },
+        ]
+      : []),
+  ];
+
+  const stepLabel = (id: string) => allComponentsMap.get(id)?.name || id;
+  const proposalEntries: ProposalEntry[] = atomicChanges.map((change) => {
+    const isEdge = change.target.startsWith("e.") || allEdgesMap.has(change.target);
+    const edge = allEdgesMap.get(change.target);
+    const comp = allComponentsMap.get(change.target);
+    const described = describeAtomicChange(change, isEdge ? edge : comp);
+    return {
+      displayName: isEdge ? `${stepLabel(edge?.from_id || "Source")} → ${stepLabel(edge?.to_id || "Target")}` : comp?.name || change.target,
+      title: described.title,
+      detail: described.detail,
+      axis: change.axis,
+      isEdge,
+      marks: [
+        ...sharedSteps
+          .filter((n) => n.target === change.target)
+          .map((n) => ({
+            key: n.relation_id,
+            icon: "ph:stack-duotone",
+            label: `Shared by ${n.a_name} and ${n.b_name}`,
+            detail: "You tied these two together on the case board: both have a stance on this step.",
+          })),
+        ...afterNotes
+          .filter((n) => n.target === change.target)
+          .map((n) => ({
+            key: n.relation_id,
+            icon: "ph:link-simple-duotone",
+            label: `After ${n.after_name}'s step`,
+            detail: "You tied these two together on the case board: this change is capped until their step is done.",
+          })),
+      ],
+    };
+  });
+
+  const openProposalEntry = (idx: number) => {
+    const target = atomicChanges[idx]?.target;
+    if (!target) return;
+    if (proposalEntries[idx].isEdge) {
+      setSelectedEdgeId(target);
+      setSelectedCompId(null);
+    } else {
+      setSelectedCompId(target);
+      setSelectedEdgeId(null);
+    }
+  };
+
+  const dependencyState: DependencyState | null = !selectedCompData
+    ? null
+    : selectedUpstreamStatus.uncertain
+    ? { kind: "uncertain", nodes: selectedUpstreamStatus.unknownNodes.map((id) => ({ id, name: stepLabel(id) })) }
+    : selectedCompData.capped_by &&
+      selectedCompData.effective_automation !== undefined &&
+      selectedCompData.nominal_automation !== undefined &&
+      selectedCompData.effective_automation < selectedCompData.nominal_automation
+    ? {
+        kind: "held",
+        byId: selectedCompData.capped_by,
+        byName: stepLabel(selectedCompData.capped_by),
+        capLabel: formatAxisLevel("automation", selectedCompData.effective_automation),
+      }
+    : {
+        kind: "ok",
+        levelLabel: formatAxisLevel(
+          "automation",
+          selectedCompData.effective_automation ?? nominalOn(selectedCompData, "automation")
+        ),
+      };
+
+  const ownerName = (id: string) => stakeholders[id]?.name ?? id.replace(/_/g, " ");
+
+  /** The owner as a face: a link into their dossier when the host can show one. */
+  const renderOwner = (ownerId?: string) => {
+    if (!ownerId) return null;
+    const avatar = (
+      <StakeholderAvatarComponent
+        stakeholderId={ownerId}
+        avatar={stakeholders[ownerId]?.avatar}
+        stakeholderColor={stakeholders[ownerId]?.stakeholder_color}
+        isFramed={false}
+        size="100%"
+        flip
+        thumb
+        hoverToSuspicious={false}
+      />
+    );
+    return (
+      <HoverTooltip
+        description={
+          <ComposeTagDetail
+            label={`Owner: ${ownerName(ownerId)}`}
+            lines={onOpenStakeholder ? ["Open their dossier page"] : undefined}
+          />
+        }
+        ariaText={`Owner: ${ownerName(ownerId)}`}
+      >
+        {onOpenStakeholder ? (
+          <button type="button" className={sb.owner} onClick={() => onOpenStakeholder(ownerId)} aria-label={`Owner: ${ownerName(ownerId)}. Open their dossier page.`}>
+            {avatar}
+          </button>
+        ) : (
+          <span className={`${sb.owner} ${sb.ownerStatic}`}>{avatar}</span>
+        )}
+      </HoverTooltip>
+    );
+  };
+
+  const closeInspectorButton = (onClick: () => void) => (
+    <HoverTooltip description="Close inspector" labelsChild>
+      <button type="button" className={sb.bandClose} onClick={onClick}>
+        <Icon icon="ph:x-bold" />
+      </button>
+    </HoverTooltip>
+  );
+
+  /** Notes filed against a target, laid out as the case board's ledger: evidence before the picker. */
+  const renderNotes = (targetId: string, what: "component" | "connection") => {
+    const notes = notesByTarget[targetId] ?? [];
+    if (notes.length === 0) return null;
+    // Threads you confirmed on the case board that touch this target or its notes.
+    const noteIds = new Set(notes.map((n) => n.item.id));
+    const boardThreads =
+      compromisePairs.filter((p) => p.target === targetId).length +
+      afterNotes.filter((n) => n.target === targetId).length +
+      sharedSteps.filter((n) => n.target === targetId).length +
+      allyPairs.filter((p) => p.item_ids.some((id) => noteIds.has(id))).length;
+    return (
+      <div className={sb.section}>
+        <div className={sb.sectionHead}>
+          <Icon icon="ph:notebook-bold" />
+          <span>Notes on this {what}</span>
+          <span className={sb.sectionRight}>
+            {onOpenBoard && (
+              <HoverTooltip
+                description={
+                  <ComposeTagDetail
+                    label="Case board"
+                    lines={[
+                      boardThreads > 0
+                        ? `${boardThreads} thread${boardThreads === 1 ? "" : "s"} you tied on the board touch this ${what}. Open it to see them.`
+                        : `Nothing you tied on the board touches this ${what} yet. Open it to look for who is connected to whom.`,
+                    ]}
+                  />
+                }
+              >
+                <button type="button" className={sb.boardChip} onClick={onOpenBoard}>
+                  <Icon icon="ph:push-pin-duotone" />
+                  <span>{boardThreads > 0 ? `${boardThreads} on the board` : "Board"}</span>
+                </button>
+              </HoverTooltip>
+            )}
+            {intelCountLabel(notes)}
+          </span>
+        </div>
+        <IntelNoteRows
+          notes={notes}
+          stakeholders={stakeholders as Record<string, Stakeholder>}
+          getStakeholderColor={getStakeholderColor}
+          litIntelIds={litIntelIds}
+          onLitIntel={onLitIntel}
+          onSelectIntel={onSelectIntel}
+          boardMarksFor={boardMarksFor}
+        />
+      </div>
+    );
+  };
+
+  const renderLadders = (target: OptionTarget, kind: "component" | "edge") =>
+    AXES.map((axis) => (
+      <OptionLadder
+        key={axis}
+        axis={axis}
+        target={target}
+        kind={kind}
+        changes={atomicChanges}
+        slotsFull={slotsFull}
+        maxSlots={MAX_ATOMIC_CHANGES}
+        onAdd={(option) => handleAddOption(target, axis, option)}
+        onRemove={(option) => handleRemoveOption(target, axis, option)}
+        bindTip={tip.bind}
+      />
+    ));
+
+  const viewOnly = (reason: string) => (
+    <div className={sb.viewOnly}>
+      <Icon icon="ph:eye-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
+      <div>
+        <strong>View only:</strong> {highlight(reason)}
+      </div>
+    </div>
+  );
+
+  // The header band takes the selected node's title-bar colours, so the inspector reads as that node's.
+  const inspectorBar = selectedCompData
+    ? nodeBar({
+        otherPhase: !selectedCompEditable.editable,
+        broken: (selectedCompData.nominal_automation ?? 1) === 0,
+        uncertain: selectedUpstreamStatus.uncertain,
+        capped: Boolean(selectedCompData.capped_by),
+      })
+    : selectedCrossStub
+    ? nodeBar({ otherPhase: true, broken: false, uncertain: false, capped: false })
+    : nodeBar({ otherPhase: false, broken: false, uncertain: false, capped: false });
+  const bandStyle = { ["--bar" as string]: inspectorBar.fill, ["--bar-ink" as string]: inspectorBar.ink };
+
+  const edgeFrom = selectedEdgeData ?allComponentsMap.get(selectedEdgeData.from_id)?.name || selectedEdgeData.from_id : "";
+  const edgeTo = selectedEdgeData ? allComponentsMap.get(selectedEdgeData.to_id)?.name || selectedEdgeData.to_id : "";
+
   return (
+    <HoverTooltipTheme variant="paper">
     <div className={styles.proposalContainer}>
       {/* ── Header ── */}
       <div className={styles.modalHeader}>
@@ -1265,9 +1346,14 @@ export default function ComposeActionProposalModal({
                 : "Up to 4 changes can go into one proposal"
             )}
           >
-            <Icon icon="ph:cpu-bold" />
+            <Icon icon="ph:stack-duotone" />
+            <span className={styles.slotPips} aria-hidden>
+              {Array.from({ length: MAX_ATOMIC_CHANGES }, (_, i) => (
+                <span key={i} className={`${styles.slotPip} ${i < atomicChanges.length ? styles.slotPipOn : ""}`} />
+              ))}
+            </span>
             <span>
-              {atomicChanges.length} / {MAX_ATOMIC_CHANGES} Slots Configured
+              {atomicChanges.length} / {MAX_ATOMIC_CHANGES} slots
             </span>
           </div>
 
@@ -1329,6 +1415,9 @@ export default function ComposeActionProposalModal({
               {isActivePhase && (
                 <span className={styles.stageTabDot} aria-label="editable in this challenge" />
               )}
+              {litStageIds.has(stage.id) && !isSelected && (
+                <span className={styles.stageTabEcho} aria-label="a note you are pointing at is on this stage" />
+              )}
             </button>
           );
         })}
@@ -1383,17 +1472,15 @@ export default function ComposeActionProposalModal({
             {(() => {
               if (!graphState) {
                 return (
-                  <div className="d-flex flex-column align-items-center justify-content-center p-5 text-muted h-100">
+                  <div className={styles.canvasNote}>
                     <div
-                      className="spinner-border mb-3"
+                      className="spinner-border"
                       role="status"
-                      style={{ width: "2.5rem", height: "2.5rem", color: "var(--primary-bg)" }}
+                      style={{ width: "2.5rem", height: "2.5rem", color: "#3b2a1e" }}
                     >
                       <span className="visually-hidden">Loading...</span>
                     </div>
-                    <div className="fw-semibold" style={{ fontSize: "0.88rem" }}>
-                      Loading MLOps architecture...
-                    </div>
+                    <div>Loading MLOps architecture...</div>
                   </div>
                 );
               }
@@ -1402,8 +1489,8 @@ export default function ComposeActionProposalModal({
               const edges = currentStageTechnical.edges;
               if (comps.length === 0) {
                 return (
-                  <div className="text-center p-4 text-muted">
-                    <Icon icon="ph:info-bold" style={{ fontSize: "2rem" }} className="mb-2" />
+                  <div className={styles.canvasNote}>
+                    <Icon icon="ph:info-bold" style={{ fontSize: "2rem" }} />
                     <div>No components in this stage.</div>
                   </div>
                 );
@@ -1440,26 +1527,14 @@ export default function ComposeActionProposalModal({
                 >
                   <style>{NODE_STATE_ANIM}</style>
                   <style>{EDGE_FLOW_ANIM}</style>
-                  <NodeDefs prefix="compose" />
+                  <NodeDefs prefix="compose" theme="cork" />
                   <defs>
-                    <marker id="arr-default" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                      <path d="M0,0 L0,6 L6,3 z" fill="#94a3b8" />
-                    </marker>
-                    <marker id="arr-primary" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                      <path d="M0,0 L0,6 L6,3 z" fill="var(--primary-bg)" />
-                    </marker>
-                    <marker id="arr-success" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                      <path d="M0,0 L0,6 L6,3 z" fill="#16a34a" />
-                    </marker>
-                    <marker id="arr-danger" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                      <path d="M0,0 L0,6 L6,3 z" fill="#dc3545" />
-                    </marker>
-                    <marker id="arr-warning" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                      <path d="M0,0 L0,6 L6,3 z" fill="#ea580c" />
-                    </marker>
-                    <marker id="arr-selected" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-                      <path d="M0,0 L0,7 L7,3.5 z" fill="var(--primary-bg)" />
-                    </marker>
+                    {/* Arrowheads in the line colours, which are chosen for the blueprint ground */}
+                    {Object.entries(EDGE_ON_CORK).map(([id, fill]) => (
+                      <marker key={id} id={id} markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+                        <path d="M0,0 L0,7 L7,3.5 z" fill={fill} stroke="rgba(24, 12, 4, 0.55)" strokeWidth={0.7} strokeLinejoin="round" />
+                      </marker>
+                    ))}
                   </defs>
 
                   {/* SVG Pipeline Edges */}
@@ -1492,10 +1567,10 @@ export default function ComposeActionProposalModal({
                       markerId = "arr-primary";
                     } else if (isPredecessorLine) {
                       color = "var(--primary-bg)";
-                      markerId = "arr-primary";
+                      markerId = "arr-predecessor";
                     } else if (isOtherPhase) {
                       color = "#cbd5e1";
-                      markerId = "arr-default";
+                      markerId = "arr-viewonly";
                     } else {
                       // Colour follows automation only: governance never changes what flows.
                       if (e.automation === 0) {
@@ -1513,9 +1588,15 @@ export default function ComposeActionProposalModal({
                       }
                     }
 
+                    // `color` is for the white handle chip; the line itself sits on the blueprint ground.
+                    const lineColor = EDGE_ON_CORK[markerId] ?? EDGE_ON_CORK["arr-default"];
+                    const isLit = litTargetIds.has(e.id);
                     const mx = (ax + bx) / 2;
                     const my = (ay + by) / 2;
                     const baseWidth = edgeStrokeWidth(e.automation);
+                    const lineW =
+                      (isSelected ? 4.5 : isSlotted ? 4 : isHovered || isPredecessorLine ? 3.5 : Math.max(baseWidth, 1.5) + 1) +
+                      (isLit ? 1 : 0);
                     const isAutomated =
                       e.automation !== undefined && e.automation !== null && e.automation >= 3;
                     const edgeSummary = describeHandoff(from.name, to.name, e);
@@ -1523,40 +1604,58 @@ export default function ComposeActionProposalModal({
                     // Every edge the player may act on gets a handle, triggered or not; the
                     // slotted and view-only badges already own the midpoint when they show.
                     const showHandle = !isSlotted && !isOtherPhase;
-                    const edgeTagDetail =
-                      `${edgeSummary}\n${isOtherPhase ? "View only in this challenge" : "Click to edit this connection"}`;
+                    const edgeTip = tagProps(`${from.name} → ${to.name}`, [
+                      edgeSummary,
+                      isOtherPhase ? "View only in this challenge" : "Click to edit this connection",
+                    ]);
 
                     return (
                       <g key={e.id}>
-                        {/* Visible edge line */}
+                        {/* The string's shadow on the board: yarn sits on the cork, it does not glow */}
+                        <line
+                          x1={ax}
+                          y1={ay}
+                          x2={bx}
+                          y2={by}
+                          stroke="rgba(24, 12, 4, 0.42)"
+                          strokeWidth={Math.max(baseWidth, 1.5) + 1.5}
+                          strokeLinecap="round"
+                          transform="translate(1.6 3)"
+                          style={{ filter: "blur(1.1px)" }}
+                          pointerEvents="none"
+                        />
+                        {/* The yarn: a solid strand under the (flowing) line, wound with alternating dark and light bands */}
+                        <line x1={ax} y1={ay} x2={bx} y2={by} stroke={lineColor} strokeWidth={lineW} strokeLinecap="round" opacity={0.6} pointerEvents="none" />
+                        {!isOtherPhase && (
+                          <>
+                            <line x1={ax} y1={ay} x2={bx} y2={by} stroke="rgba(30, 14, 4, 0.4)" strokeWidth={lineW * 0.92} strokeDasharray="1.3 3.1" pointerEvents="none" />
+                            <line x1={ax} y1={ay} x2={bx} y2={by} stroke="rgba(255, 246, 220, 0.38)" strokeWidth={lineW * 0.92} strokeDasharray="1.3 3.1" strokeDashoffset={2.2} pointerEvents="none" />
+                          </>
+                        )}
+                        {/* The line itself: carries the flow state (dashes that run, or stall) */}
                         <line
                           className={pipeClass}
                           x1={ax}
                           y1={ay}
                           x2={bx}
                           y2={by}
-                          stroke={color}
-                          strokeWidth={
-                            isSelected ? 3.5
-                              : isSlotted ? 3
-                              : isHovered ? 2.5
-                              : isPredecessorLine ? 2.5
-                              : Math.max(baseWidth, 1.5)
-                          }
+                          stroke={lineColor}
+                          strokeWidth={lineW}
                           strokeDasharray={isOtherPhase ? "4 3" : undefined}
                           markerEnd={`url(#${markerId})`}
-                          style={{ cursor: showHandle ? "pointer" : undefined }}
-                          opacity={isHovered ? 1 : 0.92}
+                          style={{
+                            cursor: showHandle ? "pointer" : undefined,
+                            filter: isLit ? `drop-shadow(0 0 3px ${LIT_GLOW})` : undefined,
+                            transition: "filter 0.16s ease",
+                          }}
+                          opacity={isHovered || isLit ? 1 : 0.92}
                         />
-                        {isAutomated && <FlowParticle x1={ax} y1={ay} x2={bx} y2={by} color={color} />}
-
-                        {/* Midpoint badge: Slotted ⚡ or Locked 🔒 */}
+                        {isAutomated && <FlowParticle x1={ax} y1={ay} x2={bx} y2={by} color={lineColor} />}
+                        {/* Midpoint badge: a hammer when a step is slotted, or an eye when view only */}
                         {isSlotted && (
                           <g transform={`translate(${mx - 10}, ${my - 10})`} style={{ pointerEvents: "none" }}>
-                            <circle cx="10" cy="10" r="10" fill="var(--primary-bg)" stroke="#ffffff" strokeWidth={1.5} />
-                            <text x="10" y="14" fontSize="10" textAnchor="middle" fill="#ffffff" fontWeight="bold">
-                              ⚡
-                            </text>
+                            <circle cx="10" cy="10" r="10" fill={CARD.proposed} stroke="#0b3a45" strokeWidth={1.5} />
+                            <Icon icon="ph:hammer-duotone" x={4} y={4} width={12} height={12} color="#ffffff" />
                           </g>
                         )}
                         {isOtherPhase && !isSlotted && (
@@ -1604,11 +1703,11 @@ export default function ComposeActionProposalModal({
                           }}
                           onMouseEnter={(e2) => {
                             setHoveredEdgeId(e.id);
-                            showInfoTag(e2, `${from.name} → ${to.name}`, edgeTagDetail);
+                            edgeTip.onMouseEnter(e2);
                           }}
                           onMouseLeave={() => {
                             setHoveredEdgeId(null);
-                            hideInfoTag();
+                            edgeTip.onMouseLeave();
                           }}
                         />
                       </g>
@@ -1630,31 +1729,41 @@ export default function ComposeActionProposalModal({
                     const isBroken = (c.nominal_automation ?? 1) === 0;
                     // Runs at nothing, but is not itself broken: something upstream is down.
                     const isStarved = !isBroken && (c.effective_automation ?? 1) === 0;
-                    const rail = isSlotted
-                      ? NODE_COLORS.selected
-                      : isBroken
-                      ? NODE_COLORS.broken
-                      : upstreamCheck.uncertain
-                      ? "#b45309"
-                      : c.capped_by
-                      ? NODE_COLORS.capped
-                      : NODE_COLORS.healthy;
+                    // The title bar carries the node's state. Healthy is plain ink: only what needs
+                    // attention takes a colour, so a problem is the first thing the eye lands on.
+                    const { fill: rail, ink: barInk } = nodeBar({
+                      otherPhase: isOtherPhase,
+                      broken: isBroken,
+                      uncertain: upstreamCheck.uncertain,
+                      capped: Boolean(c.capped_by),
+                    });
+                    const barInset = (isSelected ? 2 : 1.25) / 2;
                     const face = nodeFace("compose", {
-                      selected: isSelected || isSlotted || isPredecessor,
+                      selected: isSelected || isPredecessor,
                       broken: isBroken,
                     });
-                    const stroke = isSlotted || isSelected
-                      ? NODE_COLORS.selected
+                    const stroke = isSelected
+                      ? CARD.select
                       : isPredecessor
-                      ? NODE_COLORS.selected
-                      : "#dde5ee";
+                      ? CARD.predecessor
+                      : isBroken
+                      ? CARD.broken
+                      : CARD.ink;
 
-                    const lines = wrapLabel(c.name || c.id, 17);
-                    const safeId = c.id.replace(/\./g, "_");
+                    // 12px bold in a 104px column: 14 characters a line. A name that needs more than two lines
+                    // ends in an ellipsis, and its tooltip carries the whole name.
+                    const fullName = c.name || c.id;
+                    const lines = wrapLabel(fullName, 14);
+                    if (lines.join(" ").length < fullName.length) lines[lines.length - 1] = lines[lines.length - 1].replace(/.?$/, "…");
+                    // Title centred in the bar, every line clear of the icon beside it.
+                    const titleX = NODE_PAD_X + (c.icon ? NODE_ICON_OFFSET : 0);
+                    const titleY = (i: number) => BAR_H / 2 + 4 - (lines.length - 1) * (NODE_TITLE_LH / 2) + i * NODE_TITLE_LH;
                     // Where each axis would sit once every slotted step lands, drawn ahead of
                     // what is built as translucent notches.
                     const previewAutomation = projectedOn(c, "automation", atomicChanges);
                     const previewGovernance = projectedOn(c, "governance", atomicChanges);
+                    // Broken until the proposal fixes it: a slotted step that lifts it off level 0 stops the glitching.
+                    const glitching = isBroken && previewAutomation === 0;
                     // A target can carry several chained steps on the same axis (one slot each,
                     // "Implement It Manually" then "Automate It") - the settled rung each would land on is
                     // `previewAutomation`/`previewGovernance` above, never any single change's own
@@ -1677,106 +1786,121 @@ export default function ComposeActionProposalModal({
                           "governance",
                           c.nominal_governance ?? 0
                         )}`;
-                    const nodeTagProposed = [
+                    const nodeTip = tagProps(c.name || c.id, [
+                      nodeTagStatus,
                       automationQueued
-                        ? `\nProposed automation: ${formatAxisLevel("automation", c.nominal_automation ?? 1)} → ${formatAxisLevel(
+                        ? `Proposed automation: ${formatAxisLevel("automation", c.nominal_automation ?? 1)} → ${formatAxisLevel(
                             "automation",
                             previewAutomation
                           )}`
-                        : "",
+                        : undefined,
                       governanceQueued
-                        ? `\nProposed governance: ${formatAxisLevel("governance", c.nominal_governance ?? 0)} → ${formatAxisLevel(
+                        ? `Proposed governance: ${formatAxisLevel("governance", c.nominal_governance ?? 0)} → ${formatAxisLevel(
                             "governance",
                             previewGovernance
                           )}`
-                        : "",
-                    ].join("");
-                    const nodeTagDetail = `${nodeTagStatus}${nodeTagProposed}\nClick to inspect`;
+                        : undefined,
+                      "Click to inspect",
+                    ] as TagLine[]);
+                    const isLit = litTargetIds.has(c.id);
 
                     return (
                       <g
                         key={c.id}
-                        className={styles.stageNode}
+                        className={`${styles.stageNode} ${isSlotted ? styles.nodeSlotted : ""}`}
                         data-coach-node={c.id}
-                        transform={`translate(${x - BOX_W / 2}, ${y - BOX_H / 2})`}
+                        transform={`translate(${x - BOX_W / 2}, ${y - BOX_H / 2}) rotate(${cardTilt(c.id)} ${BOX_W / 2} ${BOX_H / 2})`}
                         onClick={() => {
                           setSelectedCompId(isSelected ? null : c.id);
                           setSelectedEdgeId(null);
                         }}
                         onMouseEnter={(e) => {
                           setHoveredCompId(c.id);
-                          showInfoTag(e, c.name || c.id, nodeTagDetail);
+                          nodeTip.onMouseEnter(e);
                         }}
                         onMouseLeave={() => {
                           setHoveredCompId(null);
-                          hideInfoTag();
+                          nodeTip.onMouseLeave();
                         }}
                       >
-                        <g className={isBroken ? "node-broken" : undefined}>
+                        {/* The lit echo grows and shadows this wrapper, which sits between the placed
+                            group above (its transform attribute must stay untouched) and the broken
+                            glitch group below, so a broken node keeps glitching while it is lit. */}
+                        <g className={styles.nodeHover}>
+                        <g className={`${styles.nodeEcho} ${isLit ? styles.nodeEchoOn : ""}`}>
+                        <g className={glitching ? "node-broken" : undefined}>
                         {/* Card face */}
                         <rect
                           width={BOX_W}
                           height={BOX_H}
-                          rx={NODE_RX}
                           fill={face}
                           stroke={stroke}
-                          strokeWidth={1}
+                          strokeWidth={isSelected ? 2 : 1.25}
+                          strokeDasharray={isOtherPhase ? "4 3" : undefined}
                           filter={`url(#compose-${
-                            isBroken ? "broken-face" : isSelected || isSlotted ? "shadow-lifted" : "shadow"
+                            glitching ? "broken-face" : isSelected ? "shadow-lifted" : "shadow"
                           })`}
                         />
-                        <clipPath id={`compose-clip-${safeId}`}>
-                          <rect width={BOX_W} height={BOX_H} rx={NODE_RX} />
-                        </clipPath>
-                        <rect
-                          width={RAIL_W}
-                          height={BOX_H}
-                          fill={rail}
-                          clipPath={`url(#compose-clip-${safeId})`}
-                        />
-                        {!isBroken && c.capped_by && (
-                          <CappedChainGlyph color={rail} />
-                        )}
-
-                        {/* Slotted marker */}
-                        {isSlotted && (
-                          <g transform={`translate(${BOX_W - 26}, 5)`}>
-                            <circle cx="9" cy="9" r="9" fill={NODE_COLORS.selected} />
-                            <text x="9" y="12.5" fontSize="9" textAnchor="middle" fill="#ffffff" fontWeight="bold">
-                              ⚡
-                            </text>
-                          </g>
+                        {/* Title bar: a solid block in the node's state colour, inside the outline */}
+                        <rect x={barInset} y={barInset} width={BOX_W - barInset * 2} height={BAR_H - barInset} fill={rail} />
+                        {glitching && <BrokenBorder color={CARD.broken} />}
+                        {!isBroken && c.capped_by && !isSlotted && !isOtherPhase && (
+                          <Icon icon="ph:link-simple-bold" x={BOX_W - 22} y={BAR_H / 2 - 7} width={14} height={14} color={barInk} />
                         )}
 
                         {/* Another phase: readable here, editable elsewhere */}
                         {isOtherPhase && !isSlotted && (
-                          <g transform={`translate(${BOX_W - 24}, 5)`}>
-                            <circle cx="8" cy="8" r="8" fill="#eef2f7" stroke="#dde5ee" />
+                          <g transform={`translate(${BOX_W - 24}, ${BAR_H / 2 - 8})`}>
+                            <circle cx="8" cy="8" r="8" fill="#dbe7f2" stroke="#9db6cc" />
                             <text x="8" y="11" fontSize="8" textAnchor="middle">
                               👁
                             </text>
                           </g>
                         )}
 
-                        {/* Icon, sharing the title's row */}
-                        {c.icon && <NodeIcon icon={c.icon} color={rail} />}
+                        {/* Icon, centred in the bar */}
+                        {c.icon && (
+                          <g className={styles.nodeIcon}>
+                          <g className={isSlotted ? styles.iconPulse : undefined}>
+                            <NodeIcon icon={c.icon} color={barInk} cx={titleX / 2} cy={BAR_H / 2} discOpacity={0.22} />
+                          </g>
+                          </g>
+                        )}
+                        {/* A change of yours is attached: a teal flag folded over the top-right corner (the colour the sidebar
+                            uses for "in your proposal"), carrying a hammer. It stays inside the card's border, so it never
+                            covers the selection brackets. */}
+                        {isSlotted && (
+                          <g pointerEvents="none">
+                            <path d={`M${BOX_W - 31} ${barInset} H${BOX_W - barInset} V31 Z`} fill={CARD.proposed} />
+                            <path d={`M${BOX_W - 31} ${barInset} L${BOX_W - barInset} 31`} stroke="rgba(255,255,255,0.4)" strokeWidth={0.8} />
+                            <Icon icon="ph:hammer-duotone" x={BOX_W - 17} y={3} width={13} height={13} color="#ffffff" />
+                          </g>
+                        )}
 
-                        {/* Node Title, with its colour-split ghosts underneath when broken */}
-                        {isBroken && (
+                        {/* Node title, centred in the bar, with its colour-split ghosts underneath when broken.
+                            Every line clears the icon, since the icon sits beside the whole title. */}
+                        {glitching && (
                           <NodeTitleAberration
                             lines={lines}
-                            x={(i) => NODE_PAD_X + (c.icon && i === 0 ? NODE_ICON_OFFSET : 0)}
-                            fontWeight={isSelected || isSlotted ? 700 : 600}
+                            x={() => titleX}
+                            y={(i) => titleY(i)}
+                            fontWeight={700}
+                            offset={1.8}
+                            fontSize={12}
                           />
                         )}
                         {lines.map((line, i) => (
                           <text
                             key={i}
-                            x={NODE_PAD_X + (c.icon && i === 0 ? NODE_ICON_OFFSET : 0)}
-                            y={NODE_TITLE_Y + i * NODE_TITLE_LH}
-                            fill={isSelected || isSlotted ? "var(--primary-bg)" : "#15243b"}
-                            fontSize="11"
-                            fontWeight={isSelected || isSlotted ? "700" : "600"}
+                            x={titleX}
+                            y={titleY(i)}
+                            fill={barInk}
+                            fontSize="12"
+                            fontWeight="700"
+                            stroke={barInk === "#ffffff" ? "rgba(18, 8, 2, 0.5)" : "none"}
+                            strokeWidth={2.4}
+                            strokeLinejoin="round"
+                            paintOrder="stroke"
                           >
                             {line}
                           </text>
@@ -1787,6 +1911,7 @@ export default function ComposeActionProposalModal({
                               level={c.effective_automation ?? c.nominal_automation ?? 1}
                               governance={c.nominal_governance}
                               y={NODE_CAPTION_Y}
+                              size={9.5}
                               // Three cases are not about a rung at all, and keep the rail's
                               // colour along with their own word.
                               text={
@@ -1811,11 +1936,22 @@ export default function ComposeActionProposalModal({
                               previewAutomation={previewAutomation}
                               previewGovernance={previewGovernance}
                               y={NODE_METER_Y}
+                              emptyColor={CARD.empty}
+                              thickness={5}
                             />
 
                         </g>
 
-                        {(isSelected || isSlotted) && <SelectionReticle />}
+                        {/* The pin that holds it to the board. Outside the glitch group on purpose: a broken card
+                            swings about the pin, and the pin itself never moves. */}
+                        <g pointerEvents="none">
+                          <ellipse cx={BOX_W / 2 + 1.4} cy={3.6} rx={4.4} ry={2.2} fill="#2a1a0c" fillOpacity={0.35} />
+                          <circle cx={BOX_W / 2} cy={1.5} r={4.2} fill="#c9962b" stroke="#6b4f20" strokeWidth={0.8} />
+                          <circle cx={BOX_W / 2 - 1.2} cy={0.2} r={1.3} fill="#fff4cf" fillOpacity={0.8} />
+                        </g>
+                        {isSelected && <SelectionReticle color={CARD.select} />}
+                        </g>
+                        </g>
                       </g>
                     );
                   })}
@@ -1837,6 +1973,8 @@ export default function ComposeActionProposalModal({
                         lane={lane}
                         prefix="compose"
                         id={stub.edgeId}
+                        idleColor="#0f6e7e"
+                        activeColor={CARD.select}
                         active={selectedCrossStub?.edgeId === stub.edgeId}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1853,31 +1991,20 @@ export default function ComposeActionProposalModal({
           </div>
         </div>
 
-        {/* Right: Inspector & Slots Panel */}
+        {/* Right: one sheet of paper - the inspector, then the proposal */}
         <div className={styles.sidebarArea}>
           <div className={styles.sidebarContent}>
             {selectedCrossStub ? (
-              /* ── Cross-Phase Dependency: purely informational, nothing to build here ── */
-              <div className={styles.inspectorCard}>
-                <div className={styles.inspectorHeader}>
-                  <div className={styles.inspectorHeading}>
-                    <Icon icon="ph:link-break-bold" className={styles.inspectorIcon} />
-                    <div className={styles.inspectorHeadingText}>
-                      <span className={styles.inspectorTitle}>Cross-Phase Dependency</span>
-                      <span className={styles.inspectorSubtitle}>{selectedCrossStub.otherStageName}</span>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.inspectorClose}
-                    onClick={() => setSelectedCrossStub(null)}
-                    {...tagProps("Close inspector")}
-                  >
-                    <Icon icon="ph:x-bold" />
-                  </button>
+              /* Cross-phase dependency: purely informational, nothing to build here */
+              <div>
+                <div className={sb.band} style={bandStyle}>
+                  <Icon icon="ph:link-break-bold" className={sb.bandIcon} />
+                  <h4 className={sb.bandTitle}>Cross-Phase Dependency</h4>
+                  {closeInspectorButton(() => setSelectedCrossStub(null))}
                 </div>
-                <div className={styles.inspectorBody}>
-                  <div className={styles.lockedPhaseBanner}>
+                <div className={sb.body}>
+                  <p className={sb.caption}>{selectedCrossStub.otherStageName}</p>
+                  <div className={sb.viewOnly}>
                     <Icon icon="ph:eye-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
                     <div>
                       {highlight(
@@ -1892,421 +2019,150 @@ export default function ComposeActionProposalModal({
                 </div>
               </div>
             ) : selectedEdgeData ? (
-              <div className={styles.inspectorCard}>
-                <div className={styles.inspectorHeader}>
-                  <div className={styles.inspectorHeading}>
-                    <Icon icon="ph:flow-arrow-bold" className={styles.inspectorIcon} />
-                    <div className={styles.inspectorHeadingText}>
-                      <span className={styles.inspectorTitle}>
-                        <button
-                          type="button"
-                          className={styles.inlineJumpLink}
-                          onClick={() => jumpToComponent(selectedEdgeData.from_id)}
-                          {...tagProps("Jump to it", allComponentsMap.get(selectedEdgeData.from_id)?.name || selectedEdgeData.from_id)}
-                        >
-                          {allComponentsMap.get(selectedEdgeData.from_id)?.name || selectedEdgeData.from_id}
-                        </button>{" "}
-                        →{" "}
-                        <button
-                          type="button"
-                          className={styles.inlineJumpLink}
-                          onClick={() => jumpToComponent(selectedEdgeData.to_id)}
-                          {...tagProps("Jump to it", allComponentsMap.get(selectedEdgeData.to_id)?.name || selectedEdgeData.to_id)}
-                        >
-                          {allComponentsMap.get(selectedEdgeData.to_id)?.name || selectedEdgeData.to_id}
-                        </button>
-                      </span>
-                      <span className={styles.inspectorSubtitle}>
-                        workflow · {selectedEdgeData.kind} ·{" "}
-                        {selectedEdgeData.slack === 1 ? "soft dependency" : "hard dependency"}
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.inspectorClose}
-                    onClick={() => setSelectedEdgeId(null)}
-                    {...tagProps("Close inspector")}
-                  >
-                    <Icon icon="ph:x-bold" />
-                  </button>
+              <div>
+                <div className={sb.band} style={bandStyle}>
+                  <Icon icon="ph:flow-arrow-bold" className={sb.bandIcon} />
+                  <h4 className={sb.bandTitle}>
+                    <button
+                      type="button"
+                      className={sb.jumpLink}
+                      onClick={() => jumpToComponent(selectedEdgeData.from_id)}
+                      {...tagProps("Jump to it", edgeFrom)}
+                    >
+                      {edgeFrom}
+                    </button>{" "}
+                    →{" "}
+                    <button
+                      type="button"
+                      className={sb.jumpLink}
+                      onClick={() => jumpToComponent(selectedEdgeData.to_id)}
+                      {...tagProps("Jump to it", edgeTo)}
+                    >
+                      {edgeTo}
+                    </button>
+                  </h4>
+                  {closeInspectorButton(() => setSelectedEdgeId(null))}
                 </div>
 
-                <div className={styles.inspectorBody}>
-
+                <div className={sb.body}>
                   {!selectedEdgeEditable.editable ? (
-                    /* Other Phase Locked Guard */
-                    <div className={styles.lockedPhaseBanner}>
-                      <Icon icon="ph:eye-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
-                      <div>
-                        <strong>View only:</strong> {highlight(selectedEdgeEditable.reason ?? "")}
-                      </div>
-                    </div>
+                    viewOnly(selectedEdgeEditable.reason ?? "")
                   ) : (
-                    /* Editable Edge Controls */
                     <>
-                      <div className={styles.statusStrip}>
-                        <span className={styles.statusLabel}>Hand-off</span>
-                        <span className={styles.statusValue}>
-                          {formatAxisLevel("automation", nominalOn(selectedEdgeData, "automation"))}
-                        </span>
-                        <span className={styles.statusSep}>·</span>
-                        <span className={styles.statusLabel}>started by</span>
-                        <span className={styles.statusValue}>{formatTrigger(selectedEdgeData.trigger || "none")}</span>
-                        <span className={styles.statusSep}>·</span>
-                        <span className={styles.statusValue}>
-                          {formatAxisLevel("governance", nominalOn(selectedEdgeData, "governance"))}
-                        </span>
-                      </div>
+                      <ChipRow>
+                        <AxisChip axis="automation" kind="edge" target={selectedEdgeData} changes={atomicChanges} />
+                        <AxisChip axis="governance" kind="edge" target={selectedEdgeData} changes={atomicChanges} />
+                        <Chip
+                          label={`Started by ${formatTrigger(selectedEdgeData.trigger || "none")}`}
+                          lines={["What starts this hand-off once it is in place."]}
+                        >
+                          <span aria-hidden>{TRIGGER_ICONS[selectedEdgeData.trigger || "none"] ?? "•"}</span>
+                          <span className={sb.chipLabel}>{formatTrigger(selectedEdgeData.trigger || "none")}</span>
+                        </Chip>
+                        <Chip
+                          label={selectedEdgeData.slack === 1 ? "Soft dependency" : "Hard dependency"}
+                          lines={[`Workflow link, kind: ${selectedEdgeData.kind}.`]}
+                        >
+                          <Icon icon="ph:link-simple-bold" aria-hidden />
+                          <span className={sb.chipLabel}>{selectedEdgeData.slack === 1 ? "Soft" : "Hard"}</span>
+                        </Chip>
+                      </ChipRow>
 
-                      {/* Intel notes filed against this connection - shown before the picker
-                          so the evidence informs the decision. */}
-                      {(notesByTarget[selectedEdgeData.id]?.length ?? 0) > 0 && (
-                        <div className={styles.notesSection}>
-                          <span className={styles.notesSectionLabel}>
-                            <Icon icon="ph:notebook-bold" /> Intel on this connection ({intelCountLabel(notesByTarget[selectedEdgeData.id])})
-                          </span>
-                          <div className={styles.noteLinkList}>
-                            {notesByTarget[selectedEdgeData.id].map((note) => {
-                              const meta = noteSourceMeta(note.item);
-                              return (
-                                <button
-                                  key={note.item.id}
-                                  type="button"
-                                  className={`${styles.noteLink} ${onSelectIntel ? "" : styles.noteLinkFlat}`}
-                                  disabled={!onSelectIntel}
-                                  onClick={() => onSelectIntel?.(note.item.id, note.stakeholderId)}
-                                  {...tagProps(meta.label, onSelectIntel ? "Click to jump to it in your dossier" : undefined)}
-                                >
-                                  <Icon icon={meta.icon} className={styles.noteLinkIcon} />
-                                  <span className={styles.noteLinkText}>
-                                    {note.item.fact || note.item.description}
-                                    <em className={styles.noteLinkWho}> - {note.stakeholderName}</em>
-                                  </span>
-                                  {onSelectIntel && <Icon icon="ph:arrow-bend-up-left-bold" className={styles.noteLinkGo} />}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* One ladder per axis. The automation options already carry the
-                          trigger they switch the hand-off to, so there is no trigger picker. */}
-                      <div className={styles.formStack}>
-                        {AXES.map((axis) => (
-                          <OptionLadder
-                            key={axis}
-                            axis={axis}
-                            target={selectedEdgeData}
-                            kind="edge"
-                            changes={atomicChanges}
-                            slotsFull={slotsFull}
-                            onAdd={(option) => handleAddOption(selectedEdgeData, axis, option)}
-                            onRemove={(option) => handleRemoveOption(selectedEdgeData, axis, option)}
-                          />
-                        ))}
-                      </div>
+                      {renderNotes(selectedEdgeData.id, "connection")}
+                      {renderLadders(selectedEdgeData, "edge")}
                     </>
                   )}
                 </div>
               </div>
             ) : selectedCompData ? (
-              /* ── Selected COMPONENT Inspector ── */
-              <div className={styles.inspectorCard}>
-                <div className={styles.inspectorHeader}>
-                  <div className={styles.inspectorHeading}>
-                    <Icon icon={selectedCompData.icon || "ph:cube-bold"} className={styles.inspectorIcon} />
-                    <div className={styles.inspectorHeadingText}>
-                      <div className={styles.inspectorTitleRow}>
-                        <span className={styles.inspectorTitle}>{highlight(selectedCompData.name)}</span>
-                        {selectedCompData.owner_id && (
-                          onOpenStakeholder ? (
-                            <button
-                              type="button"
-                              className={styles.ownerLink}
-                              onClick={() => onOpenStakeholder(selectedCompData.owner_id!)}
-                              {...tagProps(
-                                "Owner",
-                                `Open ${stakeholders[selectedCompData.owner_id]?.name ?? selectedCompData.owner_id}'s dossier page`
-                              )}
-                            >
-                              <StakeholderAvatarComponent
-                                stakeholderId={selectedCompData.owner_id}
-                                avatar={stakeholders[selectedCompData.owner_id]?.avatar}
-                                stakeholderColor={stakeholders[selectedCompData.owner_id]?.stakeholder_color}
-                                isFramed={false}
-                                size={16}
-                                hoverToSuspicious={false}
-                                className={styles.ownerLinkAvatar}
-                              />
-                              <span>{stakeholders[selectedCompData.owner_id]?.name ?? selectedCompData.owner_id.replace(/_/g, " ")}</span>
-                              <Icon icon="ph:arrow-square-out-bold" className={styles.ownerLinkGo} />
-                            </button>
-                          ) : (
-                            <span className={styles.inspectorOwner}>
-                              <StakeholderAvatarComponent
-                                stakeholderId={selectedCompData.owner_id}
-                                avatar={stakeholders[selectedCompData.owner_id]?.avatar}
-                                stakeholderColor={stakeholders[selectedCompData.owner_id]?.stakeholder_color}
-                                isFramed={false}
-                                size={16}
-                                hoverToSuspicious={false}
-                              />
-                              <span>{stakeholders[selectedCompData.owner_id]?.name ?? selectedCompData.owner_id.replace(/_/g, " ")}</span>
-                            </span>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.inspectorClose}
-                    onClick={() => setSelectedCompId(null)}
-                    {...tagProps("Close inspector")}
-                  >
-                    <Icon icon="ph:x-bold" />
-                  </button>
+              <div>
+                <div className={sb.band} style={bandStyle}>
+                  <Icon icon={selectedCompData.icon || "ph:cube-bold"} className={sb.bandIcon} />
+                  <h4 className={sb.bandTitle} {...tagProps(selectedCompData.name)}>
+                    {highlight(selectedCompData.name)}
+                  </h4>
+                  {renderOwner(selectedCompData.owner_id)}
+                  {closeInspectorButton(() => setSelectedCompId(null))}
                 </div>
 
-                <div className={styles.inspectorBody}>
-
+                <div className={`${sb.body} ${selectedCompData.owner_id ? sb.bodyHang : ""}`}>
                   {!selectedCompEditable.editable ? (
-                    /* Other Phase Locked Guard */
-                    <div className={styles.lockedPhaseBanner}>
-                      <Icon icon="ph:eye-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
-                      <div>
-                        <strong>View only:</strong> {highlight(selectedCompEditable.reason ?? "")}
-                      </div>
-                    </div>
+                    viewOnly(selectedCompEditable.reason ?? "")
                   ) : (
-                    /* Editable Component Controls */
                     <>
-                      {selectedCompData.help && <p className={styles.componentHelp}>{highlight(selectedCompData.help)}</p>}
+                      {selectedCompData.help && <p className={sb.caption}>{highlight(firstSentence(selectedCompData.help))}</p>}
 
-                      <div className={styles.statusStrip}>
-                        <span className={styles.statusLabel}>Runs</span>
-                        <span className={styles.statusValue}>
-                          {formatAxisLevel("automation", nominalOn(selectedCompData, "automation"))}
-                        </span>
-                        <span className={styles.statusSep}>·</span>
-                        <span className={styles.statusLabel}>output</span>
-                        <span className={styles.statusValue}>
-                          {formatAxisLevel("governance", nominalOn(selectedCompData, "governance"))}
-                        </span>
-                      </div>
-
-                      {/* Pipeline Dependency / Functional Level Analysis - automation only:
-                          governance never caps (00-plan.md decision 1). */}
-                      {selectedUpstreamStatus.uncertain ? (
-                        <div className={styles.uncertainBanner}>
-                          <Icon icon="ph:question-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
-                          <div>
-                            <strong>Status uncertain:</strong>{" "}
-                            {highlight("an upstream pipeline dependency is still undiscovered")} (
-                            {selectedUpstreamStatus.unknownNodes.map((nodeId, i) => (
-                              <em key={nodeId}>
-                                {i > 0 && ", "}
-                                <button
-                                  type="button"
-                                  className={styles.inlineJumpLink}
-                                  onClick={() => jumpToComponent(nodeId)}
-                                  {...tagProps("Jump to it", "Still undiscovered - its status is why this one is uncertain")}
-                                >
-                                  {allComponentsMap.get(nodeId)?.name ?? nodeId}
-                                </button>
-                              </em>
-                            ))}
-                            ).
-                          </div>
-                        </div>
-                      ) : selectedCompData.capped_by &&
-                        selectedCompData.effective_automation !== undefined &&
-                        selectedCompData.nominal_automation !== undefined &&
-                        selectedCompData.effective_automation < selectedCompData.nominal_automation ? (
-                        <div className={styles.bottleneckBanner}>
-                          <Icon icon="ph:link-break-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
-                          <div>
-                            <strong>Held back:</strong> {highlight("this component is capped at")}{" "}
-                            <strong>{formatAxisLevel("automation", selectedCompData.effective_automation)}</strong> by{" "}
-                            <button
-                              type="button"
-                              className={styles.inlineJumpLink}
-                              onClick={() => jumpToComponent(selectedCompData.capped_by!)}
-                              {...tagProps("Jump to it", "The bottleneck holding this component back")}
-                            >
-                              {highlight(allComponentsMap.get(selectedCompData.capped_by)?.name ?? selectedCompData.capped_by)}
-                            </button>
-                            .{" "}
-                            {highlight(
-                              "Automating it further changes nothing until that bottleneck is dealt with. Governance steps are not affected."
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className={styles.satisfiedBanner}>
-                          <Icon icon="ph:check-circle-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
-                          <div>
-                            <strong>Dependencies satisfied:</strong>{" "}
-                            {highlight("nothing upstream is holding this back")} - it runs{" "}
-                            <strong>
-                              {formatAxisLevel(
-                                "automation",
-                                selectedCompData.effective_automation ?? nominalOn(selectedCompData, "automation")
-                              )}
-                            </strong>
-                            .
-                          </div>
-                        </div>
+                      <ChipRow>
+                        <AxisChip axis="automation" kind="component" target={selectedCompData} changes={atomicChanges} />
+                        <AxisChip axis="governance" kind="component" target={selectedCompData} changes={atomicChanges} />
+                        {dependencyState && <DependencyChip state={dependencyState} onJump={jumpToComponent} />}
+                      </ChipRow>
+                      {dependencyState?.kind === "held" && (
+                        <p className={sb.caveat}>Automating it further changes nothing until that is fixed.</p>
+                      )}
+                      {dependencyState?.kind === "uncertain" && (
+                        <p className={sb.caveat}>
+                          Still unknown:{" "}
+                          {dependencyState.nodes.map((n, i) => (
+                            <span key={n.id}>
+                              {i > 0 && ", "}
+                              <button type="button" className={sb.jumpLink} onClick={() => jumpToComponent(n.id)}>
+                                {n.name}
+                              </button>
+                            </span>
+                          ))}
+                        </p>
                       )}
 
-                      {/* Intel notes filed against this component - what backs the banner above,
-                          shown before the picker so the evidence informs the decision. */}
-                      {(notesByTarget[selectedCompData.id]?.length ?? 0) > 0 && (
-                        <div className={styles.notesSection}>
-                          <span className={styles.notesSectionLabel}>
-                            <Icon icon="ph:notebook-bold" /> Intel on this component ({intelCountLabel(notesByTarget[selectedCompData.id])})
-                          </span>
-                          <div className={styles.noteLinkList}>
-                            {notesByTarget[selectedCompData.id].map((note) => {
-                              const meta = noteSourceMeta(note.item);
-                              return (
-                                <button
-                                  key={note.item.id}
-                                  type="button"
-                                  className={`${styles.noteLink} ${onSelectIntel ? "" : styles.noteLinkFlat}`}
-                                  disabled={!onSelectIntel}
-                                  onClick={() => onSelectIntel?.(note.item.id, note.stakeholderId)}
-                                  {...tagProps(meta.label, onSelectIntel ? "Click to jump to it in your dossier" : undefined)}
-                                >
-                                  <Icon icon={meta.icon} className={styles.noteLinkIcon} />
-                                  <span className={styles.noteLinkText}>
-                                    {note.item.fact || note.item.description}
-                                    <em className={styles.noteLinkWho}> - {note.stakeholderName}</em>
-                                  </span>
-                                  {onSelectIntel && <Icon icon="ph:arrow-bend-up-left-bold" className={styles.noteLinkGo} />}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      <div className={styles.formStack}>
-                        {AXES.map((axis) => (
-                          <OptionLadder
-                            key={axis}
-                            axis={axis}
-                            target={selectedCompData}
-                            kind="component"
-                            changes={atomicChanges}
-                            slotsFull={slotsFull}
-                            onAdd={(option) => handleAddOption(selectedCompData, axis, option)}
-                            onRemove={(option) => handleRemoveOption(selectedCompData, axis, option)}
-                          />
-                        ))}
-                      </div>
+                      {renderNotes(selectedCompData.id, "component")}
+                      {renderLadders(selectedCompData, "component")}
                     </>
                   )}
                 </div>
               </div>
             ) : (
-              /* ── Empty Inspector State ── */
-              <div className={styles.emptyInspector}>
-                <Icon icon="ph:cursor-click-bold" className={styles.emptyIcon} />
-                <span className={styles.emptyTitle}>Select a component or a connection</span>
-                <p className={styles.emptyBody}>
-                  Click a component, or the handle on the line between two of them. Each step
-                  you add - automation, governance or technology - takes one of your four slots.
+              <div className={sb.hero}>
+                <div className={sb.heroDisc}>
+                  <Icon icon="ph:cursor-click-duotone" />
+                </div>
+                <h4 className={sb.heroTitle}>Pick something to change</h4>
+                <p className={sb.heroBody}>
+                  Click a component on the board, or the handle on the line between two of them. Each step you add takes
+                  one of your four slots.
                 </p>
+                {onOpenBoard && (
+                  <div className={sb.heroHint}>
+                    <span>Tied people together on the case board? Their threads show up here as marks.</span>
+                    <button type="button" className={sb.heroBtn} onClick={onOpenBoard}>
+                      <Icon icon="ph:push-pin-duotone" />
+                      <span>Open the case board</span>
+                    </button>
+                  </div>
+                )}
+                <div className={sb.heroSlots} aria-label={`${atomicChanges.length} of ${MAX_ATOMIC_CHANGES} slots used`}>
+                  {Array.from({ length: MAX_ATOMIC_CHANGES }, (_, i) => (
+                    <span key={i} className={`${sb.heroSlot} ${i < atomicChanges.length ? sb.heroSlotOn : ""}`} />
+                  ))}
+                </div>
               </div>
             )}
 
-            {/* ── Proposal Slots (1 to 3) ── */}
-            <div className={styles.slotsSection} data-coach="compose-slots">
-              <div className={styles.slotsSectionHeader}>
-                <h4 className={styles.slotsTitle}>
-                  <Icon icon="ph:stack-bold" />
-                  <span>Proposal</span>
-                </h4>
-                <span className={styles.slotsCount}>
+            {/* Proposal: one line per slot */}
+            <div className={sb.dock} data-coach="compose-slots">
+              <div className={sb.sectionHead}>
+                <Icon icon="ph:stack-duotone" />
+                <span>Proposal</span>
+                <span className={sb.sectionRight}>
                   {atomicChanges.length} of {MAX_ATOMIC_CHANGES} slots
                 </span>
               </div>
-
-              {Array.from({ length: MAX_ATOMIC_CHANGES }, (_, idx) => {
-                const change = atomicChanges[idx];
-                if (change) {
-                  const isEdge = change.target.startsWith("e.") || allEdgesMap.has(change.target);
-                  const edge = allEdgesMap.get(change.target);
-                  const comp = allComponentsMap.get(change.target);
-
-                  const displayName = isEdge
-                    ? `${allComponentsMap.get(edge?.from_id || "")?.name || edge?.from_id || "Source"} ➔ ${
-                        allComponentsMap.get(edge?.to_id || "")?.name || edge?.to_id || "Target"
-                      }`
-                    : comp?.name || change.target;
-
-                  const described = describeAtomicChange(change, isEdge ? edge : comp);
-
-                  return (
-                    <div
-                      key={idx}
-                      className={`${styles.slotCard} ${styles.slotCardSlotted}`}
-                      style={{ cursor: "pointer" }}
-                      onClick={() => {
-                        if (isEdge) {
-                          setSelectedEdgeId(change.target);
-                          setSelectedCompId(null);
-                        } else {
-                          setSelectedCompId(change.target);
-                          setSelectedEdgeId(null);
-                        }
-                      }}
-                      {...tagProps(displayName, "Click to open it in the inspector")}
-                    >
-                      <div className={styles.slotHeader}>
-                        <div className="d-flex align-items-center gap-2">
-                          <span className={styles.slotIndex}>Slot {idx + 1}</span>
-                          <span className={styles.slotNodeName}>{displayName}</span>
-                        </div>
-                        <button
-                          type="button"
-                          className={styles.slotRemoveBtn}
-                          onClick={(ev) => {
-                            ev.stopPropagation();
-                            handleRemoveSlot(idx);
-                          }}
-                          {...tagProps("Remove change", "Frees this slot for a different change")}
-                        >
-                          <Icon icon="ph:x-bold" />
-                          <span>Remove</span>
-                        </button>
-                      </div>
-                      <div className={styles.slotChangeInfo}>
-                        <Icon
-                          icon={change.axis ? AXIS_ICONS[change.axis] : "ph:flow-arrow-bold"}
-                          style={{ color: change.axis === "governance" ? GOVERNANCE_META[3].ink : "var(--primary-bg)", flexShrink: 0 }}
-                        />
-                        <span>
-                          <strong>{described.title}</strong>
-                          {described.title !== described.detail && (
-                            <span className={styles.slotTrigger}>· {described.detail}</span>
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                }
-
-                return (
-                  <div key={idx} className={`${styles.slotCard} ${styles.slotCardEmpty}`}>
-                    <Icon icon="ph:plus-dashed-bold" />
-                    <span>Slot {idx + 1}</span>
-                  </div>
-                );
-              })}
+              <ProposalTickets
+                entries={proposalEntries}
+                max={MAX_ATOMIC_CHANGES}
+                onOpen={openProposalEntry}
+                onRemove={handleRemoveSlot}
+                bindTip={tip.bind}
+              />
             </div>
           </div>
         </div>
@@ -2379,7 +2235,7 @@ export default function ComposeActionProposalModal({
           <button
             type="button"
             className={`${styles.actionButton} ${styles.footerConfirm}`}
-            disabled={atomicChanges.length === 0 || unchangedSinceLastPitch}
+            disabled={atomicChanges.length === 0 || unchangedSinceLastPitch || stamping}
             onClick={handleConfirm}
             {...tagProps(
               "Confirm Proposal",
@@ -2394,25 +2250,13 @@ export default function ComposeActionProposalModal({
         </div>
       </div>
 
-      {infoTag &&
-        createPortal(
-          <div
-            ref={infoTagRef}
-            className={styles.headerHoverTag}
-            style={{ top: `${infoTag.top}px`, left: `${infoTag.left}px` }}
-            aria-hidden="true"
-          >
-            <div
-              className={`${styles.headerHoverTagFlip} ${
-                infoTag.placement === "above" ? styles.headerHoverTagAbove : ""
-              }`}
-            >
-              <div className={styles.headerHoverTagLabel}>{infoTag.label}</div>
-              {infoTag.detail && <div className={styles.headerHoverTagDetail}>{infoTag.detail}</div>}
-            </div>
-          </div>,
-          document.body
-        )}
+      {stamping && (
+        <div className={styles.stampOverlay} aria-hidden="true">
+          <span className={styles.stampWord}>PROPOSED</span>
+        </div>
+      )}
+
+      {tip.bubble}
 
       <AnimatePresence>
         {cappedCopy && (
@@ -2473,5 +2317,6 @@ export default function ComposeActionProposalModal({
         </div>
       )}
     </div>
+    </HoverTooltipTheme>
   );
 }

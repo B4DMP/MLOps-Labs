@@ -4,6 +4,9 @@ import "./stylesheets/variables.css";
 import App from "./App.tsx";
 import "./stylesheets/app.css";
 import "iconify-icon";
+import { tintFaviconOnLocalhost } from "./localFavicon";
+
+tintFaviconOnLocalhost();
 
 /**
  * Dev-only pages, reachable at `?dev=<name>` in a dev build. Mostly component harnesses that
@@ -17,6 +20,7 @@ const DEV_SCREENS: Record<string, React.LazyExoticComponent<React.ComponentType>
   results: lazy(() => import("./components/dev/ResultsPreview")),
   "admin-results": lazy(() => import("./components/dev/AdminResultsPreview")),
   "humor-memo": lazy(() => import("./components/dev/HumorMemoPreview")),
+  "case-board": lazy(() => import("./components/dev/CaseBoardPreview")),
 };
 
 const devScreen = import.meta.env.DEV

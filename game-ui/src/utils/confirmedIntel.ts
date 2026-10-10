@@ -8,6 +8,8 @@ export interface ConfirmedIntelSource {
   chain_id?: string;
   chain_position?: number;
   stage_id?: string | null;
+  /** The graph component or hand-over the note is about. */
+  target?: string | null;
   status?: string;
   branch_x?: { description: string } | null;
   branch_y?: { description: string } | null;
@@ -23,6 +25,7 @@ export interface ConfirmedIntelRow {
   /** Second half of a trade-off: what they'd accept in return. */
   giveUp?: string;
   stageId?: string | null;
+  target?: string | null;
   onRecord: boolean;
   resolved: boolean;
   /** "addressed" or "stale" when resolved. */
@@ -35,7 +38,7 @@ const lowerFirst = (s: string) => s.replace(/^./, (c) => c.toLowerCase());
 const trimStop = (s: string) => s.trim().replace(/[.!?]+$/, "");
 
 /** Strips "<Name> wants / will not / would" so the stakeholder column carries the subject. */
-function stripSubject(description: string, name: string): string {
+export function stripSubject(description: string, name: string): string {
   let t = description.trim();
   if (name && t.startsWith(name)) t = t.slice(name.length);
   t = t.replace(/^[’']s\s+/, "").replace(/^\s*(?:really\s+|only\s+)?(?:wants?|needs?|would like|asks for)\s+/i, "");
@@ -74,6 +77,7 @@ export function confirmedIntelRows(
           : stripSubject(item.description || "", page.name),
         giveUp: hasBranches ? lowerFirst(trimStop(item.branch_y!.description)) : undefined,
         stageId: item.stage_id,
+        target: item.target,
         onRecord: (item.source || "").toLowerCase() === "public_record",
         resolved: item.status === "addressed" || item.status === "stale",
         status: item.status,
