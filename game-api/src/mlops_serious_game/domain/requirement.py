@@ -381,7 +381,7 @@ def _set_values(item: "StakeholderRequirement") -> list[tuple[str, str]]:
     return out
 
 
-def _stance_floors_and_ceilings(item: "StakeholderRequirement"):
+def stance_floors_and_ceilings(item: "StakeholderRequirement"):
     """What one stance item needs reached (floors) and what it treats as an acceptable stopping
     point (ceilings), both as (target, axis, level).
 
@@ -419,6 +419,9 @@ def _stance_floors_and_ceilings(item: "StakeholderRequirement"):
     return floors, ceilings
 
 
+_stance_floors_and_ceilings = stance_floors_and_ceilings  # old private name
+
+
 def self_contradictions(reqs: list["StakeholderRequirement"]) -> list[str]:
     """Places where one stakeholder's own intel items undo each other, one message per pair.
 
@@ -437,7 +440,7 @@ def self_contradictions(reqs: list["StakeholderRequirement"]) -> list[str]:
 
     messages: list[str] = []
     for sid, items in by_stakeholder.items():
-        shapes = {r.id: _stance_floors_and_ceilings(r) for r in items}
+        shapes = {r.id: stance_floors_and_ceilings(r) for r in items}
         for a in items:
             for b in items:
                 if a.id == b.id:

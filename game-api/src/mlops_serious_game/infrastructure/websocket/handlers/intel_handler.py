@@ -27,6 +27,7 @@ from mlops_serious_game.application.intel_handler import (
 )
 from mlops_serious_game.domain.event import GameEvent
 from ..manager import manager
+from .case_board_handler import push_team_sync_hint
 from .log_handler import send_events
 
 
@@ -489,6 +490,10 @@ async def handle_play_engagement_card(websocket: WebSocket, user_id: int, payloa
             "engagement_card_targets": engagement_card_targets,
         }
     )
+
+    if card_id == "eng_3":
+        # Team Sync-Up also points at one pair that has a thread to find (case board, D8).
+        await push_team_sync_hint(websocket, user_id, {"phase_id": phase_id, "challenge_id": challenge_id})
 
 
 async def handle_generate_action_card(websocket: WebSocket, user_id: int, payload: dict) -> None:

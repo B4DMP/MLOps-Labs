@@ -99,7 +99,9 @@
         "impatience_step": { "type": "number", "title": "Emotion offset of the first impatience step when a standing objection is re-pitched unanswered", "default": 0.15 },
         "impatience_cap": { "type": "integer", "title": "Most impatience steps one stakeholder can carry in a challenge", "default": 3 },
         "impatience_decay": { "type": "number", "title": "Diminishing growth factor between impatience steps", "default": 0.6 },
-        "impatience_relief": { "type": "number", "title": "Trust and fairness gain when a standing objection is answered", "default": 0.08 }
+        "impatience_relief": { "type": "number", "title": "Trust and fairness gain when a standing objection is answered", "default": 0.08 },
+        "case_board_attempts": { "type": "integer", "title": "Case board: wrong or empty guesses allowed per challenge", "default": 5 },
+        "ally_lift": { "type": "number", "title": "Case board: trust and fairness lift for a confirmed ally, once per pitch", "default": 0.05 }
       }
     },
     "emotionDeltaRules": {

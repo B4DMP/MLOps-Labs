@@ -107,6 +107,7 @@ class Settings(BaseSettings):
     POSTGRES_INTEL_DATA_TABLE: str = "intel_data"
     POSTGRES_GRAPH_OP_LOG_TABLE: str = "graph_op_log"
     POSTGRES_GAME_EVENT_TABLE: str = "game_event"
+    POSTGRES_CASE_BOARD_TABLE: str = "case_board"
     POSTGRES_USER_SETTINGS_TABLE: str = "user_settings"
     POSTGRES_GAME_RESULT_TABLE: str = "game_result"
     POSTGRES_TEACHER_DATA_TABLE: str = "teacher_data"

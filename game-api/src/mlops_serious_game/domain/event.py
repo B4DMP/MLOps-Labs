@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 Step = Literal["offline", "gather", "build", "object", "commit", "simulation", "gate"]
 EventKind = Literal[
     "emotion", "patience", "intel", "archetype", "tokens", "escalation",
-    "card", "objection", "outcome", "grudge", "graph", "metric",
+    "card", "objection", "outcome", "grudge", "graph", "metric", "thread",
 ]
 Direction = Literal["up", "down", "none"]
 Magnitude = Literal["slight", "clear", "large"]

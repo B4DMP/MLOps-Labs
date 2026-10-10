@@ -263,6 +263,32 @@ class GameEventRow(Base):
     )
 
 
+class CaseBoardRow(Base):
+    """One case board per player, run and challenge (docs/plans/case-board.md, D7). A table of its
+    own: `GameChallenge` has several rows per challenge, which makes latest-row lookups a gotcha."""
+
+    __tablename__ = settings.POSTGRES_CASE_BOARD_TABLE
+    __table_args__ = (
+        UniqueConstraint("user_id", "run_index", "phase_index", "challenge_index", name="uq_case_board_challenge"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    run_index: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    phase_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    challenge_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    found: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
+    hints: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
+    attempts_left: Mapped[int] = mapped_column(Integer, nullable=False)
+    # Notes the player has penciled in as covered by the pitch they are building. Theirs alone: nothing reads it.
+    penciled: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
+
+
 class UserSettings(Base):
     """One row per player: the preferences the settings panel owns
     (docs/plans/player-settings-and-tts.md).

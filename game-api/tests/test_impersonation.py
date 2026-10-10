@@ -140,6 +140,17 @@ def test_websocket_lets_loads_through_and_refuses_actions(client, target_player)
         assert blocked["event"] == "system:read_only"
         assert blocked["payload"] == {"event": "game:progress_update"}
 
+        ws.send_json({"event": "board:connect", "payload": {"a": "x", "b": "y", "kind": "ally"}})
+        blocked = ws.receive_json()
+        assert blocked["event"] == "system:read_only" and blocked["payload"] == {"event": "board:connect"}
+
+        ws.send_json({"event": "board:pencil", "payload": {"item_id": "x", "on": True}})
+        blocked = ws.receive_json()
+        assert blocked["event"] == "system:read_only" and blocked["payload"] == {"event": "board:pencil"}
+
+        ws.send_json({"event": "board:get", "payload": {"phase_id": 0, "challenge_id": 0}})
+        assert ws.receive_json()["event"] == "board:state"
+
         ws.send_json({"event": "system:ping", "payload": {}})
         assert ws.receive_json()["event"] == "system:pong"
 

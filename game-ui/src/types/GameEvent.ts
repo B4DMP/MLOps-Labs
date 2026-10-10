@@ -5,7 +5,7 @@
 export type GameEventStep = "offline" | "gather" | "build" | "object" | "commit" | "simulation" | "gate";
 export type GameEventKind =
   | "emotion" | "patience" | "intel" | "tokens" | "escalation"
-  | "card" | "objection" | "outcome" | "grudge" | "graph" | "metric";
+  | "card" | "objection" | "outcome" | "grudge" | "graph" | "metric" | "thread";
 export type GameEventDirection = "up" | "down" | "none";
 export type GameEventMagnitude = "slight" | "clear" | "large";
 
@@ -31,7 +31,7 @@ export type EventLogFilter = "people" | "intel" | "card" | "system";
 
 export const EVENT_LOG_FILTER_KINDS: Record<EventLogFilter, GameEventKind[]> = {
   people: ["emotion", "patience", "objection", "outcome", "grudge"],
-  intel: ["intel"],
+  intel: ["intel", "thread"],
   card: ["card", "tokens", "escalation"],
   system: ["graph", "metric"],
 };

@@ -53,6 +53,11 @@
   "intel.artifact_filed": { "text": "filed as {tag}, about {st}: {detail}", "group": "intel" },
   "intel.on_record": { "text": "already on the record as {tag}, about {st}: {detail}", "group": "intel" },
   "intel.verified_confirmed": { "text": "confirmed: {st} said it themselves", "group": "intel" },
+  "board.thread_found": { "text": "connected: {a} and {b}, {tie}", "group": "intel" },
+  "board.thread_on_record": { "text": "already on the record: {a} and {b}, {tie}", "group": "intel" },
+  "board.thread_wrong_kind": { "text": "{a} and {b} are tied, but not in the way you said", "group": "intel" },
+  "board.thread_nothing": { "text": "nothing you know ties {a} and {b} together", "group": "intel" },
+  "emotion.ally_backed": { "text": "warmer: {st} was glad {backer} stood behind the same ask", "group": "emotion" },
   "intel.verified_corrected": { "text": "corrected: it wasn't what you filed it as", "group": "intel" },
   "graph.facts_observed": { "text": "leaving offline research: {n} fact(s) you read right just showed up on the system map", "group": "graph" }
 }

@@ -156,6 +156,8 @@ class PitchState(BaseModel):
     free_repeat_used: bool = False
     # Per stakeholder, how the last re-pitch landed: quiet | unchanged | answered | changed_unanswered.
     repeat_context: dict[str, str] = Field(default_factory=dict)
+    # Case board allies: who was lifted this pitch, and the confirmed ally who backed them.
+    ally_lifts: dict[str, list[str]] = Field(default_factory=dict)
 
     def open_objections(self) -> list[Objection]:
         return self.objections
@@ -858,6 +860,7 @@ def evaluate_pitch(
     presentation_count: int = 1,
     previous: Optional[PitchState] = None,
     free_repeat: bool = False,
+    confirmed_relations: Optional[list] = None,
     **kwargs,
 ) -> tuple[PitchState, CardView, list[str]]:
     """Evaluates the pitched Action Card once against all room stakeholders.
@@ -921,6 +924,7 @@ def evaluate_pitch(
     impatience: dict[str, int] = {}
     repeat_context: dict[str, str] = {}
     items_to_correct: list[str] = []
+    agreeing: set[str] = set()
 
     # Map held items by stakeholder
     held_by_st: dict[str, list] = {}
@@ -1037,6 +1041,7 @@ def evaluate_pitch(
         # Positive approval message if no objections or misclassifications
         is_agreeing = not st_violations and not unaddressed_drivers and not unaddressed_trade_offs and not st_misclass_malus
         if is_agreeing:
+            agreeing.add(st_id)
             feedback.append(PitchFeedbackMessage(
                 stakeholder_id=st_id,
                 text="The proposal looks aligned with my priorities. I'm on board.",
@@ -1094,6 +1099,21 @@ def evaluate_pitch(
         impatience[st_id] = steps
         accumulated_deltas[st_id] = deltas
 
+    # Confirmed allies (case board, D3): an agreeing backer warms the one they stand with, once per
+    # pitch. After the signatures above are recorded, so the re-pitch "quiet" logic is untouched.
+    ally_lifts: dict[str, list[str]] = {}
+    lift = tuning.ally_lift
+    for rel in confirmed_relations or []:
+        if rel.kind != "ally":
+            continue
+        for backer, other in ((rel.a, rel.b), (rel.b, rel.a)):
+            if backer in agreeing and other in room_ids and other not in ally_lifts and repeat_context.get(other) != "quiet":
+                ally_lifts[other] = [backer]
+                boosted = dict(accumulated_deltas.get(other, {}))
+                for dim in ("trust", "fairness"):
+                    boosted[dim] = round(boosted.get(dim, 0.0) + lift, 4)
+                accumulated_deltas[other] = boosted
+
     # Update emotions with deltas
     updated_emotions: dict[str, dict[str, float]] = {}
     for st_id in room_ids:
@@ -1143,6 +1163,7 @@ def evaluate_pitch(
         impatience=impatience,
         repeat_context=repeat_context,
         free_repeat_used=bool(previous and previous.free_repeat_used) or free_repeat,
+        ally_lifts=ally_lifts,
     )
     return new_pitch_state, view, items_to_correct
 

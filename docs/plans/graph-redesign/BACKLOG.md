@@ -11,7 +11,6 @@ Things deliberately cut from the graph redesign, plus ideas that surfaced during
 | Instances in coverage | Keeps buy-in math on components and edges only. | a second coverage term |
 | Attribute level fog of war | Fog covers levels and triggers. Attributes are shown once the target is observed. | per attribute knowledge entries |
 | Multi target intel items | One suggested target per Driver keeps coverage readable. Metric credit already gives some flexibility. | partial coverage rules for composite items |
-| Stakeholder alliances | Leverage / Alliance removed in v3. Challenge conflicts cover the important part. | stance model between stakeholders, coalition effects, UI for who moves with whom |
 | Escalation Point regeneration | D15. **Flagged for playtest**: first knob to turn if 3 per game is too harsh. | earn rule, for example one per phase closed without a veto |
 | Per phase patience | D14, per challenge. | patience persisted across challenges |
 | Dynamic objection prose | Objections are pre authored strings. | runtime paraphrase in stakeholder voice with a cache, same effect |

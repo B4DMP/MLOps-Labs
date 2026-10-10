@@ -333,3 +333,40 @@ def test_same_card_ignores_slot_order():
 def test_silent_stakeholders_only_when_signature_repeats():
     state = session.PitchState(reaction_signatures={"s1": {"trust": 0.1}, "s2": {"trust": 0.2}})
     assert session.silent_stakeholders(state, {"s1": {"trust": 0.1}, "s2": {"trust": 0.3}, "s3": {}}) == {"s1"}
+
+
+# ---------- case board: ally lift (docs/plans/case-board.md, D3) ----------
+
+def _ally_pitch(real, relations, dave_met=True):
+    from mlops_serious_game.domain.relations import Relation
+
+    state = GraphState.from_config(real)
+    dave = _item("d1", "data_dave", "driver", suggested=_target("data.validation", 2 if dave_met else 3))
+    monica = _item("m1", "model_monica", "driver", suggested=_target("model.registry", 3))
+    emotions = {sid: {"fairness": 0.5, "trust": 0.5, "stress": 0.5, "confidence": 0.5, "perceived_risk": 0.5, "interest": 0.5, "sense_of_control": 0.5}
+                for sid in ("data_dave", "model_monica")}
+    rels = [Relation(id="r", kind=k, a="data_dave", b="model_monica", target="t", a_item_ids=["d1"], b_item_ids=["m1"]) for k in relations]
+    return session.evaluate_pitch(
+        graph=real, state=state, all_intel=[dave, monica], card_item_ids={"d1"},
+        room=[("data_dave", "high"), ("model_monica", "high")], current_emotions=emotions,
+        held_items=[dave, monica], names={}, confirmed_relations=rels,
+    )[0]
+
+
+def test_confirmed_ally_lifts_the_one_they_back_when_the_backer_agrees(real):
+    plain = _ally_pitch(real, [])
+    lifted = _ally_pitch(real, ["ally"])
+    assert lifted.ally_lifts == {"model_monica": ["data_dave"]}
+    for dim in ("trust", "fairness"):
+        assert lifted.emotion_deltas["model_monica"][dim] > plain.emotion_deltas["model_monica"][dim]
+    assert lifted.emotion_deltas["data_dave"] == plain.emotion_deltas["data_dave"]
+
+
+def test_ally_lift_needs_an_agreeing_backer_and_an_ally_thread(real):
+    assert _ally_pitch(real, ["ally"], dave_met=False).ally_lifts == {}
+    assert _ally_pitch(real, ["rift", "chain"]).ally_lifts == {}
+    assert _ally_pitch(real, []).ally_lifts == {}
+
+
+def test_ally_lift_leaves_reaction_signatures_alone(real):
+    assert _ally_pitch(real, ["ally"]).reaction_signatures == _ally_pitch(real, []).reaction_signatures

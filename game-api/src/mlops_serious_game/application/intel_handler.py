@@ -446,11 +446,7 @@ def assemble_chains(
         if not chain_items:
             continue
         head = chain_items[-1]  # newest = headline
-        target = None
-        if head.asserts:
-            target = head.asserts.target
-        elif head.suggested:
-            target = head.suggested.target
+        target = item_target(head)
         chains.append({
             "tag": head.type.value if hasattr(head.type, "value") else str(head.type),
             "stakeholder_id": head.stakeholder_id,
@@ -465,7 +461,7 @@ def assemble_chains(
             chains.append({
                 "tag": item.type.value if hasattr(item.type, "value") else str(item.type),
                 "stakeholder_id": item.stakeholder_id,
-                "target": None,
+                "target": item_target(item),
                 "links": [item],
                 "status": "open",
             })
@@ -1325,6 +1321,10 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
         is_verified = (item.intel_type == ConfidenceType.VERIFIED or str(item.intel_type).lower() == "verified")
         display_desc = item.description if is_verified else (item.categorized_description if item.categorized_description else item.description)
         shown_fact, shown_reading = item.shown_parts()
+        # Stored notes keep their {stakeholder_id} tokens; render them for this player.
+        display_desc = personalize(display_desc)
+        shown_fact = personalize(shown_fact) if shown_fact else shown_fact
+        shown_reading = personalize(shown_reading)
         chain = chains.get(item.id, {})
         target = item_target(item)
         stage_id, stage_name = stage_of_target(snapshot, target)

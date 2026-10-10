@@ -453,6 +453,10 @@ class PitchTuning(BaseModel):
     impatience_decay: float = Field(default=0.6, description="Each further impatience step adds this fraction of the previous step's growth (diminishing)")
     impatience_relief: float = Field(default=0.08, description="Trust and fairness gain when a stakeholder's standing objection is finally answered")
 
+    # Case board (docs/plans/case-board.md, D3/D4)
+    case_board_attempts: int = Field(default=5, description="Wrong or empty thread guesses allowed per challenge")
+    ally_lift: float = Field(default=0.05, description="Trust and fairness lift a confirmed ally gets when the stakeholder they back is agreeing, once per pitch")
+
 
 class EmotionConfig(BaseModel):
     """Complete Emotion & CME Configuration object matching EmotionValueConfig.json."""

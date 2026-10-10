@@ -267,6 +267,8 @@
       "impatience_step": 0.15,
       "impatience_cap": 3,
       "impatience_decay": 0.6,
-      "impatience_relief": 0.08
+      "impatience_relief": 0.08,
+      "case_board_attempts": 5,
+      "ally_lift": 0.05
    }
 }

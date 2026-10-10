@@ -145,6 +145,8 @@ def payload_errors(requirements, graph, metric_ids: set[str], stakeholder_ids: s
             errors.append(f"{where}: stances need a known stakeholder, got '{r.stakeholder_id}'")
         if r.asserts is not None:
             errors.append(f"{where}: only Facts carry 'asserts'")
+        if _payload_target(r) is None:
+            errors.append(f"{where}: a stance must name a graph target (a metric alone gives the player nothing to do)")
         if r.metric_id is not None and r.metric_id not in metric_ids:
             errors.append(f"{where}: unknown metric '{r.metric_id}'")
         if r.suggested is not None:

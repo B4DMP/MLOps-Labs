@@ -37,6 +37,8 @@ from mlops_serious_game.domain.requirement import (
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.infrastructure.database import GameChallenge, get_session
+from mlops_serious_game.application.case_board_service.context import pitch_markers
+from mlops_serious_game.domain.event import GameEvent
 from mlops_serious_game.infrastructure.websocket.handlers.log_handler import send_events
 from mlops_serious_game.infrastructure.websocket.manager import manager
 
@@ -296,6 +298,9 @@ def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView,
     counted_pool = {r.id for r in visible_intel if speaker_of(r)}
     allowed_targets = get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel))
     upstream_map = {c.id: pitch.find_pipeline_predecessors(ctx.graph, c.id) for c in ctx.graph.components}
+    _, compromise_pairs, after_notes, shared_steps, ally_pairs = (
+        pitch_markers(ctx.user_id, ctx.challenge) if ctx.challenge else ([], [], [], [], [])
+    )
 
     payload = {
         "phase_id": ctx.phase_id,
@@ -304,6 +309,10 @@ def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView,
         "atomic_changes": [c.model_dump() for c in state.atomic_changes],
         "allowed_targets": allowed_targets,
         "upstream_map": upstream_map,
+        "compromise_pairs": compromise_pairs,
+        "after_notes": after_notes,
+        "shared_steps": shared_steps,
+        "ally_pairs": ally_pairs,
         "available_items": [_item_payload(i, chains) for i in held],
         "predictions": [p.model_dump() for p in view.predictions],
         "boundary_warnings": [
@@ -454,7 +463,18 @@ async def handle_pitch_evaluate(websocket: WebSocket, user_id: int, payload: dic
         previous=state,
         # The intro's first revision after a veto is free: revising is how you learn the room.
         free_repeat=is_demo and state.stage == "DONE" and state.outcome == "VETO" and not state.free_repeat_used,
+        confirmed_relations=pitch_markers(user_id, ctx.challenge)[0] if ctx.challenge else None,
     )
+
+    if new_state.ally_lifts:
+        await send_events(websocket, user_id, [
+            GameEvent(
+                step="object", kind="emotion", subject_id=st_id, direction="up", magnitude="slight",
+                cause="emotion.ally_backed",
+                params={"st": ctx.names.get(st_id, st_id), "backer": ctx.names.get(backers[0], backers[0])},
+            ).stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id)
+            for st_id, backers in new_state.ally_lifts.items()
+        ])
 
     if items_to_correct:
         await _verify_heard(websocket, ctx, items_to_correct)

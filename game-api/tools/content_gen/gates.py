@@ -170,6 +170,27 @@ def run_gates(config_dir, work_dir, scope: str, scope_data: dict | None = None) 
             for m in repair_errors(ctx.graph, challenge_state(ctx, c), stances, room_of(roster), c, c.get("par_outcome", "PASS"))
         ]
 
+    # 8f. The case board has something to find: beyond the free on-record rift, a room with a board
+    #     (3 or more people, not the demo) has at least 3 threads over at least 2 pairs and 2 kinds.
+    #     tests/test_relations.py holds the same bar for the shipped content. A scope can opt out with
+    #     `"board_gate": false` (the harness tests run on synthetic content).
+    from mlops_serious_game.domain.Challenge import ChallengeConflict
+    from mlops_serious_game.domain.relations import derive_relations
+
+    for c in generated if ctx.scope.get("board_gate", True) else []:
+        room = ctx.phase(c["phase_id"])
+        if room.demo or len(room.stakeholders) < 3:
+            continue
+        conflict = ChallengeConflict(**c["conflict"]) if c.get("conflict") else None
+        findable = [r for r in derive_relations([r for r in reqs if r.challenge_id == c["id"]], conflict, g) if not r.on_record]
+        if len(findable) < 3 or len({frozenset((r.a, r.b)) for r in findable}) < 2 or len({r.kind for r in findable}) < 2:
+            report.errors.append(
+                f"board: {c['template_id']} has {len(findable)} threads to find over "
+                f"{len({frozenset((r.a, r.b)) for r in findable})} pairs and {len({r.kind for r in findable})} kinds; "
+                "the case board needs at least 3 over 2 pairs and 2 kinds (allies on a shared ask, shared steps on "
+                "different axes of one target, chains through a capped upstream step)"
+            )
+
     # 9. Voiced Facts: a Fact is dealt under its narrator's name, so the narrator must be in the room.
     phase_of = {c["id"]: c["phase_id"] for c in generated}
     fact_ids = {r.id for r in reqs if r.type == "fact"}

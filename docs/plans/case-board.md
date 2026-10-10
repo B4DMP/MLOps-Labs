@@ -1,7 +1,6 @@
 # Case board: a dossier tab where players connect stakeholders
 
-Status: proposal, nothing implemented. Written so it can be built without the session that
-produced it.
+Status: implemented (steps 0 to 8), not yet playtested. Step 8 playtest is the remaining item.
 
 Mockup (static, nothing is wired to the game): [../mockups/case-board.html](../mockups/case-board.html).
 Open it in a browser. `?notes` overlays numbered design notes, `?p=0`, `?p=1`, `?p=2` pick the
@@ -12,8 +11,8 @@ internet for icons only. The dialogue in it is invented and the avatars are stan
 
 The game's tension is between people, yet the dossier shows each stakeholder alone and the
 connections only surface as objections after a pitch. Give the player a deduction verb: look at
-two stakeholders, say how they are tied (allies, a rift, or a chain), and get a short overheard
-scene plus a concrete effect in the pitch.
+two stakeholders, say how they are tied (allies, a rift, a chain, or a shared step), and get a concrete effect in
+the pitch.
 
 ## What this is not
 
@@ -41,11 +40,19 @@ Checked against the code on 2026-10-08.
   `gameConfig/GameProgression.json`): `type` soft or hard, a `target`, and two positions naming a
   stakeholder, a wanted level and an axis. All 11 challenges have one. That is an authored rift,
   already guaranteed to be answerable by the content gates.
-- Coverage probe ([../mockups/relations_probe.py](../mockups/relations_probe.py), run in the `api`
-  container against the assembled 144 items): shared floors on one `(target, axis)` give ally pairs
-  in 8 of 11 challenges (up to 3 in one). Floor above ceiling gives rift pairs from items alone in
-  only 2 of 11, so rifts must also come from the conflict block. 3 challenges have no derived
-  thread at all, one of them the 2-stakeholder demo. **Chains were not measured**: step 0 does it.
+- Coverage is now a test (`test_real_content_gives_every_playable_room_enough_to_find`), see Risks. The
+  numbers below are the first probe ([../mockups/relations_probe.py](../mockups/relations_probe.py), run 2026-10-09,
+  best case: every stance item verified; ally pairs from shared floors, rifts from floor over
+  ceiling, set-value clashes and the `conflict` block, chains as "B holds a stance on a component
+  upstream of A's target", counted as distinct stakeholder pairs). Ally and rift alone give 2 or
+  more threads in **5 of 11** challenges, which fails the gate. With chains, **10 of 11** pass; the
+  11th is the 2-stakeholder demo, hidden by D5 anyway. Every challenge has a usable rift once an
+  item on an edge into the conflict target counts (challenge 118: Alex's driver raises
+  `e.cicd_shadow`, an edge into `deploy.shadow`). Step 2 replaced the chain proxy with a structural cap
+  check (an upstream component or edge whose allowed maximum, or its holder's ceiling, plus the least
+  slack on the way to the target, is below the floor asked). Result: **8 of 11** challenges have 2 or
+  more relations (7 of the 10 playable ones have 2 or more distinct stakeholder pairs). The gate
+  passes by the plan's wording, narrowly. Weak rooms: 111, 116, 119 (and the demo, 113), 1 relation each.
 - Stages carry `owner_role` in `gameConfig/MlopsGraph.json`, and `pitch_handler.py` builds an
   `upstream_map` with `pitch.find_pipeline_predecessors`. Capping logic lives in
   `application/graph_service/effective.py`.
@@ -60,25 +67,25 @@ Checked against the code on 2026-10-08.
 
 ## Decisions
 
-**D1 Eligibility and tag leakage (needs owner sign-off, recommendation given).**
-A confirmed thread says something true about the items behind it, for instance that two items are
-both floors. If the thread ignores the player's tags, confirming it leaks whether a tag was right,
-which breaks "no tag leaks" (plan 11). Recommendation: a thread is only *eligible* when the player
-holds an item on each side **and** their own tags on those items are compatible with the relation
-(ally: both tagged Driver or Trade-off; rift: one side Driver or Trade-off, the other Boundary or
-Trade-off, or the conflict block's two positions; chain: a stance tagged Driver plus the upstream
-owner's item or a Fact). A mistagged note then simply offers no thread. That reads as "nothing
-there", never as "your tag is wrong", and it rewards tagging well. The alternative (ground truth,
-accept the leak) is simpler and weaker. Decide before step 2.
+**D1 Eligibility and tag leakage (decided 2026-10-09).**
+A thread is built only from **verified** intel items (`ConfidenceType.VERIFIED`, shown in the
+dossier as confirmed/on record). `handle_intel_verification` rewrites a verified item to its true
+type, so a thread over verified items can only repeat what the dossier already shows, and cannot
+reveal whether an unverified tag was right. A relation is *eligible* when the player holds a
+verified item on each side (for a rift from the `conflict` block: a verified item from each of the
+two named stakeholders that touches the conflict target or an edge into or out of it). Unverified
+notes offer no thread, which also rewards verifying. No tag-compatibility check is needed. Nothing
+the board shows may come from an item the player has not verified.
 
 **D2 What a relation is.** Derived per challenge from ground-truth items (`ctx.all_intel`, the
 same input scoring uses), never stored in content:
 
 | kind | rule | pair |
 |---|---|---|
-| ally | two stakeholders have a floor on the same `(target, axis)` | unordered |
+| ally | two stakeholders both need the same `(target, axis)` reached, or both will only go so far on it (shared ceilings, e.g. two Trade-offs accepting manual only) | unordered |
 | rift | stakeholder A's floor is above stakeholder B's ceiling on the same `(target, axis)`, or two items write different values to one trigger or attribute (reuse `_set_values`, `_value_clauses`), or the challenge's `conflict` block names them | unordered |
 | chain | A has a floor on target T, T's effective level is capped by upstream U, and B owns U's stage (`owner_role`) or holds a stance on U | ordered, A waits on B |
+| step | two stakeholders each have a stance on the same component or edge that is neither an ally pair nor a rift there (typically one asks for automation, the other for governance) | unordered |
 
 Each relation has a stable `id` (hash of kind and sorted stakeholder ids and target), a list of the
 item ids behind each side, and the target. Sorted output, no randomness.
@@ -90,19 +97,23 @@ item ids behind each side, and the target. Sorted output, no randomness.
 | ally | when A's read is agreeing after a pitch, B gets a small trust and fairness lift (`ally_lift`), once per pitch per stakeholder, and a log cause says why |
 | rift | the composer marks the two items as a compromise pair when a Trade-off branch serves both, and the dossier names it. No scoring change |
 | chain | the composer marks the dependent change "after {B}'s step" so the player sees the cap before a technical objection costs patience |
+| step | the composer marks slots on that target "shared by {A} and {B}" (`shared_steps` in the pitch payload). No scoring change |
 
 Threads only act when confirmed. The relation exists in the world regardless, but knowing it is
 what the player earns.
 
-**D4 Attempts.** 3 wrong or empty guesses per challenge (`case_board_attempts`). A thread the
-player cannot yet judge costs nothing and says only that they do not know enough about both people.
+**D4 Attempts.** 5 wrong or empty guesses per challenge (`case_board_attempts`; 3 was too harsh in
+play). A thread the player cannot yet judge costs nothing and says only that they do not know enough
+about both people. The challenge's own conflict (its rift) is on the record already, so it is pinned
+for free once both sides are verified (`Relation.on_record`, `sync_on_record`).
 
 **D5 Scope.** Current challenge only. Hidden in the demo phase and whenever fewer than 3
 stakeholders are in the room. Earlier threads stay in the event log.
 
-**D6 Scenes.** The engine decides who speaks, which items they cite and who yields. The LLM only
-words each beat, with a template fallback and a stored result per thread, the same split as plan 11
-("the outcome is decided before anything is said"). Mechanics never wait on the LLM.
+**D6 Scenes (dropped).** An overheard scene per thread was built (template beats plus an LLM wording
+pass) and removed again: it was string building over the same two facts the notes already show, so it
+added no information. The thread file shows the effect and the notes behind the thread instead,
+each note linking to its dossier page.
 
 **D7 Persistence.** New table `case_board` (below), not a column on `GameChallenge`: that table has
 several rows per challenge and the latest-row lookups are already a known gotcha in
@@ -131,7 +142,7 @@ class Relation(BaseModel):
     via: str | None = None      # chain: the capping upstream target
 
 def derive_relations(items, conflict, graph) -> list[Relation]: ...
-def eligible(rel, held_items) -> bool: ...        # D1
+def eligible(rel, held_item_ids) -> bool: ...     # D1: verified item ids on each side
 ```
 
 Reuse `_stance_floors_and_ceilings` (make it public, `stance_floors_and_ceilings`, keep the old
@@ -139,18 +150,14 @@ name as an alias for `self_contradictions`).
 
 New `application/case_board_service/`:
 
-- `state.py`: `BoardState {found: list[str], hints: list[str], attempts_left: int, scenes: dict}`.
+- `state.py`: `BoardState {found: list[str], hints: list[list[str]], attempts_left: int}`.
 - `service.py`: `get_board(user, challenge) -> BoardPayload`, `connect(user, challenge, a, b, kind)
   -> ConnectResult` (`found`, `wrong_kind`, `nothing`, `not_enough_intel`, `no_attempts`), and
-  `reveal_hint(...)` for Team Sync-Up.
-- `scenes.py`: beat scripts per kind (ally: A states, B states, A calls it the same ask; rift: A
-  states, B objects citing their item or concession, one side offers the Trade-off branch if there
-  is one; chain: A states, B states the upstream position, A is capped), the LLM voicing call and
-  `gameConfig/CaseBoardScenes.json` fallbacks (about 12 templates with `{a}`, `{b}`, `{item}`).
+  `reveal_hint(...)` for Team Sync-Up and `sync_on_record(...)` for the challenge's own rift.
 
 Database: `CaseBoardRow` in `infrastructure/database/models.py` and an Alembic migration:
 `user_id`, `run_index`, `phase_index`, `challenge_index`, `found` JSON, `hints` JSON,
-`attempts_left`, `scenes` JSON, unique on the four keys. Follow `GameEventRow` for style.
+`attempts_left`, unique on the four keys. Follow `GameEventRow` for style.
 
 Websocket (`router.py`, handler `handlers/case_board_handler.py`):
 
@@ -191,7 +198,7 @@ Config: `case_board_attempts` and `ally_lift` in the pitch tuning block of
 - Composer: `ComposeActionProposalModal.tsx` receives `compromisePairs` and `afterNotes`, and
   shows the marker described in D3. Keep it to a chip on the existing slot or option row.
 - Copy follows `docs/gameplay-flow.md` rules: no numbers beyond resource counts, say only what the
-  engine does, no em dashes. Thread tags are "Same ask", "At odds", "Depends on".
+  engine does, no em dashes. Thread tags are "Same direction", "At odds", "Depends on".
 
 ### Docs to update when it ships
 
@@ -200,18 +207,19 @@ READ_ONLY note, and Gotchas if anything surprising shows up. BACKLOG.md as above
 
 ## Steps
 
-- [ ] 0. **Coverage gate.** Extend `docs/mockups/relations_probe.py` to include the conflict block and
+- [x] 0. **Coverage gate** (run 2026-10-09: passes only with chains, see Facts; rerun in step 2 with the real cap check).
+      Original wording: Extend `docs/mockups/relations_probe.py` to include the conflict block and
       chains, and run it after any content regeneration. Proceed only if at least 8 of the 11
       challenges (or the current count) give 2 or more eligible threads for a player who has found
       their notes. If chains are too rare, ship ally and rift only. No UI work before this.
-- [ ] 1. Owner decision on D1.
-- [ ] 2. `domain/relations.py` with tests (pure, no DB).
-- [ ] 3. `CaseBoardRow`, migration, `case_board_service`, events and causes, config keys.
-- [ ] 4. Websocket handler and router entries (read-only list), backend tests.
-- [ ] 5. Scene beats, LLM voicing with template fallback, `CaseBoardScenes.json`.
-- [ ] 6. `evaluate_pitch` ally lift and the two payload markers, tests.
-- [ ] 7. `CaseBoard.tsx`, `layoutPortraits`, dossier tab, drag and keyboard paths, tests.
-- [ ] 8. Composer markers, Team Sync-Up hint, docs, playtest.
+- [x] 1. Owner decision on D1 (verified items only, see D1).
+- [x] 2. `domain/relations.py` with tests (pure, no DB). `tests/test_relations.py` also asserts the 8-of-11 gate against the real content.
+- [x] 3. `CaseBoardRow`, migration `d1e2f3a4b5c7`, `case_board_service` (state, store, service), `thread` event kind, four causes, config keys. `tests/test_case_board_service.py` uses an in-memory store.
+- [x] 4. Websocket handler and router entries (read-only list), backend tests.
+- [x] 5. Scene beats and LLM voicing: built, then dropped (see D6). Replaced by linked notes with status and an answer key in debug mode.
+- [x] 6. `evaluate_pitch` ally lift and the two payload markers, tests.
+- [x] 7. `CaseBoard.tsx`, `layoutPortraits`, dossier tab, drag and keyboard paths, tests.
+- [x] 8. Composer markers, Team Sync-Up hint, docs. Still open: a playtest of the board with real players.
 
 ## Tests
 
@@ -219,7 +227,7 @@ Backend, in `game-api/tests`, run with `-m "not db"` before pushing (CI has no P
 
 - `test_relations.py`: ally, rift (floor over ceiling, trigger clash, conflict block) and chain
   cases built with `make_intel_item` from `tests/conftest.py`. Determinism (same input, same ids and
-  order). Eligibility under D1: mistagged note offers nothing.
+  order). Eligibility under D1: a pair with an unverified note on either side offers nothing.
 - `test_case_board_service.py`: result codes, attempts only spent on `wrong_kind` and `nothing`,
   `not_enough_intel` free, no attempts left, hints never name a kind. Use an in-memory fake store so
   the file is not auto-marked `db`. A test that really touches Postgres needs `@pytest.mark.db`.
@@ -247,12 +255,19 @@ Never install into the host Python or Node (CLAUDE.md). A new dependency goes in
 
 ## Risks and open questions
 
-- Rifts are rare from items alone (2 of 11), so the board leans on the conflict block for them. That
+- Rifts are rare from items alone, so the board leans on the conflict block for them. That
   is fine because every challenge has one, but check the conflict's two stakeholders are both in
   the room on first play.
-- D1 is the main design risk. Without it the board leaks tag correctness.
-- Scenes add LLM calls. Cache by relation id and store the result, and fall back to templates when
-  the call fails or is slow.
-- Mobile and small windows: the board is a 5-person layout in an 840px dossier. Test 6 portraits.
+- **Content must keep driving the board.** See [case-board-content-pass.md](case-board-content-pass.md) for the
+  bar, the first content pass and the open question of findable rifts.
+  Original note: Beyond the free on-record rift, every playable room needs
+  at least 3 threads to find tying at least 2 different pairs; `tests/test_relations.py` enforces it
+  against the real content (today 3 to 10 per room, 111 and 118 being the thinnest). A content
+  regeneration that drops a room under the bar fails that test. Rifts other than the on-record one are
+  rare in the items (floor above ceiling almost never happens across stakeholders), so the findable
+  threads are allies, chains and shared steps. If playtests want more findable rifts, the content
+  stage has to author opposing asks; the board cannot invent them.
+- Small windows: the board is a wide 760 x 290 surface scaled by container width, with the thread file
+  scrolling underneath. Check 6 portraits at `/?dev=case-board`.
 - Content regeneration can change relations. Relations are derived at read time, so nothing is
   stale, but the coverage gate must be rerun after any content run (`make content-run-*`).

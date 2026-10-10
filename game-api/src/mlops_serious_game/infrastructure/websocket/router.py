@@ -16,6 +16,7 @@ from mlops_serious_game.infrastructure.database import get_session
 from mlops_serious_game.domain.persona_resolver import bind_personas, personalize
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 
+from .handlers.case_board_handler import handle_board_connect, handle_board_get, handle_board_pencil
 from .handlers.chat_handler import handle_chat_message
 from .handlers.game_handler import (
     handle_game_init,
@@ -88,6 +89,9 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "pitch:room_ceiling": handle_pitch_room_ceiling,
     "simulation:run": handle_simulation_run,
     "log:history": handle_log_history,
+    "board:get": handle_board_get,
+    "board:connect": handle_board_connect,
+    "board:pencil": handle_board_pencil,
     "gather:open": handle_gather_open,
     "gather:ask": handle_gather_ask,
     "gather:close": handle_gather_close,
@@ -112,6 +116,7 @@ READ_ONLY_EVENTS = frozenset({
     "graph:state_request",
     "pitch:state",
     "log:history",
+    "board:get",
     "results:get",
     "settings:get",
 })
