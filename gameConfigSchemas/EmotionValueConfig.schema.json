@@ -101,7 +101,33 @@
         "impatience_decay": { "type": "number", "title": "Diminishing growth factor between impatience steps", "default": 0.6 },
         "impatience_relief": { "type": "number", "title": "Trust and fairness gain when a standing objection is answered", "default": 0.08 },
         "case_board_attempts": { "type": "integer", "title": "Case board: wrong or empty guesses allowed per challenge", "default": 5 },
-        "ally_lift": { "type": "number", "title": "Case board: trust and fairness lift for a confirmed ally, once per pitch", "default": 0.05 }
+        "ally_lift": { "type": "number", "title": "Case board: trust and fairness lift for a confirmed ally, once per pitch", "default": 0.05 },
+        "pep_talk_confidence_gain": { "type": "number", "title": "Pep-Talk: confidence gain per stakeholder, scaled by reactivity", "default": 0.08 },
+        "pep_talk_control_gain": { "type": "number", "title": "Pep-Talk: sense-of-control gain per stakeholder, scaled by reactivity", "default": 0.05 },
+        "pen_enabled": { "type": "boolean", "title": "Hand the Pen: whether the composer offers it at all", "default": true },
+        "pen_max_per_challenge": { "type": "integer", "title": "Hand the Pen: most times it can be used in one challenge", "default": 1 },
+        "pen_leave_player_slots": { "type": "integer", "title": "Hand the Pen: other slots that must stay free before it can be used", "default": 1 },
+        "pen_trust_gain": {
+          "type": "object",
+          "title": "Hand the Pen: trust gain to the holder at the next evaluate, per trust band",
+          "properties": {
+            "low": { "type": "number", "default": 0.12 },
+            "medium": { "type": "number", "default": 0.07 },
+            "high": { "type": "number", "default": 0.03 }
+          },
+          "default": { "low": 0.12, "medium": 0.07, "high": 0.03 }
+        },
+        "pen_control_gain": {
+          "type": "object",
+          "title": "Hand the Pen: sense-of-control gain to the holder at the next evaluate, per trust band",
+          "properties": {
+            "low": { "type": "number", "default": 0.12 },
+            "medium": { "type": "number", "default": 0.07 },
+            "high": { "type": "number", "default": 0.03 }
+          },
+          "default": { "low": 0.12, "medium": 0.07, "high": 0.03 }
+        },
+        "pen_trust_dividend_steps": { "type": "integer", "title": "Hand the Pen: most rungs a High-trust draft can move in one slot", "default": 2 }
       }
     },
     "emotionDeltaRules": {

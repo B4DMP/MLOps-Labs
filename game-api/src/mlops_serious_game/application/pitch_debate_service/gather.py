@@ -21,7 +21,6 @@ from mlops_serious_game.domain.requirement import IntelTag, item_target, truncat
 GatherOptionKind = Literal[
     "component_query",
     "priority_query",
-    "generic_query",
 ]
 
 
@@ -615,7 +614,12 @@ def gather_options_for(
         opts = _make_component_specs(cids, conversation.is_open, graph)
 
     elif conversation.card_id == "eng_1":
-        # 1-to-1 Meeting: 1 stakeholder, option to ask for most important requirement (max once per convo) + component options
+        # Investigate Component: 1 stakeholder, option to ask for most important requirement (max
+        # once per stakeholder, across all plays of this card on them) + 3 component options.
+        # Repeatable: the conversation's asked_options/discovered_item_ids are carried forward by
+        # handle_gather_open across separate plays on the same stakeholder, so this never repeats
+        # a dialogue-option/stakeholder combination even though the stakeholder can be targeted
+        # again.
         has_asked_priority = "priority_query" in conversation.asked_options
         priority_opt = GatherOptionSpec(
             option="priority_query",
@@ -646,35 +650,6 @@ def gather_options_for(
             asked_options=conversation.asked_options,
         )
         opts = [priority_opt] + _make_component_specs(cids, conversation.is_open, graph)
-
-    elif conversation.card_id == "eng_2":
-        # Probe Requirements: 1 stakeholder, 4 component options
-        cids = select_single_stakeholder_components(
-            pool=pool,
-            known_ids=known_ids,
-            max_count=4,
-            seed=turn_seed,
-            stakeholder_id=conversation.stakeholder_id,
-            room_pools=room_pools,
-            graph=graph,
-            allowed_types=allowed_types,
-            phase_id=phase_id,
-            excluded_cids=excluded_cids,
-            asked_options=conversation.asked_options,
-        )
-        opts = _make_component_specs(cids, conversation.is_open, graph)
-
-    elif conversation.card_id == "eng_4":
-        # Ask Generic Question: 1 stakeholder, open-ended question
-        opts = [
-            GatherOptionSpec(
-                option="generic_query",
-                available=conversation.is_open,
-                prompt="Can you tell me about your general perspective or any requirements on your radar?",
-                label="Ask Generic Question",
-                reason=None if conversation.is_open else "No turns left in this conversation",
-            )
-        ]
 
     else:
         # Generic fallback
@@ -889,52 +864,6 @@ def resolve_priority_query(
     return TurnOutcome(
         conversation=updated,
         option="priority_query",
-        result="revealed",
-        item_id=item.id,
-        item_ids=[item.id],
-        events=[event],
-    )
-
-
-def resolve_generic_query(
-    conversation: GatherConversation,
-    pool: list,
-    known_ids: set[str],
-    seed: str,
-    stakeholder_name: str,
-    graph: Optional[Any] = None,
-) -> TurnOutcome:
-    """Reveals 1 random undiscovered item in stable order."""
-    if not conversation.is_open:
-        return _reject(conversation, "generic_query", "no turns left in this conversation")
-
-    undiscovered = [r for r in pool if r.id not in known_ids]
-    if not undiscovered:
-        return TurnOutcome(conversation=_spend_turn(conversation, asked_option="generic_query"), option="generic_query", result="nothing_left")
-
-    ordered = _stable_order(f"{seed}|generic", undiscovered)
-    item = ordered[0]
-    updated = _spend_turn(conversation, asked_option="generic_query").model_copy(
-        update={"discovered_item_ids": conversation.discovered_item_ids + [item.id]}
-    )
-    item_component_id = component_for_item(item, graph)
-    event = GameEvent(
-        step="gather",
-        kind="intel",
-        subject_id=conversation.stakeholder_id,
-        direction="up",
-        magnitude="clear",
-        cause="intel.revealed",
-        params={
-            "st": stakeholder_name,
-            "component": component_display_name(item_component_id, graph) if item_component_id else "the system",
-            "detail": truncate_detail(getattr(item, "description", None) or getattr(item, "gist", None)),
-        },
-        refs={"item_id": item.id},
-    )
-    return TurnOutcome(
-        conversation=updated,
-        option="generic_query",
         result="revealed",
         item_id=item.id,
         item_ids=[item.id],

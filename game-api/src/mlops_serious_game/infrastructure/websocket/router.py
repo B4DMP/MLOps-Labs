@@ -38,6 +38,7 @@ from .handlers.graph_handler import handle_graph_state
 from .handlers.log_handler import handle_log_history
 from .handlers.pitch_handler import (
     handle_pitch_commit,
+    handle_pitch_delegate,
     handle_pitch_evaluate,
     handle_pitch_set_card,
     handle_pitch_state,
@@ -81,6 +82,7 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "graph:state_request": handle_graph_state,
     "pitch:state": handle_pitch_state,
     "pitch:set_card": handle_pitch_set_card,
+    "pitch:delegate": handle_pitch_delegate,
     "pitch:evaluate": handle_pitch_evaluate,
     "pitch:object": handle_pitch_evaluate,  # Alias for backward compatibility
     "pitch:commit": handle_pitch_commit,

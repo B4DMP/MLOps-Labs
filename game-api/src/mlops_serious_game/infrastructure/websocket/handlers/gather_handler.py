@@ -22,12 +22,15 @@ from mlops_serious_game.application.intel_handler import (
     retrieve_dossier_data,
     store_intel_item,
 )
-from mlops_serious_game.application.pitch_debate_service import gather
+from mlops_serious_game.application.pitch_debate_service import card_effects, gather
 from mlops_serious_game.application.pitch_debate_service import gather_store
+from mlops_serious_game.application.pitch_debate_service import store as pitch_store
 from mlops_serious_game.application.pitch_debate_service.chains import (
     generate_player_utterance,
     generate_stakeholder_response,
 )
+from mlops_serious_game.application.pitch_debate_service.session import PitchState
+from mlops_serious_game.domain.emotion import calculate_reactivity
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
 from mlops_serious_game.domain.event import GameEvent
@@ -189,6 +192,162 @@ def _target_room_ids(card, requested: list[str], room_ids: list[str]) -> list[st
     return [st_id for st_id in requested if st_id in room_ids]
 
 
+async def _apply_card_effect(
+    websocket: WebSocket,
+    user_id: int,
+    phase_id: int,
+    challenge_id: int,
+    card,
+    targets: list[str],
+    room_ids: list[str],
+) -> None:
+    """Patience-Reset / Pep-Talk: no Gather turns, one immediate effect plus one reaction line per
+    affected stakeholder, shown through the same closed-conversation chat tab every other card
+    uses (no new UI)."""
+    challenge, _ = _challenge_and_room(phase_id, challenge_id)
+    affected = room_ids if card.effect_kind == "pep_talk" else targets
+    # One shared conversation/chat tab per play, same as Team Sync-Up's single "all" conversation -
+    # every affected stakeholder's reaction lands in it, not one tab apiece.
+    target_key = targets[0] if targets else "all"
+    conversation_id = f"{card.id}_{target_key}"
+    events: list[GameEvent] = []
+    emotion_values_map: dict[str, Any] = {}
+
+    with get_session() as db:
+        row = db.scalars(
+            select(GameChallenge)
+            .where(
+                GameChallenge.user_id == user_id,
+                GameChallenge.phase_index == phase_id,
+                GameChallenge.challenge_index == challenge_id,
+            )
+            .order_by(GameChallenge.id.desc())
+        ).first()
+        if row:
+            emotion_values_map = dict(row.emotion_values or {})
+
+    if card.effect_kind == "patience_reset":
+        pitch_state = pitch_store.load_pitch(user_id, phase_id, challenge_id) or PitchState()
+        for st_id in targets:
+            pitch_state, event = card_effects.resolve_patience_reset(pitch_state, st_id, _stakeholder_name(st_id))
+            events.append(event)
+        pitch_store.save_pitch(user_id, phase_id, challenge_id, pitch_state)
+
+    elif card.effect_kind == "pep_talk":
+        tuning = EmotionFactory.get_pitch_tuning()
+        reactivity_by_stakeholder = {}
+        for st_id in room_ids:
+            st_obj = _stakeholder_obj(st_id)
+            reactivity_by_stakeholder[st_id] = calculate_reactivity(
+                getattr(st_obj, "power", "low") if st_obj else "low",
+                getattr(st_obj, "interest", "low") if st_obj else "low",
+            )
+        deltas = card_effects.pep_talk_deltas(room_ids, reactivity_by_stakeholder, tuning)
+        names_by_st = {st_id: _stakeholder_name(st_id) for st_id in room_ids}
+        events.extend(card_effects.pep_talk_events(room_ids, names_by_st))
+
+        with get_session() as db:
+            row = db.scalars(
+                select(GameChallenge)
+                .where(
+                    GameChallenge.user_id == user_id,
+                    GameChallenge.phase_index == phase_id,
+                    GameChallenge.challenge_index == challenge_id,
+                )
+                .order_by(GameChallenge.id.desc())
+            ).first()
+            if row:
+                ev_map = dict(row.emotion_values or {})
+                for st_id, delta in deltas.items():
+                    current = ev_map.get(st_id) or EmotionFactory.create_default_emotion_values()
+                    ev_map[st_id] = EmotionFactory.apply_delta(current, delta)
+                row.emotion_values = ev_map
+                flag_modified(row, "emotion_values")
+                db.commit()
+                emotion_values_map = ev_map
+
+    await send_events(
+        websocket, user_id, [e.stamped(phase_id=phase_id, challenge_id=challenge_id) for e in events]
+    )
+
+    option_type = card.effect_kind
+    default_msg = (
+        "Finally, some breathing room."
+        if card.effect_kind == "patience_reset"
+        else "Good to hear it, let's keep moving."
+    )
+    revealed_db_entries = []
+    for st_id in affected:
+        st_obj = _stakeholder_obj(st_id)
+        st_name = _stakeholder_name(st_id)
+        emotion_str, emotional_state, facial_expression, ev_dict = _stakeholder_emotion_meta(
+            st_id, emotion_values_map
+        )
+        spoken_response = await generate_stakeholder_response(
+            stakeholder_name=st_name,
+            stakeholder_role=st_obj.role_description if st_obj else "",
+            challenge=f"{challenge.name}: {challenge.description}" if challenge else "",
+            responsibilities=st_obj.responsibilities if st_obj else "",
+            priorities=st_obj.priorities if st_obj else "",
+            emotion=emotion_str,
+            option_type=option_type,
+            is_revealed=False,
+            default_response=default_msg,
+        )
+        msg_payload = {
+            "type": "stakeholder_message",
+            "stakeholder_id": st_id,
+            "stakeholder_name": st_name,
+            "message": spoken_response,
+            "conversation_id": conversation_id,
+            "revealed_intel_items": [],
+            "emotional_state": emotional_state,
+            "facial_expression": facial_expression,
+            "emotion_values": ev_dict,
+        }
+        await manager.send_event(websocket=websocket, event="intel:message_received", payload=msg_payload)
+        revealed_db_entries.append({
+            "id": st_id,
+            "stakeholder_id": st_id,
+            "stakeholder_name": st_name,
+            "message": spoken_response,
+            "conversation_id": conversation_id,
+            "ac_id": -1,
+            "revealed_intel": [],
+            "emotional_state": emotional_state,
+            "facial_expression": facial_expression,
+            "emotion_values": ev_dict,
+        })
+
+    if revealed_db_entries:
+        with get_session() as db:
+            row = db.scalars(
+                select(GameChallenge)
+                .where(
+                    GameChallenge.user_id == user_id,
+                    GameChallenge.phase_index == phase_id,
+                    GameChallenge.challenge_index == challenge_id,
+                )
+                .order_by(GameChallenge.id.desc())
+            ).first()
+            if row:
+                current_msgs = list(row.messages or [])
+                current_msgs.extend(revealed_db_entries)
+                row.messages = current_msgs
+                flag_modified(row, "messages")
+                db.commit()
+
+    held = await _held_items(user_id, phase_id)
+    closed_conversation = gather.GatherConversation(
+        conversation_id=conversation_id,
+        card_id=card.id,
+        stakeholder_id=target_key,
+        turns_left=0,
+        closed=True,
+    )
+    await _send_conversation(websocket, user_id, phase_id, challenge_id, closed_conversation, card, held)
+
+
 async def handle_gather_open(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Plays a card: starts one conversation per target (or whole room for Team Sync-Up)."""
     phase_id, challenge_id = payload.get("phase_id", 0), payload.get("challenge_id", 0)
@@ -208,6 +367,16 @@ async def handle_gather_open(websocket: WebSocket, user_id: int, payload: dict) 
             payload={"message": "None of those targets are valid for this engagement card."},
         )
         return
+
+    if card.effect_kind == "patience_reset":
+        pitch_state = pitch_store.load_pitch(user_id, phase_id, challenge_id) or PitchState()
+        if any(not card_effects.is_impatient(pitch_state, t) for t in targets):
+            await manager.send_event(
+                websocket=websocket,
+                event="system:error",
+                payload={"message": "That stakeholder isn't impatient right now."},
+            )
+            return
 
     existing_messages = []
     with get_session() as db:
@@ -267,6 +436,10 @@ async def handle_gather_open(websocket: WebSocket, user_id: int, payload: dict) 
             db.add(row)
             db.commit()
 
+    if card.effect_kind != "gather":
+        await _apply_card_effect(websocket, user_id, phase_id, challenge_id, card, targets, room_ids)
+        return
+
     prefix = f"eng_{card_id}_"
     matching_conv_ids = {
         m.get("conversation_id")
@@ -274,18 +447,28 @@ async def handle_gather_open(websocket: WebSocket, user_id: int, payload: dict) 
         if isinstance(m, dict) and str(m.get("conversation_id", "")).startswith(prefix)
     }
     play_index = len(matching_conv_ids) + 1
-    conversation_id = f"{prefix}{play_index}"
+    new_conversation_id = f"{prefix}{play_index}"
 
     held = await _held_items(user_id, phase_id)
     events: list[GameEvent] = []
     conversations = []
     for target in targets:
-        conversation = gather.GatherConversation(
-            conversation_id=conversation_id,
-            card_id=card_id,
-            stakeholder_id=target,
-            turns_left=card.turns,
-        )
+        prior = gather_store.load_conversation(user_id, phase_id, challenge_id, card_id, target) if card.repeatable_target else None
+        if prior is not None:
+            # Repeatable target: continue the same conversation/chat tab rather than starting a
+            # fresh one, carrying forward what was already asked so no dialogue-option/stakeholder
+            # combination is ever offered twice.
+            conversation = prior.model_copy(update={
+                "closed": False,
+                "turns_left": prior.turns_left + card.turns,
+            })
+        else:
+            conversation = gather.GatherConversation(
+                conversation_id=new_conversation_id,
+                card_id=card_id,
+                stakeholder_id=target,
+                turns_left=card.turns,
+            )
         gather_store.save_conversation(user_id, phase_id, challenge_id, conversation)
         conversations.append(conversation)
         display_name = "Whole Team" if target == "all" else _stakeholder_name(target)
@@ -456,16 +639,6 @@ async def handle_gather_ask(websocket: WebSocket, user_id: int, payload: dict) -
     elif option == "priority_query":
         pool = _pool_for(challenge.id, conversation.stakeholder_id, hide_edges)
         outcome = gather.resolve_priority_query(
-            conversation=conversation,
-            pool=pool,
-            known_ids=known_ids,
-            seed=seed,
-            stakeholder_name=st_name,
-            graph=graph,
-        )
-    elif option == "generic_query":
-        pool = _pool_for(challenge.id, conversation.stakeholder_id, hide_edges)
-        outcome = gather.resolve_generic_query(
             conversation=conversation,
             pool=pool,
             known_ids=known_ids,
@@ -685,7 +858,7 @@ async def handle_gather_ask(websocket: WebSocket, user_id: int, payload: dict) -
                 })
 
     elif option == "component_query":
-        # Single stakeholder component inquiry (e.g. eng_1, eng_2)
+        # Single stakeholder component inquiry (eng_1, Investigate Component)
         speaker_id = conversation.stakeholder_id
         speaker_st = _stakeholder_obj(speaker_id)
         speaker_name = speaker_st.name if speaker_st else _stakeholder_name(speaker_id)
@@ -886,7 +1059,7 @@ async def handle_gather_ask(websocket: WebSocket, user_id: int, payload: dict) -
                 })
 
     else:
-        # priority_query, generic_query, etc.
+        # priority_query
         speaker_id = conversation.stakeholder_id
         speaker_st = _stakeholder_obj(speaker_id)
         speaker_name = speaker_st.name if speaker_st else _stakeholder_name(speaker_id)
@@ -964,10 +1137,7 @@ async def handle_gather_ask(websocket: WebSocket, user_id: int, payload: dict) -
                     "emotion_values": ev_dict,
                 })
         else:
-            if option == "priority_query":
-                default_msg = "All of my main priorities and critical constraints have already been discussed."
-            else:
-                default_msg = "I don't have any additional requirements or notes to share right now."
+            default_msg = "All of my main priorities and critical constraints have already been discussed."
 
             spoken_response = await generate_stakeholder_response(
                 stakeholder_name=speaker_name,

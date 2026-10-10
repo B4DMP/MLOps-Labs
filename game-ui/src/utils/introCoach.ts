@@ -234,11 +234,8 @@ export function resetVetoStreak(userId: number | null | undefined, challengeId: 
   writeStreak(userId, challengeId, null);
 }
 
-/** The conversation card the guide points at: Probe Requirements, else the cheapest question card. */
+/** The conversation card the guide points at: Investigate Component. */
 export function pickGuideCard<T extends { id: string; token_cost: number }>(cards: readonly T[], tokens: number): T | null {
-  for (const id of ["eng_2", "eng_4"]) {
-    const card = cards.find((c) => c.id === id);
-    if (card && card.token_cost <= tokens) return card;
-  }
-  return null;
+  const card = cards.find((c) => c.id === "eng_1");
+  return card && card.token_cost <= tokens ? card : null;
 }

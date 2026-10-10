@@ -82,6 +82,21 @@
               ]
             },
             "default": []
+          },
+          "repeatable_target": {
+            "type": "boolean",
+            "title": "Repeatable Target (can address a stakeholder already targeted this challenge again)",
+            "default": false
+          },
+          "effect_kind": {
+            "type": "string",
+            "title": "Effect Kind ('gather' opens a dialogue conversation; any other value applies a direct effect, see card_effects.py)",
+            "enum": [
+              "gather",
+              "patience_reset",
+              "pep_talk"
+            ],
+            "default": "gather"
           }
         }
       }

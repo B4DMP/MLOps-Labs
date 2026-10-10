@@ -268,6 +268,11 @@ export interface ComposeActionProposalModalProps {
   onOpenBoard?: () => void;
   /** The host has something else on screen (cheat sheet, coach tip, tour, start gate); the guide waits. */
   guidePaused?: boolean;
+  /** Hand the Pen (docs/plans/hand-over-the-pen.md): the currently sealed draft, if any. Never
+   *  carries the drafted change itself - only the reservation, so nothing leaks before reveal. */
+  pen?: { stakeholder_id: string; target: string; revealed: boolean } | null;
+  /** Hands `target` over to `stakeholderId` to draft themselves. Irreversible once sent. */
+  onDelegate?: (stakeholderId: string, target: string) => void;
 }
 
 const MAX_ATOMIC_CHANGES = 4;
@@ -286,6 +291,8 @@ const CARD = {
   capped: "#9a3f0b",
   uncertain: "#76530b",
   viewOnly: "#6e5f4d",
+  /** Hand the Pen: reserved for someone else to draft, sealed until the pitch reveals it. */
+  sealed: "#6b21a8",
 } as const;
 /** Height of a node's title bar: two lines of title, centred. */
 const BAR_H = 34;
@@ -435,6 +442,8 @@ export default function ComposeActionProposalModal({
   onOpenCheatSheet,
   onOpenBoard,
   guidePaused = false,
+  pen = null,
+  onDelegate,
 }: ComposeActionProposalModalProps) {
   const { emit, subscribe, userId } = useGameWebSocket();
   const gate = useNarratorGate();
@@ -460,6 +469,8 @@ export default function ComposeActionProposalModal({
   const [hoveredCompId, setHoveredCompId] = useState<string | null>(null);
   const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
   const [activeStageId, setActiveStageId] = useState<string>("req");
+  // Hand the Pen: the "who drafts this?" picker for the currently selected component.
+  const [delegatePickerOpen, setDelegatePickerOpen] = useState(false);
 
   // A cross-phase stub isn't a real target - selecting a real one always drops it, without
   // touching every place that already sets selectedCompId/selectedEdgeId. Deselecting a real
@@ -468,6 +479,11 @@ export default function ComposeActionProposalModal({
   useEffect(() => {
     if (selectedCompId || selectedEdgeId) setSelectedCrossStub(null);
   }, [selectedCompId, selectedEdgeId]);
+
+  // Switching targets drops any pending "Hand it over" confirmation for the previous one.
+  useEffect(() => {
+    setDelegatePickerOpen(false);
+  }, [selectedCompId]);
 
   // Whether to leave the composer, or discard its slots, needs confirming first: null means
   // no confirmation is pending, otherwise which action is waiting on one.
@@ -788,7 +804,10 @@ export default function ComposeActionProposalModal({
     return { litTargetIds: targets, litStageIds: stages };
   }, [litIntelIds, dossierData, allComponentsMap, allEdgesMap]);
 
-  const slotsFull = atomicChanges.length >= MAX_ATOMIC_CHANGES;
+  // Hand the Pen: a sealed-but-not-yet-revealed draft occupies a slot too, same as a real change.
+  const penReservesSlot = pen != null && !pen.revealed;
+  const usedSlots = atomicChanges.length + (penReservesSlot ? 1 : 0);
+  const slotsFull = usedSlots >= MAX_ATOMIC_CHANGES;
 
   // "3 found" when the total isn't known, "3 of 5 found" once the backend can say how many
   // intel items exist for this target in total. `target_total` is the same on every note
@@ -843,7 +862,9 @@ export default function ComposeActionProposalModal({
 
 
   // Removing a step also removes the steps after it on the same axis - they relied on it.
+  // A delegated slot (Hand the Pen, revealed) is locked: it can be opened but never removed.
   const handleRemoveSlot = (index: number) => {
+    if (atomicChanges[index]?.delegated_to) return;
     setAtomicChanges((prev) => removeChangeAt(prev, index));
   };
 
@@ -1108,6 +1129,7 @@ export default function ComposeActionProposalModal({
       detail: described.detail,
       axis: change.axis,
       isEdge,
+      delegatedToName: change.delegated_to ? stakeholders[change.delegated_to]?.name || change.delegated_to : null,
       marks: [
         ...sharedSteps
           .filter((n) => n.target === change.target)
@@ -1335,13 +1357,11 @@ export default function ComposeActionProposalModal({
           )}
 
           <div
-            className={`${styles.slotsIndicator} ${
-              atomicChanges.length === MAX_ATOMIC_CHANGES ? styles.slotsFull : ""
-            }`}
+            className={`${styles.slotsIndicator} ${slotsFull ? styles.slotsFull : ""}`}
             tabIndex={0}
             {...tagProps(
               "Proposal Slots",
-              atomicChanges.length === MAX_ATOMIC_CHANGES
+              slotsFull
                 ? "All 4 slots are used - remove one to add another"
                 : "Up to 4 changes can go into one proposal"
             )}
@@ -1349,11 +1369,11 @@ export default function ComposeActionProposalModal({
             <Icon icon="ph:stack-duotone" />
             <span className={styles.slotPips} aria-hidden>
               {Array.from({ length: MAX_ATOMIC_CHANGES }, (_, i) => (
-                <span key={i} className={`${styles.slotPip} ${i < atomicChanges.length ? styles.slotPipOn : ""}`} />
+                <span key={i} className={`${styles.slotPip} ${i < usedSlots ? styles.slotPipOn : ""}`} />
               ))}
             </span>
             <span>
-              {atomicChanges.length} / {MAX_ATOMIC_CHANGES} slots
+              {usedSlots} / {MAX_ATOMIC_CHANGES} slots
             </span>
           </div>
 
@@ -1719,8 +1739,9 @@ export default function ComposeActionProposalModal({
                     const pos = posOf(c.id);
                     if (!pos) return null;
                     const { x, y } = pos;
+                    const isSealed = pen != null && pen.target === c.id;
                     const isSelected = selectedCompId === c.id;
-                    const isSlotted = atomicChanges.some((change) => change.target === c.id);
+                    const isSlotted = atomicChanges.some((change) => change.target === c.id) || isSealed;
                     const isPredecessor = activeHighlightedPredecessors.has(c.id);
                     const compEdit = isTargetEditable(c.id, "component", c.stage_id || activeStageId);
                     const isOtherPhase = !compEdit.editable;
@@ -1731,12 +1752,15 @@ export default function ComposeActionProposalModal({
                     const isStarved = !isBroken && (c.effective_automation ?? 1) === 0;
                     // The title bar carries the node's state. Healthy is plain ink: only what needs
                     // attention takes a colour, so a problem is the first thing the eye lands on.
-                    const { fill: rail, ink: barInk } = nodeBar({
-                      otherPhase: isOtherPhase,
-                      broken: isBroken,
-                      uncertain: upstreamCheck.uncertain,
-                      capped: Boolean(c.capped_by),
-                    });
+                    // Sealed (Hand the Pen) overrides every other state: nobody can touch it anyway.
+                    const { fill: rail, ink: barInk } = isSealed
+                      ? { fill: CARD.sealed, ink: "#ffffff" }
+                      : nodeBar({
+                          otherPhase: isOtherPhase,
+                          broken: isBroken,
+                          uncertain: upstreamCheck.uncertain,
+                          capped: Boolean(c.capped_by),
+                        });
                     const barInset = (isSelected ? 2 : 1.25) / 2;
                     const face = nodeFace("compose", {
                       selected: isSelected || isPredecessor,
@@ -1770,7 +1794,9 @@ export default function ComposeActionProposalModal({
                     // value, which might just be one link in that chain.
                     const automationQueued = previewAutomation !== nominalOn(c, "automation");
                     const governanceQueued = previewGovernance !== nominalOn(c, "governance");
-                    const nodeTagStatus = isOtherPhase
+                    const nodeTagStatus = isSealed
+                      ? `${stakeholders[pen!.stakeholder_id]?.name || pen!.stakeholder_id} drafts this one. Sealed until you pitch.`
+                      : isOtherPhase
                       ? "View only - belongs to another phase"
                       : isBroken
                       ? "Current status: Broken"
@@ -2114,8 +2140,60 @@ export default function ComposeActionProposalModal({
                         </p>
                       )}
 
-                      {renderNotes(selectedCompData.id, "component")}
-                      {renderLadders(selectedCompData, "component")}
+                      {pen && pen.target === selectedCompData.id ? (
+                        <p className={sb.caveat}>
+                          <Icon icon="ph:seal-bold" />{" "}
+                          {stakeholders[pen.stakeholder_id]?.name || pen.stakeholder_id} drafts this one. Sealed
+                          until you pitch.
+                        </p>
+                      ) : (
+                        <>
+                          {renderNotes(selectedCompData.id, "component")}
+                          {renderLadders(selectedCompData, "component")}
+                          {onDelegate && !pen && selectedCompData.owner_id && !slotsFull && (
+                            <div data-coach="hand-over-the-pen">
+                              {!delegatePickerOpen ? (
+                                <button
+                                  type="button"
+                                  className={sb.heroBtn}
+                                  onClick={() => setDelegatePickerOpen(true)}
+                                >
+                                  <Icon icon="ph:hand-arrow-up-bold" />
+                                  <span>Hand it over</span>
+                                </button>
+                              ) : (
+                                <div className={sb.handOverPanel}>
+                                  <p>
+                                    {stakeholders[selectedCompData.owner_id]?.name || selectedCompData.owner_id}{" "}
+                                    drafts this one. It stays sealed until you pitch, and once handed over there
+                                    is no taking it back.
+                                  </p>
+                                  <div className={sb.handOverActions}>
+                                    <button
+                                      type="button"
+                                      className={sb.heroBtn}
+                                      onClick={() => setDelegatePickerOpen(false)}
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className={sb.heroBtn}
+                                      onClick={() => {
+                                        onDelegate(selectedCompData.owner_id!, selectedCompData.id);
+                                        setDelegatePickerOpen(false);
+                                      }}
+                                    >
+                                      <Icon icon="ph:hand-arrow-up-bold" />
+                                      <span>Confirm</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </>
+                      )}
                     </>
                   )}
                 </div>
@@ -2139,9 +2217,9 @@ export default function ComposeActionProposalModal({
                     </button>
                   </div>
                 )}
-                <div className={sb.heroSlots} aria-label={`${atomicChanges.length} of ${MAX_ATOMIC_CHANGES} slots used`}>
+                <div className={sb.heroSlots} aria-label={`${usedSlots} of ${MAX_ATOMIC_CHANGES} slots used`}>
                   {Array.from({ length: MAX_ATOMIC_CHANGES }, (_, i) => (
-                    <span key={i} className={`${sb.heroSlot} ${i < atomicChanges.length ? sb.heroSlotOn : ""}`} />
+                    <span key={i} className={`${sb.heroSlot} ${i < usedSlots ? sb.heroSlotOn : ""}`} />
                   ))}
                 </div>
               </div>
@@ -2153,12 +2231,23 @@ export default function ComposeActionProposalModal({
                 <Icon icon="ph:stack-duotone" />
                 <span>Proposal</span>
                 <span className={sb.sectionRight}>
-                  {atomicChanges.length} of {MAX_ATOMIC_CHANGES} slots
+                  {usedSlots} of {MAX_ATOMIC_CHANGES} slots
                 </span>
               </div>
               <ProposalTickets
                 entries={proposalEntries}
                 max={MAX_ATOMIC_CHANGES}
+                reserved={
+                  penReservesSlot
+                    ? {
+                        displayName:
+                          allComponentsMap.get(pen!.target)?.name ||
+                          allEdgesMap.get(pen!.target)?.id ||
+                          pen!.target,
+                        holderName: stakeholders[pen!.stakeholder_id]?.name || pen!.stakeholder_id,
+                      }
+                    : null
+                }
                 onOpen={openProposalEntry}
                 onRemove={handleRemoveSlot}
                 bindTip={tip.bind}

@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Literal
 from pydantic import BaseModel, Field
 
 
@@ -21,6 +22,12 @@ class EngagementCard(BaseModel):
             of the budget can reveal notes not found yet.
         allowed_requirement_types (list[str]): Optional tag filter. Held notes match on the tag the
             player filed, undiscovered ones on their true tag.
+        repeatable_target (bool): When true, playing this card again on a stakeholder it already
+            targeted this challenge is allowed (continuing the same conversation) instead of being
+            locked out like every other stakeholder-targeted card.
+        effect_kind (str): "gather" opens a Gather conversation (the default, dialogue options that
+            reveal intel). Any other value skips Gather entirely and applies a direct, immediate
+            effect on the target(s) instead (see `card_effects.py`).
     """
 
     id: str = Field(description="Unique identifier for the engagement card")
@@ -51,6 +58,14 @@ class EngagementCard(BaseModel):
     allowed_requirement_types: list[str] = Field(
         default_factory=list,
         description="Allowed requirement types to reveal (empty for all)",
+    )
+    repeatable_target: bool = Field(
+        default=False,
+        description="Allow re-targeting a stakeholder this card already targeted this challenge",
+    )
+    effect_kind: Literal["gather", "patience_reset", "pep_talk"] = Field(
+        default="gather",
+        description="'gather' opens a dialogue conversation; any other value applies a direct effect",
     )
 
     def __str__(self) -> str:

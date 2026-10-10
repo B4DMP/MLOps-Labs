@@ -30,6 +30,7 @@ SRC = _src_dir()
 # from a new module (gather, build, simulation, gate) should add its file here too.
 CAUSE_SOURCE_FILES = [
     SRC / "application" / "pitch_debate_service" / "session.py",
+    SRC / "application" / "pitch_debate_service" / "card_effects.py",
     SRC / "application" / "case_board_service" / "service.py",
     SRC / "infrastructure" / "websocket" / "handlers" / "pitch_handler.py",
 ]

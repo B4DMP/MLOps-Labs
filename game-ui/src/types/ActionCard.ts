@@ -12,6 +12,9 @@ export interface AtomicChange {
   axis?: "automation" | "governance";
   value?: any;
   trigger?: string;
+  /** Hand the Pen (docs/plans/hand-over-the-pen.md): the stakeholder who drafted this change,
+   *  once revealed. Never set on a change the player picked themselves. */
+  delegated_to?: string | null;
 }
 
 /** What one slotted change would do, as far as the player can tell. Mirrors the backend's

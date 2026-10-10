@@ -30,11 +30,6 @@ const OPTION_FALLBACK_META: Record<GatherOptionKind, { label: string; icon: stri
     icon: "ph:star-bold",
     hint: "Ask stakeholder about their highest priority requirements.",
   },
-  generic_query: {
-    label: "Ask Generically",
-    icon: "ph:chat-circle-dots-bold",
-    hint: "Ask an open-ended question to discover new intel.",
-  },
 };
 
 export interface GatherConversationPanelProps {

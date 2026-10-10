@@ -28,6 +28,8 @@ class EngagementCardFactory:
                 max_plays_per_phase=j.get("max_plays_per_phase", -1),
                 turns=j.get("turns", j.get("intel_reveal_count", 1)),
                 allowed_requirement_types=j.get("allowed_requirement_types", []),
+                repeatable_target=j.get("repeatable_target", False),
+                effect_kind=j.get("effect_kind", "gather"),
             )
             cls.cards.append(card)
 

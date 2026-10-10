@@ -108,8 +108,19 @@ server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch e
      backs it, pushback, objection); their last reply carries the same Pushback or Objection tag. It
      scrolls vertically, never sideways, and follows the newest line. Plan:
      `docs/plans/conversation-history.md`.
-   - Cards (`GameEngagementCards.json`): Verify Intel (`intel:verify_item`), 1-to-1, Probe,
-     Team Sync-Up, Generic Question (`gather:open/ask/close`). attention tokens per challenge (`attention_tokens` in `GameProgression.json`: 20 in the practice round, 15 in phases 1-2, 12 in phases 3-5).
+   - Cards (`GameEngagementCards.json`): Verify Intel (`intel:verify_item`), Investigate Component,
+     Team Sync-Up, Patience-Reset, Pep-Talk (`gather:open/ask/close`). attention tokens per challenge (`attention_tokens` in `GameProgression.json`: 20 in the practice round, 15 in phases 1-2, 12 in phases 3-5).
+     Investigate Component merges the old 1-to-1 Meeting and Probe Requirements into one card that
+     is one round of dialogue (the stakeholder's top requirement, or one of 3 component questions);
+     unlike every other stakeholder-targeted card it is `repeatable_target`, so playing it again on
+     a stakeholder already targeted this challenge continues the same conversation instead of being
+     locked out - the lock is per dialogue-option/stakeholder combination, not per card/stakeholder.
+     Patience-Reset and Pep-Talk are direct effect cards (`effect_kind` != `"gather"`): no dialogue
+     turns, the effect and a one-line stakeholder reaction land immediately in the same chat-tab
+     transcript every other card uses. Patience-Reset only accepts a currently-impatient
+     stakeholder (also repeatable, since they can become impatient again later) and zeroes their
+     impatience. Pep-Talk targets the whole room once per phase and nudges only confidence and
+     sense of control (not trust or fairness - a stand-up doesn't earn those).
    - Pitch Deck opens `ComposeActionProposalModal.tsx`: graph of components and edges, two axes
      (automation, governance), max 4 changes, only allowed targets of the phase stage.
      Layout: a corkboard canvas (nodes are index cards pinned to it, a brown title bar that takes a colour only when something is wrong) and a paper sidebar. The sidebar
@@ -120,8 +131,18 @@ server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch e
      note in the dossier lifts its node (grow and shadow, a broken node keeps glitching) and marks
      the stage tab when the node is on another stage. Confirming stamps "PROPOSED" before closing.
      Plan: `docs/plans/composer-redesign.md`.
-   - Stages `PREPARE -> PITCHED -> DONE`. Events: `pitch:state`, `pitch:evaluate` (stakeholders
-     react, no commit), `pitch:commit`, `pitch:veto_breaker`.
+   - **Hand the Pen** (`docs/plans/hand-over-the-pen.md`): a component's owner (first-time players
+     meet this here, where the owner avatar already shows) can draft that component's next change
+     themselves instead of the player picking it - the sidebar's "Hand it over" button below the
+     rung ladders, confirmed once (irreversible). The component's slot card and its node on the
+     board show "{Name} drafts this one" (sealed, purple node tint); the draft itself stays hidden
+     from every payload until the next pitch reveals it, at which point it becomes an ordinary
+     locked slot (no Remove) and the holder speaks a short line about what they did. How good the
+     draft is for the player depends on the holder's Trust reading (Low/Medium/High, the same
+     dossier emotion band) - handing it to someone who distrusts the player costs more but repairs
+     the relationship more. At most one per challenge by default (`pen_max_per_challenge`).
+   - Stages `PREPARE -> PITCHED -> DONE`. Events: `pitch:state`, `pitch:delegate` (Hand the Pen),
+     `pitch:evaluate` (stakeholders react, no commit), `pitch:commit`, `pitch:veto_breaker`.
 6. **Outcome** (`scoring.py`): VETO if a high-power stakeholder has a violated boundary or low
    buy-in; SOFT_PASS if only a low-power one objects; else PASS. VETO opens `VetoDialog.tsx`
    (revise; Push It Through with an Escalation Point, 3 per run; or Table It, which ends the

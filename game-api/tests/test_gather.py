@@ -76,15 +76,6 @@ def test_gather_options_for_team_sync_up():
     assert len(opts) == 4
 
 
-def test_gather_options_for_ask_generic_question():
-    conv = _conv(card_id="eng_4", turns_left=1)
-    pool = [_req("r1", IntelTag.DRIVER, "req.acceptance_criteria")]
-    opts = gather.gather_options_for(conv, [], pool, [], seed="test-seed", phase_id=1)
-    assert len(opts) == 1
-    assert opts[0].option == "generic_query"
-    assert opts[0].available is True
-
-
 def test_gather_options_prioritizes_undiscovered_over_discovered():
     conv = _conv(card_id="eng_1", turns_left=3)
     # Target stakeholder has 1 undiscovered item and 1 discovered item in Phase 2
@@ -123,10 +114,11 @@ def test_gather_options_excludes_already_clicked():
 
 
 def test_gather_options_includes_stakeholder_items_across_domains():
-    # Stakeholder intel items across domains (e.g. data, model, ops, req) are included
-    conv = _conv(card_id="eng_2", turns_left=1)
+    # Stakeholder intel items across domains (e.g. data, model, ops) are included. Investigate
+    # Component (eng_1) offers 3 component slots (plus the priority option), so this pool has 3
+    # items - one per domain - all of which should fit.
+    conv = _conv(card_id="eng_1", turns_left=1)
     pool = [
-        _req("r1", IntelTag.DRIVER, "req.acceptance_criteria"),
         _req("r2", IntelTag.BOUNDARY, "data.validation"),
         _req("r3", IntelTag.DRIVER, "model.training"),
         _req("r4", IntelTag.DRIVER, "ops.alerting"),
@@ -136,7 +128,6 @@ def test_gather_options_includes_stakeholder_items_across_domains():
 
     assert "data.validation" in comp_ids
     assert "model.training" in comp_ids
-    assert "req.acceptance_criteria" in comp_ids
     assert "ops.alerting" in comp_ids
 
 
@@ -215,16 +206,6 @@ def test_resolve_priority_query_prefers_boundary_over_driver():
     assert out.conversation.turns_left == 1
 
 
-def test_resolve_generic_query_reveals_item():
-    conv = _conv(card_id="eng_4", turns_left=1)
-    pool = [_req("r1", IntelTag.DRIVER, "c1")]
-    out = gather.resolve_generic_query(conv, pool, set(), seed="s", stakeholder_name="Dave")
-    assert out.result == "revealed"
-    assert out.item_id == "r1"
-    assert out.conversation.turns_left == 0
-    assert out.conversation.discovered_item_ids == ["r1"]
-
-
 def test_close_conversation_logs_lost_turns():
     conv = _conv(card_id="eng_1", turns_left=2)
     out = gather.close_conversation(conv, "Dave")
@@ -286,7 +267,7 @@ def test_stakeholder_engagement_response_prompt_not_revealed():
         responsibilities="Data pipelines",
         priorities="Consistency",
         emotion="Neutral",
-        option_type="generic_query",
+        option_type="component_query",
         component_name="",
         revealed_intel_description="",
         revealed_intel_tag="",
@@ -406,9 +387,24 @@ def test_select_single_stakeholder_components_undiscovered_returns_intel():
         assert len(out.item_ids) >= 1
 
 
-def test_eng_5_investigate_component_card_is_gone():
+def test_engagement_card_roster_after_merge():
     from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
 
-    assert "eng_5" not in [c.id for c in EngagementCardFactory.get_available_cards()]
-    assert "investigate_component" not in gather.GatherOptionKind.__args__
-    assert all(c.target_type != "component" for c in EngagementCardFactory.get_available_cards())
+    ids = [c.id for c in EngagementCardFactory.get_available_cards()]
+    assert "eng_2" not in ids  # merged into eng_1
+    assert "eng_4" not in ids  # Ask Generic Question removed
+    assert "generic_query" not in gather.GatherOptionKind.__args__
+
+    merged = next(c for c in EngagementCardFactory.get_available_cards() if c.id == "eng_1")
+    assert merged.title == "Investigate Component"
+    assert merged.turns == 1
+    assert merged.repeatable_target is True
+
+    patience_reset = next(c for c in EngagementCardFactory.get_available_cards() if c.id == "eng_5")
+    assert patience_reset.effect_kind == "patience_reset"
+    assert patience_reset.repeatable_target is True
+
+    pep_talk = next(c for c in EngagementCardFactory.get_available_cards() if c.id == "eng_6")
+    assert pep_talk.effect_kind == "pep_talk"
+    assert pep_talk.stakeholder_selection_amount == -1
+    assert pep_talk.max_plays_per_phase == 1

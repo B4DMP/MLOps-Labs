@@ -15,28 +15,16 @@
     },
     {
       "id": "eng_1",
-      "title": "1-to-1 Meeting",
+      "title": "Investigate Component",
       "icon": "ph:user-focus-bold",
-      "token_cost": 4,
-      "description": "Book dedicated face time with 1 stakeholder to ask 3 targeted questions.",
-      "stakeholder_selection_amount": 1,
-      "target_type": "stakeholder",
-      "response_snippet": "In our 1-to-1 meeting, we discussed key technical and operational requirements in detail.",
-      "max_plays_per_phase": -1,
-      "turns": 3,
-      "allowed_requirement_types": []
-    },
-    {
-      "id": "eng_2",
-      "title": "Probe Requirements",
-      "icon": "ph:magnifying-glass-bold",
       "token_cost": 3,
-      "description": "Ask 1 stakeholder about requirements across MLOps components.",
+      "description": "Ask 1 stakeholder either for their most important requirement or about one MLOps component. Can be played again on the same stakeholder.",
       "stakeholder_selection_amount": 1,
       "target_type": "stakeholder",
-      "response_snippet": "Probed requirements with selected stakeholder.",
+      "response_snippet": "Asked a targeted question about their requirements.",
       "max_plays_per_phase": -1,
       "turns": 1,
+      "repeatable_target": true,
       "allowed_requirement_types": []
     },
     {
@@ -53,16 +41,32 @@
       "allowed_requirement_types": []
     },
     {
-      "id": "eng_4",
-      "title": "Ask Generic Question",
-      "icon": "ph:chat-teardrop-text-bold",
-      "token_cost": 1,
-      "description": "Lightweight query to gauge general sentiment and open preferences.",
+      "id": "eng_5",
+      "title": "Patience-Reset",
+      "icon": "ph:hourglass-simple-bold",
+      "token_cost": 2,
+      "description": "Take dedicated time with 1 impatient stakeholder and fully reset their patience.",
       "stakeholder_selection_amount": 1,
       "target_type": "stakeholder",
-      "response_snippet": "Gauged general sentiment and high-level priorities.",
+      "response_snippet": "Gave the stakeholder room to breathe.",
       "max_plays_per_phase": -1,
-      "turns": 1,
+      "turns": 0,
+      "effect_kind": "patience_reset",
+      "repeatable_target": true,
+      "allowed_requirement_types": []
+    },
+    {
+      "id": "eng_6",
+      "title": "Pep-Talk",
+      "icon": "ph:megaphone-bold",
+      "token_cost": 3,
+      "description": "Hold a short stand-up to lift the room's mood. (1x per phase)",
+      "stakeholder_selection_amount": -1,
+      "target_type": "stakeholder",
+      "response_snippet": "Lifted the room's mood with a quick stand-up.",
+      "max_plays_per_phase": 1,
+      "turns": 0,
+      "effect_kind": "pep_talk",
       "allowed_requirement_types": []
     }
   ]

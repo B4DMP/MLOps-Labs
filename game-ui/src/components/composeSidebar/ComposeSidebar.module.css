@@ -1261,6 +1261,26 @@ button.chipWarn:hover {
   height: var(--icon);
 }
 
+/* Hand the Pen: the confirm panel that replaces the "Hand it over" button once clicked. */
+.handOverPanel {
+  margin-top: var(--sp-3);
+  padding: var(--sp-3);
+  border: 1px dashed #b8a98c;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.handOverPanel p {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--ink);
+}
+
+.handOverActions {
+  display: flex;
+  gap: var(--sp-2);
+}
+
 /* The chip in the notes header: how many threads you tied on the board touch this target. */
 .boardChip {
   padding: 0 var(--sp-2);

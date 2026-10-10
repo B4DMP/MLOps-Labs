@@ -57,6 +57,9 @@ class AtomicChange(BaseModel):
     axis: Optional[Axis] = None
     value: Optional[Any] = None
     trigger: Optional[str] = None
+    #: Hand the Pen (docs/plans/hand-over-the-pen.md): the stakeholder who drafted this change,
+    #: once revealed. Never set on a change the player picked themselves.
+    delegated_to: Optional[str] = None
 
 
 class ItemPrediction(BaseModel):
@@ -130,6 +133,21 @@ class PitchFeedbackMessage(BaseModel):
     kind: str = "feedback"  # "feedback", "refutation", "approval"
 
 
+class PenState(BaseModel):
+    """Hand the Pen (docs/plans/hand-over-the-pen.md): one sealed draft, pending the pitch's
+    reveal. Excluded from every client-facing view (`card_view`, `pitch:state`) until revealed -
+    see `pen.py` and `pitch_handler.py` for the sealed-state plumbing."""
+
+    stakeholder_id: str
+    target: str
+    change: AtomicChange
+    band: str  # "low" | "medium" | "high"
+    item_id: Optional[str] = None
+    revealed: bool = False
+    #: Whether the holder's trust/control bonus (the next evaluate after reveal) has been paid.
+    bonus_paid: bool = False
+
+
 class PitchState(BaseModel):
     """State of the streamlined pitch negotiation."""
 
@@ -158,6 +176,10 @@ class PitchState(BaseModel):
     repeat_context: dict[str, str] = Field(default_factory=dict)
     # Case board allies: who was lifted this pitch, and the confirmed ally who backed them.
     ally_lifts: dict[str, list[str]] = Field(default_factory=dict)
+    # Hand the Pen: the currently sealed draft (if any), and who has already drafted one this
+    # challenge (for `pen_max_per_challenge`).
+    pen: Optional[PenState] = None
+    pen_used: list[str] = Field(default_factory=list)
 
     def open_objections(self) -> list[Objection]:
         return self.objections
@@ -319,6 +341,10 @@ def atomic_changes_to_ops(
         axis = getattr(c, "axis", None) if hasattr(c, "axis") else (c.get("axis") if isinstance(c, dict) else None)
         val = getattr(c, "value", None) if hasattr(c, "value") else (c.get("value") if isinstance(c, dict) else None)
         trigger = getattr(c, "trigger", None) if hasattr(c, "trigger") else (c.get("trigger") if isinstance(c, dict) else None)
+        delegated_to = getattr(c, "delegated_to", None) if hasattr(c, "delegated_to") else (c.get("delegated_to") if isinstance(c, dict) else None)
+        # Hand the Pen (docs/plans/hand-over-the-pen.md): a delegated change's resolved op is
+        # tagged so `resolve_step_cap` can let a High-trust draft move more than one rung.
+        source_id = "pen" if delegated_to else None
 
         if not target:
             target, val, axis = _extract_target_and_level(c, graph, state)
@@ -348,6 +374,7 @@ def atomic_changes_to_ops(
                     axis=axis,
                     value=target_level,
                     source_kind="action_card",
+                    source_id=source_id,
                 )
             )
             if graph.is_edge(target) and trigger:
@@ -894,6 +921,10 @@ def evaluate_pitch(
     tuning = EmotionFactory.get_pitch_tuning()
     prior = previous if previous is not None and previous.reaction_signatures else None
     prior_objecting = {o.stakeholder_id for o in prior.objections} if prior else set()
+    # Hand the Pen: the holder's trust/control bonus is paid once, on the evaluate right after
+    # `merge_pen_into_card` reveals the draft (not every evaluate from then on).
+    pen_state = previous.pen if previous else None
+    pen_bonus_due = pen_state is not None and pen_state.revealed and not pen_state.bonus_paid
 
     ops = atomic_changes_to_ops(graph, state, changes)
     # Judge alignment on what the card actually delivers, not what it asks for: a raise_to op is
@@ -1073,6 +1104,13 @@ def evaluate_pitch(
         for dim, m_val in st_misclass_malus.items():
             deltas[dim] = round(deltas.get(dim, 0.0) + m_val, 4)
 
+        # Hand the Pen: the holder's one-time trust/control bonus, more the lower their trust was.
+        if pen_bonus_due and st_id == pen_state.stakeholder_id:
+            deltas["trust"] = round(deltas.get("trust", 0.0) + tuning.pen_trust_gain.get(pen_state.band, 0.0) * react, 4)
+            deltas["sense_of_control"] = round(
+                deltas.get("sense_of_control", 0.0) + tuning.pen_control_gain.get(pen_state.band, 0.0) * react, 4
+            )
+
         reaction_signatures[st_id] = dict(deltas)
 
         if prior and st_id in prior.reaction_signatures:
@@ -1164,6 +1202,8 @@ def evaluate_pitch(
         repeat_context=repeat_context,
         free_repeat_used=bool(previous and previous.free_repeat_used) or free_repeat,
         ally_lifts=ally_lifts,
+        pen=(pen_state.model_copy(update={"bonus_paid": True}) if pen_bonus_due else pen_state),
+        pen_used=list(previous.pen_used) if previous else [],
     )
     return new_pitch_state, view, items_to_correct
 
