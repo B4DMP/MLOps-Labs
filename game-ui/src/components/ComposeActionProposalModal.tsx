@@ -12,6 +12,10 @@ import ProposalTickets, { type ProposalEntry } from "./composeSidebar/ProposalTi
 import { AxisChip, Chip, ChipRow, DependencyChip, type DependencyState } from "./composeSidebar/StatusChips";
 import { firstSentence } from "../utils/firstSentence";
 import { litTargets } from "../utils/litTargets";
+import StageNode from "./graph/StageNode";
+import YarnLine, { YarnMarkers } from "./graph/YarnLine";
+import GraphLegend, { type LegendGroup } from "./graph/GraphLegend";
+import { CARD, EDGE_ON_CORK, nodeBar } from "./graph/cardPalette";
 import CoachTip, { type CoachIconKey } from "./CoachTip";
 import { useGuideNarration } from "./useGuideNarration";
 import { useNarratorGate } from "./useNarratorGate";
@@ -46,39 +50,24 @@ import {
   EDGE_FLOW_ANIM,
   edgeStrokeWidth,
   FlowParticle,
-  LevelMeter,
   NodeDefs,
-  NodeIcon,
-  NodeTitleAberration,
-  BrokenBorder,
-  LevelCaption,
   NODE_STATE_ANIM,
-  SelectionReticle,
   EdgeHandle,
 } from "./graph/nodeChrome";
 import {
-  BOX_W,
-  BOX_H,
   NODE_COLORS,
-  NODE_ICON_OFFSET,
-  NODE_CAPTION_Y,
-  NODE_METER_Y,
-  NODE_PAD_X,
-  NODE_TITLE_LH,
 
-
-  nodeFace,
   compactLayout,
   crossPhaseExplanation,
   edgeEnds,
   fitToBoxStyle,
+  STUB_DROP,
+  stubSideOccupied,
   formatAxisLevel,
   formatTrigger,
   AUTOMATION_META,
   GOVERNANCE_META,
-  levelRungs,
   TRIGGER_ICONS,
-  wrapLabel,
   type Axis,
 } from "../utils/stageCanvas";
 import type { AtomicChange, ItemPrediction } from "../types/ActionCard";
@@ -273,62 +262,6 @@ export interface ComposeActionProposalModalProps {
 const MAX_ATOMIC_CHANGES = 4;
 const EMPTY_LIT: ReadonlyMap<string, string> = new Map();
 
-/** Nodes are index cards pinned to the corkboard: warm ink for outline and text, a brown title bar
- *  when all is well, and a colour only when something needs attention. */
-const CARD = {
-  ink: "#2b2118",
-  bar: "#3b2a1e",
-  proposed: "#1d7f94",
-  select: "#3b2412",
-  predecessor: "#1d4ed8",
-  empty: "#bfae8a",
-  broken: "#9d1c2a",
-  capped: "#9a3f0b",
-  uncertain: "#76530b",
-  viewOnly: "#6e5f4d",
-} as const;
-/** Height of a node's title bar: two lines of title, centred. */
-const BAR_H = 34;
-
-/**
- * A node's title bar carries its state. Healthy is plain ink: only what needs attention takes a
- * colour, so a problem is the first thing the eye lands on. The inspector's header mirrors it.
- */
-function nodeBar(s: { otherPhase: boolean; broken: boolean; uncertain: boolean; capped: boolean }): {
-  fill: string;
-  ink: string;
-} {
-  const fill = s.otherPhase
-    ? CARD.viewOnly
-    : s.broken
-    ? CARD.broken
-    : s.uncertain
-    ? CARD.uncertain
-    : s.capped
-    ? CARD.capped
-    : CARD.bar;
-  return { fill, ink: "#ffffff" };
-}
-
-/** Strings on the board: the line colours, chosen to read on cork. Arrowheads use the same. */
-const EDGE_ON_CORK: Record<string, string> = {
-  "arr-default": "#efe3c8",
-  "arr-viewonly": "#c4b595",
-  "arr-primary": "#7fdcec",
-  "arr-predecessor": "#9dbcff",
-  "arr-success": "#55d38c",
-  "arr-danger": "#ff6678",
-  "arr-warning": "#ffa04a",
-};
-const LIT_GLOW = "rgba(255, 246, 205, 0.95)";
-
-/** A card's tilt, fixed by its id: pinned cards are never quite square to the board. */
-function cardTilt(id: string): number {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 997;
-  return ((h % 5) - 2) * 0.3;
-}
-
 /**
  * Canvas legend, shown on hover rather than permanently occupying a toolbar row. It reads a card in the
  * order it is drawn: the title bar says how it is doing, the meter along its bottom says how far it is
@@ -337,10 +270,7 @@ function cardTilt(id: string): number {
  */
 const LEGEND_BAR: CSSProperties = { width: "22px", height: "8px", borderRadius: "1px" };
 const LEGEND_STRING: CSSProperties = { width: "22px", height: "3px", borderRadius: "2px", boxShadow: "0 0 0 1px rgba(40, 24, 8, 0.3)" };
-const LEGEND_GROUPS: Array<{
-  heading: string;
-  items: Array<{ label: string; swatch?: CSSProperties; glyph?: string; icon?: string; iconColor?: string }>;
-}> = [
+const LEGEND_GROUPS: LegendGroup[] = [
   {
     heading: "Title bar (state)",
     items: [
@@ -1440,30 +1370,7 @@ export default function ComposeActionProposalModal({
               </span>
 
               {/* Legend on demand: it is reference material, not something to read every time */}
-              <span
-                className={`${styles.legendChip} ${guideStepId === "dials" ? styles.legendChipOpen : ""}`}
-                tabIndex={0}
-              >
-                <Icon icon="ph:list-bullets-bold" />
-                <span>Legend</span>
-                <span className={styles.legendPanel} role="tooltip" data-coach="compose-legend">
-                  {LEGEND_GROUPS.map((group) => (
-                    <span key={group.heading} className={styles.legendGroup}>
-                      <span className={styles.legendHeading}>{group.heading}</span>
-                      {group.items.map((item) => (
-                        <span key={item.label} className={styles.legendItem}>
-                          {item.icon ? (
-                            <Icon icon={item.icon} className={styles.legendGlyph} style={{ color: item.iconColor }} />
-                          ) : (
-                            <span className={styles.legendSwatch} style={item.swatch} />
-                          )}
-                          <span>{item.label}</span>
-                        </span>
-                      ))}
-                    </span>
-                  ))}
-                </span>
-              </span>
+              <GraphLegend groups={LEGEND_GROUPS} tone="desk" open={guideStepId === "dials"} dataCoach="compose-legend" />
             </div>
           </div>
 
@@ -1529,12 +1436,7 @@ export default function ComposeActionProposalModal({
                   <style>{EDGE_FLOW_ANIM}</style>
                   <NodeDefs prefix="compose" theme="cork" />
                   <defs>
-                    {/* Arrowheads in the line colours, which are chosen for the blueprint ground */}
-                    {Object.entries(EDGE_ON_CORK).map(([id, fill]) => (
-                      <marker key={id} id={id} markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-                        <path d="M0,0 L0,7 L7,3.5 z" fill={fill} stroke="rgba(24, 12, 4, 0.55)" strokeWidth={0.7} strokeLinejoin="round" />
-                      </marker>
-                    ))}
+                    <YarnMarkers />
                   </defs>
 
                   {/* SVG Pipeline Edges */}
@@ -1611,44 +1513,18 @@ export default function ComposeActionProposalModal({
 
                     return (
                       <g key={e.id}>
-                        {/* The string's shadow on the board: yarn sits on the cork, it does not glow */}
-                        <line
+                        <YarnLine
                           x1={ax}
                           y1={ay}
                           x2={bx}
                           y2={by}
-                          stroke="rgba(24, 12, 4, 0.42)"
-                          strokeWidth={Math.max(baseWidth, 1.5) + 1.5}
-                          strokeLinecap="round"
-                          transform="translate(1.6 3)"
-                          style={{ filter: "blur(1.1px)" }}
-                          pointerEvents="none"
-                        />
-                        {/* The yarn: a solid strand under the (flowing) line, wound with alternating dark and light bands */}
-                        <line x1={ax} y1={ay} x2={bx} y2={by} stroke={lineColor} strokeWidth={lineW} strokeLinecap="round" opacity={0.6} pointerEvents="none" />
-                        {!isOtherPhase && (
-                          <>
-                            <line x1={ax} y1={ay} x2={bx} y2={by} stroke="rgba(30, 14, 4, 0.4)" strokeWidth={lineW * 0.92} strokeDasharray="1.3 3.1" pointerEvents="none" />
-                            <line x1={ax} y1={ay} x2={bx} y2={by} stroke="rgba(255, 246, 220, 0.38)" strokeWidth={lineW * 0.92} strokeDasharray="1.3 3.1" strokeDashoffset={2.2} pointerEvents="none" />
-                          </>
-                        )}
-                        {/* The line itself: carries the flow state (dashes that run, or stall) */}
-                        <line
-                          className={pipeClass}
-                          x1={ax}
-                          y1={ay}
-                          x2={bx}
-                          y2={by}
-                          stroke={lineColor}
-                          strokeWidth={lineW}
-                          strokeDasharray={isOtherPhase ? "4 3" : undefined}
-                          markerEnd={`url(#${markerId})`}
-                          style={{
-                            cursor: showHandle ? "pointer" : undefined,
-                            filter: isLit ? `drop-shadow(0 0 3px ${LIT_GLOW})` : undefined,
-                            transition: "filter 0.16s ease",
-                          }}
-                          opacity={isHovered || isLit ? 1 : 0.92}
+                          marker={markerId}
+                          width={lineW}
+                          flowClass={pipeClass}
+                          viewOnly={isOtherPhase}
+                          lit={isLit}
+                          hovered={isHovered}
+                          cursor={showHandle ? "pointer" : undefined}
                         />
                         {isAutomated && <FlowParticle x1={ax} y1={ay} x2={bx} y2={by} color={lineColor} />}
                         {/* Midpoint badge: a hammer when a step is slotted, or an eye when view only */}
@@ -1718,10 +1594,8 @@ export default function ComposeActionProposalModal({
                   {comps.map((c) => {
                     const pos = posOf(c.id);
                     if (!pos) return null;
-                    const { x, y } = pos;
                     const isSelected = selectedCompId === c.id;
                     const isSlotted = atomicChanges.some((change) => change.target === c.id);
-                    const isPredecessor = activeHighlightedPredecessors.has(c.id);
                     const compEdit = isTargetEditable(c.id, "component", c.stage_id || activeStageId);
                     const isOtherPhase = !compEdit.editable;
                     const upstreamCheck = isUpstreamUncertain(c.id);
@@ -1729,45 +1603,13 @@ export default function ComposeActionProposalModal({
                     const isBroken = (c.nominal_automation ?? 1) === 0;
                     // Runs at nothing, but is not itself broken: something upstream is down.
                     const isStarved = !isBroken && (c.effective_automation ?? 1) === 0;
-                    // The title bar carries the node's state. Healthy is plain ink: only what needs
-                    // attention takes a colour, so a problem is the first thing the eye lands on.
-                    const { fill: rail, ink: barInk } = nodeBar({
-                      otherPhase: isOtherPhase,
-                      broken: isBroken,
-                      uncertain: upstreamCheck.uncertain,
-                      capped: Boolean(c.capped_by),
-                    });
-                    const barInset = (isSelected ? 2 : 1.25) / 2;
-                    const face = nodeFace("compose", {
-                      selected: isSelected || isPredecessor,
-                      broken: isBroken,
-                    });
-                    const stroke = isSelected
-                      ? CARD.select
-                      : isPredecessor
-                      ? CARD.predecessor
-                      : isBroken
-                      ? CARD.broken
-                      : CARD.ink;
-
-                    // 12px bold in a 104px column: 14 characters a line. A name that needs more than two lines
-                    // ends in an ellipsis, and its tooltip carries the whole name.
-                    const fullName = c.name || c.id;
-                    const lines = wrapLabel(fullName, 14);
-                    if (lines.join(" ").length < fullName.length) lines[lines.length - 1] = lines[lines.length - 1].replace(/.?$/, "…");
-                    // Title centred in the bar, every line clear of the icon beside it.
-                    const titleX = NODE_PAD_X + (c.icon ? NODE_ICON_OFFSET : 0);
-                    const titleY = (i: number) => BAR_H / 2 + 4 - (lines.length - 1) * (NODE_TITLE_LH / 2) + i * NODE_TITLE_LH;
-                    // Where each axis would sit once every slotted step lands, drawn ahead of
-                    // what is built as translucent notches.
+                    // Where each axis would sit once every slotted step lands, drawn ahead of what is built as
+                    // translucent notches. A target can carry several chained steps on the same axis (one slot
+                    // each), so the settled rung is never any single change's own value.
                     const previewAutomation = projectedOn(c, "automation", atomicChanges);
                     const previewGovernance = projectedOn(c, "governance", atomicChanges);
                     // Broken until the proposal fixes it: a slotted step that lifts it off level 0 stops the glitching.
                     const glitching = isBroken && previewAutomation === 0;
-                    // A target can carry several chained steps on the same axis (one slot each,
-                    // "Implement It Manually" then "Automate It") - the settled rung each would land on is
-                    // `previewAutomation`/`previewGovernance` above, never any single change's own
-                    // value, which might just be one link in that chain.
                     const automationQueued = previewAutomation !== nominalOn(c, "automation");
                     const governanceQueued = previewGovernance !== nominalOn(c, "governance");
                     const nodeTagStatus = isOtherPhase
@@ -1802,159 +1644,54 @@ export default function ComposeActionProposalModal({
                         : undefined,
                       "Click to inspect",
                     ] as TagLine[]);
-                    const isLit = litTargetIds.has(c.id);
 
                     return (
-                      <g
+                      <StageNode
                         key={c.id}
-                        className={`${styles.stageNode} ${isSlotted ? styles.nodeSlotted : ""}`}
-                        data-coach-node={c.id}
-                        transform={`translate(${x - BOX_W / 2}, ${y - BOX_H / 2}) rotate(${cardTilt(c.id)} ${BOX_W / 2} ${BOX_H / 2})`}
-                        onClick={() => {
-                          setSelectedCompId(isSelected ? null : c.id);
-                          setSelectedEdgeId(null);
+                        id={c.id}
+                        x={pos.x}
+                        y={pos.y}
+                        name={c.name || c.id}
+                        icon={c.icon}
+                        prefix="compose"
+                        state={{
+                          otherPhase: isOtherPhase,
+                          broken: isBroken,
+                          uncertain: upstreamCheck.uncertain,
+                          capped: Boolean(c.capped_by),
+                          starved: isStarved,
                         }}
-                        onMouseEnter={(e) => {
-                          setHoveredCompId(c.id);
-                          nodeTip.onMouseEnter(e);
+                        automation={c.nominal_automation ?? 1}
+                        effectiveAutomation={c.effective_automation}
+                        governance={c.nominal_governance}
+                        allowedAutomation={c.allowed_automation}
+                        allowedGovernance={c.allowed_governance}
+                        previewAutomation={previewAutomation}
+                        previewGovernance={previewGovernance}
+                        selected={isSelected}
+                        predecessor={activeHighlightedPredecessors.has(c.id)}
+                        lit={litTargetIds.has(c.id)}
+                        slotted={isSlotted}
+                        glitching={glitching}
+                        dataCoachNode={c.id}
+                        gProps={{
+                          onClick: () => {
+                            setSelectedCompId(isSelected ? null : c.id);
+                            setSelectedEdgeId(null);
+                          },
+                          onMouseEnter: (e) => {
+                            setHoveredCompId(c.id);
+                            nodeTip.onMouseEnter(e);
+                          },
+                          onMouseLeave: () => {
+                            setHoveredCompId(null);
+                            nodeTip.onMouseLeave();
+                          },
                         }}
-                        onMouseLeave={() => {
-                          setHoveredCompId(null);
-                          nodeTip.onMouseLeave();
-                        }}
-                      >
-                        {/* The lit echo grows and shadows this wrapper, which sits between the placed
-                            group above (its transform attribute must stay untouched) and the broken
-                            glitch group below, so a broken node keeps glitching while it is lit. */}
-                        <g className={styles.nodeHover}>
-                        <g className={`${styles.nodeEcho} ${isLit ? styles.nodeEchoOn : ""}`}>
-                        <g className={glitching ? "node-broken" : undefined}>
-                        {/* Card face */}
-                        <rect
-                          width={BOX_W}
-                          height={BOX_H}
-                          fill={face}
-                          stroke={stroke}
-                          strokeWidth={isSelected ? 2 : 1.25}
-                          strokeDasharray={isOtherPhase ? "4 3" : undefined}
-                          filter={`url(#compose-${
-                            glitching ? "broken-face" : isSelected ? "shadow-lifted" : "shadow"
-                          })`}
-                        />
-                        {/* Title bar: a solid block in the node's state colour, inside the outline */}
-                        <rect x={barInset} y={barInset} width={BOX_W - barInset * 2} height={BAR_H - barInset} fill={rail} />
-                        {glitching && <BrokenBorder color={CARD.broken} />}
-                        {!isBroken && c.capped_by && !isSlotted && !isOtherPhase && (
-                          <Icon icon="ph:link-simple-bold" x={BOX_W - 22} y={BAR_H / 2 - 7} width={14} height={14} color={barInk} />
-                        )}
-
-                        {/* Another phase: readable here, editable elsewhere */}
-                        {isOtherPhase && !isSlotted && (
-                          <g transform={`translate(${BOX_W - 24}, ${BAR_H / 2 - 8})`}>
-                            <circle cx="8" cy="8" r="8" fill="#dbe7f2" stroke="#9db6cc" />
-                            <text x="8" y="11" fontSize="8" textAnchor="middle">
-                              👁
-                            </text>
-                          </g>
-                        )}
-
-                        {/* Icon, centred in the bar */}
-                        {c.icon && (
-                          <g className={styles.nodeIcon}>
-                          <g className={isSlotted ? styles.iconPulse : undefined}>
-                            <NodeIcon icon={c.icon} color={barInk} cx={titleX / 2} cy={BAR_H / 2} discOpacity={0.22} />
-                          </g>
-                          </g>
-                        )}
-                        {/* A change of yours is attached: a teal flag folded over the top-right corner (the colour the sidebar
-                            uses for "in your proposal"), carrying a hammer. It stays inside the card's border, so it never
-                            covers the selection brackets. */}
-                        {isSlotted && (
-                          <g pointerEvents="none">
-                            <path d={`M${BOX_W - 31} ${barInset} H${BOX_W - barInset} V31 Z`} fill={CARD.proposed} />
-                            <path d={`M${BOX_W - 31} ${barInset} L${BOX_W - barInset} 31`} stroke="rgba(255,255,255,0.4)" strokeWidth={0.8} />
-                            <Icon icon="ph:hammer-duotone" x={BOX_W - 17} y={3} width={13} height={13} color="#ffffff" />
-                          </g>
-                        )}
-
-                        {/* Node title, centred in the bar, with its colour-split ghosts underneath when broken.
-                            Every line clears the icon, since the icon sits beside the whole title. */}
-                        {glitching && (
-                          <NodeTitleAberration
-                            lines={lines}
-                            x={() => titleX}
-                            y={(i) => titleY(i)}
-                            fontWeight={700}
-                            offset={1.8}
-                            fontSize={12}
-                          />
-                        )}
-                        {lines.map((line, i) => (
-                          <text
-                            key={i}
-                            x={titleX}
-                            y={titleY(i)}
-                            fill={barInk}
-                            fontSize="12"
-                            fontWeight="700"
-                            stroke={barInk === "#ffffff" ? "rgba(18, 8, 2, 0.5)" : "none"}
-                            strokeWidth={2.4}
-                            strokeLinejoin="round"
-                            paintOrder="stroke"
-                          >
-                            {line}
-                          </text>
-                        ))}
-
-                        {/* One caption, plus the maturity meter when there is one to show */}
-                            <LevelCaption
-                              level={c.effective_automation ?? c.nominal_automation ?? 1}
-                              governance={c.nominal_governance}
-                              y={NODE_CAPTION_Y}
-                              size={9.5}
-                              // Three cases are not about a rung at all, and keep the rail's
-                              // colour along with their own word.
-                              text={
-                                isOtherPhase
-                                  ? "view only"
-                                  : upstreamCheck.uncertain
-                                  ? "uncertain"
-                                  : isStarved
-                                  ? "starved"
-                                  : undefined
-                              }
-                              color={
-                                isOtherPhase || upstreamCheck.uncertain || isStarved ? rail : undefined
-                              }
-                            />
-                            <LevelMeter
-                              automation={c.nominal_automation ?? 1}
-                              effectiveAutomation={c.effective_automation}
-                              governance={c.nominal_governance}
-                              automationRungs={levelRungs(c.allowed_automation)}
-                              governanceRungs={levelRungs(c.allowed_governance)}
-                              previewAutomation={previewAutomation}
-                              previewGovernance={previewGovernance}
-                              y={NODE_METER_Y}
-                              emptyColor={CARD.empty}
-                              thickness={5}
-                            />
-
-                        </g>
-
-                        {/* The pin that holds it to the board. Outside the glitch group on purpose: a broken card
-                            swings about the pin, and the pin itself never moves. */}
-                        <g pointerEvents="none">
-                          <ellipse cx={BOX_W / 2 + 1.4} cy={3.6} rx={4.4} ry={2.2} fill="#2a1a0c" fillOpacity={0.35} />
-                          <circle cx={BOX_W / 2} cy={1.5} r={4.2} fill="#c9962b" stroke="#6b4f20" strokeWidth={0.8} />
-                          <circle cx={BOX_W / 2 - 1.2} cy={0.2} r={1.3} fill="#fff4cf" fillOpacity={0.8} />
-                        </g>
-                        {isSelected && <SelectionReticle color={CARD.select} />}
-                        </g>
-                        </g>
-                      </g>
+                      />
                     );
                   })}
+
 
                   {/* Cross-phase dependency stubs: the far end is never on this canvas */}
                   {crossPhaseStubs.map((stub) => {
@@ -1968,7 +1705,7 @@ export default function ComposeActionProposalModal({
                       <CrossPhaseStub
                         key={stub.edgeId}
                         x={pos.x}
-                        y={pos.y}
+                        y={pos.y + (stubSideOccupied(stub.localCompId, stub.forward, edges, positions) ? STUB_DROP : 0)}
                         forward={stub.forward}
                         lane={lane}
                         prefix="compose"

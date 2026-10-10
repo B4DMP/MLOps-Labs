@@ -1,6 +1,6 @@
 # Performance dashboard: the composer's look
 
-Status: **scope agreed, nothing built.** Depends on `docs/plans/composer-redesign.md` (the composer is the reference).
+Status: **steps 0 to 3 built; step 4 (the per-phase layout check) is still to do on screen.** Depends on `docs/plans/composer-redesign.md` (the composer is the reference).
 
 The composer became a corkboard with pinned index cards, yarn strings, and a paper sidebar, in the
 dossier's brown. The Performance Dashboard still shows the same graph in the old web-card look

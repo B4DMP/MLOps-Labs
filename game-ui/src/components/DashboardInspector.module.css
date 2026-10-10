@@ -1,0 +1,181 @@
+/* The dashboard's inspector: paper, like the pitch composer's sidebar. The pieces inside come from
+   composeSidebar/ComposeSidebar.module.css; this file is only what is specific to the dashboard. */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  color: var(--ink);
+  border: 1px solid #140d09;
+  border-radius: 0.6rem;
+  background-color: var(--paper);
+  background-image: url("../assets/paper-crumple.svg");
+  background-blend-mode: multiply;
+  box-shadow:
+    inset 14px 0 16px -10px rgba(0, 0, 0, 0.3),
+    inset 0 0 70px rgba(110, 85, 45, 0.12),
+    0 1px 3px rgba(0, 0, 0, 0.18);
+}
+
+/* The band is fixed; the body scrolls. */
+.scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.plain {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+/* A technical-debt chip: amber, so it never reads as the composer's teal "proposed" or as an error. */
+.root .chipDebt {
+  color: #7a4b00;
+  border-color: #e6c36a;
+  background: #fdf3d3;
+}
+
+/* Services as one-line ledger rows. */
+.services {
+  display: flex;
+  flex-direction: column;
+}
+
+.serviceRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--row-h);
+  padding: 0 var(--sp-1);
+  border-bottom: 1px solid var(--paper-line);
+  font-size: var(--fs-sm);
+}
+
+.serviceRow:last-child {
+  border-bottom: none;
+}
+
+.serviceName {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+.serviceState {
+  flex-shrink: 0;
+  padding: 0 var(--sp-3);
+  border: 1px solid #b8a98c;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.55);
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+}
+
+/* The component list: one-line rows, an icon disc in the card's own state colour, calm hover. */
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.listRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: calc(var(--row-h) * 1.25);
+  padding: 0 var(--sp-2);
+  border: none;
+  border-bottom: 1px solid var(--paper-line);
+  background: transparent;
+  font: inherit;
+  font-size: var(--fs-md);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.22s ease, opacity 0.22s ease;
+}
+
+.listRow:last-child {
+  border-bottom: none;
+}
+
+.listRow::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+
+.listRow:hover,
+.listRow:focus-visible {
+  background-color: rgba(38, 102, 130, 0.12);
+  outline: none;
+}
+
+.listRow:hover::before,
+.listRow:focus-visible::before {
+  opacity: 1;
+}
+
+.list:hover .listRow:not(:hover):not(:focus-visible) {
+  opacity: 0.62;
+}
+
+.disc {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--icon-lg) * 1.4);
+  height: calc(var(--icon-lg) * 1.4);
+  border-radius: 50%;
+  font-size: var(--icon);
+}
+
+.disc svg {
+  display: block;
+}
+
+.listName {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+.listPips {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.listGo {
+  flex-shrink: 0;
+  width: var(--icon);
+  height: var(--icon);
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+
+.listRow:hover .listGo,
+.listRow:focus-visible .listGo {
+  opacity: 0.9;
+}

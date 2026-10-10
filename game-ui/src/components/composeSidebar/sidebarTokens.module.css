@@ -1,0 +1,33 @@
+/* The size and colour tokens the sidebar pieces read (ComposeSidebar.module.css), for a screen other than the
+   composer. The composer defines the same set on its own container. Put `tokens` on the element that holds them. */
+.tokens {
+  --fs-xs: clamp(9px, 0.82vh, 11.5px);
+  --fs-sm: clamp(10px, 0.95vh, 12.5px);
+  --fs-md: clamp(11px, 1.08vh, 13.5px);
+  --fs-lg: clamp(13px, 1.35vh, 16px);
+
+  --sp-1: clamp(2px, 0.3vh, 4px);
+  --sp-2: clamp(3.5px, 0.55vh, 6.5px);
+  --sp-3: clamp(5.5px, 0.85vh, 10px);
+  --sp-4: clamp(8px, 1.2vh, 14px);
+
+  --row-h: clamp(24px, 2.7vh, 30px);
+  --icon: clamp(15px, 1.7vh, 19px);
+  --icon-lg: clamp(17px, 1.95vh, 22px);
+
+  --radius-sm: 0.35rem;
+  --radius-md: 0.5rem;
+
+  --brass: #d9b978;
+  --paper: #f7f4ea;
+  --paper-2: rgba(120, 92, 48, 0.1);
+  --paper-line: rgba(60, 45, 30, 0.16);
+  --ink: #2b2118;
+  --ink-soft: #5b4b3a;
+  --ink-mute: #7a6a58;
+
+  --accent: var(--primary-bg, #266682);
+  --accent-deep: var(--secondary-bg, #11303e);
+  --font-hand: "Delius", cursive;
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}

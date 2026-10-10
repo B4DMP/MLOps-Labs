@@ -1,0 +1,117 @@
+/* Self-contained: literals only, so it works on any screen. */
+
+.chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: help;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+/* On the composer's dark strip */
+.chipDesk {
+  border: 1px solid rgba(217, 185, 120, 0.4);
+  background: transparent;
+  color: #d8c7a8;
+}
+
+.chipDesk:hover,
+.chipDesk:focus-visible,
+.chipDesk.chipOpen {
+  border-color: #d9b978;
+  color: #f5ebd9;
+  outline: none;
+}
+
+/* On a pale surface */
+.chipLight {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+}
+
+.chipLight:hover,
+.chipLight:focus-visible,
+.chipLight.chipOpen {
+  border-color: #266682;
+  color: #266682;
+  outline: none;
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 8px 10px;
+  min-width: 205px;
+  background: #f7f4ea;
+  border: 1px solid rgba(60, 45, 30, 0.2);
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 20px rgba(5, 12, 20, 0.35);
+  font-weight: 400;
+  color: #5b4b3a;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-3px);
+  transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s;
+  pointer-events: none;
+}
+
+.chip:hover .panel,
+.chip:focus-visible .panel,
+.chipOpen .panel {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.group + .group {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(60, 45, 30, 0.16);
+}
+
+.heading {
+  font-family: "Delius", cursive;
+  font-size: 12px;
+  color: #2b2118;
+}
+
+/* Bars, because that is the shape they have on the node: a title bar, a meter cell, a string. */
+.swatch {
+  width: 14px;
+  height: 5px;
+  border-radius: 2px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.glyph {
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 0.8em;
+}

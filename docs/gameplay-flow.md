@@ -118,6 +118,10 @@ server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch e
      note in the dossier lifts its node (grow and shadow, a broken node keeps glitching) and marks
      the stage tab when the node is on another stage. Confirming stamps "PROPOSED" before closing.
      Plan: `docs/plans/composer-redesign.md`.
+     The Performance Dashboard (opened from the dossier header) draws the same graph in the same look: the board and the
+     inspector share the composer's pieces (`components/graph/StageNode`, `YarnLine`, `GraphLegend`, `boardSurface`, and the
+     sidebar parts), read-only; a component with technical debt carries an amber flag. Its panel, header, phase rail and
+     metric gauges keep their light look. Plan: `docs/plans/dashboard-restyle.md`.
    - Stages `PREPARE -> PITCHED -> DONE`. Events: `pitch:state`, `pitch:evaluate` (stakeholders
      react, no commit), `pitch:commit`, `pitch:veto_breaker`.
 6. **Outcome** (`scoring.py`): VETO if a high-power stakeholder has a violated boundary or low

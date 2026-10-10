@@ -57,6 +57,35 @@ export function levelRungs(allowed?: number[]): number[] {
   return rungs.length > 0 ? rungs : [1, 2, 3];
 }
 
+/** How far a cross-phase stub drops down a card's side when a normal edge already arrives at its middle. */
+export const STUB_DROP = 20;
+
+/**
+ * Whether a regular edge of this stage meets the card's right (`forward`) or left side. A cross-phase stub
+ * leaves from the same side, and drawn at the middle it would lie on top of that edge.
+ */
+export function stubSideOccupied(
+  id: string,
+  forward: boolean,
+  edges: ReadonlyArray<{ from_id: string; to_id: string }>,
+  positions: Record<string, { x: number; y: number }>
+): boolean {
+  const me = positions[id];
+  if (!me) return false;
+  const halfW = BOX_W / 2 + 4;
+  const halfH = BOX_H / 2 + 4;
+  return edges.some((e) => {
+    const other = e.from_id === id ? positions[e.to_id] : e.to_id === id ? positions[e.from_id] : undefined;
+    if (!other) return false;
+    const dx = other.x - me.x;
+    const dy = other.y - me.y;
+    if (dx === 0) return false;
+    // An edge meets a side, not the top or bottom, when it is flatter than the card's own diagonal.
+    const meetsSide = Math.abs(dy) * halfW <= Math.abs(dx) * halfH;
+    return meetsSide && (forward ? dx > 0 : dx < 0);
+  });
+}
+
 /** The explanation a cross-phase dependency stub shows on click: components are grouped one
  *  diagram per phase, but an edge can still run between two of them, and the far side is never
  *  on this canvas - so the stub explains what it stands for instead of connecting to anywhere. */
