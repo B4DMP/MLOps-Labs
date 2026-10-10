@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_override_blind_spot_reuben_registry_governance",
+  "stage": "objections",
+  "input_hash": "37a6b2d60d4238a0fa9a976000c227df79b9a1216468972c68924b461761fcd7",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_override_blind_spot_reuben_registry_governance",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} proposed that no model enters the registry without a manual, documented review of its evaluation metrics. He will not allow a model to be registered without a human signing off.",
+      "fact": "{requirements_reuben} proposed that no model enters the registry without a manual, documented review of its evaluation metrics.",
+      "reading": "He will not allow a model to be registered without a human signing off.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "model.registry",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "I will not let a model enter the registry without a human signing off on the evaluation metrics. That manual review is a hard requirement for me.",
+    "correction": "You are misreading my position on the data pipeline. I am only talking about the model registry gate, not the nightly forecast job."
+  }
+}

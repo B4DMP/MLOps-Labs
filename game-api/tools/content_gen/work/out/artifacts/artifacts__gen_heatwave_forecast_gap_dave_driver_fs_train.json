@@ -1,7 +1,7 @@
 {
   "item_id": "artifacts:gen_heatwave_forecast_gap_dave_driver_fs_train",
   "stage": "artifacts",
-  "input_hash": "147f25503b605c03a490918449ca36a129db04cfe570826246bd3dc15e6a6726",
+  "input_hash": "0b8f696bd2315ea6f40b2f14ce1a62c727c69114c119406362ad7e34a0f4a0e4",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -10,12 +10,12 @@
       "challenge_id": -1,
       "stakeholder_id": "data_dave",
       "type": "driver",
-      "description": "{data_dave} proposed that the hand-over from the feature store to the training pipeline should trigger on data arrival. {data_dave.first} wants the training pipeline to start automatically when new feature data arrives, to reduce latency.",
-      "fact": "{data_dave} proposed that the hand-over from the feature store to the training pipeline should trigger on data arrival.",
-      "reading": "{data_dave.first} wants the training pipeline to start automatically when new feature data arrives, to reduce latency.",
+      "description": "{data_dave} proposed that the hand-over from the evaluation harness to the registry should fire when fresh data arrives. {data_dave.first} wants the registry updated whenever new weather data lands, without manual steps.",
+      "fact": "{data_dave} proposed that the hand-over from the evaluation harness to the registry should fire when fresh data arrives.",
+      "reading": "{data_dave.first} wants the registry updated whenever new weather data lands, without manual steps.",
       "metric_id": "data",
       "suggested": {
-        "target": "e.fs_train",
+        "target": "e.eval_registry",
         "axis": "automation",
         "level": 3
       },
@@ -23,7 +23,7 @@
       "ops": [
         {
           "kind": "set_trigger",
-          "target": "e.fs_train",
+          "target": "e.eval_registry",
           "value": "on_data_arrival"
         }
       ],
@@ -33,8 +33,8 @@
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [
-        "raise_to(e.fs_train, 3)",
-        "set_trigger(e.fs_train, on_data_arrival)"
+        "raise_to(e.eval_registry, 3)",
+        "set_trigger(e.eval_registry, on_data_arrival)"
       ],
       "asserts": null,
       "refines_id": null,
@@ -51,8 +51,8 @@
     }
   },
   "output": {
-    "content": "The feature store currently waits for a manual trigger before pushing data to the training pipeline, which adds unnecessary latency to the nightly cycle. I want that hand over to fire automatically the moment new scan lines and stock receipts land in storage. Every hour we save between data arrival and model retraining is time we can spend testing new weather features before the morning order window opens. The more frequently the pipeline can ingest fresh signals, the faster we can validate whether those features actually improve forecast accuracy for seasonal articles. I am happy to wire up the event listeners and storage hooks for this automation, provided we can agree on the trigger conditions. I see no reason to keep this step manual when the infrastructure is ready to handle it.",
+    "content": "I am pushing to automate the hand over from the evaluation harness to the registry. Right now we wait for a human to trigger the update, which creates a lag between when fresh weather data lands and when the model sees it. I want that step to fire automatically the moment the new data is available. The more frequently the registry reflects the latest inputs, the better our feature tests become. Manual steps introduce delay and error, so removing them is the goal here. I see no downside to making this fully automated, and I am eager to see the system respond to live data without any waiting.",
     "reclassified_as": "driver",
-    "reclassify_reason": "The author explicitly links the automation to the goal of saving time for feature testing and improving forecast accuracy, indicating that increasing the frequency of this process would make them happier and aligns with their core performance needs."
+    "reclassify_reason": "The author expresses a strong desire for immediate automation to eliminate delays and improve feature testing, indicating that increasing the frequency of registry updates would make them happier."
   }
 }

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_ruth_serving_driver",
+  "stage": "gists",
+  "input_hash": "75e1d7570c24918ccaf804f190223f8289944a9a1821a9c013d885f89fb6c0e6",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_ruth_serving_driver",
+    "fact": "{reliability_ruth} asked for the model serving endpoint to be fully automated.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The model serving endpoint has been raised as a topic in conversations with {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The statement only identifies that the model serving endpoint was discussed with a specific stakeholder, without indicating any stance, direction, or commitment to change regarding reliability."
+  }
+}

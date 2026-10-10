@@ -1,0 +1,49 @@
+{
+  "item_id": "artifacts:gen_shadow_deployment_contract_ruth_serving_driver",
+  "stage": "artifacts",
+  "input_hash": "19268133898ca50e755c57fcd7b93a2bfb41b8d2a2ce6abf9e9b38cf94f16045",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_ruth_serving_driver",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} asked for the model serving endpoint to be fully automated. She wants the serving endpoint to run without manual intervention to ensure reliability.",
+      "fact": "{reliability_ruth} asked for the model serving endpoint to be fully automated.",
+      "reading": "She wants the serving endpoint to run without manual intervention to ensure reliability.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "deploy.serving",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "author": {
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Locked Shadow",
+      "description": "A supplier contract for the next promotion week is already signed, and the team cannot deploy the new model without a shadow run to verify it. #reliability_ruth# demands a fully automated and governed shadow environment to protect the live forecast, while #automation_alex# insists on keeping it manual to avoid breaking the current pipeline stability."
+    }
+  },
+  "output": {
+    "content": "We need the model serving endpoint to run without any manual intervention. The current setup requires someone to trigger the deployment steps by hand, which introduces a point of failure right before the morning order window opens. If we automate the full lifecycle, from validation to serving, we remove that human dependency entirely. I want the system to handle the promotion week traffic on its own, ensuring that the forecast is always fresh and available. The more automated the pipeline is, the more reliable it becomes for the store managers who depend on those numbers every single day.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The author states a need for full automation to ensure reliability and freshness, and explicitly indicates that increasing the level of automation would make the stakeholders happier and the system more reliable."
+  }
+}

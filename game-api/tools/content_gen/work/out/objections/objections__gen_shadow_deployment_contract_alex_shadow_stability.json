@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_shadow_deployment_contract_alex_shadow_stability",
+  "stage": "objections",
+  "input_hash": "28e589737c1899fe9d750a5e559dee140a0c487f77343732ff2be6517ea89e57",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_alex_shadow_stability",
+      "challenge_id": -1,
+      "stakeholder_id": "automation_alex",
+      "type": "boundary",
+      "description": "{automation_alex} proposed keeping the shadow environment running by hand. He will not let the shadow environment go fully automated while the live forecast is unstable.",
+      "fact": "{automation_alex} proposed keeping the shadow environment running by hand.",
+      "reading": "He will not let the shadow environment go fully automated while the live forecast is unstable.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "deploy.shadow",
+        "axis": "automation",
+        "op": "lte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.shadow",
+          "axis": "automation",
+          "value": 2
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "automation_alex",
+      "name": "Automation Alex",
+      "role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling."
+    }
+  },
+  "output": {
+    "objection": "I am not touching the shadow environment until the live forecast stops breaking. You cannot automate a test bed while the production pipeline is still on fire.",
+    "correction": "I am not saying we should never automate it. I am saying the current instability makes it a waste of time to build that tooling now."
+  }
+}

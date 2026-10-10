@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_monica_training_pipeline",
+  "stage": "gists",
+  "input_hash": "47a20c950968283f303c6d50c1cd9371e53287f215c30a7dcd9763219f78f766",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_monica_training_pipeline",
+    "fact": "{model_monica} noted that the training pipeline is currently done by hand.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The model training pipeline has been raised as a topic of concern in recent team discussions.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the model training pipeline as a topic of concern but does not specify a direction, demand, or constraint, so it does not commit to a specific reading."
+  }
+}

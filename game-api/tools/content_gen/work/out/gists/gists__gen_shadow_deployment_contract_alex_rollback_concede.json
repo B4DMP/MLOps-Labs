@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_alex_rollback_concede",
+  "stage": "gists",
+  "input_hash": "b2227efc3a8a5a63d057a79e9e34363397e07502c832bd0babf209e879e45e5f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_alex_rollback_concede",
+    "fact": "{automation_alex} noted that the rollback process to the serving endpoint can remain manual.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The manual rollback procedure for the serving endpoint keeps coming up in discussions with {automation_alex}.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions a manual procedure and discussions regarding it, but it does not explicitly state a desire to automate it (driver), a refusal to do so (boundary), an acceptance of the manual cost (trade_off), or a definitive factual claim about its current status beyond its existence in discussions."
+  }
+}

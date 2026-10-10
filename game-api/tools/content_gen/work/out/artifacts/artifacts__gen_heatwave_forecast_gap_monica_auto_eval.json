@@ -1,7 +1,7 @@
 {
   "item_id": "artifacts:gen_heatwave_forecast_gap_monica_auto_eval",
   "stage": "artifacts",
-  "input_hash": "de04ba2ae9c4ac3d80c20a1674f65fbe08311771eb95ff3f123736e39e53447c",
+  "input_hash": "3f23edf821a1547422cec08357a5720de0c082c897aa67fa69d56b2769446cb3",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -10,23 +10,32 @@
       "challenge_id": -1,
       "stakeholder_id": "model_monica",
       "type": "driver",
-      "description": "{model_monica} asked for the model evaluation harness to run automatically when a new model version is ready. Rapid iteration on weather features is impossible if the evaluation step requires a human to trigger it every time.",
-      "fact": "{model_monica} asked for the model evaluation harness to run automatically when a new model version is ready.",
-      "reading": "Rapid iteration on weather features is impossible if the evaluation step requires a human to trigger it every time.",
+      "description": "{model_monica} asked for the hand off from the evaluation harness to the registry to fire as soon as a new model version is ready. Weather feature testing stalls if the registry waits for a human to notice a new version.",
+      "fact": "{model_monica} asked for the hand off from the evaluation harness to the registry to fire as soon as a new model version is ready.",
+      "reading": "Weather feature testing stalls if the registry waits for a human to notice a new version.",
       "metric_id": "model",
       "suggested": {
-        "target": "model.evaluation",
+        "target": "e.eval_registry",
         "axis": "automation",
-        "level": 1
+        "level": 3
       },
       "holds": null,
-      "ops": [],
+      "ops": [
+        {
+          "kind": "set_trigger",
+          "target": "e.eval_registry",
+          "value": "on_new_version"
+        }
+      ],
       "concedes": null,
       "branch_x": null,
       "branch_y": null,
       "branch_x_atoms": [],
       "branch_y_atoms": [],
-      "atoms": [],
+      "atoms": [
+        "raise_to(e.eval_registry, 3)",
+        "set_trigger(e.eval_registry, on_new_version)"
+      ],
       "asserts": null,
       "refines_id": null,
       "gist": null
@@ -42,8 +51,8 @@
     }
   },
   "output": {
-    "content": "I need the evaluation harness to trigger automatically the moment a new model version is ready. Right now, I am waiting on a human to remember to start the run, which kills the momentum. I want to test weather features rapidly because the heatwave has shifted demand for seasonal articles and the current forecast is missing the mark. If I can iterate quickly, I can find the right feature set before the next promotion week. The more runs I can squeeze into a day, the better the model becomes. I am not asking for a new tool, just for the pipeline to wake itself up so I can stop babysitting the process.",
+    "content": "The heatwave has exposed how slow our current workflow is. I need the evaluation harness to push results to the registry automatically the moment a new model version passes its checks. Right now, we wait for a human to notice the new version and manually trigger the hand off. That gap means we lose precious hours while the weather pattern shifts. I want to test new weather features rapidly so we can adapt the forecast before the next promotion week. The faster we can iterate on these features, the better our availability for seasonal articles will be. I am pushing for full automation of this step to remove the bottleneck.",
     "reclassified_as": "driver",
-    "reclassify_reason": "The statement expresses a need for automated triggering to enable rapid iteration, and doing more (increasing the frequency of runs) directly aligns with the goal of improving the model before the promotion week, making the user happier."
+    "reclassify_reason": "The author explicitly states a need for rapid iteration and full automation to improve forecast availability, and would be happier with more than the minimum requested (e.g., even faster or more comprehensive automation) to achieve their goal."
   }
 }

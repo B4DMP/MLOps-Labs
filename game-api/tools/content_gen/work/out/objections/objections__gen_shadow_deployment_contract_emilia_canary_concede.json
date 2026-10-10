@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_shadow_deployment_contract_emilia_canary_concede",
+  "stage": "objections",
+  "input_hash": "c36c8203892a4b37f42ac40cbb4afbf6531b225baf01173fc3b9bd54f3314bc6",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_emilia_canary_concede",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} proposed that the canary testing environment can remain done by hand. She would accept leaving the canary environment done by hand if the main pipeline is automated.",
+      "fact": "{efficiency_emilia} proposed that the canary testing environment can remain done by hand.",
+      "reading": "She would accept leaving the canary environment done by hand if the main pipeline is automated.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "deploy.canary_ab",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are treating my approval of manual canary testing as a free concession, but I am explicitly trading that effort against the automation of the main pipeline. Please record that trade clearly in the project goals so the resource cost is visible to the board.",
+    "correction": "I did not say we should skip canary testing, I said we can keep it manual only if the nightly forecast job is fully automated. Do not file this as a lack of testing, it is a deliberate efficiency choice to protect the core delivery speed."
+  }
+}

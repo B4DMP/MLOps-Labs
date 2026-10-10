@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_override_blind_spot_emilia_evaluation",
+  "stage": "objections",
+  "input_hash": "5a330e43a8393cb7e174532ae480f58b7a4c26e5c14d849174d10f0563551473",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_override_blind_spot_emilia_evaluation",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} mentioned that model evaluation is currently done by hand. She wants to automate model evaluation to reduce the time to market.",
+      "fact": "{efficiency_emilia} mentioned that model evaluation is currently done by hand.",
+      "reading": "She wants to automate model evaluation to reduce the time to market.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "model.evaluation",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "Automating the nightly backtest is a start, but it does not cover the manual review of promotion week anomalies I need before we lock the allocation. I need the full evaluation loop automated so we can cut our time to market without adding headcount.",
+    "correction": "You filed that as a general automation request, but I specifically flagged the gap in evaluating censored demand during out of stock periods. That is the metric that drives our residual stock KPIs, not just the standard accuracy score."
+  }
+}

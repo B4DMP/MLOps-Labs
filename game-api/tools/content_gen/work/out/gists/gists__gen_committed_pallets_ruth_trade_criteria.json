@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_committed_pallets_ruth_trade_criteria",
+  "stage": "gists",
+  "input_hash": "685e5a2b7b33b89ecbaa52d8e01dab3e1928fa174ef187bdca3d9e58f2b771d2",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_committed_pallets_ruth_trade_criteria",
+    "fact": "{reliability_ruth} suggested that the acceptance criteria can be checked by hand to ship the feature immediately.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Committed Pallets"
+  },
+  "output": {
+    "gist": "The method for verifying acceptance criteria before a feature ships has been raised by {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the topic as verification of acceptance criteria (a reliability concern) but only states that it was raised, without expressing a stance on whether to prioritize, refuse, or trade it off."
+  }
+}

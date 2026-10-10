@@ -1,7 +1,7 @@
 {
   "item_id": "objections:gen_loyalty_consent_gap_ruth_driver",
   "stage": "objections",
-  "input_hash": "0587bb175dfd54b87e62d60b5b245fa7f474e855e81d961afbee02bd9eb0309c",
+  "input_hash": "37e28ba2e46e62f3f4994c8f6b1664a1eda6f79d271caa8007f9d591472654d1",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -11,14 +11,14 @@
       "challenge_id": -1,
       "stakeholder_id": "reliability_ruth",
       "type": "driver",
-      "description": "{reliability_ruth} proposed moving acceptance criteria checks off manual handling. The less anyone has to check that by hand, the sooner feedback reaches the team.",
-      "fact": "{reliability_ruth} proposed moving acceptance criteria checks off manual handling.",
-      "reading": "The less anyone has to check that by hand, the sooner feedback reaches the team.",
+      "description": "{reliability_ruth} proposed that risk assessment carry a formal owner sign off. A signed off risk assessment gives every later check something firm to rest on.",
+      "fact": "{reliability_ruth} proposed that risk assessment carry a formal owner sign off.",
+      "reading": "A signed off risk assessment gives every later check something firm to rest on.",
       "metric_id": "reliability",
       "suggested": {
-        "target": "req.acceptance_criteria",
-        "axis": "automation",
-        "level": 2
+        "target": "req.risk_assessment",
+        "axis": "governance",
+        "level": 3
       },
       "holds": null,
       "ops": [],
@@ -39,7 +39,7 @@
     }
   },
   "output": {
-    "objection": "I am not asking for a full automation of the acceptance criteria yet, just to stop the manual bottleneck so we get faster feedback. I want the checks to run automatically, but I still need a human to sign off on the results before we deploy.",
-    "correction": "You are mixing up the automation of the check with the governance of the approval. I am moving the execution to a tool, but the decision to accept the model remains a manual, governed step."
+    "objection": "I did not just want a signature on a document, I wanted a named person who answers when the forecast breaks at 4 a.m. A formal owner sign off is the floor, not the ceiling, for what I am asking for.",
+    "correction": "You misread my note as a governance formality, but I meant it as a reliability commitment. The sign off is the mechanism that makes the risk assessment actionable for my deployment pipeline."
   }
 }

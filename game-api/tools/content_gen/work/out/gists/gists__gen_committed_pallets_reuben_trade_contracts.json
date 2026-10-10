@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_committed_pallets_reuben_trade_contracts",
+  "stage": "gists",
+  "input_hash": "80c1e09f6781b68fb90d416fe7e650ba2798dc6d2586fcceb21b9b957ca4c24a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_committed_pallets_reuben_trade_contracts",
+    "fact": "{requirements_reuben} noted that the data contracts can be left without formal review for this specific cycle.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Committed Pallets"
+  },
+  "output": {
+    "gist": "Formal review of data contracts for this cycle keeps coming up in {requirements_reuben}'s notes.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The statement merely reports that formal reviews of data contracts are appearing in notes, without expressing a desire for more, a refusal, a trade-off, or a definitive operational fact about the system's state."
+  }
+}

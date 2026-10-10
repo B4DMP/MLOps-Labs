@@ -1,0 +1,49 @@
+{
+  "item_id": "artifacts:gen_override_blind_spot_emilia_evaluation",
+  "stage": "artifacts",
+  "input_hash": "82296a00d52e011bba8c172e4cca62062f46dd8731dd2e54400889526d9c8df6",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_override_blind_spot_emilia_evaluation",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} mentioned that model evaluation is currently done by hand. She wants to automate model evaluation to reduce the time to market.",
+      "fact": "{efficiency_emilia} mentioned that model evaluation is currently done by hand.",
+      "reading": "She wants to automate model evaluation to reduce the time to market.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "model.evaluation",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "author": {
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    },
+    "challenge": {
+      "name": "The Override Blind Spot",
+      "description": "Store managers are overriding order suggestions at an alarming rate because they cannot verify if the model behind them is the one they tested. #model_monica# wants a fully automated registry to ensure every deployment is traceable and reproducible. #requirements_reuben# has a red line: no model enters the registry without a manual, documented review of its evaluation metrics to ensure compliance, so he insists on keeping the process manual."
+    }
+  },
+  "output": {
+    "content": "I am looking at the weekly cycle for the middle aisle promotions. Every time we lock a new allocation, the team spends days running evaluation scripts by hand before the models are ready for the order window. This manual process is the primary bottleneck slowing our time to market. I want to see the evaluation step fully automated so we can test more scenarios and react faster to demand shifts. The more of this work the tooling handles, the better it is for our margin targets. I am not asking for a specific threshold, just a system that runs without human intervention so we can iterate quickly on the replenishment logic.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The statement identifies a bottleneck and explicitly states that increasing automation leads to better outcomes (faster iteration, margin targets), indicating that doing more than the minimum requested would make the author happier."
+  }
+}

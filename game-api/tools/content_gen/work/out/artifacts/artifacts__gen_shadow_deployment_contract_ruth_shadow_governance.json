@@ -1,7 +1,7 @@
 {
   "item_id": "artifacts:gen_shadow_deployment_contract_ruth_shadow_governance",
   "stage": "artifacts",
-  "input_hash": "b6594fb16f31d6d61d597efe1ffe174878cafceb076096db930ea44353e22431",
+  "input_hash": "d7016c55915ad75e6ba3f5c35451158b79ee3fa27662b6d637fd467243474e06",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -9,26 +9,18 @@
       "id": "gen_shadow_deployment_contract_ruth_shadow_governance",
       "challenge_id": -1,
       "stakeholder_id": "reliability_ruth",
-      "type": "boundary",
-      "description": "{reliability_ruth} asked for the shadow deployment to be fully governed. She will not deploy the new model without a fully governed shadow run to verify it.",
-      "fact": "{reliability_ruth} asked for the shadow deployment to be fully governed.",
-      "reading": "She will not deploy the new model without a fully governed shadow run to verify it.",
-      "metric_id": null,
-      "suggested": null,
-      "holds": {
-        "component": "deploy.shadow",
+      "type": "driver",
+      "description": "{reliability_ruth} asked for the shadow environment to have a full formal sign-off. A fully signed off shadow run means a bad forecast model never reaches live traffic.",
+      "fact": "{reliability_ruth} asked for the shadow environment to have a full formal sign-off.",
+      "reading": "A fully signed off shadow run means a bad forecast model never reaches live traffic.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "deploy.shadow",
         "axis": "governance",
-        "op": "gte",
         "level": 3
       },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "deploy.shadow",
-          "axis": "governance",
-          "value": 3
-        }
-      ],
+      "holds": null,
+      "ops": [],
       "concedes": null,
       "branch_x": null,
       "branch_y": null,
@@ -50,8 +42,8 @@
     }
   },
   "output": {
-    "content": "The supplier contract for the next promotion week is signed, so we cannot skip the verification step. I need the shadow deployment to be fully governed before we proceed. If the shadow run lacks formal sign off, I will not approve the new model for the live forecast. This is a hard line. I am not interested in a partial review or a manual check. The system must have strict, formal governance on the shadow environment. Without that, the risk to the live pipeline is too high, and I will block the deployment entirely. Please ensure the governance controls are in place before we schedule the shadow run.",
-    "reclassified_as": "boundary",
-    "reclassify_reason": "The author explicitly defines the requirement for formal governance as a hard line and states that any deviation, such as partial reviews or manual checks, will result in a refusal to approve the deployment."
+    "content": "We need the shadow environment for the new model to be fully automated and governed. I want a formal sign off before any output touches the live forecast. The more rigorous the approval process, the better. I am not asking for a quick check. I want a strict, documented review that catches every drift or serving failure before it reaches the stores. If we automate the shadow run and add full governance, we can trust the results. I am open to adding more review steps if it helps ensure the live pipeline stays safe. I want this to be airtight.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The author explicitly states that more rigor and additional review steps would make them happier, indicating that exceeding the minimum requirements aligns with their goal of ensuring safety."
   }
 }

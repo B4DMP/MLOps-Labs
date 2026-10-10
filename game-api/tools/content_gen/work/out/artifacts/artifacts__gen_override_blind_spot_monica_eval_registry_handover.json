@@ -1,0 +1,49 @@
+{
+  "item_id": "artifacts:gen_override_blind_spot_monica_eval_registry_handover",
+  "stage": "artifacts",
+  "input_hash": "ae3aa7a6a0ca9d95a223896c3f5d04e355f42d3e72161d4147ff18e04eecc2b1",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_override_blind_spot_monica_eval_registry_handover",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} asked for the hand-over from model evaluation to the registry to be automated. She wants evaluation results to flow into the registry without a manual step.",
+      "fact": "{model_monica} asked for the hand-over from model evaluation to the registry to be automated.",
+      "reading": "She wants evaluation results to flow into the registry without a manual step.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "e.eval_registry",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "author": {
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Override Blind Spot",
+      "description": "Store managers are overriding order suggestions at an alarming rate because they cannot verify if the model behind them is the one they tested. #model_monica# wants a fully automated registry to ensure every deployment is traceable and reproducible. #requirements_reuben# has a red line: no model enters the registry without a manual, documented review of its evaluation metrics to ensure compliance, so he insists on keeping the process manual."
+    }
+  },
+  "output": {
+    "content": "I need the hand over from model evaluation to the registry to be fully automated. Right now, someone has to copy metrics by hand, and that is a slow, error prone step that slows down our iteration cycle. I want the evaluation results to flow directly into the registry the moment a model finishes training. This will make every deployment traceable and reproducible without waiting for a human to intervene. The more seamless this pipeline becomes, the faster we can ship new versions and verify that the model on the shelf is the one we tested. I am asking for this to be a standard, automated part of our workflow so we can stop losing time to manual data entry.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The statement expresses a need for automation to improve speed and traceability, and doing more than asked (e.g., adding real-time monitoring or advanced validation) would further satisfy the desire for a seamless, fast pipeline."
+  }
+}

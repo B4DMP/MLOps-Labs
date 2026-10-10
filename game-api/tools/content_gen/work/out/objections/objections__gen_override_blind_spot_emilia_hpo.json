@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_override_blind_spot_emilia_hpo",
+  "stage": "objections",
+  "input_hash": "0b7e10d90e279c662c883284e1b9488e7ecb46073ba3f880b985992345ec1244",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_override_blind_spot_emilia_hpo",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted that hyperparameter tuning is currently missing. She would accept keeping hyperparameter tuning missing if the registry and evaluation were fully automated.",
+      "fact": "{efficiency_emilia} noted that hyperparameter tuning is currently missing.",
+      "reading": "She would accept keeping hyperparameter tuning missing if the registry and evaluation were fully automated.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.hpo",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are treating the absence of hyperparameter tuning as a silent cut, but I explicitly agreed to leave it manual to fund the registry work. Please acknowledge that trade off in the plan before you move on.",
+    "correction": "I did not ask you to build the tuner, I asked you to automate the registry and evaluation pipeline. Do not misread my acceptance of a manual step as a demand for new tooling."
+  }
+}

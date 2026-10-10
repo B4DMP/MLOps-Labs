@@ -1,7 +1,7 @@
 {
   "item_id": "objections:gen_silent_forecast_failure_emilia_alert_edge",
   "stage": "objections",
-  "input_hash": "c10931b918ed5861f7153796ae7a91e8b04690dd7393dc635d8fe7749106c615",
+  "input_hash": "08603789faa05521e077c3bb98d0c30662a2b81beb6317218f15a72fec6435fd",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -41,7 +41,7 @@
     }
   },
   "output": {
-    "objection": "You are treating my cost saving preference as a refusal to fix the monitoring gap, which is not what I said. I am asking you to acknowledge that a hand-over connected by hand is an acceptable answer here, and that I do not want to pay for a new integration layer.",
-    "correction": "Stop filing this under technical debt or risk acceptance, because that is not the frame I used. I am defining a specific business trade off where we connect that hand-over by hand to save money, and I need that decision recorded as a conscious choice rather than an oversight."
+    "objection": "You are treating my acceptance of a manual hand over as a concession you can exploit. I am explicitly flagging that this trade off removes a piece of our operational capability, and I need that cost acknowledged in the plan.",
+    "correction": "I did not say the manual process is ideal, I said it is cheaper than buying new integration tooling. Do not file this as a technical preference, it is a strategic decision to defer spend while we protect the core forecast pipeline."
   }
 }

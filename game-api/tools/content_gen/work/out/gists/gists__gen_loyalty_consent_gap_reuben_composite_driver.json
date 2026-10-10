@@ -1,12 +1,12 @@
 {
   "item_id": "gists:gen_loyalty_consent_gap_reuben_composite_driver",
   "stage": "gists",
-  "input_hash": "a182f1b4f390222659da1984cf6d7041e7c43d835fa4896b1604b2e344379b6a",
+  "input_hash": "3d3437cbc2f50b997f8a0b28c83fb1ee6febf5240487ab286a58e5b7242b1fa6",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "requirement_id": "gen_loyalty_consent_gap_reuben_composite_driver",
-    "fact": "{requirements_reuben} proposed moving the risk review hand-off, and the checks that follow it, off manual handling.",
+    "fact": "{requirements_reuben} wants the hand-off to fire automatically while the rest stays manual.",
     "metric_id": "requirements",
     "metric_ids": [
       "automation",
@@ -19,9 +19,9 @@
     "challenge_name": "The Loyalty Data Audit"
   },
   "output": {
-    "gist": "Governance of the risk review hand-off and the acceptance checks after it is the subject of a note from {requirements_reuben}.",
+    "gist": "The automated hand off of loyalty data is the specific process under discussion by {requirements_reuben}.",
     "verdict_metric_id": "requirements",
     "verdict_reading": "none",
-    "verdict_reason": "The gist identifies the subject of a note regarding governance and acceptance checks but does not express a stance, direction, or commitment to any specific reading such as wanting more, refusing, or accepting a loss."
+    "verdict_reason": "The gist identifies the specific process being discussed by a stakeholder but does not express a stance, preference, or direction regarding that process."
   }
 }

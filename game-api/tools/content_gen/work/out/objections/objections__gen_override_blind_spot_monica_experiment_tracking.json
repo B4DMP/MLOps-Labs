@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_override_blind_spot_monica_experiment_tracking",
+  "stage": "objections",
+  "input_hash": "7f678ff14c8ea76b106dbaba494ad36b679731a63da490fd2ac6d305188adea0",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_override_blind_spot_monica_experiment_tracking",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} mentioned that experiment tracking is currently done by hand. She would accept keeping experiment tracking done by hand if the registry automation is prioritized.",
+      "fact": "{model_monica} mentioned that experiment tracking is currently done by hand.",
+      "reading": "She would accept keeping experiment tracking done by hand if the registry automation is prioritized.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.experiment_tracking",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "You are treating my manual experiment tracking as a free resource to absorb into your new registry work. I need you to acknowledge that I am trading my current manual process for your promise to automate the registry.",
+    "correction": "I am not asking you to build the registry before you handle my tracking. I am saying that I will keep logging experiments by hand only if you commit to prioritizing the registry automation next."
+  }
+}

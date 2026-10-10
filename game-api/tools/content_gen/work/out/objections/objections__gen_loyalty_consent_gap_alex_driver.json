@@ -1,7 +1,7 @@
 {
   "item_id": "objections:gen_loyalty_consent_gap_alex_driver",
   "stage": "objections",
-  "input_hash": "1276490a06ce831ea61086924aceaae12aa6f1798507c95d101ca97b6a4cc3b2",
+  "input_hash": "1d6d50cea126cfc1a0bdd9243e96907a580ed9c565a99afc78010458dd9ac0c3",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -11,14 +11,14 @@
       "challenge_id": -1,
       "stakeholder_id": "automation_alex",
       "type": "driver",
-      "description": "{automation_alex} proposed moving risk assessment reviews off manual handling. The less anyone has to review that by hand, the sooner releases clear without delay.",
-      "fact": "{automation_alex} proposed moving risk assessment reviews off manual handling.",
-      "reading": "The less anyone has to review that by hand, the sooner releases clear without delay.",
+      "description": "{automation_alex} proposed automating the hand-off from risk assessment to acceptance criteria. The hand-off should fire automatically so risk reviews move faster.",
+      "fact": "{automation_alex} proposed automating the hand-off from risk assessment to acceptance criteria.",
+      "reading": "The hand-off should fire automatically so risk reviews move faster.",
       "metric_id": "automation",
       "suggested": {
-        "target": "req.risk_assessment",
+        "target": "e.risk_acceptance",
         "axis": "automation",
-        "level": 2
+        "level": 3
       },
       "holds": null,
       "ops": [],
@@ -39,7 +39,7 @@
     }
   },
   "output": {
-    "objection": "You are reading too much into my note about the risk assessment queue. I want the pipeline to flag high risk changes automatically, not to skip the human review step entirely.",
-    "correction": "I am not asking you to delete the governance gate. I am asking for tooling that prepares the evidence so the reviewer can sign off in minutes instead of hours."
+    "objection": "I did not just want the risk assessment to fire the acceptance criteria automatically. I need the pipeline to validate the data schema and model version before it even starts that hand off.",
+    "correction": "You misread my ticket as a simple trigger change. I am asking for a full validation gate in the CI pipeline to ensure the deployment is stable before any automation runs."
   }
 }

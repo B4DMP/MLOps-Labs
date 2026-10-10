@@ -1,0 +1,57 @@
+{
+  "item_id": "artifacts:gen_committed_pallets_reuben_boundary_criteria",
+  "stage": "artifacts",
+  "input_hash": "c0fe9643c237e75010ad80ad9bdf60f47d2fb52beadb23afc0e316079a7d30bb",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_committed_pallets_reuben_boundary_criteria",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} insisted that the acceptance criteria must have full formal sign off before the trucks leave. He will not allow the allocation feature to ship without full governance on the acceptance criteria.",
+      "fact": "{requirements_reuben} insisted that the acceptance criteria must have full formal sign off before the trucks leave.",
+      "reading": "He will not allow the allocation feature to ship without full governance on the acceptance criteria.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "req.acceptance_criteria",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.acceptance_criteria",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "author": {
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    },
+    "challenge": {
+      "name": "The Committed Pallets",
+      "description": "A supplier has confirmed a bulk order for a middle aisle promotion that ships next week, leaving no room for model error. #requirements_reuben# insists the acceptance criteria must be fully governed to guarantee the allocation logic is auditable before the trucks leave. #reliability_ruth# argues the criteria are sufficient as manual checks because the physical stock is already committed and the team needs to ship the feature immediately to handle the live orders."
+    }
+  },
+  "output": {
+    "content": "I am not moving on the acceptance criteria for the allocation logic. The supplier has already confirmed the bulk order for the middle aisle promotion, and the pallets are committed. There is no room for model error once the trucks leave the distribution centre. I require full formal sign off on every acceptance criterion before we allow this feature to ship. Manual checks are not enough for this release. If the governance is not complete, the feature does not go live. This is a hard line I will not cross, regardless of the pressure to handle the live orders immediately.",
+    "reclassified_as": "boundary",
+    "reclassify_reason": "The author explicitly defines full formal sign-off as a 'hard line' that will not be crossed, establishing a strict refusal condition rather than a negotiable wish or trade-off."
+  }
+}

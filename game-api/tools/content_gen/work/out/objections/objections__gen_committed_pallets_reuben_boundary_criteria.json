@@ -1,0 +1,53 @@
+{
+  "item_id": "objections:gen_committed_pallets_reuben_boundary_criteria",
+  "stage": "objections",
+  "input_hash": "dfa4bd4334b8ee496054bbd3bbcaca980eeaa27cb416d4a102706e9e4b3fa075",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_committed_pallets_reuben_boundary_criteria",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} insisted that the acceptance criteria must have full formal sign off before the trucks leave. He will not allow the allocation feature to ship without full governance on the acceptance criteria.",
+      "fact": "{requirements_reuben} insisted that the acceptance criteria must have full formal sign off before the trucks leave.",
+      "reading": "He will not allow the allocation feature to ship without full governance on the acceptance criteria.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "req.acceptance_criteria",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.acceptance_criteria",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "I will not sign off on this allocation feature without full formal governance on the acceptance criteria. The trucks cannot leave until that strict sign off is in place.",
+    "correction": "You are misreading my stance as a preference for extra meetings. I am stating a hard security and privacy boundary that blocks the release."
+  }
+}

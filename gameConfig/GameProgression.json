@@ -176,7 +176,7 @@
       "description": "A supplier has confirmed a bulk order for a middle aisle promotion that ships next week, leaving no room for model error. #requirements_reuben# insists the acceptance criteria must be fully governed to guarantee the allocation logic is auditable before the trucks leave. #reliability_ruth# argues the criteria are sufficient as manual checks because the physical stock is already committed and the team needs to ship the feature immediately to handle the live orders.",
       "roundIntroduction": "The middle aisle category team locked the promotion calendar for the upcoming week, and the supplier confirmed the pallets are on the dock. The nightly forecast job is running, but the allocation module has no formal sign off for this specific high risk scenario.",
       "metric_changes": {},
-      "attention_tokens": 15,
+      "attention_tokens": 20,
       "priority": 75,
       "preconditions": true,
       "fallback": true,
@@ -293,7 +293,7 @@
       "description": "A sudden heatwave has shifted demand for seasonal articles, and the current forecast is missing the mark. #model_monica# wants to automate the evaluation harness to test new weather features rapidly, while #requirements_reuben# wants to keep it manual to ensure every test case is rigorously documented before any model change is considered.",
       "roundIntroduction": "The nightly forecast job completed, but store managers in the northern region reported significant overstock of cold weather items and stockouts of iced tea. The team needs to decide how to handle the evaluation of a potential model update that incorporates the new weather data.",
       "metric_changes": {},
-      "attention_tokens": 12,
+      "attention_tokens": 20,
       "priority": 75,
       "preconditions": true,
       "fallback": true,
@@ -395,7 +395,7 @@
       "description": "A legal audit flagged that loyalty basket data lacks valid consent records, breaking the legal basis for using it in forecasts. #requirements_reuben# demands the data contracts be fully automated and governed to enforce consent checks before any data enters the pipeline. #efficiency_emilia# argues that manual review is sufficient for now to avoid delaying the promotion planning cycle, though she might accept a middle ground if it does not stall the weekly leaflet.",
       "roundIntroduction": "The compliance team suspended access to the loyalty app basket feed after discovering that retention policies were not documented in the data contracts. The KPI definitions for the next promotion cycle were never formally agreed upon, leaving the team without a clear baseline for how to handle the missing personal data signals.",
       "metric_changes": {},
-      "attention_tokens": 15,
+      "attention_tokens": 20,
       "priority": 85,
       "preconditions": {
         "all": [
@@ -438,8 +438,8 @@
         "positions": [
           {
             "stakeholder_id": "requirements_reuben",
-            "wants": 2,
-            "axis": "automation"
+            "wants": 3,
+            "axis": "governance"
           },
           {
             "stakeholder_id": "efficiency_emilia",
@@ -451,7 +451,8 @@
       "focus_stage_ids": [
         "req"
       ],
-      "generated": true
+      "generated": true,
+      "par_outcome": "SOFT_PASS"
     },
     {
       "id": 115,
@@ -569,7 +570,7 @@
       "description": "Store managers are overriding order suggestions at an alarming rate because they cannot verify if the model behind them is the one they tested. #model_monica# wants a fully automated registry to ensure every deployment is traceable and reproducible. #requirements_reuben# has a red line: no model enters the registry without a manual, documented review of its evaluation metrics to ensure compliance, so he insists on keeping the process manual.",
       "roundIntroduction": "A recent promotion week saw a spike in overrides after a model update failed to account for a local weather event, leaving store managers skeptical of the system's reliability. The team is now debating how to handle model promotion to restore trust in the forecast.",
       "metric_changes": {},
-      "attention_tokens": 12,
+      "attention_tokens": 20,
       "priority": 75,
       "preconditions": {
         "all": [
@@ -631,12 +632,11 @@
       "id": 118,
       "phase_id": 4,
       "template_id": "ch_shadow_deployment_contract",
-      "par_outcome": "SOFT_PASS",
       "name": "The Locked Shadow",
       "description": "A supplier contract for the next promotion week is already signed, and the team cannot deploy the new model without a shadow run to verify it. #reliability_ruth# demands a fully automated and governed shadow environment to protect the live forecast, while #automation_alex# insists on keeping it manual to avoid breaking the current pipeline stability.",
       "roundIntroduction": "The nightly forecast job failed to generate suggestions for the northern stores because the shadow environment was not running. The buyer for the middle aisle promotion has already committed to the supplier, and any delay in validating the new model risks a stockout on the leaflet.",
       "metric_changes": {},
-      "attention_tokens": 12,
+      "attention_tokens": 20,
       "priority": 75,
       "preconditions": true,
       "fallback": true,
@@ -687,7 +687,7 @@
       "description": "A forecast job failed silently for three days, leaving stores ordering blind, and the team never knew until the warehouse was flooded with unsold promotion stock. #reliability_ruth# argues that the performance monitoring must be automated and governed to catch such failures instantly, while #efficiency_emilia# is willing to accept a manual monthly audit of the logs to save on tooling costs.",
       "roundIntroduction": "The nightly forecast job crashed on a Tuesday night and nobody saw it until the distribution centre reported a spike in manual overrides on Friday morning. The logs show the job died, but the alerting system never fired because the monitoring pipeline was not connected to the alerting service.",
       "metric_changes": {},
-      "attention_tokens": 12,
+      "attention_tokens": 20,
       "priority": 75,
       "preconditions": true,
       "fallback": true,

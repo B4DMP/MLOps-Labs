@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_shadow_deployment_contract_emilia_shadow_concede",
+  "stage": "objections",
+  "input_hash": "6cc3d0dbb6f2db904d1e432d7771c5b7c558339a968b256bd27f8f6cfc25162f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_emilia_shadow_concede",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted that the shadow environment can stay done by hand. She would accept leaving the shadow environment done by hand if the governance is in place.",
+      "fact": "{efficiency_emilia} noted that the shadow environment can stay done by hand.",
+      "reading": "She would accept leaving the shadow environment done by hand if the governance is in place.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "deploy.shadow",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are proposing to automate the shadow environment without acknowledging that I am explicitly willing to keep it manual. I need you to record that trade off so we do not waste budget on tooling I do not want.",
+    "correction": "I am not saying the shadow environment is broken or that it lacks governance. I am saying I will accept a manual process because the formal sign off is already in place, so do not file this as a gap in our controls."
+  }
+}

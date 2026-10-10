@@ -1,0 +1,62 @@
+{
+  "item_id": "objections:gen_override_blind_spot_monica_registry_traceability",
+  "stage": "objections",
+  "input_hash": "d89b9c34baed6ad89bebaae4a7bc886bff62eeba306dc86d81b9708a7a016ae7",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_override_blind_spot_monica_registry_traceability",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} proposed a fully automated model registry where every deployment is traceable and reproducible. She wants the registry to run on its own for quick version checks.",
+      "fact": "{model_monica} proposed a fully automated model registry where every deployment is traceable and reproducible.",
+      "reading": "She wants the registry to run on its own for quick version checks.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "model.registry",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.eval_registry",
+          "axis": "automation",
+          "value": 3
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.registry_cicd",
+          "axis": "automation",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(model.registry, 3)",
+        "raise_to(e.eval_registry, 3)",
+        "raise_to(e.registry_cicd, 3)"
+      ],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "A registry that only logs versions is not enough for the trust we need from store managers. I want the system to actively flag when a new model performs worse on the latest promotion week data before it goes live.",
+    "correction": "I am not talking about manual sign off for every single change, which would kill our weekly retraining cycle. I mean the registry should enforce automated performance gates so a bad model never reaches the morning order window."
+  }
+}

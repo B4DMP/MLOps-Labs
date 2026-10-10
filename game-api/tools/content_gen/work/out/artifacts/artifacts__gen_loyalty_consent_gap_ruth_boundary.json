@@ -1,7 +1,7 @@
 {
   "item_id": "artifacts:gen_loyalty_consent_gap_ruth_boundary",
   "stage": "artifacts",
-  "input_hash": "4cf64fb6109ad17b232288476373bb2f8453ae2db22e0172c9f77861464251e9",
+  "input_hash": "cd858d3cbbadc2e34813752eaea1778e215703a9ee44f631fce3ebc64f0011b6",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -10,21 +10,21 @@
       "challenge_id": -1,
       "stakeholder_id": "reliability_ruth",
       "type": "boundary",
-      "description": "{reliability_ruth} proposed that the hand-off into model evaluation carry a formal sign off. She will not accept that hand-off shipping an evaluation without that formal sign off in place.",
-      "fact": "{reliability_ruth} proposed that the hand-off into model evaluation carry a formal sign off.",
-      "reading": "She will not accept that hand-off shipping an evaluation without that formal sign off in place.",
+      "description": "{reliability_ruth} wants a named owner to sign off on the risk assessment hand-off. She refuses to let that hand-off proceed without a formal owner sign off.",
+      "fact": "{reliability_ruth} wants a named owner to sign off on the risk assessment hand-off.",
+      "reading": "She refuses to let that hand-off proceed without a formal owner sign off.",
       "metric_id": null,
       "suggested": null,
       "holds": {
-        "edge": "e.acceptance_eval",
         "axis": "governance",
         "op": "gte",
-        "level": 3
+        "level": 3,
+        "edge": "e.risk_acceptance"
       },
       "ops": [
         {
           "kind": "raise_to",
-          "target": "e.acceptance_eval",
+          "target": "e.risk_acceptance",
           "axis": "governance",
           "value": 3
         }
@@ -50,8 +50,8 @@
     }
   },
   "output": {
-    "content": "We need to lock down the deployment pipeline before the next retraining cycle. The hand off into model evaluation must carry a formal sign off. I am not willing to release any build that skips this step. If the evaluation does not have that documented approval attached, the deployment stays blocked. This is a hard line for the reliability team. We cannot risk shipping a model that has not been formally verified by the evaluation team. Any attempt to bypass this check will be treated as a critical incident. The sign off is mandatory for every single run, not just the major releases. We need this clarity in the contract so there is no ambiguity about who is responsible for the final gate before the model goes live.",
+    "content": "I am not moving the deployment gate forward until we have a named owner for the risk assessment hand off. The pipeline can run, but I will not approve the release if that document lacks a formal signature. This is not a preference for extra paperwork. It is a hard stop. If the consent validation logic changes, the risk profile changes, and I need a specific person to take responsibility for that shift. Without that sign off, the service stays in staging. I will not take the blame for a production incident because the ownership was vague during the transition. Get me the name of the person who owns that assessment, and I will proceed. Until then, the gate remains closed.",
     "reclassified_as": "boundary",
-    "reclassify_reason": "The text explicitly defines a mandatory sign-off requirement as a 'hard line' and states that bypassing it will be treated as a critical incident, indicating a non-negotiable threshold for refusal rather than a desire for more features or a trade-off."
+    "reclassify_reason": "The text explicitly defines a hard stop and refusal to approve the release without a named owner, establishing a non-negotiable line that must be met to proceed."
   }
 }

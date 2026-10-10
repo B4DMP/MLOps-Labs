@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_shadow_deployment_contract_emilia_canary_concede",
+  "stage": "artifacts",
+  "input_hash": "b07adfd2441b71388fd154ed4c77ec45962df9a2351ae62e8259bbe4ecc1c430",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_emilia_canary_concede",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} proposed that the canary testing environment can remain done by hand. She would accept leaving the canary environment done by hand if the main pipeline is automated.",
+      "fact": "{efficiency_emilia} proposed that the canary testing environment can remain done by hand.",
+      "reading": "She would accept leaving the canary environment done by hand if the main pipeline is automated.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "deploy.canary_ab",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "author": {
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    },
+    "challenge": {
+      "name": "The Locked Shadow",
+      "description": "A supplier contract for the next promotion week is already signed, and the team cannot deploy the new model without a shadow run to verify it. #reliability_ruth# demands a fully automated and governed shadow environment to protect the live forecast, while #automation_alex# insists on keeping it manual to avoid breaking the current pipeline stability."
+    }
+  },
+  "output": {
+    "content": "The supplier contract for the next promotion week is already signed, so we cannot risk the live forecast during the shadow run. I am willing to accept that the canary testing environment remains done by hand. This manual step is an acceptable loss if it guarantees the main pipeline stays stable and automated. We need the core deployment to be fully automated to meet the leaflet deadlines, but I will not fight for automation in the canary if it threatens the reliability of the primary forecast job. Let us lock in the automated main path and tolerate the manual overhead in the testing phase to avoid breaking the current stability.",
+    "reclassified_as": "trade_off",
+    "reclassify_reason": "The author explicitly states they are willing to accept the loss of automated canary testing to guarantee the stability of the main pipeline, which fits the definition of a trade-off."
+  }
+}

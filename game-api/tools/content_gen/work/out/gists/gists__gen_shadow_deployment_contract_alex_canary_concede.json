@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_alex_canary_concede",
+  "stage": "gists",
+  "input_hash": "20cc131ea5bf5dd452c16491e3e8bb0d97fdca5af177d090e41a368c24cea548",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_alex_canary_concede",
+    "fact": "{automation_alex} mentioned that the canary testing environment can stay done by hand.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The canary testing environment's manual execution process has come up in recent discussions.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions a manual process in the context of recent discussions but does not explicitly state a desire to automate it, a refusal, a trade-off, or a definitive fact about the system's state."
+  }
+}

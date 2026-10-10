@@ -1,12 +1,12 @@
 item_id,status,summary,error,note,output_file
-items:ch_committed_pallets,approved,"1 boundary, 3 driver, 4 fact, 5 trade_off",,,out/items/items__ch_committed_pallets.json
-items:ch_cost_crisis_drift_gap,approved,"2 boundary, 4 driver, 6 fact, 5 trade_off",,,out/items/items__ch_cost_crisis_drift_gap.json
-items:ch_heatwave_forecast_gap,approved,"1 boundary, 4 driver, 6 fact, 6 trade_off",,,out/items/items__ch_heatwave_forecast_gap.json
-items:ch_heatwave_kpi_gap,approved,"1 boundary, 2 driver, 3 fact, 3 trade_off",,,out/items/items__ch_heatwave_kpi_gap.json
-items:ch_loyalty_consent_gap,done,"1 boundary, 4 driver, 3 fact, 6 trade_off",,,out/items/items__ch_loyalty_consent_gap.json
-items:ch_loyalty_data_deployment_block,approved,"1 boundary, 5 driver, 4 fact, 5 trade_off",,,out/items/items__ch_loyalty_data_deployment_block.json
-items:ch_nightly_window_miss,approved,"2 boundary, 4 driver, 5 fact, 5 trade_off",,,out/items/items__ch_nightly_window_miss.json
-items:ch_override_blind_spot,approved,"1 boundary, 4 driver, 3 fact, 6 trade_off",,,out/items/items__ch_override_blind_spot.json
-items:ch_shadow_deployment_contract,approved,"2 boundary, 5 driver, 5 fact, 4 trade_off",,,out/items/items__ch_shadow_deployment_contract.json
-items:ch_silent_forecast_failure,approved,"2 boundary, 3 driver, 3 fact, 6 trade_off",,,out/items/items__ch_silent_forecast_failure.json
-items:ch_silent_ingestion_failure,approved,"2 boundary, 5 driver, 3 fact, 4 trade_off",,,out/items/items__ch_silent_ingestion_failure.json
+items:ch_committed_pallets,done,"1 boundary, 4 driver, 3 fact, 4 trade_off",,,out/items/items__ch_committed_pallets.json
+items:ch_cost_crisis_drift_gap,approved,"1 boundary, 4 driver, 3 fact, 6 trade_off",,,out/items/items__ch_cost_crisis_drift_gap.json
+items:ch_heatwave_forecast_gap,done,"1 boundary, 4 driver, 3 fact, 6 trade_off",,,out/items/items__ch_heatwave_forecast_gap.json
+items:ch_heatwave_kpi_gap,failed,"1 boundary, 2 driver, 3 fact, 3 trade_off","soft conflict: one of ['efficiency_emilia', 'model_monica'] needs a trade_off conceding on req.kpi_definition",Give efficiency_emilia or model_monica a trade_off stance whose concedes.target is req.kpi_definition - that one concession is the only thing blocking this item.,out/items/items__ch_heatwave_kpi_gap.json
+items:ch_loyalty_consent_gap,done,"3 boundary, 3 driver, 3 fact, 5 trade_off",,,out/items/items__ch_loyalty_consent_gap.json
+items:ch_loyalty_data_deployment_block,approved,"1 boundary, 4 driver, 3 fact, 6 trade_off",,,out/items/items__ch_loyalty_data_deployment_block.json
+items:ch_nightly_window_miss,approved,"2 boundary, 3 driver, 3 fact, 6 trade_off",,,out/items/items__ch_nightly_window_miss.json
+items:ch_override_blind_spot,done,"1 boundary, 4 driver, 3 fact, 6 trade_off",,,out/items/items__ch_override_blind_spot.json
+items:ch_shadow_deployment_contract,done,"2 boundary, 4 driver, 3 fact, 5 trade_off",,,out/items/items__ch_shadow_deployment_contract.json
+items:ch_silent_forecast_failure,done,"1 boundary, 4 driver, 3 fact, 6 trade_off",,,out/items/items__ch_silent_forecast_failure.json
+items:ch_silent_ingestion_failure,approved,"2 boundary, 4 driver, 3 fact, 5 trade_off",,,out/items/items__ch_silent_ingestion_failure.json

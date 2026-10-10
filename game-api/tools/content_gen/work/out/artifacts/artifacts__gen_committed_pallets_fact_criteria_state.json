@@ -1,0 +1,52 @@
+{
+  "item_id": "artifacts:gen_committed_pallets_fact_criteria_state",
+  "stage": "artifacts",
+  "input_hash": "46b9668e67c0ab1ba2e1c1acaeda4102e5b478444fda02a75c71f9d083803e75",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement": {
+      "id": "gen_committed_pallets_fact_criteria_state",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The acceptance criteria for the allocation module are currently broken and have no formal sign off. That is simply the current state of the acceptance criteria.",
+      "fact": "The acceptance criteria for the allocation module are currently broken and have no formal sign off.",
+      "reading": "That is simply the current state of the acceptance criteria.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "req.acceptance_criteria",
+        "axis": "automation",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "narrator": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    },
+    "challenge": {
+      "name": "The Committed Pallets",
+      "description": ""
+    },
+    "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "The acceptance criteria for the allocation module have been stuck in a broken state since last quarter. The formal sign off process that used to verify supplier minimum order quantities and pallet sizes no longer functions. No one has approved the criteria since. Teams currently bypass the formal gate and run a manual check in a spreadsheet before locking a promotion week. This workaround catches obvious errors but lacks any governance. The original document remains in the repository, unedited and unsigned. While we sort out the next steps for the module, the spreadsheet is the only thing keeping the allocation process moving during the morning order window.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the current operational state of the allocation module, the failure of the formal sign-off process, and the reliance on a manual spreadsheet workaround, without expressing any wishes, refusals, or explicit trade-offs."
+  }
+}

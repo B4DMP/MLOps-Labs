@@ -1,9 +1,9 @@
 {
   "item_id": "gists:gen_silent_forecast_failure_monica_retrain_edge",
   "stage": "gists",
-  "input_hash": "185ee06978ea895ef03105cf3143c327a8b6bf1d2b53842e98249e7ff8512f2f",
+  "input_hash": "b58ad07db4302bdd18cc9d9cc9f6eb26437e4b17284bbc217ba7c5abf240e1b4",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 5,
+  "attempts": 1,
   "inputs": {
     "requirement_id": "gen_silent_forecast_failure_monica_retrain_edge",
     "fact": "{model_monica} suggested that the hand-over from performance monitoring to alerting be reconnected so a model problem reaches the team sooner.",
@@ -19,9 +19,9 @@
     "challenge_name": "The Warehouse Flood"
   },
   "output": {
-    "gist": "The hand-over from performance monitoring to alerting keeps coming up whenever you talk to {model_monica}.",
+    "gist": "Reconnecting the hand-over from performance monitoring to alerting keeps coming up in discussions about the model.",
     "verdict_metric_id": "model",
     "verdict_reading": "none",
-    "verdict_reason": "The statement identifies a recurring topic in meetings but does not express a desire to change it, a refusal, a trade-off, or a definitive fact about its status, making the direction ambiguous."
+    "verdict_reason": "The gist identifies a recurring topic (hand-over process) in discussions about the model but does not express a stance, preference, or factual commitment regarding that topic."
   }
 }

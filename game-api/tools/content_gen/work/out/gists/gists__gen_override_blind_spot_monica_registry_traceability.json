@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_monica_registry_traceability",
+  "stage": "gists",
+  "input_hash": "adf6e73a4057a82d147575ca1f89d52e77e0e2ee47982447653c477d667a1d48",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_monica_registry_traceability",
+    "fact": "{model_monica} proposed a fully automated model registry where every deployment is traceable and reproducible.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The versioning and lineage of model artifacts have been raised by {model_monica}.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist merely states that the topic of model artifact versioning and lineage has been raised, without indicating whether it is a driver, boundary, trade-off, or fact."
+  }
+}

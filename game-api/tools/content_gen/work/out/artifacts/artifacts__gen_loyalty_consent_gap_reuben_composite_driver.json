@@ -1,7 +1,7 @@
 {
   "item_id": "artifacts:gen_loyalty_consent_gap_reuben_composite_driver",
   "stage": "artifacts",
-  "input_hash": "fa92306da1172db73b396926db7289d4fc26dda637465a96ca026f379bc0e69d",
+  "input_hash": "e1163e9ca51395257327bf2b7e874b688f35797e1dc4c00262d7d9cdeb76deb4",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -10,14 +10,14 @@
       "challenge_id": -1,
       "stakeholder_id": "requirements_reuben",
       "type": "driver",
-      "description": "{requirements_reuben} proposed moving the risk review hand-off, and the checks that follow it, off manual handling. The less anyone has to push that chain by hand, the sooner audits clear without a scramble.",
-      "fact": "{requirements_reuben} proposed moving the risk review hand-off, and the checks that follow it, off manual handling.",
-      "reading": "The less anyone has to push that chain by hand, the sooner audits clear without a scramble.",
+      "description": "{requirements_reuben} wants the hand-off to fire automatically while the rest stays manual. He wants the hand-off to fire automatically without waiting for a human.",
+      "fact": "{requirements_reuben} wants the hand-off to fire automatically while the rest stays manual.",
+      "reading": "He wants the hand-off to fire automatically without waiting for a human.",
       "metric_id": "requirements",
       "suggested": {
         "target": "e.risk_acceptance",
         "axis": "automation",
-        "level": 2
+        "level": 3
       },
       "holds": null,
       "ops": [
@@ -40,7 +40,7 @@
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [
-        "raise_to(e.risk_acceptance, 2)",
+        "raise_to(e.risk_acceptance, 3)",
         "raise_to(req.acceptance_criteria, 2)",
         "raise_to(req.risk_assessment, 2)"
       ],
@@ -59,8 +59,8 @@
     }
   },
   "output": {
-    "content": "We need to move the risk review hand off and the subsequent consent checks off manual handling entirely. Right now, the chain depends on a person remembering to verify the legal basis before loyalty basket data enters the pipeline. That is fragile. I want the data contracts to enforce those checks automatically. The more of that chain we automate, the sooner we can clear audits without a last minute scramble. Every step that remains done by hand is a point of failure that delays our compliance sign off. I am asking for full automation of the consent validation layer so the system blocks non compliant data at the source.",
+    "content": "The audit confirmed that loyalty basket data lacks valid consent records, so we cannot use it in forecasts until the legal basis is fixed. I want the hand off from the loyalty system to the pipeline to fire automatically. Right now a human checks each batch by hand, which is slow and error prone. I need that step automated so the consent check runs every single time without waiting for a person to click approve. The rest of the pipeline can stay manual for now. If the hand off fires automatically, we can prove the data is clean before it touches the model. More automation here means less risk of a compliance breach, and I would welcome any additional checks that fit into that same automated hand off.",
     "reclassified_as": "driver",
-    "reclassify_reason": "The author explicitly states that increasing the level of automation directly leads to faster audit clearance and reduced compliance delays, indicating that doing more than the minimum requested (full automation) would make them happier."
+    "reclassify_reason": "The statement explicitly welcomes additional checks that fit into the automated hand-off, indicating that doing more than the minimum asked would make the author happier."
   }
 }

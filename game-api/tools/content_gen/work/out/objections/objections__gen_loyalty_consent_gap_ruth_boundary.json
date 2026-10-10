@@ -1,7 +1,7 @@
 {
   "item_id": "objections:gen_loyalty_consent_gap_ruth_boundary",
   "stage": "objections",
-  "input_hash": "35a14a3ab46266e57d4f96439a2969c08b63917ef046ed3e45c9baee93928a2a",
+  "input_hash": "e45ca587535a5f470aec054fde63cd11830475de965ab36bd0e5f62de560e258",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -11,21 +11,21 @@
       "challenge_id": -1,
       "stakeholder_id": "reliability_ruth",
       "type": "boundary",
-      "description": "{reliability_ruth} proposed that the hand-off into model evaluation carry a formal sign off. She will not accept that hand-off shipping an evaluation without that formal sign off in place.",
-      "fact": "{reliability_ruth} proposed that the hand-off into model evaluation carry a formal sign off.",
-      "reading": "She will not accept that hand-off shipping an evaluation without that formal sign off in place.",
+      "description": "{reliability_ruth} wants a named owner to sign off on the risk assessment hand-off. She refuses to let that hand-off proceed without a formal owner sign off.",
+      "fact": "{reliability_ruth} wants a named owner to sign off on the risk assessment hand-off.",
+      "reading": "She refuses to let that hand-off proceed without a formal owner sign off.",
       "metric_id": null,
       "suggested": null,
       "holds": {
-        "edge": "e.acceptance_eval",
         "axis": "governance",
         "op": "gte",
-        "level": 3
+        "level": 3,
+        "edge": "e.risk_acceptance"
       },
       "ops": [
         {
           "kind": "raise_to",
-          "target": "e.acceptance_eval",
+          "target": "e.risk_acceptance",
           "axis": "governance",
           "value": 3
         }
@@ -47,7 +47,7 @@
     }
   },
   "output": {
-    "objection": "I will not sign off on an evaluation hand-off that lacks formal governance. We need that strict sign off before anything ships to the stores.",
-    "correction": "I am not talking about the code deployment pipeline, but the evaluation workflow itself. The issue is the missing formal review gate, not the automation level of the serving layer."
+    "objection": "I am not moving this risk assessment to the next sprint until we have a named owner who will formally sign off on the hand off. Without that specific person on the record, I am blocking the deployment pipeline right here.",
+    "correction": "You are misreading my position as a general distrust of the team, which is not the case. I am asking for a single accountable human to own the liability, not for a committee to review the paperwork."
   }
 }

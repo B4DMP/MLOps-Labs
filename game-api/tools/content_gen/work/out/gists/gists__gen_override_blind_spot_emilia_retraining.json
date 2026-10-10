@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_emilia_retraining",
+  "stage": "gists",
+  "input_hash": "5479054b1fc21a905831127f6a0ab220ce8571fc0d974cb8ced068ec71e5a770",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_emilia_retraining",
+    "fact": "{efficiency_emilia} noted that the retraining trigger is currently missing.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The retraining trigger for Shelfcast models keeps coming up in conversations with {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the topic as retraining triggers (related to efficiency) but only notes that it is a frequent conversation point, without committing to a specific stance such as a driver, boundary, trade-off, or fact."
+  }
+}

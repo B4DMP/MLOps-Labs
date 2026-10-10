@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_dave_feature_store",
+  "stage": "gists",
+  "input_hash": "18d12af648c51529bc43b8f5c0700d73ecafb46e81f210781563d231d2e81d69",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_dave_feature_store",
+    "fact": "{data_dave} mentioned that the feature store hand-over is currently done by hand.",
+    "metric_id": "data",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The hand-over of features into the store keeps coming up whenever the data team talks.",
+    "verdict_metric_id": "data",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the feature hand-over process is a frequent topic of discussion, but it does not express a desire for change, a refusal, a trade-off, or a definitive factual claim about the state of the data."
+  }
+}

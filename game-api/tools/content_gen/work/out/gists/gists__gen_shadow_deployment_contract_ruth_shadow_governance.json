@@ -1,12 +1,12 @@
 {
   "item_id": "gists:gen_shadow_deployment_contract_ruth_shadow_governance",
   "stage": "gists",
-  "input_hash": "74c8755e3931f81e6daa204674ce81dd547f7b78e83d6bd44bc8e21cdc85c7ac",
+  "input_hash": "4f38e7d3c26d857226bbce119f0866c705d723b7a8488fcd72c12014798376d8",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 2,
+  "attempts": 3,
   "inputs": {
     "requirement_id": "gen_shadow_deployment_contract_ruth_shadow_governance",
-    "fact": "{reliability_ruth} asked for the shadow deployment to be fully governed.",
+    "fact": "{reliability_ruth} asked for the shadow environment to have a full formal sign-off.",
     "metric_id": "reliability",
     "metric_ids": [
       "automation",
@@ -19,9 +19,9 @@
     "challenge_name": "The Locked Shadow"
   },
   "output": {
-    "gist": "The reliability of the shadow deployment has been raised as a concern by {reliability_ruth}.",
+    "gist": "The shadow environment and its formal sign off process have been raised by {reliability_ruth}.",
     "verdict_metric_id": "reliability",
     "verdict_reading": "none",
-    "verdict_reason": "The gist identifies reliability as a concern but does not specify whether it is a driver, boundary, trade-off, or mere fact."
+    "verdict_reason": "The gist identifies a specific reliability mechanism (shadow environment and sign-off) raised by a stakeholder but does not indicate whether it is a driver, boundary, trade-off, or simple fact, nor does it express a directional stance on the metric itself."
   }
 }

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_reuben_registry_governance",
+  "stage": "gists",
+  "input_hash": "a2598aae28d2515d6b6bd7986cb2c77eb1cae9eb13c8e4058603f87a3254174f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_reuben_registry_governance",
+    "fact": "{requirements_reuben} proposed that no model enters the registry without a manual, documented review of its evaluation metrics.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The documented review of evaluation metrics before a model enters the registry has been raised.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that a specific procedural requirement (review of metrics) has been raised, but it does not indicate a directional stance such as a demand for more automation, a refusal, a trade-off, or a descriptive fact about current performance."
+  }
+}

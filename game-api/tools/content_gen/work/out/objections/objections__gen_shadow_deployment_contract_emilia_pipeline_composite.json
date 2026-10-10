@@ -1,0 +1,55 @@
+{
+  "item_id": "objections:gen_shadow_deployment_contract_emilia_pipeline_composite",
+  "stage": "objections",
+  "input_hash": "ea96303fbe2a8a87c3dc49a84cf61dc32d550830529b3557363fc59744a0ac4e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_emilia_pipeline_composite",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} asked for the hand-off to the serving endpoint to fire automatically and for the endpoint to run on a managed platform. She wants the hand-off to the serving endpoint to fire automatically and the endpoint to run on a managed platform.",
+      "fact": "{efficiency_emilia} asked for the hand-off to the serving endpoint to fire automatically and for the endpoint to run on a managed platform.",
+      "reading": "She wants the hand-off to the serving endpoint to fire automatically and the endpoint to run on a managed platform.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "e.canary_serving",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.serving",
+          "axis": "automation",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(e.canary_serving, 3)",
+        "raise_to(deploy.serving, 3)"
+      ],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are leaving the serving layer on a manual trigger and bare metal, which is exactly the operational debt I warned you about. I need the hand-off to the endpoint to fire automatically and run on a managed platform so we stop burning engineering hours on babysitting the pipeline.",
+    "correction": "Do not file this as a model accuracy request; I am talking about the infrastructure that delivers the forecast to the ordering system. My concern is the operational cost and reliability of the serving layer, not the math inside the model."
+  }
+}

@@ -720,17 +720,17 @@
         "key": "ruth_pipeline_driver",
         "tag": "driver",
         "stakeholder_id": "reliability_ruth",
-        "fact": "{reliability_ruth} asked for the whole monitoring pipeline to run on its own and be governed with formal sign off.",
+        "fact": "{reliability_ruth} asked for the monitoring hand off to fire automatically and for monitoring and alerting to need formal sign off.",
         "readings": {
-          "driver": "She wants the data to flow from observability to performance monitoring and then to alerting without manual steps, with every hand-over reviewed.",
-          "boundary": "She will not accept any monitoring setup that lacks a formal sign off process for alert resolution.",
-          "trade_off": "She would accept a partial review process if the full sign off is delayed by a compliance audit.",
+          "driver": "She wants the hand off to trigger without anyone, with an owner approving monitoring and alert changes.",
+          "boundary": "She will not accept a setup where that hand off requires manual checking.",
+          "trade_off": "She would accept a delayed rollout if the automatic trigger remains fully in place.",
           "fact": "That is simply the current state of the performance monitoring governance."
         },
         "metric_id": "reliability",
         "suggested_target": "e.observe_perf",
         "suggested_axis": "automation",
-        "suggested_level": 2,
+        "suggested_level": 3,
         "holds": null,
         "ops": [
           {
@@ -883,12 +883,12 @@
         "key": "reuben_rollback_govern",
         "tag": "boundary",
         "stakeholder_id": "requirements_reuben",
-        "fact": "{requirements_reuben} brought up that a failing forecast must never go unnoticed, so alerting has to be in place.",
+        "fact": "{requirements_reuben} noted that the alerting system is currently missing from the workflow.",
         "readings": {
-          "driver": "He wants the rollback mechanism to be governed so that every rollback is audited and signed off by the security team.",
-          "boundary": "He will not accept a release while alerting is missing or broken, even if a person has to raise the alarm by hand.",
-          "trade_off": "He would accept a partial review if the alert is delayed by a compliance audit.",
-          "fact": "That is simply the current state of alerting."
+          "driver": "He wants automated alerts so the team catches failures before the warehouse floods.",
+          "boundary": "He will not accept a release if alerting is absent or broken.",
+          "trade_off": "He would accept a manual check if it ensures no silent failures.",
+          "fact": "The system currently has no mechanism to detect a failed forecast job."
         },
         "metric_id": "requirements",
         "suggested_target": "ops.alerting",

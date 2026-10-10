@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_emilia_canary_concede",
+  "stage": "gists",
+  "input_hash": "4299560ed4bbdd2e14e222095973cfa5857989ee42cbf849a685efbb01bb7cb9",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_emilia_canary_concede",
+    "fact": "{efficiency_emilia} proposed that the canary testing environment can remain done by hand.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The manual effort required for canary testing has been raised as a topic of discussion.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies manual effort in canary testing as a topic of discussion but does not explicitly commit to a stance such as demanding automation, refusing the effort, accepting a trade-off, or stating it as a neutral fact without implication."
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_override_blind_spot_monica_training_pipeline",
+  "stage": "objections",
+  "input_hash": "2ceea02ee1b1bc1f4d2c435be30f79d15aff31954c6529d648ce72b5e36d33ac",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_override_blind_spot_monica_training_pipeline",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} noted that the training pipeline is currently done by hand. She would accept keeping the training pipeline done by hand if the registry and evaluation hand-over are automated.",
+      "fact": "{model_monica} noted that the training pipeline is currently done by hand.",
+      "reading": "She would accept keeping the training pipeline done by hand if the registry and evaluation hand-over are automated.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.training_pipeline",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "You are treating my manual training pipeline as a defect to be fixed without asking, but I am happy to keep it manual if you automate the registry and evaluation hand over. Do not pretend you are taking something from me that I never offered to give up.",
+    "correction": "I did not say the training pipeline is broken, I said it is a trade off I am willing to make. You filed this as a technical failure when it is actually a negotiation about where we spend our automation budget."
+  }
+}

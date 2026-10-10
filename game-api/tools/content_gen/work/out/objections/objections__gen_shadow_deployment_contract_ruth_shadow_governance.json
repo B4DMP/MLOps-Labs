@@ -1,35 +1,27 @@
 {
   "item_id": "objections:gen_shadow_deployment_contract_ruth_shadow_governance",
   "stage": "objections",
-  "input_hash": "ef784f1054dc2772498807e99cd3c3ba01ef9cdb839d4941ca7570402785a928",
+  "input_hash": "8deb11d5a5ffe173cf9218ee88ff3724699fa90f9819705c9db5dcaaed4f2a8c",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
-    "kind": "boundary",
+    "kind": "stance",
     "requirement": {
       "id": "gen_shadow_deployment_contract_ruth_shadow_governance",
       "challenge_id": -1,
       "stakeholder_id": "reliability_ruth",
-      "type": "boundary",
-      "description": "{reliability_ruth} asked for the shadow deployment to be fully governed. She will not deploy the new model without a fully governed shadow run to verify it.",
-      "fact": "{reliability_ruth} asked for the shadow deployment to be fully governed.",
-      "reading": "She will not deploy the new model without a fully governed shadow run to verify it.",
-      "metric_id": null,
-      "suggested": null,
-      "holds": {
-        "component": "deploy.shadow",
+      "type": "driver",
+      "description": "{reliability_ruth} asked for the shadow environment to have a full formal sign-off. A fully signed off shadow run means a bad forecast model never reaches live traffic.",
+      "fact": "{reliability_ruth} asked for the shadow environment to have a full formal sign-off.",
+      "reading": "A fully signed off shadow run means a bad forecast model never reaches live traffic.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "deploy.shadow",
         "axis": "governance",
-        "op": "gte",
         "level": 3
       },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "deploy.shadow",
-          "axis": "governance",
-          "value": 3
-        }
-      ],
+      "holds": null,
+      "ops": [],
       "concedes": null,
       "branch_x": null,
       "branch_y": null,
@@ -47,7 +39,7 @@
     }
   },
   "output": {
-    "objection": "You cannot skip the governed shadow run, and I will not sign off on a deployment without it. That is the end of the discussion.",
-    "correction": "I am not asking for a new tool, I am asking for the existing process to be followed. You are confusing a technical gap with a governance requirement."
+    "objection": "I need a formal sign off on the shadow environment before any model touches live traffic. We cannot accept a partial review when a bad forecast will hit every store order window.",
+    "correction": "I am talking about the governance of the deployment gate, not the automation of the monitoring tools. You filed this as a tooling request, but I am asking for a strict human approval process."
   }
 }

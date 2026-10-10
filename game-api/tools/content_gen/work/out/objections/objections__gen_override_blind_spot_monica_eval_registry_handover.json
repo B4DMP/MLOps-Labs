@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_override_blind_spot_monica_eval_registry_handover",
+  "stage": "objections",
+  "input_hash": "e72651664950b6bfbb3aede39ad63111f3821c3ae3047e8f3322a118d4c2dbcb",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_override_blind_spot_monica_eval_registry_handover",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} asked for the hand-over from model evaluation to the registry to be automated. She wants evaluation results to flow into the registry without a manual step.",
+      "fact": "{model_monica} asked for the hand-over from model evaluation to the registry to be automated.",
+      "reading": "She wants evaluation results to flow into the registry without a manual step.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "e.eval_registry",
+        "axis": "automation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "You are treating my request for an automated evaluation to registry hand over as a minor tweak, but I need the full pipeline to run without a single manual step. I am not refusing your current scope, I am just telling you it does not cover the workflow I actually need.",
+    "correction": "I am not asking for a new model architecture, I am asking for the infrastructure that moves my evaluation metrics into the registry automatically. Please stop labeling this as a data quality issue, it is a deployment workflow problem."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_reuben_serving_concede",
+  "stage": "gists",
+  "input_hash": "78f395d33ffebeca11366cf140427c138dc8e07de6203e9f352170b7315e844b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_reuben_serving_concede",
+    "fact": "{requirements_reuben} suggested that the model serving endpoint can remain without governance for now.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "Governance status of the model serving endpoint keeps coming up whenever you talk to {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that governance status is a recurring topic of conversation but does not indicate a specific stance, demand, refusal, or trade-off regarding it."
+  }
+}

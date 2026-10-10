@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_committed_pallets_ruth_driver_edge",
+  "stage": "gists",
+  "input_hash": "df7635fa3352fbe5383bb8f2b1e42295a0bde4750f82814a678339d2a3ff3f81",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_committed_pallets_ruth_driver_edge",
+    "fact": "{reliability_ruth} asked for the hand over from risk assessment to acceptance criteria to run on its own.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Committed Pallets"
+  },
+  "output": {
+    "gist": "The automated hand over from risk assessment to acceptance criteria has been raised in reliability discussions.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the topic was raised in reliability discussions but does not indicate whether the stakeholder wants to implement it, refuses it, accepts a trade-off, or is merely stating a fact about the process."
+  }
+}

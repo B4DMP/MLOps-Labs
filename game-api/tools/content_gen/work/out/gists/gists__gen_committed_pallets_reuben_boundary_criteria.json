@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_committed_pallets_reuben_boundary_criteria",
+  "stage": "gists",
+  "input_hash": "25c2ccbca0fc4741598b53b1814f48727be842301d4c3a666ca1af6b8ab820fd",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_committed_pallets_reuben_boundary_criteria",
+    "fact": "{requirements_reuben} insisted that the acceptance criteria must have full formal sign off before the trucks leave.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Committed Pallets"
+  },
+  "output": {
+    "gist": "The link between formal sign off and the acceptance criteria for departing trucks keeps coming up.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The statement identifies a recurring topic regarding the relationship between sign-off and acceptance criteria but does not express a desire for change, a refusal, a trade-off, or a definitive factual claim about the current state."
+  }
+}

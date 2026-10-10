@@ -1,69 +1,6 @@
 {
   "stance": [
     {
-      "intel_id": "gen_committed_pallets_alex_auto_driver",
-      "stakeholder_id": "automation_alex",
-      "kind": "stance",
-      "text": "I did not ask for a manual sign off, I asked for the pipeline to move from risk check to acceptance automatically. If a human has to click approve, the deployment is not seamless.",
-      "correction": "You are mixing up the governance review with the execution step. I want the tooling to trigger the acceptance criteria, not for me to sit in a meeting deciding if the model is ready."
-    },
-    {
-      "intel_id": "gen_committed_pallets_alex_trade",
-      "stakeholder_id": "automation_alex",
-      "kind": "price",
-      "text": "You are treating the manual data contracts as a free concession, but I am explicitly trading that risk for the automated hand over. Acknowledge that I am accepting a known instability in exchange for deployment speed.",
-      "correction": "I did not say the data contracts are safe to ignore, I said I will tolerate their manual state only because the hand over is now automated. Do not file this as a lack of concern for data quality, it is a calculated trade off."
-    },
-    {
-      "intel_id": "gen_committed_pallets_emilia_kpi_gap",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "price",
-      "text": "You are stripping the promotion week KPI from the dashboard without flagging it as a loss. I will only accept that gap if the allocation logic remains fully auditable for the finance team.",
-      "correction": "Stop framing this as a technical oversight, it is a strategic trade off. I am not asking for the metric back, I am demanding that the audit trail covers the gap."
-    },
-    {
-      "intel_id": "gen_committed_pallets_emilia_risk_trade",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "price",
-      "text": "You are treating my manual risk assessment as a cost saving, but it is a deliberate control for high risk scenarios. I need that trade off explicitly acknowledged in the project plan so we do not lose the governance layer.",
-      "correction": "I did not say the process should stay manual because it is cheaper or easier. I said the criteria must be governed, even if the execution remains manual for now."
-    },
-    {
-      "intel_id": "gen_committed_pallets_reuben_composite_driver",
-      "stakeholder_id": "requirements_reuben",
-      "kind": "stance",
-      "text": "I did not ask for the pipeline to run on its own, I asked for the handovers to be automated to enforce data integrity. You are conflating operational speed with the security controls I need to see.",
-      "correction": "This is a governance requirement, not an automation one. I need formal sign off on the risk to acceptance hand over and the acceptance to evaluation hand over, not just a tool that moves data without a human check."
-    },
-    {
-      "intel_id": "gen_committed_pallets_reuben_gov_boundary",
-      "stakeholder_id": "requirements_reuben",
-      "kind": "boundary",
-      "text": "I will not approve a single pallet leaving the distribution centre until the acceptance criteria have passed formal sign off. This is a hard boundary for data governance and security, not a suggestion.",
-      "correction": "You are misreading my request for strict validation as a complaint about the forecast accuracy. I am defining the mandatory security and privacy controls that must be met before any model change goes live."
-    },
-    {
-      "intel_id": "gen_committed_pallets_reuben_risk_trade",
-      "stakeholder_id": "requirements_reuben",
-      "kind": "price",
-      "text": "You are treating my offer to keep the risk assessment manual as a free concession, but it is a strict condition. I will only accept that manual process if the acceptance criteria are fully governed, and you have not acknowledged that trade off.",
-      "correction": "I did not say the risk assessment is optional or that we do not need governance. I specifically stated that the manual execution is acceptable only because the criteria are governed, so do not file this as a lack of oversight."
-    },
-    {
-      "intel_id": "gen_committed_pallets_ruth_auto_driver",
-      "stakeholder_id": "reliability_ruth",
-      "kind": "stance",
-      "text": "Automating the criteria is just the entry ticket, not the whole job. I need the feedback loop wired in so we can catch drift before it hits the morning order window.",
-      "correction": "You are mixing up the gate with the pipeline. I am not just asking for a green checkmark, I am asking for the monitoring that keeps the system reliable after it ships."
-    },
-    {
-      "intel_id": "gen_committed_pallets_ruth_trade",
-      "stakeholder_id": "reliability_ruth",
-      "kind": "price",
-      "text": "I did not say you can skip the KPI definition just because the acceptance tests are automated. I am asking you to acknowledge that the missing definition is a gap we are carrying, not a solved problem.",
-      "correction": "You are treating my comment as a green light to ignore the metrics. I am only saying that automated checks do not replace the need to define what we are actually measuring."
-    },
-    {
       "intel_id": "gen_cost_crisis_drift_gap_emilia_boundary_drift",
       "stakeholder_id": "efficiency_emilia",
       "kind": "boundary",
@@ -141,158 +78,18 @@
       "correction": "I did not say I want to delete the automation, I said I will only accept a manual check if it happens every single day during the promotion cycle. Do not file this as a request to remove tools, it is a demand for consistent oversight."
     },
     {
-      "intel_id": "gen_heatwave_forecast_gap_dave_driver_fs_train",
-      "stakeholder_id": "data_dave",
-      "kind": "stance",
-      "text": "I did not just want the job to start when the data lands; I need the pipeline to verify the schema and row counts before it commits to training. You cannot just fire off a retrain on a corrupted file and hope for the best.",
-      "correction": "That is not a latency issue, that is a data integrity gate. I am asking for a validation step that blocks the training trigger if the feature store hand-over fails, not a faster start."
-    },
-    {
-      "intel_id": "gen_heatwave_forecast_gap_dave_tradeoff_gov_tracking",
-      "stakeholder_id": "data_dave",
-      "kind": "price",
-      "text": "You are treating my offer to skip the formal sign off on experiment logs as a free concession, which it is not. I am only willing to accept that gap if you commit to fully automating the data pipeline first.",
-      "correction": "I did not say the pipeline is already automated, so do not file this as a status update. I am stating a conditional trade off where I trade governance for automation on the infrastructure side."
-    },
-    {
-      "intel_id": "gen_heatwave_forecast_gap_emilia_driver_eval_gov",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "stance",
-      "text": "You are treating my request for formal sign off on the evaluation harness as a checkbox, but I need strict governance to prove we are compliant with our data obligations. We cannot accept a system where the model validation process is just a loose suggestion without a documented audit trail.",
-      "correction": "You are misreading my focus on governance as a demand for more manual work, when I am actually asking for a formal framework that makes the process auditable and consistent. I want the compliance structure to be built into the tooling, not added as a separate burden for the team."
-    },
-    {
-      "intel_id": "gen_heatwave_forecast_gap_emilia_tradeoff_auto_hpo",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "price",
-      "text": "You are treating the manual tuning as a failure, but I am asking you to acknowledge that I am trading speed for control. Do not hide the fact that this approach is slower because I am the one accepting that cost.",
-      "correction": "I am not complaining about the lack of automation in the tuning process itself. I am stating that I will accept that manual effort only if the evaluation cycle remains fast enough to keep the model relevant."
-    },
-    {
-      "intel_id": "gen_heatwave_forecast_gap_emilia_tradeoff_gov_registry",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "price",
-      "text": "I did not ask you to skip the registry sign off, I asked you to stop treating that approval as a bottleneck for every minor model tweak. You are stealing my speed by making me wait on a form that does not protect the shelf.",
-      "correction": "You filed my comment under governance, but I am talking about deployment velocity. I want the registry to exist so we can audit the change, not so a committee can stall the next forecast update."
-    },
-    {
-      "intel_id": "gen_heatwave_forecast_gap_monica_auto_eval",
+      "intel_id": "gen_cost_crisis_drift_gap_monica_driver_edge_retrain",
       "stakeholder_id": "model_monica",
       "kind": "stance",
-      "text": "I need the evaluation harness to trigger automatically the moment a new model version is ready. If I have to wait for a human to click a button, I cannot iterate on the weather features fast enough.",
-      "correction": "You are treating this as a general reporting gap, but I am specifically asking for automated execution of the evaluation pipeline. The goal is to remove the manual trigger from the model deployment workflow entirely."
+      "text": "The retraining still waits for a person to queue it, and that is exactly the delay that let the model drift. I need a confirmed alert to start the run on its own.",
+      "correction": "I did not ask to retrain on every noisy alert, only on a confirmed one. You are confusing an automatic start with no checking at all."
     },
     {
-      "intel_id": "gen_heatwave_forecast_gap_monica_composite_pipeline",
-      "stakeholder_id": "model_monica",
-      "kind": "stance",
-      "text": "You are only wiring up the registry step, but I need the entire training and evaluation loop to run automatically from the moment features arrive. I cannot test new weather features if I have to manually trigger each intermediate part.",
-      "correction": "This is a request for full pipeline automation, not just a governance review of the final model artifact. I am asking for the technical flow to be continuous so I can iterate on performance without waiting for human triggers."
-    },
-    {
-      "intel_id": "gen_heatwave_forecast_gap_monica_gov_registry",
-      "stakeholder_id": "model_monica",
-      "kind": "price",
-      "text": "I did not ask you to lock down the registry with a formal sign off, I only said we need a way to evaluate models fast without waiting for a committee. You are reading a governance demand into a comment about iteration speed, and that is not what I said.",
-      "correction": "You filed this under governance when I was talking about the friction in the evaluation pipeline. I am not asking for a new approval step, I am saying the current process is too slow for the weekly retraining cycle we run."
-    },
-    {
-      "intel_id": "gen_heatwave_forecast_gap_monica_tradeoff_train_eval",
-      "stakeholder_id": "model_monica",
-      "kind": "price",
-      "text": "You are treating my request for a fixed evaluation harness as a concession on the manual trigger, but I am only asking you to acknowledge that the current hand-over is broken. I will not accept a manual trigger while the evaluation logic itself is unstable.",
-      "correction": "You filed this under automation levels, but I am talking about the reliability of the evaluation harness, not who clicks the button. The issue is that the tooling does not work, not that the process is manual."
-    },
-    {
-      "intel_id": "gen_heatwave_forecast_gap_reuben_boundary_gov_eval",
-      "stakeholder_id": "requirements_reuben",
-      "kind": "boundary",
-      "text": "I am not approving a deployment path where the evaluation harness lacks formal sign off. We need full governance on that harness before I will let any model go live.",
-      "correction": "You are misreading my position as a preference for slower processes. I am stating a hard security requirement that the evaluation harness must be fully governed before it is considered production ready."
-    },
-    {
-      "intel_id": "gen_heatwave_forecast_gap_reuben_manual_eval",
-      "stakeholder_id": "requirements_reuben",
-      "kind": "price",
-      "text": "You are proposing to strip the manual review from the evaluation harness without acknowledging that we lose the documented test case trail. I need you to state clearly that you are trading our governance control for speed.",
-      "correction": "I did not say we would accept full automation of the harness, only that we could allow more tooling if the documentation remains intact. You have misread my condition as a waiver of our privacy compliance checks."
-    },
-    {
-      "intel_id": "gen_loyalty_consent_gap_alex_driver",
-      "stakeholder_id": "automation_alex",
-      "kind": "stance",
-      "text": "You are reading too much into my note about the risk assessment queue. I want the pipeline to flag high risk changes automatically, not to skip the human review step entirely.",
-      "correction": "I am not asking you to delete the governance gate. I am asking for tooling that prepares the evidence so the reviewer can sign off in minutes instead of hours."
-    },
-    {
-      "intel_id": "gen_loyalty_consent_gap_alex_trade_kpi_gov",
-      "stakeholder_id": "automation_alex",
-      "kind": "price",
-      "text": "I am not giving up KPI governance, I am just sequencing the work so the audit trail is solid before we tighten the review steps. You cannot audit a metric that has no stable definition, so the audit must land first.",
-      "correction": "I did not say the KPI definitions should stay unreviewed forever, I said the formal sign off comes after the audit infrastructure is in place. Do not file this as a refusal to govern, it is a dependency order."
-    },
-    {
-      "intel_id": "gen_loyalty_consent_gap_alex_trade_metric",
-      "stakeholder_id": "automation_alex",
-      "kind": "price",
-      "text": "I did not say I would abandon the pipeline stability work for the audit. I am asking you to acknowledge that moving my budget there is a real trade off, not a free lunch.",
-      "correction": "You logged this as me refusing the audit. I actually offered to shift resources if we agree to the cost, so stop treating me as the blocker on this."
-    },
-    {
-      "intel_id": "gen_loyalty_consent_gap_emilia_boundary",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "boundary",
-      "text": "I will not let the data contracts check run with nobody watching it, so the proposal is rejected. A person has to stay in the loop.",
-      "correction": "You filed that under cost concerns, but I was talking about oversight. I am setting a hard requirement for a person in the loop, not estimating a budget."
-    },
-    {
-      "intel_id": "gen_loyalty_consent_gap_emilia_trade_contracts",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "price",
-      "text": "You are treating my concession on the risk review as a free pass to ignore the cost of rework. If we slow the leaflet cycle to automate that review all the way, the margin loss on the promotion week will dwarf any gain.",
-      "correction": "I did not say the risk review is optional, I said a partly automated review with a person checking it is the ceiling we can afford without breaking the buyer schedule. Do not file this as a request to cut corners, it is a hard constraint on our operational tempo."
-    },
-    {
-      "intel_id": "gen_loyalty_consent_gap_reuben_boundary",
-      "stakeholder_id": "requirements_reuben",
-      "kind": "boundary",
-      "text": "I am not accepting loyalty data flowing while the data contracts are missing or broken. That is a hard no, and I will not debate it.",
-      "correction": "You are confusing my security requirement with a general process preference. I specifically require working data contracts in place before any model consumes this data."
-    },
-    {
-      "intel_id": "gen_loyalty_consent_gap_reuben_composite_driver",
+      "intel_id": "gen_cost_crisis_drift_gap_reuben_driver_obs_review",
       "stakeholder_id": "requirements_reuben",
       "kind": "stance",
-      "text": "I am not asking for a simple toggle to replace the human sign off on the loyalty data access. The audit trail needs to capture the specific consent context for every basket record we process.",
-      "correction": "You are treating this as a speed issue, but I am defining the compliance boundary for the data pipeline. The manual step stays until the automated check proves it can flag a retention violation before it hits the store app."
-    },
-    {
-      "intel_id": "gen_loyalty_consent_gap_reuben_trade_kpi",
-      "stakeholder_id": "requirements_reuben",
-      "kind": "price",
-      "text": "You are treating my request to keep KPI definitions manual as a simple preference, but it is a hard dependency. I cannot sign off on the data contracts audit until those definitions are locked and reviewed by hand.",
-      "correction": "I did not say the KPI review should stay manual forever, only that it must happen before we automate the data contracts. You are misreading a sequencing constraint as a permanent architectural choice."
-    },
-    {
-      "intel_id": "gen_loyalty_consent_gap_reuben_trade_metric",
-      "stakeholder_id": "requirements_reuben",
-      "kind": "price",
-      "text": "I am not giving up my compliance budget, I am reallocating effort to meet the audit deadline. You need to acknowledge that this trade off exists before we proceed.",
-      "correction": "This is a resource constraint, not a data governance failure. I am still enforcing the same privacy rules, just with a different timeline."
-    },
-    {
-      "intel_id": "gen_loyalty_consent_gap_ruth_boundary",
-      "stakeholder_id": "reliability_ruth",
-      "kind": "boundary",
-      "text": "I will not sign off on acceptance criteria that are still checked by hand. We need that check to run on its own before anything ships to the stores.",
-      "correction": "I am not talking about the deployment pipeline, but the acceptance check itself. The issue is a check that depends on a person remembering to run it, not the sign off form."
-    },
-    {
-      "intel_id": "gen_loyalty_consent_gap_ruth_driver",
-      "stakeholder_id": "reliability_ruth",
-      "kind": "stance",
-      "text": "I am not asking for a full automation of the acceptance criteria yet, just to stop the manual bottleneck so we get faster feedback. I want the checks to run automatically, but I still need a human to sign off on the results before we deploy.",
-      "correction": "You are mixing up the automation of the check with the governance of the approval. I am moving the execution to a tool, but the decision to accept the model remains a manual, governed step."
+      "text": "You are letting monitoring signals drive decisions that nobody has reviewed, and I will be the one asked to explain them. I need a formal review on the observability signals first.",
+      "correction": "I did not ask for a review board on every metric, only on the signals that trigger action. You are treating a formal review as if it stopped the monitoring."
     },
     {
       "intel_id": "gen_loyalty_data_deployment_block_alex_canary_trade",
@@ -449,237 +246,6 @@
       "correction": "I am talking about the timing of the validation step, not the scope of the data quality rules themselves. I want the system to check the data as soon as it lands, not to add new checks or change what is being validated."
     },
     {
-      "intel_id": "gen_override_blind_spot_dave_driver_data",
-      "stakeholder_id": "data_dave",
-      "kind": "stance",
-      "text": "You are still treating the hand-over as a manual checkpoint, but I need that feature store link to fire automatically the moment the nightly scan lines land. I am not asking for a bigger meeting, I am asking for the pipeline to stop waiting on a human to click run.",
-      "correction": "I never said we should skip the data quality checks, I said the trigger for the training run must be automated to keep the data fresh. You filed this as a governance gap, but my point was purely about the automation level of that hand-over step."
-    },
-    {
-      "intel_id": "gen_override_blind_spot_dave_tradeoff_hpo",
-      "stakeholder_id": "data_dave",
-      "kind": "price",
-      "text": "You are not proposing to automate my tuning, you are proposing to ignore the data quality work I am doing. I need you to acknowledge that I am keeping this manual because the pipelines are not ready for your speed.",
-      "correction": "I never said I was against automation, I said the data foundation is not stable enough to trust it yet. You filed this as a resistance to change, but it is a prerequisite for the model to actually work."
-    },
-    {
-      "intel_id": "gen_override_blind_spot_emilia_driver_efficiency",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "stance",
-      "text": "Automating the trigger alone leaves the weekly retraining cycle rigid and ignores the compute cost of running it on a fixed schedule. I want a performance based trigger that only fires when drift actually threatens our availability and waste KPIs.",
-      "correction": "You misread my proposal as a simple automation ticket, but I am defining a new operational objective for the system. The goal is to optimize the cost to benefit ratio of retraining, not just remove a manual step from the workflow."
-    },
-    {
-      "intel_id": "gen_override_blind_spot_emilia_driver_monitoring",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "stance",
-      "text": "Automating that hand over is a nice start, but it leaves a gap where we still miss drift until the next weekly retrain. I want the system to trigger a retraining run automatically the moment it flags a significant shift, not just log it for later.",
-      "correction": "You are treating this as a simple plumbing fix, but I am asking for a closed loop that protects our availability KPI. The goal is to stop the model from silently serving stale forecasts during a heatwave or a competitor promotion."
-    },
-    {
-      "intel_id": "gen_override_blind_spot_emilia_tradeoff_cost",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "price",
-      "text": "You are framing my cost saving as a blind spot, but I am deliberately choosing to skip the formal sign off to keep the weekly retraining cheap and fast. I need you to acknowledge that this is a calculated trade off against our budget, not a gap in your process.",
-      "correction": "Stop treating my position as a lack of awareness; I fully understand the risk of an unreviewed training pipeline. I am simply prioritizing operational speed and cost efficiency over that specific layer of governance for the training pipeline."
-    },
-    {
-      "intel_id": "gen_override_blind_spot_monica_driver_composite",
-      "stakeholder_id": "model_monica",
-      "kind": "stance",
-      "text": "You are missing the point, I need the evaluation to registry and registry to CI/CD handovers fully automated to speed up deployment. I am not asking for a human review gate at every single step of that specific pipeline.",
-      "correction": "I am talking about the technical workflow between the model evaluation and the deployment tools, not about business approval processes. Do not confuse my request for technical speed with a lack of respect for governance."
-    },
-    {
-      "intel_id": "gen_override_blind_spot_monica_driver_registry",
-      "stakeholder_id": "model_monica",
-      "kind": "stance",
-      "text": "I need the registry to automate every deployment step so I can trace exactly which model version produced each forecast. The current plan leaves too much manual logging for me to rely on it for reproducibility.",
-      "correction": "I am not asking for a human approval gate on every model push, but I do need the tooling to handle the versioning and metadata automatically. Please file this under automation, not governance, because the issue is the lack of tooling, not the lack of review."
-    },
-    {
-      "intel_id": "gen_override_blind_spot_monica_tradeoff_eval",
-      "stakeholder_id": "model_monica",
-      "kind": "price",
-      "text": "I did not agree to skip the quality gates, I am asking for the time to run them by hand so we do not ship a broken forecast. You cannot treat my caution as a lack of ambition.",
-      "correction": "You are reading my request for manual checks as a rejection of automation, which is not what I said. I am simply refusing to let a model go live until I have verified the metrics myself."
-    },
-    {
-      "intel_id": "gen_override_blind_spot_monica_tradeoff_tracking",
-      "stakeholder_id": "model_monica",
-      "kind": "price",
-      "text": "You are treating my request to skip formal review on experiment tracking as a free pass to ignore governance, but I am only asking to focus our limited effort on automating the registry first. Please acknowledge that I am explicitly choosing to leave that specific step manual for now so we can ship the automation.",
-      "correction": "You have filed this under a governance failure, but I am talking about prioritizing automation of the model registry. I am not refusing to review the models, I am simply saying we will not build a formal sign off process for every single experiment run right now."
-    },
-    {
-      "intel_id": "gen_override_blind_spot_reuben_boundary_registry",
-      "stakeholder_id": "requirements_reuben",
-      "kind": "boundary",
-      "text": "I am not signing off on automating the model registry without a documented manual review. That process is a compliance control, not a convenience feature.",
-      "correction": "I did not say the registry is broken or that we should abandon it. I said it must remain a governed, manual step to satisfy our audit requirements."
-    },
-    {
-      "intel_id": "gen_override_blind_spot_reuben_tradeoff_eval",
-      "stakeholder_id": "requirements_reuben",
-      "kind": "price",
-      "text": "You are proposing to automate our model evaluation without acknowledging that I explicitly asked to keep it manual. I need that human review step to catch subtle drift before it hits the stores.",
-      "correction": "I am not talking about the data pipeline, I am talking about the validation of the forecast itself. The model can run automatically, but a human must sign off on the quality before it goes live."
-    },
-    {
-      "intel_id": "gen_shadow_deployment_contract_alex_composite_driver",
-      "stakeholder_id": "automation_alex",
-      "kind": "stance",
-      "text": "Wiring the registry to the shadow hand off is only one link in the chain, and I want the containerization step fully automated so a new model does not sit in a queue waiting for a human. I am not refusing the current plan, but I need the next step queued for the same sprint.",
-      "correction": "You filed this as a refusal to proceed, but I am simply saying the scope is too narrow for the reliability target I am chasing. I want the whole pipeline to run without manual hops, not just the hand off."
-    },
-    {
-      "intel_id": "gen_shadow_deployment_contract_alex_trade_automation_metric",
-      "stakeholder_id": "automation_alex",
-      "kind": "price",
-      "text": "You are treating my offer to shrink the pipeline budget as a free concession, which it is not. I am asking you to explicitly record that trade in the project log so we do not lose that capacity later.",
-      "correction": "I did not say I would abandon the CI/CD tooling entirely; I said I would pause non critical upgrades to free up hours for the shadow hand off. Do not report that I am cutting my core infrastructure work."
-    },
-    {
-      "intel_id": "gen_shadow_deployment_contract_alex_trade_container",
-      "stakeholder_id": "automation_alex",
-      "kind": "price",
-      "text": "I did not propose we abandon containerization, I proposed we stop pretending it is the bottleneck while the rest of the pipeline is still manual. You are taking my willingness to hold steady as a demand for you to do nothing.",
-      "correction": "I am not telling you to ignore the infrastructure, I am telling you that the current manual setup is stable enough to support the other changes we need to make first. Do not misread my request for focus as a request to freeze progress."
-    },
-    {
-      "intel_id": "gen_shadow_deployment_contract_alex_trade_gateway",
-      "stakeholder_id": "automation_alex",
-      "kind": "price",
-      "text": "I proposed keeping the gateway hand-off exactly as it runs today, not removing it. If you move the shadow chain, I will accept that trade-off, but you must acknowledge that the current manual step stays in place.",
-      "correction": "You filed this under infrastructure risk, but I was talking about the deployment boundary. I am not asking to change the tooling, I am asking you to recognize that the gateway hand-off remains a manual step in this plan."
-    },
-    {
-      "intel_id": "gen_shadow_deployment_contract_emilia_boundary_gateway_gov",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "boundary",
-      "text": "I will not let us route live traffic through the serving layer without a formal sign off in place. That is a hard line for me, and we need to respect the compliance boundary before we talk about speed.",
-      "correction": "You are misreading my stance as a preference when it is actually a strict requirement. I am not asking for a review, I am demanding a formal gate that blocks deployment until it is passed."
-    },
-    {
-      "intel_id": "gen_shadow_deployment_contract_emilia_driver_gateway",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "stance",
-      "text": "I want the gateway to clear the backlog on its own, not just sit there waiting for a human to clear the jam. You are not meeting the operational speed I need for the morning order window.",
-      "correction": "I am not asking for a full rewrite of the system, I am asking for the hand off to run without a manual step. Do not misread my push for automation as a refusal to work with the current setup."
-    },
-    {
-      "intel_id": "gen_shadow_deployment_contract_emilia_driver_serving",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "stance",
-      "text": "You are treating serving latency as the only risk, but I care about the cost of that automation. We need the full operational picture before we commit to removing manual checks.",
-      "correction": "I did not just want speed, I wanted a business case that proves the automated serving is cheaper to run than the current manual process. You filed this as a technical preference, but it is a strategic cost decision."
-    },
-    {
-      "intel_id": "gen_shadow_deployment_contract_reuben_driver_orch",
-      "stakeholder_id": "requirements_reuben",
-      "kind": "stance",
-      "text": "Moving the hand-off into orchestration is a start, but it does not close the gap on data lineage for the loyalty basket inputs. I need the full audit trail for every transformation step, not just the trigger event.",
-      "correction": "You are treating this as a simple automation task, but my concern is about governance and privacy compliance. The missing piece is the strict sign-off on how personal data is handled during that automated flow."
-    },
-    {
-      "intel_id": "gen_shadow_deployment_contract_reuben_trade_cicd",
-      "stakeholder_id": "requirements_reuben",
-      "kind": "price",
-      "text": "You are framing my concession on the shadow hand off as if I am giving up the sign off step, but I am only asking for the dependency to be acknowledged before we talk about governance. I will not accept a silent removal of the review gate just because you fixed the data flow.",
-      "correction": "I did not propose deleting the sign off step, I proposed that we do not pretend it is safe until the shadow hand off is stable. You are misreading my priority on the dependency as a waiver of the control itself."
-    },
-    {
-      "intel_id": "gen_shadow_deployment_contract_ruth_boundary_shadow",
-      "stakeholder_id": "reliability_ruth",
-      "kind": "boundary",
-      "text": "I am not signing off on shadow deployment without a formal approval process in place first. That is a hard no for me.",
-      "correction": "I am talking about the governance layer, not the automation level. You cannot automate the ship without a human gate."
-    },
-    {
-      "intel_id": "gen_shadow_deployment_contract_ruth_trade_canary",
-      "stakeholder_id": "reliability_ruth",
-      "kind": "price",
-      "text": "You are treating my request to pause canary testing as if I am abandoning that work. I am simply prioritizing shadow deployment because it is currently the bigger risk to our serving layer.",
-      "correction": "I am not removing canary testing from the roadmap, I am just not building it until the shadow environment is stable. Do not report to the board that we have decided to drop canary testing entirely."
-    },
-    {
-      "intel_id": "gen_silent_forecast_failure_emilia_alert_edge",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "price",
-      "text": "You are treating my cost saving preference as a refusal to fix the monitoring gap, which is not what I said. I am asking you to acknowledge that a hand-over connected by hand is an acceptable answer here, and that I do not want to pay for a new integration layer.",
-      "correction": "Stop filing this under technical debt or risk acceptance, because that is not the frame I used. I am defining a specific business trade off where we connect that hand-over by hand to save money, and I need that decision recorded as a conscious choice rather than an oversight."
-    },
-    {
-      "intel_id": "gen_silent_forecast_failure_emilia_drift_pause",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "price",
-      "text": "You are cutting our drift detection to pay for alerts, which hides the real cost of silent model failure. We need you to acknowledge that this trade off shifts risk from the infrastructure budget to our operational floor.",
-      "correction": "I did not suggest pausing the tool to save money for its own sake. I only accept the pause if the savings fully cover the new alerting service, so the net spend stays flat while we fix the blind spot."
-    },
-    {
-      "intel_id": "gen_silent_forecast_failure_emilia_perf_audit",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "price",
-      "text": "You are not just saving money on tooling, you are asking me to absorb a monthly manual review that I did not agree to. Acknowledge that this is a cost transfer from the platform budget to my team's labor, or we are not discussing it.",
-      "correction": "I did not propose a full manual audit of the logs, I proposed a spot check of the top ten articles to keep the KPIs aligned with our strategy. Do not mischaracterize my efficiency proposal as a blanket removal of automated monitoring."
-    },
-    {
-      "intel_id": "gen_silent_forecast_failure_emilia_rollback_manual",
-      "stakeholder_id": "efficiency_emilia",
-      "kind": "price",
-      "text": "You are not just saving money on a deployment tool, you are quietly accepting a longer outage window for every store manager in the chain. I need that operational risk acknowledged in the KPIs before we sign off on this trade off.",
-      "correction": "I did not say the manual process is safe, I said it is affordable for the current quarter while we fix the underlying drift issues. Do not file this as a technical limitation, file it as a conscious cost decision with a known risk."
-    },
-    {
-      "intel_id": "gen_silent_forecast_failure_monica_drift_tool",
-      "stakeholder_id": "model_monica",
-      "kind": "price",
-      "text": "I did not ask you to skip the dedicated drift tool because it is too expensive. I asked you to acknowledge that I am willing to build an in-house script as a fallback if the budget truly cannot cover the licensed solution.",
-      "correction": "You are misreading my position as a cost-cutting demand when it is actually a clear preference hierarchy. I want the dedicated tool first, and the in-house script is only my concession if we hit a hard budget wall."
-    },
-    {
-      "intel_id": "gen_silent_forecast_failure_monica_retrain_edge",
-      "stakeholder_id": "model_monica",
-      "kind": "stance",
-      "text": "You have left the hand-over from performance monitoring to alerting cut, so nobody hears when the forecast slips. I need it reconnected before I can back this.",
-      "correction": "I did not suggest we skip the review of a new model version, only that the signal should not wait on a manual step. The review stays exactly where it is."
-    },
-    {
-      "intel_id": "gen_silent_forecast_failure_reuben_alert_edge",
-      "stakeholder_id": "requirements_reuben",
-      "kind": "price",
-      "text": "I did not say we can ignore the audit delay, I said the manual hand over is our only safe fallback until it clears. You cannot just drop that condition from the plan and act like the risk is gone.",
-      "correction": "I am the architect here, not the one guessing at your trade offs. I explicitly tied the manual rollback to the pending compliance sign off, so do not misfile that as a general preference for manual work."
-    },
-    {
-      "intel_id": "gen_silent_forecast_failure_reuben_observability_govern",
-      "stakeholder_id": "requirements_reuben",
-      "kind": "stance",
-      "text": "I did not ask for a human to sign off on every single log line, that is not how we scale. I need the observability pipeline to enforce strict access controls and retention policies so the loyalty data stays compliant.",
-      "correction": "You filed that under manual review, but I am talking about automated governance. The system must technically block non compliant access, not wait for a person to read the logs."
-    },
-    {
-      "intel_id": "gen_silent_forecast_failure_reuben_rollback_govern",
-      "stakeholder_id": "requirements_reuben",
-      "kind": "boundary",
-      "text": "I am not approving a release where a failing forecast cannot reach anyone. That is a hard requirement, and we will not proceed without it.",
-      "correction": "I am not asking for a rollback sign off, I am demanding that someone gets alerted. You are confusing a technical step with a compliance control."
-    },
-    {
-      "intel_id": "gen_silent_forecast_failure_ruth_alert_govern",
-      "stakeholder_id": "reliability_ruth",
-      "kind": "stance",
-      "text": "I want the rollback mechanism to be fully governed, not just partially reviewed. Every rollback needs a formal sign off record so we can prove it was handled.",
-      "correction": "You filed this as a preference for automation, but I am asking for governance. The tools are fine, but the process needs strict approval."
-    },
-    {
-      "intel_id": "gen_silent_forecast_failure_ruth_pipeline_driver",
-      "stakeholder_id": "reliability_ruth",
-      "kind": "stance",
-      "text": "I am not asking for a single dashboard, I am asking for a fully automated chain from observability to alerting that requires formal sign off at every hand over. The current plan leaves too many manual checks in the loop for a system that runs every night.",
-      "correction": "You have filed this as a request for better visualization, but I am talking about the governance of the data flow itself. I need the pipeline to be automated and the transitions to be strictly reviewed, not just easier to look at."
-    },
-    {
       "intel_id": "gen_silent_ingestion_failure_dave_driver_validation",
       "stakeholder_id": "data_dave",
       "kind": "stance",
@@ -705,7 +271,7 @@
       "stakeholder_id": "efficiency_emilia",
       "kind": "price",
       "text": "You are framing my cost constraint as a refusal to modernize, which ignores the real budget ceiling we operate under. I am asking you to acknowledge that manual steps are a deliberate trade for capital efficiency, not a failure of vision.",
-      "correction": "I never said we should keep the pipeline manual forever; I said we need to prove the automation pays for itself before we spend the money. You filed this as a technical blocker when it is purely a financial decision point."
+      "correction": "I never said we should label by hand forever; I said we need to prove the automation pays for itself before we spend the money. You filed this as a technical blocker when it is purely a financial decision point."
     },
     {
       "intel_id": "gen_silent_ingestion_failure_reuben_boundary_gov_versioning",
@@ -776,6 +342,454 @@
       "kind": "stance",
       "text": "An automated feed is not about catching every problem, it is about there being any witness to the vault at all during the hours I am asleep. I need the system to flag a shift the moment it happens, not wait for me to wake up and notice.",
       "correction": "You logged this as a request for more monitoring in general. I am asking for exactly one thing: coverage during the hours nobody is watching, which is most of them. Do not expand this into a general surveillance upgrade."
+    },
+    {
+      "intel_id": "gen_committed_pallets_alex_driver_pipeline",
+      "stakeholder_id": "automation_alex",
+      "kind": "stance",
+      "text": "I am not just trying to skip the review, I need the pipeline to handle the hand over from risk assessment to acceptance criteria automatically so we can ship faster. You are missing the point about the infrastructure bottleneck.",
+      "correction": "I was talking about the technical execution of the workflow, not the policy for who signs off on the risk. Do not confuse the automated pipeline with the governance decision."
+    },
+    {
+      "intel_id": "gen_committed_pallets_alex_trade_risk",
+      "stakeholder_id": "automation_alex",
+      "kind": "price",
+      "text": "You framed my offer to keep the risk assessment manual as a simple preference, but it is a direct trade for the time I need to automate the hand overs. Acknowledge that I am trading governance stability for deployment reliability right now.",
+      "correction": "I did not say the manual process is fine long term, I said I will accept it for this single promotion week to unblock the infrastructure work. Do not log this as a permanent acceptance of low governance on the risk assessment."
+    },
+    {
+      "intel_id": "gen_committed_pallets_emilia_contract_driver",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "stance",
+      "text": "Automating the data contracts is a start, but it misses the point of aligning our KPIs with the promotion calendar. I need to see how this change directly reduces residual stock and protects our margin on the promotion week.",
+      "correction": "I did not propose this to save manual effort on checking supplier master data. I am setting the business objectives for the project, specifically how we measure success against availability and waste targets."
+    },
+    {
+      "intel_id": "gen_committed_pallets_emilia_kpi_trade",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "price",
+      "text": "I did not say we can skip the KPI definition forever; I said we can delay it for this specific promotion cycle to keep the pallets moving. You are treating a temporary operational pause as a permanent strategic decision, which misrepresents my position to the board.",
+      "correction": "You filed this as a lack of governance, but I am actually discussing the trade off between speed and measurement for a single week. I am willing to accept the risk of unmeasured allocation for now, but I need the metric live before the next leaflet goes to print."
+    },
+    {
+      "intel_id": "gen_committed_pallets_reuben_boundary_criteria",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "boundary",
+      "text": "I will not sign off on this allocation feature without full formal governance on the acceptance criteria. The trucks cannot leave until that strict sign off is in place.",
+      "correction": "You are misreading my stance as a preference for extra meetings. I am stating a hard security and privacy boundary that blocks the release."
+    },
+    {
+      "intel_id": "gen_committed_pallets_reuben_driver_risk",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "stance",
+      "text": "You are treating the risk assessment as a checkbox, but I need a formal compliance sign off on the allocation logic to protect us from legal exposure. We cannot ship the pallet commitments without that strict review gate in place.",
+      "correction": "You misread my request as a general code quality check. I am specifically asking for a formal governance review of the data privacy and compliance risks in the model output, not just a technical test."
+    },
+    {
+      "intel_id": "gen_committed_pallets_reuben_trade_contracts",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "price",
+      "text": "You are treating my waiver of the formal data contract review as a silent concession, but I am explicitly trading that governance step to secure your acceptance criteria sign off. Acknowledge that this is a deliberate risk acceptance on my part, not an oversight.",
+      "correction": "I did not say the data contracts are unimportant or that we should skip them permanently. I am only agreeing to defer the formal review for this specific cycle so we can lock the acceptance criteria now."
+    },
+    {
+      "intel_id": "gen_committed_pallets_ruth_driver_edge",
+      "stakeholder_id": "reliability_ruth",
+      "kind": "stance",
+      "text": "I need the risk assessment to acceptance criteria hand over to run on its own so the allocation feature is tested and ready for live orders. The current plan does not go far enough on that specific automation.",
+      "correction": "I am not asking for a new monitoring dashboard or a change to the model retraining schedule. I am talking about the deployment pipeline step where we validate the criteria before we let the system commit real money."
+    },
+    {
+      "intel_id": "gen_committed_pallets_ruth_trade_criteria",
+      "stakeholder_id": "reliability_ruth",
+      "kind": "price",
+      "text": "You are not asking for a waiver, you are asking us to run the acceptance checks by hand so the pallets can ship. Acknowledge that we are trading automated validation for immediate availability.",
+      "correction": "I did not say the checks are optional, I said we will execute them manually to meet the deadline. Do not file this as a quality exception, it is a temporary operational shift in how we verify the release."
+    },
+    {
+      "intel_id": "gen_override_blind_spot_dave_drift_check",
+      "stakeholder_id": "data_dave",
+      "kind": "stance",
+      "text": "I did not just want the trigger to fire automatically, I want the schema validation and lineage checks to pass before that trigger is even allowed to run. You cannot skip the data quality gate just to save a few minutes of latency.",
+      "correction": "You are treating this as a simple scheduling task, but I am talking about the integrity of the feature store inputs. The automation must include a hard stop if the incoming scan lines fail my quality thresholds, not just a blind start command."
+    },
+    {
+      "intel_id": "gen_override_blind_spot_dave_feature_store",
+      "stakeholder_id": "data_dave",
+      "kind": "price",
+      "text": "You are proposing to drop the drift check to save time on the feature store hand-over, but that is a false economy. I am only willing to keep the manual hand-over if we automate the drift detection, so do not treat those as separate line items.",
+      "correction": "I am not asking for more headcount to build the pipeline, I am asking for a trade-off on your roadmap. You filed this as a resource request, but I am actually negotiating the scope of what gets automated versus what stays manual."
+    },
+    {
+      "intel_id": "gen_override_blind_spot_emilia_evaluation",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "stance",
+      "text": "Automating the nightly backtest is a start, but it does not cover the manual review of promotion week anomalies I need before we lock the allocation. I need the full evaluation loop automated so we can cut our time to market without adding headcount.",
+      "correction": "You filed that as a general automation request, but I specifically flagged the gap in evaluating censored demand during out of stock periods. That is the metric that drives our residual stock KPIs, not just the standard accuracy score."
+    },
+    {
+      "intel_id": "gen_override_blind_spot_emilia_hpo",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "price",
+      "text": "You are treating the absence of hyperparameter tuning as a silent cut, but I explicitly agreed to leave it manual to fund the registry work. Please acknowledge that trade off in the plan before you move on.",
+      "correction": "I did not ask you to build the tuner, I asked you to automate the registry and evaluation pipeline. Do not misread my acceptance of a manual step as a demand for new tooling."
+    },
+    {
+      "intel_id": "gen_override_blind_spot_emilia_retraining",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "price",
+      "text": "You are asking us to accept a manual retraining trigger without acknowledging that this is a direct cost to our operational efficiency. We need that trade off explicitly stated so we can weigh it against the automation you are proposing for the registry.",
+      "correction": "I am not saying we refuse to let the trigger stay absent. I am saying that if you keep it manual, you must fully automate the registry and evaluation to compensate for the lost agility."
+    },
+    {
+      "intel_id": "gen_override_blind_spot_monica_eval_registry_handover",
+      "stakeholder_id": "model_monica",
+      "kind": "stance",
+      "text": "You are treating my request for an automated evaluation to registry hand over as a minor tweak, but I need the full pipeline to run without a single manual step. I am not refusing your current scope, I am just telling you it does not cover the workflow I actually need.",
+      "correction": "I am not asking for a new model architecture, I am asking for the infrastructure that moves my evaluation metrics into the registry automatically. Please stop labeling this as a data quality issue, it is a deployment workflow problem."
+    },
+    {
+      "intel_id": "gen_override_blind_spot_monica_experiment_tracking",
+      "stakeholder_id": "model_monica",
+      "kind": "price",
+      "text": "You are treating my manual experiment tracking as a free resource to absorb into your new registry work. I need you to acknowledge that I am trading my current manual process for your promise to automate the registry.",
+      "correction": "I am not asking you to build the registry before you handle my tracking. I am saying that I will keep logging experiments by hand only if you commit to prioritizing the registry automation next."
+    },
+    {
+      "intel_id": "gen_override_blind_spot_monica_registry_traceability",
+      "stakeholder_id": "model_monica",
+      "kind": "stance",
+      "text": "A registry that only logs versions is not enough for the trust we need from store managers. I want the system to actively flag when a new model performs worse on the latest promotion week data before it goes live.",
+      "correction": "I am not talking about manual sign off for every single change, which would kill our weekly retraining cycle. I mean the registry should enforce automated performance gates so a bad model never reaches the morning order window."
+    },
+    {
+      "intel_id": "gen_override_blind_spot_monica_training_pipeline",
+      "stakeholder_id": "model_monica",
+      "kind": "price",
+      "text": "You are treating my manual training pipeline as a defect to be fixed without asking, but I am happy to keep it manual if you automate the registry and evaluation hand over. Do not pretend you are taking something from me that I never offered to give up.",
+      "correction": "I did not say the training pipeline is broken, I said it is a trade off I am willing to make. You filed this as a technical failure when it is actually a negotiation about where we spend our automation budget."
+    },
+    {
+      "intel_id": "gen_override_blind_spot_reuben_eval_registry_governance",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "price",
+      "text": "You are stripping the manual check from the registry without acknowledging that I asked for it as a condition for automating the hand-over. That is a security gap, not a speed optimization, and I will not sign off on it.",
+      "correction": "I am not opposed to the automation itself, but I explicitly stated that the registry must retain a manual review step to protect our data governance standards. You filed this as a preference when it is actually a hard requirement for compliance."
+    },
+    {
+      "intel_id": "gen_override_blind_spot_reuben_registry_governance",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "boundary",
+      "text": "I will not let a model enter the registry without a human signing off on the evaluation metrics. That manual review is a hard requirement for me.",
+      "correction": "You are misreading my position on the data pipeline. I am only talking about the model registry gate, not the nightly forecast job."
+    },
+    {
+      "intel_id": "gen_silent_forecast_failure_emilia_alert_edge",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "price",
+      "text": "You are treating my acceptance of a manual hand over as a concession you can exploit. I am explicitly flagging that this trade off removes a piece of our operational capability, and I need that cost acknowledged in the plan.",
+      "correction": "I did not say the manual process is ideal, I said it is cheaper than buying new integration tooling. Do not file this as a technical preference, it is a strategic decision to defer spend while we protect the core forecast pipeline."
+    },
+    {
+      "intel_id": "gen_silent_forecast_failure_emilia_drift_pause",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "price",
+      "text": "You are cutting our drift detection to pay for alerts, which hides the real cost of silent model failure. We need you to acknowledge that this trade off shifts risk from the infrastructure budget to our operational floor.",
+      "correction": "I did not suggest pausing the tool to save money for its own sake. I only accept the pause if the savings fully cover the new alerting service, so the net spend stays flat while we fix the blind spot."
+    },
+    {
+      "intel_id": "gen_silent_forecast_failure_emilia_perf_audit",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "price",
+      "text": "You are not just saving money on tooling, you are asking me to absorb a monthly manual review that I did not agree to. Acknowledge that this is a cost transfer from the platform budget to my team's labor, or we are not discussing it.",
+      "correction": "I did not propose a full manual audit of the logs, I proposed a spot check of the top ten articles to keep the KPIs aligned with our strategy. Do not mischaracterize my efficiency proposal as a blanket removal of automated monitoring."
+    },
+    {
+      "intel_id": "gen_silent_forecast_failure_emilia_rollback_manual",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "price",
+      "text": "You are not just saving money on a deployment tool, you are quietly accepting a longer outage window for every store manager in the chain. I need that operational risk acknowledged in the KPIs before we sign off on this trade off.",
+      "correction": "I did not say the manual process is safe, I said it is affordable for the current quarter while we fix the underlying drift issues. Do not file this as a technical limitation, file it as a conscious cost decision with a known risk."
+    },
+    {
+      "intel_id": "gen_silent_forecast_failure_monica_drift_tool",
+      "stakeholder_id": "model_monica",
+      "kind": "price",
+      "text": "I did not ask you to skip the dedicated drift tool because it is too expensive. I asked you to acknowledge that I am willing to build an in-house script as a fallback if the budget truly cannot cover the licensed solution.",
+      "correction": "You are misreading my position as a cost-cutting demand when it is actually a clear preference hierarchy. I want the dedicated tool first, and the in-house script is only my concession if we hit a hard budget wall."
+    },
+    {
+      "intel_id": "gen_silent_forecast_failure_monica_retrain_edge",
+      "stakeholder_id": "model_monica",
+      "kind": "stance",
+      "text": "I need the alerting pipeline to fire the moment a metric slips, not just log it for a weekly review. The current setup leaves us blind to drift until the store managers start calling us.",
+      "correction": "You are treating this as a data quality issue, but I am talking about the latency of our operational alerts. The goal is to shorten the time between a performance drop and the team being paged."
+    },
+    {
+      "intel_id": "gen_silent_forecast_failure_reuben_alert_edge",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "price",
+      "text": "I did not say we can ignore the audit delay, I said the manual hand over is our only safe fallback until it clears. You cannot just drop that condition from the plan and act like the risk is gone.",
+      "correction": "I am the architect here, not the one guessing at your trade offs. I explicitly tied the manual rollback to the pending compliance sign off, so do not misfile that as a general preference for manual work."
+    },
+    {
+      "intel_id": "gen_silent_forecast_failure_reuben_observability_govern",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "stance",
+      "text": "I did not ask for a human to sign off on every single log line, that is not how we scale. I need the observability pipeline to enforce strict access controls and retention policies so the loyalty data stays compliant.",
+      "correction": "You filed that under manual review, but I am talking about automated governance. The system must technically block non compliant access, not wait for a person to read the logs."
+    },
+    {
+      "intel_id": "gen_silent_forecast_failure_reuben_rollback_govern",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "boundary",
+      "text": "I will not sign off on a release where the alerting system is absent or broken. We need to fix that gap before we discuss any other features.",
+      "correction": "I am not talking about the model accuracy or the forecast logic. I am talking about the operational safety net that tells us when the pipeline fails."
+    },
+    {
+      "intel_id": "gen_silent_forecast_failure_ruth_alert_govern",
+      "stakeholder_id": "reliability_ruth",
+      "kind": "stance",
+      "text": "I want the alerting system to be fully governed, not just partially reviewed. Every alert needs a formal sign off record so we can prove it was handled.",
+      "correction": "You filed this as a preference for automation, but I am asking for governance. The tools are fine, but the process needs strict approval."
+    },
+    {
+      "intel_id": "gen_silent_forecast_failure_ruth_pipeline_driver",
+      "stakeholder_id": "reliability_ruth",
+      "kind": "stance",
+      "text": "I asked for the monitoring hand off to fire automatically, so the system catches drift without waiting for a human. I also need formal sign off for any changes to the alerting rules, not just a casual nod.",
+      "correction": "You are mixing up the automation of the hand off with the governance of the alerts. I want the hand off to be fully automated, but the alerting configuration requires a strict owner approval."
+    },
+    {
+      "intel_id": "gen_heatwave_forecast_gap_dave_driver_fs_train",
+      "stakeholder_id": "data_dave",
+      "kind": "stance",
+      "text": "You are leaving out the critical part of my ask. I need the registry to update automatically the moment the weather feed lands, not just when the harness finishes running.",
+      "correction": "That is not a scheduling preference, it is a data dependency. The model needs the latest weather signal before it can be trusted, so the trigger has to be the data arrival itself."
+    },
+    {
+      "intel_id": "gen_heatwave_forecast_gap_dave_tradeoff_gov_tracking",
+      "stakeholder_id": "data_dave",
+      "kind": "price",
+      "text": "You are treating my offer to skip the formal sign off on experiment logs as a free concession, which it is not. I am only willing to accept that gap if you commit to fully automating the data pipeline first.",
+      "correction": "I did not say the pipeline is already automated, so do not file this as a status update. I am stating a conditional trade off where I trade governance for automation on the infrastructure side."
+    },
+    {
+      "intel_id": "gen_heatwave_forecast_gap_emilia_driver_eval_gov",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "stance",
+      "text": "You are treating my request for formal sign off on the evaluation harness as a checkbox, but I need strict governance to prove we are compliant with our data obligations. We cannot accept a system where the model validation process is just a loose suggestion without a documented audit trail.",
+      "correction": "You are misreading my focus on governance as a demand for more manual work, when I am actually asking for a formal framework that makes the process auditable and consistent. I want the compliance structure to be built into the tooling, not added as a separate burden for the team."
+    },
+    {
+      "intel_id": "gen_heatwave_forecast_gap_emilia_tradeoff_auto_hpo",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "price",
+      "text": "You are treating the manual tuning as a failure, but I am asking you to acknowledge that I am trading speed for control. Do not hide the fact that this approach is slower because I am the one accepting that cost.",
+      "correction": "I am not complaining about the lack of automation in the tuning process itself. I am stating that I will accept that manual effort only if the evaluation cycle remains fast enough to keep the model relevant."
+    },
+    {
+      "intel_id": "gen_heatwave_forecast_gap_emilia_tradeoff_gov_registry",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "price",
+      "text": "I did not ask you to skip the registry sign off, I asked you to stop treating that approval as a bottleneck for every minor model tweak. You are stealing my speed by making me wait on a form that does not protect the shelf.",
+      "correction": "You filed my comment under governance, but I am talking about deployment velocity. I want the registry to exist so we can audit the change, not so a committee can stall the next forecast update."
+    },
+    {
+      "intel_id": "gen_heatwave_forecast_gap_monica_auto_eval",
+      "stakeholder_id": "model_monica",
+      "kind": "stance",
+      "text": "You are still treating the registry hand off as a manual step that needs a human to notice the new version. I need that pipeline to fire the instant the evaluation harness passes so my weather feature testing stops stalling.",
+      "correction": "I am not asking for a new governance layer or a sign off gate on the deployment itself. I am asking for the automation of the hand off because the current manual wait is the bottleneck for my iteration cycle."
+    },
+    {
+      "intel_id": "gen_heatwave_forecast_gap_monica_composite_pipeline",
+      "stakeholder_id": "model_monica",
+      "kind": "stance",
+      "text": "You are only wiring up the registry step, but I need the entire training and evaluation loop to run automatically from the moment features arrive. I cannot test new weather features if I have to manually trigger each intermediate part.",
+      "correction": "This is a request for full pipeline automation, not just a governance review of the final model artifact. I am asking for the technical flow to be continuous so I can iterate on performance without waiting for human triggers."
+    },
+    {
+      "intel_id": "gen_heatwave_forecast_gap_monica_gov_registry",
+      "stakeholder_id": "model_monica",
+      "kind": "price",
+      "text": "I did not ask you to lock down the registry with a formal sign off, I only said we need a way to evaluate models fast without waiting for a committee. You are reading a governance demand into a comment about iteration speed, and that is not what I said.",
+      "correction": "You filed this under governance when I was talking about the friction in the evaluation pipeline. I am not asking for a new approval step, I am saying the current process is too slow for the weekly retraining cycle we run."
+    },
+    {
+      "intel_id": "gen_heatwave_forecast_gap_monica_tradeoff_train_eval",
+      "stakeholder_id": "model_monica",
+      "kind": "price",
+      "text": "You are treating my request for a fixed evaluation harness as a concession on the manual trigger, but I am only asking you to acknowledge that the current hand-over is broken. I will not accept a manual trigger while the evaluation logic itself is unstable.",
+      "correction": "You filed this under automation levels, but I am talking about the reliability of the evaluation harness, not who clicks the button. The issue is that the tooling does not work, not that the process is manual."
+    },
+    {
+      "intel_id": "gen_heatwave_forecast_gap_reuben_boundary_gov_eval",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "boundary",
+      "text": "I am not approving a deployment path where the evaluation harness lacks formal sign off. We need full governance on that harness before I will let any model go live.",
+      "correction": "You are misreading my position as a preference for slower processes. I am stating a hard security requirement that the evaluation harness must be fully governed before it is considered production ready."
+    },
+    {
+      "intel_id": "gen_heatwave_forecast_gap_reuben_manual_eval",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "price",
+      "text": "You are proposing to strip the manual review from the evaluation harness without acknowledging that we lose the documented test case trail. I need you to state clearly that you are trading our governance control for speed.",
+      "correction": "I did not say we would accept full automation of the harness, only that we could allow more tooling if the documentation remains intact. You have misread my condition as a waiver of our privacy compliance checks."
+    },
+    {
+      "intel_id": "gen_loyalty_consent_gap_alex_driver",
+      "stakeholder_id": "automation_alex",
+      "kind": "stance",
+      "text": "I did not just want the risk assessment to fire the acceptance criteria automatically. I need the pipeline to validate the data schema and model version before it even starts that hand off.",
+      "correction": "You misread my ticket as a simple trigger change. I am asking for a full validation gate in the CI pipeline to ensure the deployment is stable before any automation runs."
+    },
+    {
+      "intel_id": "gen_loyalty_consent_gap_alex_trade_kpi_gov",
+      "stakeholder_id": "automation_alex",
+      "kind": "price",
+      "text": "I am not giving up KPI governance, I am just sequencing the work so the audit trail is solid before we tighten the review steps. You cannot audit a metric that has no stable definition, so the audit must land first.",
+      "correction": "I did not say the KPI definitions should stay unreviewed forever, I said the formal sign off comes after the audit infrastructure is in place. Do not file this as a refusal to govern, it is a dependency order."
+    },
+    {
+      "intel_id": "gen_loyalty_consent_gap_alex_trade_metric",
+      "stakeholder_id": "automation_alex",
+      "kind": "price",
+      "text": "I am not asking you to drop the KPI definitions, I am asking you to let the audit trail catch up before we lock them in. You cannot claim the pipeline is stable while the metrics feeding it are still being argued over in chat threads.",
+      "correction": "You are reading my priority as a refusal to define the KPIs, which is not what I said. I am saying the definition process is manual and fragile until we have a governed way to track who agreed to what and when."
+    },
+    {
+      "intel_id": "gen_loyalty_consent_gap_emilia_boundary",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "boundary",
+      "text": "I am not signing off on the data contracts until the schema validation is fully automated. We cannot rely on manual checks for a system that runs every night for twelve hundred stores.",
+      "correction": "I am not asking for a new governance layer, I am asking for the existing manual process to be automated. You are misreading my request for formal sign off as a demand for extra bureaucracy when it is simply a requirement for reliability."
+    },
+    {
+      "intel_id": "gen_loyalty_consent_gap_emilia_trade_contracts",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "price",
+      "text": "You are treating my concession on the audit scope as a free pass to ignore the cost of rework. If we slow the leaflet cycle to satisfy a full audit, the margin loss on the promotion week will dwarf any compliance gain.",
+      "correction": "I did not say the audit is optional, I said the current partial review is the ceiling we can afford without breaking the buyer schedule. Do not file this as a request to cut corners, it is a hard constraint on our operational tempo."
+    },
+    {
+      "intel_id": "gen_loyalty_consent_gap_reuben_boundary",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "boundary",
+      "text": "I am not touching that proposal until the loyalty data contracts are fully specified and validated. You cannot claim compliance while the consent rules are still living in a spreadsheet.",
+      "correction": "I am not talking about the model architecture, I am talking about the data governance layer. You filed this under infrastructure when it is purely a privacy and contract compliance issue."
+    },
+    {
+      "intel_id": "gen_loyalty_consent_gap_reuben_composite_driver",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "stance",
+      "text": "I want the hand off to fire automatically without waiting for a human, but the rest of the workflow stays manual. The proposal does not do enough for what they want.",
+      "correction": "You filed this under the wrong kind of intel. I am not asking for full automation, just the specific trigger to be unattended."
+    },
+    {
+      "intel_id": "gen_loyalty_consent_gap_reuben_trade_kpi",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "price",
+      "text": "You are treating my request to keep KPI definitions manual as a simple preference, but it is a hard dependency. I cannot sign off on the data contracts audit until those definitions are locked and reviewed by hand.",
+      "correction": "I did not say the KPI review should stay manual forever, only that it must happen before we automate the data contracts. You are misreading a sequencing constraint as a permanent architectural choice."
+    },
+    {
+      "intel_id": "gen_loyalty_consent_gap_reuben_trade_metric",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "price",
+      "text": "You are not dropping the owner sign off, you are just moving it to a later point in the audit trail. Do not present this as a removal of accountability, because that is not what I proposed.",
+      "correction": "I never said the sign off disappears, I said it happens after the technical validation is complete. You misread the timing as a deletion of the control itself."
+    },
+    {
+      "intel_id": "gen_loyalty_consent_gap_ruth_boundary",
+      "stakeholder_id": "reliability_ruth",
+      "kind": "boundary",
+      "text": "I am not moving this risk assessment to the next sprint until we have a named owner who will formally sign off on the hand off. Without that specific person on the record, I am blocking the deployment pipeline right here.",
+      "correction": "You are misreading my position as a general distrust of the team, which is not the case. I am asking for a single accountable human to own the liability, not for a committee to review the paperwork."
+    },
+    {
+      "intel_id": "gen_loyalty_consent_gap_ruth_driver",
+      "stakeholder_id": "reliability_ruth",
+      "kind": "stance",
+      "text": "I did not just want a signature on a document, I wanted a named person who answers when the forecast breaks at 4 a.m. A formal owner sign off is the floor, not the ceiling, for what I am asking for.",
+      "correction": "You misread my note as a governance formality, but I meant it as a reliability commitment. The sign off is the mechanism that makes the risk assessment actionable for my deployment pipeline."
+    },
+    {
+      "intel_id": "gen_shadow_deployment_contract_alex_canary_concede",
+      "stakeholder_id": "automation_alex",
+      "kind": "price",
+      "text": "You are treating my offer to keep the canary environment manual as a silent concession. I am explicitly trading that gap for the shadow environment, so please record that trade clearly.",
+      "correction": "I am not saying the canary environment is broken or that we have no plan for it. I am saying I will accept the manual process there only if we prioritize the shadow environment first."
+    },
+    {
+      "intel_id": "gen_shadow_deployment_contract_alex_pipeline_trigger",
+      "stakeholder_id": "automation_alex",
+      "kind": "stance",
+      "text": "I need the hand off from testing to serving to fire automatically without any manual steps. The current proposal leaves a gap where a human still has to trigger the endpoint update.",
+      "correction": "I am not asking for a new feature in the model, I am talking about the deployment pipeline itself. The transition to the serving endpoint must happen without manual steps."
+    },
+    {
+      "intel_id": "gen_shadow_deployment_contract_alex_rollback_concede",
+      "stakeholder_id": "automation_alex",
+      "kind": "price",
+      "text": "You are treating my acceptance of a manual rollback as a free concession, but I am explicitly trading that automation for endpoint stability. I need the record to show I am making a deliberate choice to protect the morning order window, not that I am simply lacking the tooling.",
+      "correction": "I did not say I was happy to leave the rollback manual; I said I would tolerate it if it guaranteed the serving endpoint stays stable. You are misreading a calculated trade off as a lack of technical capability."
+    },
+    {
+      "intel_id": "gen_shadow_deployment_contract_alex_shadow_stability",
+      "stakeholder_id": "automation_alex",
+      "kind": "boundary",
+      "text": "I am not touching the shadow environment until the live forecast stops breaking. You cannot automate a test bed while the production pipeline is still on fire.",
+      "correction": "I am not saying we should never automate it. I am saying the current instability makes it a waste of time to build that tooling now."
+    },
+    {
+      "intel_id": "gen_shadow_deployment_contract_emilia_canary_concede",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "price",
+      "text": "You are treating my approval of manual canary testing as a free concession, but I am explicitly trading that effort against the automation of the main pipeline. Please record that trade clearly in the project goals so the resource cost is visible to the board.",
+      "correction": "I did not say we should skip canary testing, I said we can keep it manual only if the nightly forecast job is fully automated. Do not file this as a lack of testing, it is a deliberate efficiency choice to protect the core delivery speed."
+    },
+    {
+      "intel_id": "gen_shadow_deployment_contract_emilia_pipeline_composite",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "stance",
+      "text": "You are leaving the serving layer on a manual trigger and bare metal, which is exactly the operational debt I warned you about. I need the hand-off to the endpoint to fire automatically and run on a managed platform so we stop burning engineering hours on babysitting the pipeline.",
+      "correction": "Do not file this as a model accuracy request; I am talking about the infrastructure that delivers the forecast to the ordering system. My concern is the operational cost and reliability of the serving layer, not the math inside the model."
+    },
+    {
+      "intel_id": "gen_shadow_deployment_contract_emilia_shadow_concede",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "price",
+      "text": "You are proposing to automate the shadow environment without acknowledging that I am explicitly willing to keep it manual. I need you to record that trade off so we do not waste budget on tooling I do not want.",
+      "correction": "I am not saying the shadow environment is broken or that it lacks governance. I am saying I will accept a manual process because the formal sign off is already in place, so do not file this as a gap in our controls."
+    },
+    {
+      "intel_id": "gen_shadow_deployment_contract_reuben_serving_concede",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "price",
+      "text": "You are not asking for permission to skip the review, you are asking me to hide the fact that the serving endpoint is running without sign off. I will not let us treat a missing control as a silent default.",
+      "correction": "I never said the endpoint was safe to leave unmonitored. I said I would accept the delay if the shadow environment got built first, and you are misquoting that as approval for zero governance."
+    },
+    {
+      "intel_id": "gen_shadow_deployment_contract_reuben_shadow_governance",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "stance",
+      "text": "You are missing the point because a shadow environment without a formal sign-off gate is just a leak waiting to happen. I need a strict, auditable review step before any model moves from shadow to production, and that is non-negotiable for our data governance posture.",
+      "correction": "I am not talking about the model accuracy metrics or the forecast quality, which are handled by the data science team. I am defining the security and compliance controls that must wrap the entire promotion workflow, so please stop conflating performance with governance."
+    },
+    {
+      "intel_id": "gen_shadow_deployment_contract_ruth_serving_driver",
+      "stakeholder_id": "reliability_ruth",
+      "kind": "stance",
+      "text": "I need the serving endpoint to be fully automated so it runs without manual intervention. The current proposal leaves too many manual steps in the deployment loop.",
+      "correction": "I am not talking about the model training pipeline, I am talking about the serving layer. I want the endpoint to handle configuration and monitoring automatically without a human in the loop."
+    },
+    {
+      "intel_id": "gen_shadow_deployment_contract_ruth_shadow_governance",
+      "stakeholder_id": "reliability_ruth",
+      "kind": "stance",
+      "text": "I need a formal sign off on the shadow environment before any model touches live traffic. We cannot accept a partial review when a bad forecast will hit every store order window.",
+      "correction": "I am talking about the governance of the deployment gate, not the automation of the monitoring tools. You filed this as a tooling request, but I am asking for a strict human approval process."
     }
   ],
   "technical": [

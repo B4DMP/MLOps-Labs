@@ -1,7 +1,7 @@
 {
   "item_id": "items:ch_heatwave_forecast_gap",
   "stage": "items",
-  "input_hash": "710f9e020ce1fa3ed20b1959fcd8efb0ce9763bc0989940151367f535ff437c8",
+  "input_hash": "0a84cb3137970294bfaa9294d555f2730cd8ffd902e323037b470557a490ec94",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 2,
   "inputs": {
@@ -598,19 +598,27 @@
         "key": "monica_auto_eval",
         "tag": "driver",
         "stakeholder_id": "model_monica",
-        "fact": "{model_monica} asked for the model evaluation harness to run automatically when a new model version is ready.",
+        "fact": "{model_monica} asked for the hand off from the evaluation harness to the registry to fire as soon as a new model version is ready.",
         "readings": {
-          "driver": "Rapid iteration on weather features is impossible if the evaluation step requires a human to trigger it every time.",
-          "boundary": "The evaluation harness must never run without a human pressing the button, or the results are not trustworthy.",
-          "trade_off": "{model_monica.first} would accept a manual evaluation trigger if the rest of the pipeline is fast enough.",
-          "fact": "The evaluation harness is currently broken and does not run on its own."
+          "driver": "Weather feature testing stalls if the registry waits for a human to notice a new version.",
+          "boundary": "The hand off must never wait for a human pressing the button once a version is ready.",
+          "trade_off": "{model_monica.first} accepts a manual trigger if the rest of the evaluation pipeline is fast enough.",
+          "fact": "The hand off from the evaluation harness to the registry currently requires manual setup."
         },
         "metric_id": "model",
-        "suggested_target": "model.evaluation",
+        "suggested_target": "e.eval_registry",
         "suggested_axis": "automation",
-        "suggested_level": 1,
+        "suggested_level": 3,
         "holds": null,
-        "ops": [],
+        "ops": [
+          {
+            "kind": "set_trigger",
+            "target": "e.eval_registry",
+            "axis": null,
+            "value": "on_new_version",
+            "attr": null
+          }
+        ],
         "concedes_metric": null,
         "concedes_loss": null,
         "concedes_target": null,
@@ -841,22 +849,22 @@
         "key": "dave_driver_fs_train",
         "tag": "driver",
         "stakeholder_id": "data_dave",
-        "fact": "{data_dave} proposed that the hand-over from the feature store to the training pipeline should trigger on data arrival.",
+        "fact": "{data_dave} proposed that the hand-over from the evaluation harness to the registry should fire when fresh data arrives.",
         "readings": {
-          "driver": "{data_dave.first} wants the training pipeline to start automatically when new feature data arrives, to reduce latency.",
-          "boundary": "{data_dave.first} will not allow the training pipeline to start without a manual request.",
-          "trade_off": "{data_dave.first} would accept a manual trigger if the data quality is not high enough.",
-          "fact": "The hand-over from feature store to training pipeline currently uses a manual request trigger."
+          "driver": "{data_dave.first} wants the registry updated whenever new weather data lands, without manual steps.",
+          "boundary": "{data_dave.first} will not accept a hand-over to the registry that ignores fresh data.",
+          "trade_off": "{data_dave.first} would accept a manual hand-over if the automated trigger is too risky.",
+          "fact": "The hand-over from the evaluation harness to the registry currently uses a manual trigger."
         },
         "metric_id": "data",
-        "suggested_target": "e.fs_train",
+        "suggested_target": "e.eval_registry",
         "suggested_axis": "automation",
         "suggested_level": 3,
         "holds": null,
         "ops": [
           {
             "kind": "set_trigger",
-            "target": "e.fs_train",
+            "target": "e.eval_registry",
             "axis": null,
             "value": "on_data_arrival",
             "attr": null

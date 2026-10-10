@@ -1,7 +1,7 @@
 {
   "item_id": "objections:gen_heatwave_forecast_gap_dave_driver_fs_train",
   "stage": "objections",
-  "input_hash": "27db6544f6bcd0a194d03b5cf2cdc847c88b629842f6d059767b4ed89e48ce6e",
+  "input_hash": "6cd5a35f168abf73871a403b8d332d3172f626c269e936433efccf6a4ed7c6f2",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -11,12 +11,12 @@
       "challenge_id": -1,
       "stakeholder_id": "data_dave",
       "type": "driver",
-      "description": "{data_dave} proposed that the hand-over from the feature store to the training pipeline should trigger on data arrival. {data_dave.first} wants the training pipeline to start automatically when new feature data arrives, to reduce latency.",
-      "fact": "{data_dave} proposed that the hand-over from the feature store to the training pipeline should trigger on data arrival.",
-      "reading": "{data_dave.first} wants the training pipeline to start automatically when new feature data arrives, to reduce latency.",
+      "description": "{data_dave} proposed that the hand-over from the evaluation harness to the registry should fire when fresh data arrives. {data_dave.first} wants the registry updated whenever new weather data lands, without manual steps.",
+      "fact": "{data_dave} proposed that the hand-over from the evaluation harness to the registry should fire when fresh data arrives.",
+      "reading": "{data_dave.first} wants the registry updated whenever new weather data lands, without manual steps.",
       "metric_id": "data",
       "suggested": {
-        "target": "e.fs_train",
+        "target": "e.eval_registry",
         "axis": "automation",
         "level": 3
       },
@@ -24,7 +24,7 @@
       "ops": [
         {
           "kind": "set_trigger",
-          "target": "e.fs_train",
+          "target": "e.eval_registry",
           "value": "on_data_arrival"
         }
       ],
@@ -34,8 +34,8 @@
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [
-        "raise_to(e.fs_train, 3)",
-        "set_trigger(e.fs_train, on_data_arrival)"
+        "raise_to(e.eval_registry, 3)",
+        "set_trigger(e.eval_registry, on_data_arrival)"
       ],
       "asserts": null,
       "refines_id": null,
@@ -48,7 +48,7 @@
     }
   },
   "output": {
-    "objection": "I did not just want the job to start when the data lands; I need the pipeline to verify the schema and row counts before it commits to training. You cannot just fire off a retrain on a corrupted file and hope for the best.",
-    "correction": "That is not a latency issue, that is a data integrity gate. I am asking for a validation step that blocks the training trigger if the feature store hand-over fails, not a faster start."
+    "objection": "You are leaving out the critical part of my ask. I need the registry to update automatically the moment the weather feed lands, not just when the harness finishes running.",
+    "correction": "That is not a scheduling preference, it is a data dependency. The model needs the latest weather signal before it can be trusted, so the trigger has to be the data arrival itself."
   }
 }

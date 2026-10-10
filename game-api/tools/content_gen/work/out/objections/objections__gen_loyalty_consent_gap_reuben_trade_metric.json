@@ -1,9 +1,9 @@
 {
   "item_id": "objections:gen_loyalty_consent_gap_reuben_trade_metric",
   "stage": "objections",
-  "input_hash": "d70ad7e91670d488e47ec58e63e1971d31e81a5419545970b26ce6df772c811c",
+  "input_hash": "39128bb235ef32d42dc1639fc5314c36e65464c1706568aa5cb5e0882387e271",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 1,
+  "attempts": 2,
   "inputs": {
     "kind": "price",
     "requirement": {
@@ -11,9 +11,9 @@
       "challenge_id": -1,
       "stakeholder_id": "requirements_reuben",
       "type": "trade_off",
-      "description": "{requirements_reuben} proposed trading part of his compliance budget for faster progress on the audit. He would give up part of his compliance budget if the audit moves forward.",
-      "fact": "{requirements_reuben} proposed trading part of his compliance budget for faster progress on the audit.",
-      "reading": "He would give up part of his compliance budget if the audit moves forward.",
+      "description": "{requirements_reuben} proposed dropping the owner sign off on the acceptance criteria to get the audit moving. He would drop that sign off if it gets the audit moving sooner.",
+      "fact": "{requirements_reuben} proposed dropping the owner sign off on the acceptance criteria to get the audit moving.",
+      "reading": "He would drop that sign off if it gets the audit moving sooner.",
       "metric_id": null,
       "suggested": null,
       "holds": null,
@@ -21,9 +21,9 @@
       "concedes": {
         "metric_id": "requirements",
         "loss": 3,
-        "target": null,
-        "axis": null,
-        "accepts_max_level": null
+        "target": "req.acceptance_criteria",
+        "axis": "governance",
+        "accepts_max_level": 0
       },
       "branch_x": null,
       "branch_y": null,
@@ -41,7 +41,7 @@
     }
   },
   "output": {
-    "objection": "I am not giving up my compliance budget, I am reallocating effort to meet the audit deadline. You need to acknowledge that this trade off exists before we proceed.",
-    "correction": "This is a resource constraint, not a data governance failure. I am still enforcing the same privacy rules, just with a different timeline."
+    "objection": "You are not dropping the owner sign off, you are just moving it to a later point in the audit trail. Do not present this as a removal of accountability, because that is not what I proposed.",
+    "correction": "I never said the sign off disappears, I said it happens after the technical validation is complete. You misread the timing as a deletion of the control itself."
   }
 }

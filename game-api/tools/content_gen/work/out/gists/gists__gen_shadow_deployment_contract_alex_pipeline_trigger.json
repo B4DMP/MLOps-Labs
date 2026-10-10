@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_alex_pipeline_trigger",
+  "stage": "gists",
+  "input_hash": "bc0743e83411564b681b5f5b7701cdce6329204fb4dac94519b46b3a8600b0a4",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_alex_pipeline_trigger",
+    "fact": "{automation_alex} asked for the hand-off from testing to serving to fire automatically.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The question of who triggers the move from testing to serving keeps surfacing in Shelfcast meetings.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a recurring discussion point regarding the trigger for deployment (testing to serving), which relates to automation workflows, but it does not express a preference, refusal, or acceptance of a specific approach, nor does it state a definitive fact about how it currently works."
+  }
+}

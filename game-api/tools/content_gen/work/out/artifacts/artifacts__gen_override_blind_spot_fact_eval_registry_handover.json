@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_override_blind_spot_fact_eval_registry_handover",
+  "stage": "artifacts",
+  "input_hash": "da4a35adb7bf91f816ee43a79700c30916afa1d3da2a2eb603f30d6bd3bd663e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_override_blind_spot_fact_eval_registry_handover",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The hand-over from model evaluation to the registry is done by hand and triggered by a manual request. A human must manually move the evaluation results to the registry today.",
+      "fact": "The hand-over from model evaluation to the registry is done by hand and triggered by a manual request.",
+      "reading": "A human must manually move the evaluation results to the registry today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.eval_registry",
+        "axis": "automation",
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "slack_message",
+    "narrator": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Override Blind Spot",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "I was digging through the training pipeline logs this morning and noticed the hand over from model evaluation to the registry is still done by hand. When a run finishes, the results sit in a temporary directory until someone manually requests the move to the registry. I checked the last three weekly retraining cycles and saw the same pattern. The evaluation metrics are calculated automatically, but the actual transfer step requires a human to trigger the script. There is no automated hook or scheduled job to push those artifacts forward. It means the registry lags behind the actual model performance by however long it takes for someone to remember to run that command.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the current state of the pipeline and observed patterns without expressing any wishes, refusals, or explicit trade-offs, making it a pure factual report."
+  }
+}

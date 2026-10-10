@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_emilia_shadow_concede",
+  "stage": "gists",
+  "input_hash": "043916964a16954b4c5212d8112aa99ad0d0310b39aae9dc28442b5d0cf032df",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_emilia_shadow_concede",
+    "fact": "{efficiency_emilia} noted that the shadow environment can stay done by hand.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The manual operation of the shadow environment has been raised by {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions that manual operation was raised by a stakeholder associated with efficiency, but it does not state whether this is a driver, a boundary, a trade-off, or a fact, only that it was raised."
+  }
+}

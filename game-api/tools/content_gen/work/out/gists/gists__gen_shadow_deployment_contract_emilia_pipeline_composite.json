@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_emilia_pipeline_composite",
+  "stage": "gists",
+  "input_hash": "167e9b2f2124679b0605f028cc4e30f38e5d97a3e82818d7522793843aabc411",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_emilia_pipeline_composite",
+    "fact": "{efficiency_emilia} asked for the hand-off to the serving endpoint to fire automatically and for the endpoint to run on a managed platform.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The hand-off to the serving endpoint and its managed platform hosting have been raised by {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist simply states that the topic of hand-off and hosting was raised by a stakeholder, without expressing a stance, preference, or commitment to a specific reading like a driver, boundary, trade-off, or fact about the metric's direction."
+  }
+}

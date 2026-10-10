@@ -1,18 +1,18 @@
 {
   "item_id": "artifacts:gen_override_blind_spot_fact_registry_broken",
   "stage": "artifacts",
-  "input_hash": "8673e04e60ce335512031fc9e2fe00e9024c676f4b1b10f0be82e2ae2acd7c0e",
+  "input_hash": "08f3eb9d81f0309e02ddfb9750edff770edc02c85521cd94b9daf2c1873ba2b1",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 3,
+  "attempts": 1,
   "inputs": {
     "requirement": {
       "id": "gen_override_blind_spot_fact_registry_broken",
       "challenge_id": -1,
       "stakeholder_id": null,
       "type": "fact",
-      "description": "The model registry is broken and stopped working. That is simply the state of the registry today.",
-      "fact": "The model registry is broken and stopped working.",
-      "reading": "That is simply the state of the registry today.",
+      "description": "The model registry is broken and cannot accept new model versions. The registry exists but is currently non functional.",
+      "fact": "The model registry is broken and cannot accept new model versions.",
+      "reading": "The registry exists but is currently non functional.",
       "metric_id": null,
       "suggested": null,
       "holds": null,
@@ -45,8 +45,8 @@
     "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "The model registry stopped accepting new entries after the last infrastructure migration. It used to log each weekly retraining cycle automatically, but that pipeline failed and has not recovered. The team now maintains a shared spreadsheet on a local drive to record which model version is live. I cross reference that sheet against the deployment scripts to verify what is running in production. This is the current method for confirming the active algorithm before starting the next optimization pass.",
+    "content": "I noticed the model registry interface is currently non functional during my latest deployment attempt. It used to handle versioning smoothly, but right now it rejects any new model upload. The team has stopped trying to push updates through the standard pipeline. Instead, we are manually copying model artifacts to a shared network drive and updating a local spreadsheet to track which version is live. This workaround keeps the retraining cycle moving, but it means the central registry remains empty of recent changes while I document the current state by hand.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text describes the current operational state and workflow (using a spreadsheet to track models) without expressing a wish, refusal, or explicit trade-off."
+    "reclassify_reason": "The text objectively reports the current non-functional state of the registry and the team's resulting manual workaround without expressing a wish, refusal, or explicit trade-off."
   }
 }

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_alex_shadow_stability",
+  "stage": "gists",
+  "input_hash": "40c485f467a90b9c9c990b29d42686f185cf323755fe200d5766fe3a52343466",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_alex_shadow_stability",
+    "fact": "{automation_alex} proposed keeping the shadow environment running by hand.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The shadow environment keeps coming up whenever you talk to {automation_alex} about keeping it running by hand.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a topic (the shadow environment and manual operation) associated with a stakeholder but does not explicitly state a preference for more automation, a refusal of it, a trade-off, or a neutral fact about its current status."
+  }
+}

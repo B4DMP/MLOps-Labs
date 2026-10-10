@@ -1,569 +1,6 @@
 {
   "requirements": [
     {
-      "id": "gen_loyalty_consent_gap_reuben_composite_driver",
-      "challenge_id": 114,
-      "stakeholder_id": "requirements_reuben",
-      "type": "driver",
-      "description": "{requirements_reuben} proposed moving the risk review hand-off, and the checks that follow it, off manual handling. The less anyone has to push that chain by hand, the sooner audits clear without a scramble.",
-      "fact": "{requirements_reuben} proposed moving the risk review hand-off, and the checks that follow it, off manual handling.",
-      "reading": "The less anyone has to push that chain by hand, the sooner audits clear without a scramble.",
-      "metric_id": "requirements",
-      "suggested": {
-        "target": "e.risk_acceptance",
-        "axis": "automation",
-        "level": 3
-      },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "req.acceptance_criteria",
-          "axis": "automation",
-          "value": 2
-        },
-        {
-          "kind": "raise_to",
-          "target": "req.risk_assessment",
-          "axis": "automation",
-          "value": 2
-        }
-      ],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [
-        "raise_to(e.risk_acceptance, 3)",
-        "raise_to(req.acceptance_criteria, 2)",
-        "raise_to(req.risk_assessment, 2)"
-      ],
-      "gist": "Governance of the risk review hand-off and the acceptance checks after it is the subject of a note from {requirements_reuben}."
-    },
-    {
-      "id": "gen_loyalty_consent_gap_reuben_boundary",
-      "challenge_id": 114,
-      "stakeholder_id": "requirements_reuben",
-      "type": "boundary",
-      "description": "{requirements_reuben} proposed that the consent rules be written into the data contracts before anything uses them. He will not accept loyalty data being used while the data contracts are missing or broken.",
-      "fact": "{requirements_reuben} proposed that the consent rules be written into the data contracts before anything uses them.",
-      "reading": "He will not accept loyalty data being used while the data contracts are missing or broken.",
-      "holds": {
-        "component": "req.data_contracts",
-        "axis": "automation",
-        "op": "gte",
-        "level": 2
-      },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "req.data_contracts",
-          "axis": "automation",
-          "value": 2
-        }
-      ],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The state of the data contracts, as a requirements question, is the subject of a note from {requirements_reuben}."
-    },
-    {
-      "id": "gen_loyalty_consent_gap_reuben_trade_kpi",
-      "challenge_id": 114,
-      "stakeholder_id": "requirements_reuben",
-      "type": "trade_off",
-      "description": "{requirements_reuben} proposed leaving the KPI definitions exactly as hand reviewed as they are today. He would accept the KPI definitions staying hand reviewed if the data contracts audit lands first.",
-      "fact": "{requirements_reuben} proposed leaving the KPI definitions exactly as hand reviewed as they are today.",
-      "reading": "He would accept the KPI definitions staying hand reviewed if the data contracts audit lands first.",
-      "ops": [],
-      "concedes": {
-        "target": "req.kpi_definition",
-        "axis": "automation",
-        "accepts_max_level": 1
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The current state of KPI definition review practices keeps coming up whenever the loyalty data audit is discussed."
-    },
-    {
-      "id": "gen_loyalty_consent_gap_reuben_trade_metric",
-      "challenge_id": 114,
-      "stakeholder_id": "requirements_reuben",
-      "type": "trade_off",
-      "description": "{requirements_reuben} proposed trading part of his compliance budget for faster progress on the audit. He would give up part of his compliance budget if the audit moves forward.",
-      "fact": "{requirements_reuben} proposed trading part of his compliance budget for faster progress on the audit.",
-      "reading": "He would give up part of his compliance budget if the audit moves forward.",
-      "ops": [],
-      "concedes": {
-        "metric_id": "requirements",
-        "loss": 3
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The compliance budget for the loyalty data audit has been raised as a point of negotiation."
-    },
-    {
-      "id": "gen_loyalty_consent_gap_emilia_trade_contracts",
-      "challenge_id": 114,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "trade_off",
-      "description": "{efficiency_emilia} proposed a middle ground on how far the risk review goes. She would accept the risk review running partly on its own, with a person still checking the results, if the leaflet planning cycle keeps moving.",
-      "fact": "{efficiency_emilia} proposed a middle ground on how far the risk review goes.",
-      "reading": "She would accept the risk review running partly on its own, with a person still checking the results, if the leaflet planning cycle keeps moving.",
-      "ops": [],
-      "concedes": {
-        "target": "req.risk_assessment",
-        "axis": "automation",
-        "accepts_max_level": 2
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The cost and effort of the data contracts audit is the subject of a note from {efficiency_emilia}."
-    },
-    {
-      "id": "gen_loyalty_consent_gap_emilia_boundary",
-      "challenge_id": 114,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "boundary",
-      "description": "{efficiency_emilia} proposed that the data contracts check keep a person in the loop for now. She will not accept it running fully on its own before the weekly leaflet is out.",
-      "fact": "{efficiency_emilia} proposed that the data contracts check keep a person in the loop for now.",
-      "reading": "She will not accept it running fully on its own before the weekly leaflet is out.",
-      "holds": {
-        "component": "req.data_contracts",
-        "axis": "automation",
-        "op": "lte",
-        "level": 2
-      },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "req.data_contracts",
-          "axis": "automation",
-          "value": 2
-        }
-      ],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "How far the data contracts check can run on its own keeps coming up in efficiency discussions."
-    },
-    {
-      "id": "gen_loyalty_consent_gap_alex_driver",
-      "challenge_id": 114,
-      "stakeholder_id": "automation_alex",
-      "type": "driver",
-      "description": "{automation_alex} proposed moving risk assessment reviews off manual handling. The less anyone has to review that by hand, the sooner releases clear without delay.",
-      "fact": "{automation_alex} proposed moving risk assessment reviews off manual handling.",
-      "reading": "The less anyone has to review that by hand, the sooner releases clear without delay.",
-      "metric_id": "automation",
-      "suggested": {
-        "target": "req.risk_assessment",
-        "axis": "automation",
-        "level": 2
-      },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "Risk assessment reviews and how they are currently handled keep coming up in talks with {automation_alex}."
-    },
-    {
-      "id": "gen_loyalty_consent_gap_alex_trade_metric",
-      "challenge_id": 114,
-      "stakeholder_id": "automation_alex",
-      "type": "trade_off",
-      "description": "{automation_alex} proposed shifting some of his automation budget toward the audit work instead. He would give up part of his automation budget if the audit work moves forward.",
-      "fact": "{automation_alex} proposed shifting some of his automation budget toward the audit work instead.",
-      "reading": "He would give up part of his automation budget if the audit work moves forward.",
-      "ops": [],
-      "concedes": {
-        "metric_id": "automation",
-        "loss": 4
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "Shifting automation budget toward the loyalty data audit keeps coming up in planning discussions."
-    },
-    {
-      "id": "gen_loyalty_consent_gap_alex_trade_kpi_gov",
-      "challenge_id": 114,
-      "stakeholder_id": "automation_alex",
-      "type": "trade_off",
-      "description": "{automation_alex} proposed leaving KPI governance exactly as relaxed as it is today. He would accept KPI definitions keeping no formal review step if the audit lands first.",
-      "fact": "{automation_alex} proposed leaving KPI governance exactly as relaxed as it is today.",
-      "reading": "He would accept KPI definitions keeping no formal review step if the audit lands first.",
-      "ops": [],
-      "concedes": {
-        "target": "req.kpi_definition",
-        "axis": "governance",
-        "accepts_max_level": 0
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The level of automation applied to KPI checks during the loyalty data audit keeps coming up."
-    },
-    {
-      "id": "gen_loyalty_consent_gap_ruth_driver",
-      "challenge_id": 114,
-      "stakeholder_id": "reliability_ruth",
-      "type": "driver",
-      "description": "{reliability_ruth} proposed moving acceptance criteria checks off manual handling. The less anyone has to check that by hand, the sooner feedback reaches the team.",
-      "fact": "{reliability_ruth} proposed moving acceptance criteria checks off manual handling.",
-      "reading": "The less anyone has to check that by hand, the sooner feedback reaches the team.",
-      "metric_id": "reliability",
-      "suggested": {
-        "target": "req.acceptance_criteria",
-        "axis": "automation",
-        "level": 2
-      },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The reliability of loyalty data acceptance checks has been raised as a topic for review."
-    },
-    {
-      "id": "gen_loyalty_consent_gap_ruth_boundary",
-      "challenge_id": 114,
-      "stakeholder_id": "reliability_ruth",
-      "type": "boundary",
-      "description": "{reliability_ruth} proposed that the acceptance criteria stop being checked by hand. She will not accept sign off that still rests on a manual check.",
-      "fact": "{reliability_ruth} proposed that the acceptance criteria stop being checked by hand.",
-      "reading": "She will not accept sign off that still rests on a manual check.",
-      "holds": {
-        "component": "req.acceptance_criteria",
-        "axis": "automation",
-        "op": "gte",
-        "level": 2
-      },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "req.acceptance_criteria",
-          "axis": "automation",
-          "value": 2
-        }
-      ],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The reliability of the hand-off into model evaluation is the subject of a note from {reliability_ruth}."
-    },
-    {
-      "id": "gen_loyalty_consent_gap_fact_kpi_manual",
-      "challenge_id": 114,
-      "type": "fact",
-      "description": "KPI definitions are still agreed on by hand each cycle. That is simply how the KPI definitions get agreed on today.",
-      "fact": "KPI definitions are still agreed on by hand each cycle.",
-      "reading": "That is simply how the KPI definitions get agreed on today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "req.kpi_definition",
-        "axis": "automation",
-        "level": 1
-      }
-    },
-    {
-      "id": "gen_loyalty_consent_gap_fact_risk_manual",
-      "challenge_id": 114,
-      "type": "fact",
-      "description": "Risk assessment for new data sources is still done by hand. That is simply how new data sources get reviewed today.",
-      "fact": "Risk assessment for new data sources is still done by hand.",
-      "reading": "That is simply how new data sources get reviewed today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "req.risk_assessment",
-        "axis": "automation",
-        "level": 1
-      }
-    },
-    {
-      "id": "gen_loyalty_consent_gap_fact_contracts_broken",
-      "challenge_id": 114,
-      "type": "fact",
-      "description": "Data contracts are broken; the consent fields are gone from the schema. That is simply the state the data contracts schema is in right now.",
-      "fact": "Data contracts are broken; the consent fields are gone from the schema.",
-      "reading": "That is simply the state the data contracts schema is in right now.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "req.data_contracts",
-        "axis": "automation",
-        "level": 0
-      }
-    },
-    {
-      "id": "gen_committed_pallets_emilia_kpi_gap",
-      "challenge_id": 110,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "trade_off",
-      "description": "{efficiency_emilia} noted that the KPI definition for the promotion week is missing. She would accept leaving the KPI definition absent if the allocation logic is auditable.",
-      "fact": "{efficiency_emilia} noted that the KPI definition for the promotion week is missing.",
-      "reading": "She would accept leaving the KPI definition absent if the allocation logic is auditable.",
-      "ops": [],
-      "concedes": {
-        "target": "req.kpi_definition",
-        "axis": "automation",
-        "accepts_max_level": 1
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The definition of the promotion week efficiency metric has been raised as a gap in the current reporting."
-    },
-    {
-      "id": "gen_committed_pallets_emilia_risk_trade",
-      "challenge_id": 110,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "trade_off",
-      "description": "{efficiency_emilia} proposed that the risk assessment can remain manual for this specific high risk scenario. She would accept the risk assessment staying manual if the criteria are governed.",
-      "fact": "{efficiency_emilia} proposed that the risk assessment can remain manual for this specific high risk scenario.",
-      "reading": "She would accept the risk assessment staying manual if the criteria are governed.",
-      "ops": [],
-      "concedes": {
-        "target": "req.risk_assessment",
-        "axis": "automation",
-        "accepts_max_level": 2
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The efficiency of manual risk assessments for high risk replenishment scenarios keeps coming up in {efficiency_emilia} discussions."
-    },
-    {
-      "id": "gen_committed_pallets_reuben_gov_boundary",
-      "challenge_id": 110,
-      "stakeholder_id": "requirements_reuben",
-      "type": "boundary",
-      "description": "{requirements_reuben} asked for the acceptance criteria to be fully governed. He will not allow the trucks to leave without a formal sign off on the acceptance criteria.",
-      "fact": "{requirements_reuben} asked for the acceptance criteria to be fully governed.",
-      "reading": "He will not allow the trucks to leave without a formal sign off on the acceptance criteria.",
-      "holds": {
-        "component": "req.acceptance_criteria",
-        "axis": "governance",
-        "op": "gte",
-        "level": 3
-      },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "req.acceptance_criteria",
-          "axis": "governance",
-          "value": 3
-        }
-      ],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The governance status of the acceptance criteria for requirements keeps coming up in discussions with {requirements_reuben}."
-    },
-    {
-      "id": "gen_committed_pallets_reuben_composite_driver",
-      "challenge_id": 110,
-      "stakeholder_id": "requirements_reuben",
-      "type": "driver",
-      "description": "{requirements_reuben} asked for the risk to acceptance hand over and the acceptance to evaluation hand over to be automated. He wants the pipeline between risk and evaluation to run on its own to ensure data integrity.",
-      "fact": "{requirements_reuben} asked for the risk to acceptance hand over and the acceptance to evaluation hand over to be automated.",
-      "reading": "He wants the pipeline between risk and evaluation to run on its own to ensure data integrity.",
-      "metric_id": "requirements",
-      "suggested": {
-        "target": "e.risk_acceptance",
-        "axis": "automation",
-        "level": 3
-      },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "e.acceptance_eval",
-          "axis": "automation",
-          "value": 3
-        }
-      ],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [
-        "raise_to(e.risk_acceptance, 3)",
-        "raise_to(e.acceptance_eval, 3)"
-      ],
-      "gist": "The chain of hand-overs from risk assessment through acceptance criteria to evaluation is the subject of a note from {requirements_reuben}."
-    },
-    {
-      "id": "gen_committed_pallets_reuben_risk_trade",
-      "challenge_id": 110,
-      "stakeholder_id": "requirements_reuben",
-      "type": "trade_off",
-      "description": "{requirements_reuben} mentioned that the risk assessment can be manual if the acceptance criteria are governed. He would accept the risk assessment staying manual if the criteria are governed.",
-      "fact": "{requirements_reuben} mentioned that the risk assessment can be manual if the acceptance criteria are governed.",
-      "reading": "He would accept the risk assessment staying manual if the criteria are governed.",
-      "ops": [],
-      "concedes": {
-        "target": "req.risk_assessment",
-        "axis": "automation",
-        "accepts_max_level": 2
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The interplay between risk assessment procedures and acceptance criteria governance keeps coming up in requirements discussions."
-    },
-    {
-      "id": "gen_committed_pallets_alex_auto_driver",
-      "challenge_id": 110,
-      "stakeholder_id": "automation_alex",
-      "type": "driver",
-      "description": "{automation_alex} asked for the hand over from risk assessment to acceptance criteria to be automated. He wants the hand over to be automated to ensure the pipeline runs without manual intervention.",
-      "fact": "{automation_alex} asked for the hand over from risk assessment to acceptance criteria to be automated.",
-      "reading": "He wants the hand over to be automated to ensure the pipeline runs without manual intervention.",
-      "metric_id": "automation",
-      "suggested": {
-        "target": "e.risk_acceptance",
-        "axis": "automation",
-        "level": 3
-      },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The automation level of the hand over from risk assessment to acceptance criteria keeps coming up in meetings."
-    },
-    {
-      "id": "gen_committed_pallets_alex_trade",
-      "challenge_id": 110,
-      "stakeholder_id": "automation_alex",
-      "type": "trade_off",
-      "description": "{automation_alex} suggested that the data contracts can remain manual if the hand over is automated. He would accept the data contracts staying manual if the hand over is automated.",
-      "fact": "{automation_alex} suggested that the data contracts can remain manual if the hand over is automated.",
-      "reading": "He would accept the data contracts staying manual if the hand over is automated.",
-      "ops": [],
-      "concedes": {
-        "target": "req.data_contracts",
-        "axis": "automation",
-        "accepts_max_level": 2
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The handover between data contracts and automated processing keeps coming up in the discussion."
-    },
-    {
-      "id": "gen_committed_pallets_ruth_auto_driver",
-      "challenge_id": 110,
-      "stakeholder_id": "reliability_ruth",
-      "type": "driver",
-      "description": "{reliability_ruth} proposed that the acceptance criteria should be automated. She wants the acceptance criteria to be automated to ensure the feature can ship immediately.",
-      "fact": "{reliability_ruth} proposed that the acceptance criteria should be automated.",
-      "reading": "She wants the acceptance criteria to be automated to ensure the feature can ship immediately.",
-      "metric_id": "reliability",
-      "suggested": {
-        "target": "req.acceptance_criteria",
-        "axis": "automation",
-        "level": 2
-      },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "Reliability of the forecast pipeline is the topic when {reliability_ruth} discusses acceptance criteria automation."
-    },
-    {
-      "id": "gen_committed_pallets_ruth_trade",
-      "challenge_id": 110,
-      "stakeholder_id": "reliability_ruth",
-      "type": "trade_off",
-      "description": "{reliability_ruth} mentioned that the KPI definition can remain missing if the acceptance criteria are automated. She would accept the KPI definition remaining missing if the criteria are automated.",
-      "fact": "{reliability_ruth} mentioned that the KPI definition can remain missing if the acceptance criteria are automated.",
-      "reading": "She would accept the KPI definition remaining missing if the criteria are automated.",
-      "ops": [],
-      "concedes": {
-        "target": "req.kpi_definition",
-        "axis": "automation",
-        "accepts_max_level": 1
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The missing reliability KPI definition keeps coming up whenever acceptance criteria automation is discussed with {reliability_ruth}."
-    },
-    {
-      "id": "gen_committed_pallets_fact_kpi_missing",
-      "challenge_id": 110,
-      "type": "fact",
-      "description": "The KPI definition for the promotion week is missing. That is simply how the KPI setup works today.",
-      "fact": "The KPI definition for the promotion week is missing.",
-      "reading": "That is simply how the KPI setup works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "req.kpi_definition",
-        "axis": "automation",
-        "level": 1
-      }
-    },
-    {
-      "id": "gen_committed_pallets_fact_acceptance_broken",
-      "challenge_id": 110,
-      "type": "fact",
-      "description": "The acceptance criteria are broken and have stopped working. That is simply how the acceptance setup works today.",
-      "fact": "The acceptance criteria are broken and have stopped working.",
-      "reading": "That is simply how the acceptance setup works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "req.acceptance_criteria",
-        "axis": "automation",
-        "level": 0
-      }
-    },
-    {
-      "id": "gen_committed_pallets_fact_risk_manual",
-      "challenge_id": 110,
-      "type": "fact",
-      "description": "The risk assessment is done by hand. That is simply how the risk setup works today.",
-      "fact": "The risk assessment is done by hand.",
-      "reading": "That is simply how the risk setup works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "req.risk_assessment",
-        "axis": "automation",
-        "level": 1
-      }
-    },
-    {
-      "id": "gen_committed_pallets_fact_edge_risk",
-      "challenge_id": 110,
-      "type": "fact",
-      "description": "The hand over from risk assessment to acceptance criteria is missing. That is simply how the hand over setup works today.",
-      "fact": "The hand over from risk assessment to acceptance criteria is missing.",
-      "reading": "That is simply how the hand over setup works today.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "e.risk_acceptance",
-        "axis": "automation",
-        "level": 1,
-        "trigger": "none"
-      }
-    },
-    {
       "id": "gen_silent_ingestion_failure_fact_ingestion_broken",
       "challenge_id": 120,
       "type": "fact",
@@ -834,18 +271,21 @@
       "challenge_id": 120,
       "stakeholder_id": "efficiency_emilia",
       "type": "trade_off",
-      "description": "{efficiency_emilia} suggested keeping the pipeline manual to save costs. She would accept a manual pipeline if it saves costs.",
-      "fact": "{efficiency_emilia} suggested keeping the pipeline manual to save costs.",
-      "reading": "She would accept a manual pipeline if it saves costs.",
+      "description": "{efficiency_emilia} suggested keeping data labeling done by hand. She would accept that if it keeps the running costs down.",
+      "fact": "{efficiency_emilia} suggested keeping data labeling done by hand.",
+      "reading": "She would accept that if it keeps the running costs down.",
       "ops": [],
       "concedes": {
         "metric_id": "efficiency",
-        "loss": 5
+        "loss": 5,
+        "target": "data.labeling",
+        "axis": "automation",
+        "accepts_max_level": 1
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
-      "gist": "The running cost of the ingestion pipeline is the subject of a note from {efficiency_emilia}."
+      "gist": "How data labeling gets done is the subject of a note from {efficiency_emilia}."
     },
     {
       "id": "gen_silent_ingestion_failure_emilia_driver_efficiency",
@@ -1174,605 +614,6 @@
       }
     },
     {
-      "id": "gen_heatwave_forecast_gap_monica_auto_eval",
-      "challenge_id": 112,
-      "stakeholder_id": "model_monica",
-      "type": "driver",
-      "description": "{model_monica} asked for the model evaluation harness to run automatically when a new model version is ready. Rapid iteration on weather features is impossible if the evaluation step requires a human to trigger it every time.",
-      "fact": "{model_monica} asked for the model evaluation harness to run automatically when a new model version is ready.",
-      "reading": "Rapid iteration on weather features is impossible if the evaluation step requires a human to trigger it every time.",
-      "metric_id": "model",
-      "suggested": {
-        "target": "model.evaluation",
-        "axis": "automation",
-        "level": 1
-      },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "How model versions get evaluated before release is the subject of this note."
-    },
-    {
-      "id": "gen_heatwave_forecast_gap_monica_composite_pipeline",
-      "challenge_id": 112,
-      "stakeholder_id": "model_monica",
-      "type": "driver",
-      "description": "{model_monica} asked for the entire model training and evaluation flow to run on its own from feature arrival to registry entry. {model_monica.first} needs the whole chain to be automated to test weather features without waiting for manual triggers at each step.",
-      "fact": "{model_monica} asked for the entire model training and evaluation flow to run on its own from feature arrival to registry entry.",
-      "reading": "{model_monica.first} needs the whole chain to be automated to test weather features without waiting for manual triggers at each step.",
-      "metric_id": "model",
-      "suggested": {
-        "target": "e.fs_train",
-        "axis": "automation",
-        "level": 3
-      },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "e.eval_registry",
-          "axis": "automation",
-          "value": 3
-        }
-      ],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [
-        "raise_to(e.fs_train, 3)",
-        "raise_to(e.eval_registry, 3)"
-      ],
-      "gist": "The forecasting model's training and evaluation process is the subject of {model_monica}'s recent note."
-    },
-    {
-      "id": "gen_heatwave_forecast_gap_monica_gov_registry",
-      "challenge_id": 112,
-      "stakeholder_id": "model_monica",
-      "type": "trade_off",
-      "description": "{model_monica} mentioned that the model registry does not require formal sign-off before a model is promoted. {model_monica.first} would accept full governance on the registry if it does not block the rapid iteration on evaluation.",
-      "fact": "{model_monica} mentioned that the model registry does not require formal sign-off before a model is promoted.",
-      "reading": "{model_monica.first} would accept full governance on the registry if it does not block the rapid iteration on evaluation.",
-      "ops": [],
-      "concedes": {
-        "target": "model.registry",
-        "axis": "governance",
-        "accepts_max_level": 3
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The governance of model registry promotion and sign-off has been raised by {model_monica}."
-    },
-    {
-      "id": "gen_heatwave_forecast_gap_monica_tradeoff_train_eval",
-      "challenge_id": 112,
-      "stakeholder_id": "model_monica",
-      "type": "trade_off",
-      "description": "{model_monica} noted that the hand-over from training to evaluation is triggered manually. {model_monica.first} would accept a manual trigger for the training to evaluation hand-over if the evaluation harness itself is fixed.",
-      "fact": "{model_monica} noted that the hand-over from training to evaluation is triggered manually.",
-      "reading": "{model_monica.first} would accept a manual trigger for the training to evaluation hand-over if the evaluation harness itself is fixed.",
-      "ops": [],
-      "concedes": {
-        "target": "e.train_eval",
-        "axis": "automation",
-        "accepts_max_level": 2
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The hand-over between model training and evaluation keeps coming up in the team's discussions."
-    },
-    {
-      "id": "gen_heatwave_forecast_gap_reuben_manual_eval",
-      "challenge_id": 112,
-      "stakeholder_id": "requirements_reuben",
-      "type": "trade_off",
-      "description": "{requirements_reuben} proposed keeping the model evaluation harness manual to ensure every test case is documented. {requirements_reuben.first} would accept a higher level of automation for the evaluation harness if the documentation of test cases is preserved.",
-      "fact": "{requirements_reuben} proposed keeping the model evaluation harness manual to ensure every test case is documented.",
-      "reading": "{requirements_reuben.first} would accept a higher level of automation for the evaluation harness if the documentation of test cases is preserved.",
-      "ops": [],
-      "concedes": {
-        "target": "model.evaluation",
-        "axis": "automation",
-        "accepts_max_level": 2
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "Documentation practices for the model evaluation harness are under discussion among the requirements stakeholders."
-    },
-    {
-      "id": "gen_heatwave_forecast_gap_reuben_boundary_gov_eval",
-      "challenge_id": 112,
-      "stakeholder_id": "requirements_reuben",
-      "type": "boundary",
-      "description": "{requirements_reuben} noted that the model evaluation harness has no formal review process. {requirements_reuben.first} will not allow any model to be considered for deployment unless the evaluation harness has full formal governance.",
-      "fact": "{requirements_reuben} noted that the model evaluation harness has no formal review process.",
-      "reading": "{requirements_reuben.first} will not allow any model to be considered for deployment unless the evaluation harness has full formal governance.",
-      "holds": {
-        "component": "model.evaluation",
-        "axis": "governance",
-        "op": "gte",
-        "level": 3
-      },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "model.evaluation",
-          "axis": "governance",
-          "value": 3
-        }
-      ],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The model evaluation harness and its formal review process have been raised by {requirements_reuben}."
-    },
-    {
-      "id": "gen_heatwave_forecast_gap_dave_driver_fs_train",
-      "challenge_id": 112,
-      "stakeholder_id": "data_dave",
-      "type": "driver",
-      "description": "{data_dave} proposed that the hand-over from the feature store to the training pipeline should trigger on data arrival. {data_dave.first} wants the training pipeline to start automatically when new feature data arrives, to reduce latency.",
-      "fact": "{data_dave} proposed that the hand-over from the feature store to the training pipeline should trigger on data arrival.",
-      "reading": "{data_dave.first} wants the training pipeline to start automatically when new feature data arrives, to reduce latency.",
-      "metric_id": "data",
-      "suggested": {
-        "target": "e.fs_train",
-        "axis": "automation",
-        "level": 3
-      },
-      "ops": [
-        {
-          "kind": "set_trigger",
-          "target": "e.fs_train",
-          "value": "on_data_arrival"
-        }
-      ],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [
-        "raise_to(e.fs_train, 3)",
-        "set_trigger(e.fs_train, on_data_arrival)"
-      ],
-      "gist": "The hand over from the feature store to the training pipeline has been raised by {data_dave}."
-    },
-    {
-      "id": "gen_heatwave_forecast_gap_dave_tradeoff_gov_tracking",
-      "challenge_id": 112,
-      "stakeholder_id": "data_dave",
-      "type": "trade_off",
-      "description": "{data_dave} mentioned that experiment tracking is done by hand without any formal review. {data_dave.first} would accept a lack of governance on experiment tracking if the data pipeline is automated.",
-      "fact": "{data_dave} mentioned that experiment tracking is done by hand without any formal review.",
-      "reading": "{data_dave.first} would accept a lack of governance on experiment tracking if the data pipeline is automated.",
-      "ops": [],
-      "concedes": {
-        "target": "model.experiment_tracking",
-        "axis": "governance",
-        "accepts_max_level": 0
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "Experiment tracking records for the training data sets are the subject of a note from {data_dave}."
-    },
-    {
-      "id": "gen_heatwave_forecast_gap_emilia_driver_eval_gov",
-      "challenge_id": 112,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "driver",
-      "description": "{efficiency_emilia} asked for the model evaluation harness to have full formal governance to ensure compliance. {efficiency_emilia.first} wants full governance on the evaluation harness to meet compliance requirements.",
-      "fact": "{efficiency_emilia} asked for the model evaluation harness to have full formal governance to ensure compliance.",
-      "reading": "{efficiency_emilia.first} wants full governance on the evaluation harness to meet compliance requirements.",
-      "metric_id": "efficiency",
-      "suggested": {
-        "target": "model.evaluation",
-        "axis": "governance",
-        "level": 3
-      },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The formal governance status of the model evaluation harness keeps surfacing in efficiency reviews with {efficiency_emilia}."
-    },
-    {
-      "id": "gen_heatwave_forecast_gap_emilia_tradeoff_auto_hpo",
-      "challenge_id": 112,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "trade_off",
-      "description": "{efficiency_emilia} noted that hyperparameter tuning is done manually and takes a long time. {efficiency_emilia.first} would accept a lack of automation in hyperparameter tuning if the evaluation is fast.",
-      "fact": "{efficiency_emilia} noted that hyperparameter tuning is done manually and takes a long time.",
-      "reading": "{efficiency_emilia.first} would accept a lack of automation in hyperparameter tuning if the evaluation is fast.",
-      "ops": [],
-      "concedes": {
-        "target": "model.hpo",
-        "axis": "automation",
-        "accepts_max_level": 1
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The time spent on manual hyperparameter tuning has been raised as a recurring operational concern."
-    },
-    {
-      "id": "gen_heatwave_forecast_gap_emilia_tradeoff_gov_registry",
-      "challenge_id": 112,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "trade_off",
-      "description": "{efficiency_emilia} suggested that the model registry could be left without formal sign-off to speed up deployment. {efficiency_emilia.first} would accept a lack of governance on the registry if the deployment is fast.",
-      "fact": "{efficiency_emilia} suggested that the model registry could be left without formal sign-off to speed up deployment.",
-      "reading": "{efficiency_emilia.first} would accept a lack of governance on the registry if the deployment is fast.",
-      "ops": [],
-      "concedes": {
-        "target": "model.registry",
-        "axis": "governance",
-        "accepts_max_level": 0
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "Formal sign-off for the model registry has been raised as a potential bottleneck for deployment speed."
-    },
-    {
-      "id": "gen_heatwave_forecast_gap_fact_eval_broken",
-      "challenge_id": 112,
-      "type": "fact",
-      "description": "The model evaluation harness is broken and does not run. The evaluation harness exists but has stopped working.",
-      "fact": "The model evaluation harness is broken and does not run.",
-      "reading": "The evaluation harness exists but has stopped working.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "model.evaluation",
-        "axis": "automation",
-        "level": 0
-      }
-    },
-    {
-      "id": "gen_heatwave_forecast_gap_fact_registry_absent",
-      "challenge_id": 112,
-      "type": "fact",
-      "description": "The model registry is missing and does not exist. No model registry has ever been implemented.",
-      "fact": "The model registry is missing and does not exist.",
-      "reading": "No model registry has ever been implemented.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "model.registry",
-        "axis": "automation",
-        "level": 1
-      }
-    },
-    {
-      "id": "gen_heatwave_forecast_gap_fact_fs_train_trigger",
-      "challenge_id": 112,
-      "type": "fact",
-      "description": "The hand-over from the feature store to the training pipeline is triggered by a manual request. The trigger for the feature store to training pipeline hand-over is set to manual request.",
-      "fact": "The hand-over from the feature store to the training pipeline is triggered by a manual request.",
-      "reading": "The trigger for the feature store to training pipeline hand-over is set to manual request.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "e.fs_train",
-        "axis": "automation",
-        "level": 2,
-        "trigger": "manual_request"
-      }
-    },
-    {
-      "id": "gen_override_blind_spot_registry_broken_state",
-      "challenge_id": 117,
-      "type": "fact",
-      "description": "The model registry service is currently broken and not accepting new model versions. The registry was paused after a recent migration and has not been restarted.",
-      "fact": "The model registry service is currently broken and not accepting new model versions.",
-      "reading": "The registry was paused after a recent migration and has not been restarted.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "model.registry",
-        "axis": "automation",
-        "level": 0
-      }
-    },
-    {
-      "id": "gen_override_blind_spot_registry_no_governance",
-      "challenge_id": 117,
-      "type": "fact",
-      "description": "No formal review process exists for models entering the registry. The registry has never had a defined review step for incoming models.",
-      "fact": "No formal review process exists for models entering the registry.",
-      "reading": "The registry has never had a defined review step for incoming models.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "model.registry",
-        "axis": "governance",
-        "level": 0
-      }
-    },
-    {
-      "id": "gen_override_blind_spot_eval_manual_trigger",
-      "challenge_id": 117,
-      "type": "fact",
-      "description": "The hand-over from evaluation to registry is triggered manually and runs by hand. The current process requires a human to request the move from evaluation to registry.",
-      "fact": "The hand-over from evaluation to registry is triggered manually and runs by hand.",
-      "reading": "The current process requires a human to request the move from evaluation to registry.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "e.eval_registry",
-        "axis": "automation",
-        "level": 2,
-        "trigger": "manual_request"
-      }
-    },
-    {
-      "id": "gen_override_blind_spot_hpo_missing_state",
-      "challenge_id": 117,
-      "type": "fact",
-      "description": "The hyperparameter tuning process is missing from the standard workflow configuration. The tuning step was never integrated into the current pipeline setup.",
-      "fact": "The hyperparameter tuning process is missing from the standard workflow configuration.",
-      "reading": "The tuning step was never integrated into the current pipeline setup.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "model.hpo",
-        "axis": "automation",
-        "level": 1
-      }
-    },
-    {
-      "id": "gen_override_blind_spot_dave_tradeoff_hpo",
-      "challenge_id": 117,
-      "stakeholder_id": "data_dave",
-      "type": "trade_off",
-      "description": "{data_dave} suggested keeping hyperparameter tuning done by hand to focus on data quality. {data_dave} is willing to keep hyperparameter tuning manual to ensure data integrity.",
-      "fact": "{data_dave} suggested keeping hyperparameter tuning done by hand to focus on data quality.",
-      "reading": "{data_dave} is willing to keep hyperparameter tuning manual to ensure data integrity.",
-      "metric_id": "data",
-      "ops": [],
-      "concedes": {
-        "target": "model.hpo",
-        "axis": "automation",
-        "accepts_max_level": 1
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The practice of manual hyperparameter tuning has come up in discussions about the state of the data pipeline."
-    },
-    {
-      "id": "gen_override_blind_spot_dave_driver_data",
-      "challenge_id": 117,
-      "stakeholder_id": "data_dave",
-      "type": "driver",
-      "description": "{data_dave} proposed improving the automation of the feature store to training pipeline hand-over. {data_dave} wants the feature store to training pipeline hand-over to be fully automated to ensure data freshness.",
-      "fact": "{data_dave} proposed improving the automation of the feature store to training pipeline hand-over.",
-      "reading": "{data_dave} wants the feature store to training pipeline hand-over to be fully automated to ensure data freshness.",
-      "metric_id": "data",
-      "suggested": {
-        "target": "e.fs_train",
-        "axis": "automation",
-        "level": 3
-      },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The feature store to training pipeline hand-over keeps coming up whenever you talk to {data_dave}."
-    },
-    {
-      "id": "gen_override_blind_spot_monica_driver_registry",
-      "challenge_id": 117,
-      "stakeholder_id": "model_monica",
-      "type": "driver",
-      "description": "{model_monica} asked for the model registry to be fully automated to ensure traceability. {model_monica} wants the registry to be automated so that every deployment is traceable and reproducible.",
-      "fact": "{model_monica} asked for the model registry to be fully automated to ensure traceability.",
-      "reading": "{model_monica} wants the registry to be automated so that every deployment is traceable and reproducible.",
-      "metric_id": "model",
-      "suggested": {
-        "target": "model.registry",
-        "axis": "automation",
-        "level": 3
-      },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The model registry and its traceability have been raised by {model_monica} during the recent planning session."
-    },
-    {
-      "id": "gen_override_blind_spot_monica_driver_composite",
-      "challenge_id": 117,
-      "stakeholder_id": "model_monica",
-      "type": "driver",
-      "description": "{model_monica} proposed automating the entire model promotion pipeline from evaluation to deployment. {model_monica} wants the evaluation to registry hand-over and registry to CI/CD hand-over to be automated to speed up deployment.",
-      "fact": "{model_monica} proposed automating the entire model promotion pipeline from evaluation to deployment.",
-      "reading": "{model_monica} wants the evaluation to registry hand-over and registry to CI/CD hand-over to be automated to speed up deployment.",
-      "metric_id": "model",
-      "suggested": {
-        "target": "e.eval_registry",
-        "axis": "automation",
-        "level": 3
-      },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "e.registry_cicd",
-          "axis": "automation",
-          "value": 3
-        }
-      ],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [
-        "raise_to(e.eval_registry, 3)",
-        "raise_to(e.registry_cicd, 3)"
-      ],
-      "gist": "The model promotion pipeline, from evaluation to deployment, keeps coming up in {model_monica}'s notes."
-    },
-    {
-      "id": "gen_override_blind_spot_monica_tradeoff_tracking",
-      "challenge_id": 117,
-      "stakeholder_id": "model_monica",
-      "type": "trade_off",
-      "description": "{model_monica} suggested keeping experiment tracking without formal review to focus on registry automation. {model_monica} is willing to keep experiment tracking without formal review to prioritize registry automation.",
-      "fact": "{model_monica} suggested keeping experiment tracking without formal review to focus on registry automation.",
-      "reading": "{model_monica} is willing to keep experiment tracking without formal review to prioritize registry automation.",
-      "metric_id": "model",
-      "ops": [],
-      "concedes": {
-        "target": "model.experiment_tracking",
-        "axis": "governance",
-        "accepts_max_level": 0
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "Experiment tracking practices within the model registry are the specific topic under discussion."
-    },
-    {
-      "id": "gen_override_blind_spot_monica_tradeoff_eval",
-      "challenge_id": 117,
-      "stakeholder_id": "model_monica",
-      "type": "trade_off",
-      "description": "{model_monica} proposed accepting manual evaluation steps to ensure model quality before deployment. {model_monica} is willing to keep model evaluation manual to ensure thorough quality checks.",
-      "fact": "{model_monica} proposed accepting manual evaluation steps to ensure model quality before deployment.",
-      "reading": "{model_monica} is willing to keep model evaluation manual to ensure thorough quality checks.",
-      "metric_id": "model",
-      "ops": [],
-      "concedes": {
-        "target": "model.evaluation",
-        "axis": "automation",
-        "accepts_max_level": 2
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The question of how the model is evaluated before deployment keeps coming up in team discussions."
-    },
-    {
-      "id": "gen_override_blind_spot_reuben_boundary_registry",
-      "challenge_id": 117,
-      "stakeholder_id": "requirements_reuben",
-      "type": "boundary",
-      "description": "{requirements_reuben} insisted on keeping the model registry process manual to ensure compliance. {requirements_reuben} will not allow the model registry to be automated without a manual, documented review.",
-      "fact": "{requirements_reuben} insisted on keeping the model registry process manual to ensure compliance.",
-      "reading": "{requirements_reuben} will not allow the model registry to be automated without a manual, documented review.",
-      "metric_id": "requirements",
-      "holds": {
-        "component": "model.registry",
-        "axis": "automation",
-        "op": "lte",
-        "level": 2
-      },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "model.registry",
-          "axis": "automation",
-          "value": 2
-        }
-      ],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The compliance posture of the manual model registry process keeps coming up in discussions with {requirements_reuben}."
-    },
-    {
-      "id": "gen_override_blind_spot_reuben_tradeoff_eval",
-      "challenge_id": 117,
-      "stakeholder_id": "requirements_reuben",
-      "type": "trade_off",
-      "description": "{requirements_reuben} suggested keeping model evaluation done by hand to ensure thorough review. {requirements_reuben} is willing to keep model evaluation manual to ensure thorough review.",
-      "fact": "{requirements_reuben} suggested keeping model evaluation done by hand to ensure thorough review.",
-      "reading": "{requirements_reuben} is willing to keep model evaluation manual to ensure thorough review.",
-      "metric_id": "requirements",
-      "ops": [],
-      "concedes": {
-        "target": "model.evaluation",
-        "axis": "automation",
-        "accepts_max_level": 2
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The question of who reviews model evaluation results and how that review is conducted has been raised by {requirements_reuben}."
-    },
-    {
-      "id": "gen_override_blind_spot_emilia_driver_efficiency",
-      "challenge_id": 117,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "driver",
-      "description": "{efficiency_emilia} proposed improving the automation of the retraining trigger to reduce manual intervention. {efficiency_emilia} wants the retraining trigger to be automated to improve operational efficiency.",
-      "fact": "{efficiency_emilia} proposed improving the automation of the retraining trigger to reduce manual intervention.",
-      "reading": "{efficiency_emilia} wants the retraining trigger to be automated to improve operational efficiency.",
-      "metric_id": "efficiency",
-      "suggested": {
-        "target": "e.retrain_train",
-        "axis": "automation",
-        "level": 2
-      },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "Efficiency concerns around the manual retraining trigger process have been raised in recent discussions."
-    },
-    {
-      "id": "gen_override_blind_spot_emilia_tradeoff_cost",
-      "challenge_id": 117,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "trade_off",
-      "description": "{efficiency_emilia} suggested keeping the training pipeline without formal review to reduce costs. {efficiency_emilia} is willing to keep the training pipeline without formal review to reduce costs.",
-      "fact": "{efficiency_emilia} suggested keeping the training pipeline without formal review to reduce costs.",
-      "reading": "{efficiency_emilia} is willing to keep the training pipeline without formal review to reduce costs.",
-      "metric_id": "efficiency",
-      "ops": [],
-      "concedes": {
-        "target": "model.training_pipeline",
-        "axis": "governance",
-        "accepts_max_level": 0
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The training pipeline's review process has been raised in discussions with {efficiency_emilia}."
-    },
-    {
-      "id": "gen_override_blind_spot_emilia_driver_monitoring",
-      "challenge_id": 117,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "driver",
-      "description": "{efficiency_emilia} proposed improving the automation of the drift check to training pipeline hand-over to catch issues early. {efficiency_emilia} wants the drift check to training pipeline hand-over to be automated to improve monitoring.",
-      "fact": "{efficiency_emilia} proposed improving the automation of the drift check to training pipeline hand-over to catch issues early.",
-      "reading": "{efficiency_emilia} wants the drift check to training pipeline hand-over to be automated to improve monitoring.",
-      "metric_id": "efficiency",
-      "suggested": {
-        "target": "e.driftcheck_train",
-        "axis": "automation",
-        "level": 2
-      },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The hand-over from drift checks to training pipelines has been raised in efficiency discussions."
-    },
-    {
       "id": "gen_loyalty_data_deployment_block_alex_pipeline_driver",
       "challenge_id": 115,
       "stakeholder_id": "automation_alex",
@@ -2062,613 +903,6 @@
       }
     },
     {
-      "id": "gen_shadow_deployment_contract_alex_composite_driver",
-      "challenge_id": 118,
-      "stakeholder_id": "automation_alex",
-      "type": "driver",
-      "description": "{automation_alex} proposed wiring the registry hand-off straight through containerization into the shadow hand-off. The more of that chain runs on its own, the fewer manual hops slow a new model down.",
-      "fact": "{automation_alex} proposed wiring the registry hand-off straight through containerization into the shadow hand-off.",
-      "reading": "The more of that chain runs on its own, the fewer manual hops slow a new model down.",
-      "metric_id": "automation",
-      "suggested": {
-        "target": "e.registry_cicd",
-        "axis": "automation",
-        "level": 3
-      },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "e.cicd_container",
-          "axis": "automation",
-          "value": 3
-        },
-        {
-          "kind": "raise_to",
-          "target": "e.cicd_shadow",
-          "axis": "automation",
-          "value": 3
-        }
-      ],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [
-        "raise_to(e.registry_cicd, 3)",
-        "raise_to(e.cicd_container, 3)",
-        "raise_to(e.cicd_shadow, 3)"
-      ],
-      "gist": "The registry hand-off through containerization into the shadow hand-off has been raised as a topic."
-    },
-    {
-      "id": "gen_shadow_deployment_contract_alex_trade_container",
-      "challenge_id": 118,
-      "stakeholder_id": "automation_alex",
-      "type": "trade_off",
-      "description": "{automation_alex} proposed keeping containerization capped at its current hands on setup for now. He would accept containerization staying exactly as it runs today if the rest of the chain moves instead.",
-      "fact": "{automation_alex} proposed keeping containerization capped at its current hands on setup for now.",
-      "reading": "He would accept containerization staying exactly as it runs today if the rest of the chain moves instead.",
-      "ops": [],
-      "concedes": {
-        "target": "deploy.containerization",
-        "axis": "automation",
-        "accepts_max_level": 2
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The current hands on containerization setup is the specific topic {automation_alex} has brought to the team discussion."
-    },
-    {
-      "id": "gen_shadow_deployment_contract_alex_trade_automation_metric",
-      "challenge_id": 118,
-      "stakeholder_id": "automation_alex",
-      "type": "trade_off",
-      "description": "{automation_alex} proposed trading part of his automation budget for faster progress on the shadow hand-off. He would give up part of his automation budget if the shadow hand-off moves forward.",
-      "fact": "{automation_alex} proposed trading part of his automation budget for faster progress on the shadow hand-off.",
-      "reading": "He would give up part of his automation budget if the shadow hand-off moves forward.",
-      "ops": [],
-      "concedes": {
-        "metric_id": "automation",
-        "loss": 4
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The shadow hand-off process and its place in the automation budget keeps coming up in planning discussions."
-    },
-    {
-      "id": "gen_shadow_deployment_contract_alex_trade_gateway",
-      "challenge_id": 118,
-      "stakeholder_id": "automation_alex",
-      "type": "trade_off",
-      "description": "{automation_alex} proposed leaving the hand-off into the gateway exactly as it runs today. He would accept that hand-off staying as it runs today if the shadow chain moves instead.",
-      "fact": "{automation_alex} proposed leaving the hand-off into the gateway exactly as it runs today.",
-      "reading": "He would accept that hand-off staying as it runs today if the shadow chain moves instead.",
-      "ops": [],
-      "concedes": {
-        "target": "e.serving_gateway",
-        "axis": "automation",
-        "accepts_max_level": 1
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The hand-off into the gateway keeps coming up whenever you talk to {automation_alex}."
-    },
-    {
-      "id": "gen_shadow_deployment_contract_reuben_driver_orch",
-      "challenge_id": 118,
-      "stakeholder_id": "requirements_reuben",
-      "type": "driver",
-      "description": "{requirements_reuben} proposed moving the hand-off into orchestration off manual triggering. The less anyone has to trigger that hand-off by hand, the fewer audit gaps show up later.",
-      "fact": "{requirements_reuben} proposed moving the hand-off into orchestration off manual triggering.",
-      "reading": "The less anyone has to trigger that hand-off by hand, the fewer audit gaps show up later.",
-      "metric_id": "requirements",
-      "suggested": {
-        "target": "e.container_orch",
-        "axis": "automation",
-        "level": 3
-      },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "Requirements for the orchestration hand-off process are the subject of the current proposal discussion."
-    },
-    {
-      "id": "gen_shadow_deployment_contract_reuben_trade_cicd",
-      "challenge_id": 118,
-      "stakeholder_id": "requirements_reuben",
-      "type": "trade_off",
-      "description": "{requirements_reuben} proposed leaving the pipeline's sign off step exactly as relaxed as it is today. He would accept the pipeline keeping no formal review step if the shadow hand-off gets fixed first.",
-      "fact": "{requirements_reuben} proposed leaving the pipeline's sign off step exactly as relaxed as it is today.",
-      "reading": "He would accept the pipeline keeping no formal review step if the shadow hand-off gets fixed first.",
-      "ops": [],
-      "concedes": {
-        "target": "deploy.cicd",
-        "axis": "governance",
-        "accepts_max_level": 0
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The sign-off step in the CI/CD pipeline is the subject of a note from {requirements_reuben}."
-    },
-    {
-      "id": "gen_shadow_deployment_contract_ruth_boundary_shadow",
-      "challenge_id": 118,
-      "stakeholder_id": "reliability_ruth",
-      "type": "boundary",
-      "description": "{reliability_ruth} proposed that shadow deployment carry a formal sign off before anything ships through it. She will not accept shadow deployment shipping without that formal sign off in place.",
-      "fact": "{reliability_ruth} proposed that shadow deployment carry a formal sign off before anything ships through it.",
-      "reading": "She will not accept shadow deployment shipping without that formal sign off in place.",
-      "holds": {
-        "component": "deploy.shadow",
-        "axis": "governance",
-        "op": "gte",
-        "level": 3
-      },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "deploy.shadow",
-          "axis": "governance",
-          "value": 3
-        }
-      ],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "Shadow deployment reliability and the formal sign off required before shipping have been raised."
-    },
-    {
-      "id": "gen_shadow_deployment_contract_ruth_trade_canary",
-      "challenge_id": 118,
-      "stakeholder_id": "reliability_ruth",
-      "type": "trade_off",
-      "description": "{reliability_ruth} proposed leaving canary testing exactly as it stands today. She would accept canary testing staying off the roadmap if shadow deployment gets fixed first.",
-      "fact": "{reliability_ruth} proposed leaving canary testing exactly as it stands today.",
-      "reading": "She would accept canary testing staying off the roadmap if shadow deployment gets fixed first.",
-      "ops": [],
-      "concedes": {
-        "target": "deploy.canary_ab",
-        "axis": "automation",
-        "accepts_max_level": 1
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "Canary testing for the forecast pipeline has been raised as a topic for the current reliability review."
-    },
-    {
-      "id": "gen_shadow_deployment_contract_emilia_driver_serving",
-      "challenge_id": 118,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "driver",
-      "description": "{efficiency_emilia} proposed moving model serving fully onto automatic handling. The less anyone has to touch serving by hand, the sooner promotion traffic gets handled.",
-      "fact": "{efficiency_emilia} proposed moving model serving fully onto automatic handling.",
-      "reading": "The less anyone has to touch serving by hand, the sooner promotion traffic gets handled.",
-      "metric_id": "efficiency",
-      "suggested": {
-        "target": "deploy.serving",
-        "axis": "automation",
-        "level": 3
-      },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The nightly forecast job and its serving speed keep coming up in talks with {efficiency_emilia}."
-    },
-    {
-      "id": "gen_shadow_deployment_contract_emilia_driver_gateway",
-      "challenge_id": 118,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "driver",
-      "description": "{efficiency_emilia} proposed giving the gateway its own automatic handling instead of leaving it as is. The sooner that hand-off runs on its own, the faster traffic moves through the gateway.",
-      "fact": "{efficiency_emilia} proposed giving the gateway its own automatic handling instead of leaving it as is.",
-      "reading": "The sooner that hand-off runs on its own, the faster traffic moves through the gateway.",
-      "metric_id": "efficiency",
-      "suggested": {
-        "target": "deploy.api_gateway",
-        "axis": "automation",
-        "level": 2
-      },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The gateway's manual processing workflow has been raised by {efficiency_emilia} as a topic for discussion."
-    },
-    {
-      "id": "gen_shadow_deployment_contract_emilia_boundary_gateway_gov",
-      "challenge_id": 118,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "boundary",
-      "description": "{efficiency_emilia} proposed that the serving layer carry a formal sign off before traffic reaches it. She will not accept the serving layer taking traffic without that formal sign off in place.",
-      "fact": "{efficiency_emilia} proposed that the serving layer carry a formal sign off before traffic reaches it.",
-      "reading": "She will not accept the serving layer taking traffic without that formal sign off in place.",
-      "holds": {
-        "component": "deploy.serving",
-        "axis": "governance",
-        "op": "gte",
-        "level": 3
-      },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "deploy.serving",
-          "axis": "governance",
-          "value": 3
-        }
-      ],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The serving sign off process keeps coming up whenever you talk to {efficiency_emilia}."
-    },
-    {
-      "id": "gen_shadow_deployment_contract_fact_shadow_broken",
-      "challenge_id": 118,
-      "type": "fact",
-      "description": "Shadow deployment is broken; nothing has used it in weeks. That is simply the state shadow deployment is in right now.",
-      "fact": "Shadow deployment is broken; nothing has used it in weeks.",
-      "reading": "That is simply the state shadow deployment is in right now.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "deploy.shadow",
-        "axis": "automation",
-        "level": 0
-      }
-    },
-    {
-      "id": "gen_shadow_deployment_contract_fact_canary_absent",
-      "challenge_id": 118,
-      "type": "fact",
-      "description": "Canary testing does not exist yet for the forecast model. That is simply where canary testing stands today, not yet built.",
-      "fact": "Canary testing does not exist yet for the forecast model.",
-      "reading": "That is simply where canary testing stands today, not yet built.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "deploy.canary_ab",
-        "axis": "automation",
-        "level": 1
-      }
-    },
-    {
-      "id": "gen_shadow_deployment_contract_fact_orch_handoff_manual",
-      "challenge_id": 118,
-      "type": "fact",
-      "description": "The hand-off from containerization into orchestration is still triggered by hand. That is simply the current manual state of the hand-off into orchestration.",
-      "fact": "The hand-off from containerization into orchestration is still triggered by hand.",
-      "reading": "That is simply the current manual state of the hand-off into orchestration.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "e.container_orch",
-        "axis": "automation",
-        "level": 2
-      }
-    },
-    {
-      "id": "gen_silent_forecast_failure_emilia_perf_audit",
-      "challenge_id": 119,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "trade_off",
-      "description": "{efficiency_emilia} proposed keeping the performance monitoring logs reviewed by hand once a month. She would accept a manual monthly audit of the logs to save on tooling costs for the monitoring pipeline.",
-      "fact": "{efficiency_emilia} proposed keeping the performance monitoring logs reviewed by hand once a month.",
-      "reading": "She would accept a manual monthly audit of the logs to save on tooling costs for the monitoring pipeline.",
-      "ops": [],
-      "concedes": {
-        "target": "ops.performance_monitoring",
-        "axis": "automation",
-        "accepts_max_level": 2
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "Manual review of monthly performance monitoring logs keeps coming up in discussions with {efficiency_emilia}."
-    },
-    {
-      "id": "gen_silent_forecast_failure_emilia_drift_pause",
-      "challenge_id": 119,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "trade_off",
-      "description": "{efficiency_emilia} suggested pausing the production drift monitoring tool to reduce infrastructure spend. She would accept pausing the drift monitoring tool if the savings cover the cost of the new alerting service.",
-      "fact": "{efficiency_emilia} suggested pausing the production drift monitoring tool to reduce infrastructure spend.",
-      "reading": "She would accept pausing the drift monitoring tool if the savings cover the cost of the new alerting service.",
-      "ops": [],
-      "concedes": {
-        "target": "ops.production_drift_monitoring",
-        "axis": "automation",
-        "accepts_max_level": 1
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The cost of running the production drift monitoring tool keeps coming up in {efficiency_emilia}'s discussions."
-    },
-    {
-      "id": "gen_silent_forecast_failure_emilia_rollback_manual",
-      "challenge_id": 119,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "trade_off",
-      "description": "{efficiency_emilia} mentioned that the rollback mechanism can remain a manual procedure for now. She would accept keeping the rollback done by hand if it avoids the cost of a new deployment tool.",
-      "fact": "{efficiency_emilia} mentioned that the rollback mechanism can remain a manual procedure for now.",
-      "reading": "She would accept keeping the rollback done by hand if it avoids the cost of a new deployment tool.",
-      "ops": [],
-      "concedes": {
-        "target": "ops.rollback",
-        "axis": "automation",
-        "accepts_max_level": 1
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The manual rollback procedure for the forecast job has been raised as an efficiency topic by {efficiency_emilia}."
-    },
-    {
-      "id": "gen_silent_forecast_failure_emilia_alert_edge",
-      "challenge_id": 119,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "trade_off",
-      "description": "{efficiency_emilia} noted that reconnecting the hand-over from performance monitoring to alerting does not need a new integration layer. She would accept that hand-over being connected by hand if it avoids the expense of new integration tooling.",
-      "fact": "{efficiency_emilia} noted that reconnecting the hand-over from performance monitoring to alerting does not need a new integration layer.",
-      "reading": "She would accept that hand-over being connected by hand if it avoids the expense of new integration tooling.",
-      "ops": [],
-      "concedes": {
-        "target": "e.perf_alert",
-        "axis": "automation",
-        "accepts_max_level": 2
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The hand over from performance monitoring to alerting has been raised as a potential integration cost saving."
-    },
-    {
-      "id": "gen_silent_forecast_failure_ruth_pipeline_driver",
-      "challenge_id": 119,
-      "stakeholder_id": "reliability_ruth",
-      "type": "driver",
-      "description": "{reliability_ruth} asked for the whole monitoring pipeline to run on its own and be governed with formal sign off. She wants the data to flow from observability to performance monitoring and then to alerting without manual steps, with every hand-over reviewed.",
-      "fact": "{reliability_ruth} asked for the whole monitoring pipeline to run on its own and be governed with formal sign off.",
-      "reading": "She wants the data to flow from observability to performance monitoring and then to alerting without manual steps, with every hand-over reviewed.",
-      "metric_id": "reliability",
-      "suggested": {
-        "target": "e.observe_perf",
-        "axis": "automation",
-        "level": 2
-      },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "ops.performance_monitoring",
-          "axis": "governance",
-          "value": 3
-        },
-        {
-          "kind": "raise_to",
-          "target": "ops.alerting",
-          "axis": "governance",
-          "value": 3
-        }
-      ],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [
-        "raise_to(e.observe_perf, 2)",
-        "raise_to(ops.performance_monitoring, 3)",
-        "raise_to(ops.alerting, 3)"
-      ],
-      "gist": "The reliability of the monitoring pipeline has been raised in discussions with {reliability_ruth}."
-    },
-    {
-      "id": "gen_silent_forecast_failure_ruth_alert_govern",
-      "challenge_id": 119,
-      "stakeholder_id": "reliability_ruth",
-      "type": "driver",
-      "description": "{reliability_ruth} proposed that the rollback mechanism be governed with strict sign off. She wants rollbacks to have full governance so that every one is approved and recorded formally.",
-      "fact": "{reliability_ruth} proposed that the rollback mechanism be governed with strict sign off.",
-      "reading": "She wants rollbacks to have full governance so that every one is approved and recorded formally.",
-      "metric_id": "reliability",
-      "suggested": {
-        "target": "ops.rollback",
-        "axis": "governance",
-        "level": 3
-      },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The governance structure for the alerting system keeps coming up in discussions with {reliability_ruth}."
-    },
-    {
-      "id": "gen_silent_forecast_failure_monica_drift_tool",
-      "challenge_id": 119,
-      "stakeholder_id": "model_monica",
-      "type": "trade_off",
-      "description": "{model_monica} asked for the production drift monitoring to be automated with a dedicated tool. She would accept an in-house script if the dedicated tool is too expensive for the current budget.",
-      "fact": "{model_monica} asked for the production drift monitoring to be automated with a dedicated tool.",
-      "reading": "She would accept an in-house script if the dedicated tool is too expensive for the current budget.",
-      "ops": [],
-      "concedes": {
-        "target": "ops.production_drift_monitoring",
-        "axis": "automation",
-        "accepts_max_level": 2
-      },
-      "branch_x": {
-        "description": "Automate drift monitoring with a dedicated tool",
-        "target": "ops.production_drift_monitoring",
-        "axis": "automation",
-        "level": 2,
-        "ops": [],
-        "atoms": []
-      },
-      "branch_y": {
-        "description": "Keep drift monitoring manual",
-        "target": "ops.production_drift_monitoring",
-        "axis": "automation",
-        "level": 1,
-        "ops": [],
-        "atoms": []
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "Drift detection for the forecast model in production is the subject of a note from {model_monica}."
-    },
-    {
-      "id": "gen_silent_forecast_failure_monica_retrain_edge",
-      "challenge_id": 119,
-      "stakeholder_id": "model_monica",
-      "type": "driver",
-      "description": "{model_monica} suggested that the hand-over from performance monitoring to alerting be reconnected so a model problem reaches the team sooner. She wants that hand-over working again so the team hears about a slipping forecast as soon as it shows.",
-      "fact": "{model_monica} suggested that the hand-over from performance monitoring to alerting be reconnected so a model problem reaches the team sooner.",
-      "reading": "She wants that hand-over working again so the team hears about a slipping forecast as soon as it shows.",
-      "metric_id": "model",
-      "suggested": {
-        "target": "e.perf_alert",
-        "axis": "automation",
-        "level": 2
-      },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The hand-over from performance monitoring to alerting keeps coming up whenever you talk to {model_monica}."
-    },
-    {
-      "id": "gen_silent_forecast_failure_reuben_rollback_govern",
-      "challenge_id": 119,
-      "stakeholder_id": "requirements_reuben",
-      "type": "boundary",
-      "description": "{requirements_reuben} brought up that a failing forecast must never go unnoticed, so alerting has to be in place. He will not accept a release while alerting is missing or broken, even if a person has to raise the alarm by hand.",
-      "fact": "{requirements_reuben} brought up that a failing forecast must never go unnoticed, so alerting has to be in place.",
-      "reading": "He will not accept a release while alerting is missing or broken, even if a person has to raise the alarm by hand.",
-      "metric_id": "requirements",
-      "suggested": {
-        "target": "ops.alerting",
-        "axis": "automation",
-        "level": 2
-      },
-      "holds": {
-        "component": "ops.alerting",
-        "axis": "automation",
-        "op": "gte",
-        "level": 2
-      },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "ops.alerting",
-          "axis": "automation",
-          "value": 2
-        }
-      ],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "Whether anyone is alerted about a failing forecast is the subject of a note from {requirements_reuben}."
-    },
-    {
-      "id": "gen_silent_forecast_failure_reuben_observability_govern",
-      "challenge_id": 119,
-      "stakeholder_id": "requirements_reuben",
-      "type": "driver",
-      "description": "{requirements_reuben} proposed that the logging and observability be governed with formal sign off. He wants the logging and observability to be governed so that every log entry is reviewed and signed off for compliance.",
-      "fact": "{requirements_reuben} proposed that the logging and observability be governed with formal sign off.",
-      "reading": "He wants the logging and observability to be governed so that every log entry is reviewed and signed off for compliance.",
-      "metric_id": "requirements",
-      "suggested": {
-        "target": "ops.observability",
-        "axis": "governance",
-        "level": 3
-      },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "Governance of logging and observability is the subject of a note from {requirements_reuben}."
-    },
-    {
-      "id": "gen_silent_forecast_failure_reuben_alert_edge",
-      "challenge_id": 119,
-      "stakeholder_id": "requirements_reuben",
-      "type": "trade_off",
-      "description": "{requirements_reuben} mentioned that the hand-over from alerting to the rollback mechanism can remain manual if the full sign off is delayed. He would accept a manual hand-over from alerting to rollback if the full sign off is delayed by a compliance audit.",
-      "fact": "{requirements_reuben} mentioned that the hand-over from alerting to the rollback mechanism can remain manual if the full sign off is delayed.",
-      "reading": "He would accept a manual hand-over from alerting to rollback if the full sign off is delayed by a compliance audit.",
-      "ops": [],
-      "concedes": {
-        "target": "e.alert_rollback",
-        "axis": "automation",
-        "accepts_max_level": 1
-      },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "Governance of the hand-over from alerting to the rollback mechanism is the subject of a note from {requirements_reuben}."
-    },
-    {
-      "id": "gen_silent_forecast_failure_fact_perf_broken",
-      "challenge_id": 119,
-      "type": "fact",
-      "description": "The performance monitoring pipeline is broken and has not been connected to the alerting service since the last update. That is simply the current state of the performance monitoring pipeline.",
-      "fact": "The performance monitoring pipeline is broken and has not been connected to the alerting service since the last update.",
-      "reading": "That is simply the current state of the performance monitoring pipeline.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "e.perf_alert",
-        "axis": "automation",
-        "level": 0
-      }
-    },
-    {
-      "id": "gen_silent_forecast_failure_fact_alerting_none",
-      "challenge_id": 119,
-      "type": "fact",
-      "description": "The alerting system has no governance and nobody reviews the alerts. That is simply the current state of the alerting governance.",
-      "fact": "The alerting system has no governance and nobody reviews the alerts.",
-      "reading": "That is simply the current state of the alerting governance.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "ops.alerting",
-        "axis": "governance",
-        "level": 0
-      }
-    },
-    {
-      "id": "gen_silent_forecast_failure_fact_observability_manual",
-      "challenge_id": 119,
-      "type": "fact",
-      "description": "The logging and observability is done by hand and has no governance. That is simply the current state of the logging and observability.",
-      "fact": "The logging and observability is done by hand and has no governance.",
-      "reading": "That is simply the current state of the logging and observability.",
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "asserts": {
-        "target": "ops.observability",
-        "axis": "automation",
-        "level": 2
-      }
-    },
-    {
       "id": "gen_cost_crisis_drift_gap_emilia_boundary_drift",
       "challenge_id": 111,
       "stakeholder_id": "efficiency_emilia",
@@ -2900,6 +1134,46 @@
       "gist": "Governance and sign-off for the alerting system is the subject of a note from {requirements_reuben}."
     },
     {
+      "id": "gen_cost_crisis_drift_gap_monica_driver_edge_retrain",
+      "challenge_id": 111,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} asked for the hand-over from alerting to retraining to be automated. She wants retraining to start by itself, because a drifting model should not wait for a person to notice.",
+      "fact": "{model_monica} asked for the hand-over from alerting to retraining to be automated.",
+      "reading": "She wants retraining to start by itself, because a drifting model should not wait for a person to notice.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "e.alert_retrain",
+        "axis": "automation",
+        "level": 3
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "How a drift alert turns into a retraining run is something {model_monica} keeps returning to."
+    },
+    {
+      "id": "gen_cost_crisis_drift_gap_reuben_driver_obs_review",
+      "challenge_id": 111,
+      "stakeholder_id": "requirements_reuben",
+      "type": "driver",
+      "description": "{requirements_reuben} asked for the observability signals to go through a formal review before anyone acts on them. He wants the review because a decision based on an unreviewed signal is hard to defend later.",
+      "fact": "{requirements_reuben} asked for the observability signals to go through a formal review before anyone acts on them.",
+      "reading": "He wants the review because a decision based on an unreviewed signal is hard to defend later.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "ops.observability",
+        "axis": "governance",
+        "level": 3
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Who reviews the observability signals before anyone acts on them is a question {requirements_reuben} raises more than once."
+    },
+    {
       "id": "gen_cost_crisis_drift_gap_fact_drift_broken",
       "challenge_id": 111,
       "type": "fact",
@@ -3045,6 +1319,1754 @@
         "target": "data.ingestion",
         "level": 0,
         "axis": "automation"
+      }
+    },
+    {
+      "id": "gen_committed_pallets_emilia_kpi_trade",
+      "challenge_id": 110,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} mentioned that the KPI definition can remain absent for this promotion cycle. She is willing to skip the KPI definition to keep the allocation feature live for the committed pallets.",
+      "fact": "{efficiency_emilia} mentioned that the KPI definition can remain absent for this promotion cycle.",
+      "reading": "She is willing to skip the KPI definition to keep the allocation feature live for the committed pallets.",
+      "ops": [],
+      "concedes": {
+        "metric_id": "efficiency",
+        "loss": 3,
+        "target": "req.kpi_definition",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The efficiency KPI definition for the current promotion cycle keeps coming up in discussions with {efficiency_emilia}."
+    },
+    {
+      "id": "gen_committed_pallets_emilia_contract_driver",
+      "challenge_id": 110,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} proposed automating the data contracts to speed up the validation of supplier data. Automating the data contracts would reduce the manual effort in checking supplier master data before the allocation runs.",
+      "fact": "{efficiency_emilia} proposed automating the data contracts to speed up the validation of supplier data.",
+      "reading": "Automating the data contracts would reduce the manual effort in checking supplier master data before the allocation runs.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "req.data_contracts",
+        "axis": "automation",
+        "level": 3
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Automating supplier data validation keeps coming up whenever the team discusses improving efficiency."
+    },
+    {
+      "id": "gen_committed_pallets_reuben_boundary_criteria",
+      "challenge_id": 110,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} insisted that the acceptance criteria must have full formal sign off before the trucks leave. He will not allow the allocation feature to ship without full governance on the acceptance criteria.",
+      "fact": "{requirements_reuben} insisted that the acceptance criteria must have full formal sign off before the trucks leave.",
+      "reading": "He will not allow the allocation feature to ship without full governance on the acceptance criteria.",
+      "holds": {
+        "component": "req.acceptance_criteria",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.acceptance_criteria",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The link between formal sign off and the acceptance criteria for departing trucks keeps coming up."
+    },
+    {
+      "id": "gen_committed_pallets_reuben_driver_risk",
+      "challenge_id": 110,
+      "stakeholder_id": "requirements_reuben",
+      "type": "driver",
+      "description": "{requirements_reuben} asked for the risk assessment to be reviewed by a formal compliance body. Formal review of the risk assessment would catch compliance gaps in the allocation logic for the committed pallets.",
+      "fact": "{requirements_reuben} asked for the risk assessment to be reviewed by a formal compliance body.",
+      "reading": "Formal review of the risk assessment would catch compliance gaps in the allocation logic for the committed pallets.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "req.risk_assessment",
+        "axis": "governance",
+        "level": 3
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Formal compliance body review of the middle aisle allocation risk assessment is the topic under discussion."
+    },
+    {
+      "id": "gen_committed_pallets_reuben_trade_contracts",
+      "challenge_id": 110,
+      "stakeholder_id": "requirements_reuben",
+      "type": "trade_off",
+      "description": "{requirements_reuben} noted that the data contracts can be left without formal review for this specific cycle. He is willing to skip the formal review of data contracts to prioritize the acceptance criteria sign off.",
+      "fact": "{requirements_reuben} noted that the data contracts can be left without formal review for this specific cycle.",
+      "reading": "He is willing to skip the formal review of data contracts to prioritize the acceptance criteria sign off.",
+      "ops": [],
+      "concedes": {
+        "metric_id": "requirements",
+        "loss": 2,
+        "target": "req.data_contracts",
+        "axis": "governance",
+        "accepts_max_level": 0
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Formal review of data contracts for this cycle keeps coming up in {requirements_reuben}'s notes."
+    },
+    {
+      "id": "gen_committed_pallets_alex_driver_pipeline",
+      "challenge_id": 110,
+      "stakeholder_id": "automation_alex",
+      "type": "driver",
+      "description": "{automation_alex} proposed automating the hand over from risk assessment to acceptance criteria and the acceptance criteria evaluation step. Automating the risk to criteria hand over and the evaluation step would speed up the ship.",
+      "fact": "{automation_alex} proposed automating the hand over from risk assessment to acceptance criteria and the acceptance criteria evaluation step.",
+      "reading": "Automating the risk to criteria hand over and the evaluation step would speed up the ship.",
+      "metric_id": "automation",
+      "suggested": {
+        "target": "e.risk_acceptance",
+        "axis": "automation",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.acceptance_eval",
+          "axis": "automation",
+          "value": 3
+        }
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(e.risk_acceptance, 3)",
+        "raise_to(e.acceptance_eval, 3)"
+      ],
+      "gist": "Automating the transition from risk assessment to acceptance criteria evaluation has been proposed for the workflow."
+    },
+    {
+      "id": "gen_committed_pallets_alex_trade_risk",
+      "challenge_id": 110,
+      "stakeholder_id": "automation_alex",
+      "type": "trade_off",
+      "description": "{automation_alex} mentioned that the risk assessment can be done by hand for this promotion week. He is willing to keep the risk assessment manual to allow more time for automating the hand overs.",
+      "fact": "{automation_alex} mentioned that the risk assessment can be done by hand for this promotion week.",
+      "reading": "He is willing to keep the risk assessment manual to allow more time for automating the hand overs.",
+      "ops": [],
+      "concedes": {
+        "metric_id": "automation",
+        "loss": 1,
+        "target": "req.risk_assessment",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The manual execution of the risk assessment process for this promotion week has been brought up."
+    },
+    {
+      "id": "gen_committed_pallets_ruth_trade_criteria",
+      "challenge_id": 110,
+      "stakeholder_id": "reliability_ruth",
+      "type": "trade_off",
+      "description": "{reliability_ruth} suggested that the acceptance criteria can be checked by hand to ship the feature immediately. She is willing to accept manual checks on the acceptance criteria to ensure the feature is live for the committed pallets.",
+      "fact": "{reliability_ruth} suggested that the acceptance criteria can be checked by hand to ship the feature immediately.",
+      "reading": "She is willing to accept manual checks on the acceptance criteria to ensure the feature is live for the committed pallets.",
+      "ops": [],
+      "concedes": {
+        "metric_id": "reliability",
+        "loss": 4,
+        "target": "req.acceptance_criteria",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The method for verifying acceptance criteria before a feature ships has been raised by {reliability_ruth}."
+    },
+    {
+      "id": "gen_committed_pallets_ruth_driver_edge",
+      "challenge_id": 110,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} asked for the hand over from risk assessment to acceptance criteria to run on its own. Automating the risk to criteria hand over would ensure the allocation feature is tested and ready for the live orders.",
+      "fact": "{reliability_ruth} asked for the hand over from risk assessment to acceptance criteria to run on its own.",
+      "reading": "Automating the risk to criteria hand over would ensure the allocation feature is tested and ready for the live orders.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "e.risk_acceptance",
+        "axis": "automation",
+        "level": 3
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The automated hand over from risk assessment to acceptance criteria has been raised in reliability discussions."
+    },
+    {
+      "id": "gen_committed_pallets_fact_criteria_state",
+      "challenge_id": 110,
+      "type": "fact",
+      "description": "The acceptance criteria for the allocation module are currently broken and have no formal sign off. That is simply the current state of the acceptance criteria.",
+      "fact": "The acceptance criteria for the allocation module are currently broken and have no formal sign off.",
+      "reading": "That is simply the current state of the acceptance criteria.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "req.acceptance_criteria",
+        "axis": "automation",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_committed_pallets_fact_risk_state",
+      "challenge_id": 110,
+      "type": "fact",
+      "description": "The risk assessment for the promotion allocation is done by hand and has no formal review. That is simply the current state of the risk assessment.",
+      "fact": "The risk assessment for the promotion allocation is done by hand and has no formal review.",
+      "reading": "That is simply the current state of the risk assessment.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "req.risk_assessment",
+        "axis": "automation",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_committed_pallets_fact_edge_state",
+      "challenge_id": 110,
+      "type": "fact",
+      "description": "The hand over from risk assessment to acceptance criteria is missing and has no trigger set. That is simply the current state of the hand over from risk assessment to acceptance criteria.",
+      "fact": "The hand over from risk assessment to acceptance criteria is missing and has no trigger set.",
+      "reading": "That is simply the current state of the hand over from risk assessment to acceptance criteria.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.risk_acceptance",
+        "axis": "automation",
+        "level": 1,
+        "trigger": "none"
+      }
+    },
+    {
+      "id": "gen_override_blind_spot_monica_registry_traceability",
+      "challenge_id": 117,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} proposed a fully automated model registry where every deployment is traceable and reproducible. She wants the registry to run on its own for quick version checks.",
+      "fact": "{model_monica} proposed a fully automated model registry where every deployment is traceable and reproducible.",
+      "reading": "She wants the registry to run on its own for quick version checks.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "model.registry",
+        "axis": "automation",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.eval_registry",
+          "axis": "automation",
+          "value": 3
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.registry_cicd",
+          "axis": "automation",
+          "value": 3
+        }
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(model.registry, 3)",
+        "raise_to(e.eval_registry, 3)",
+        "raise_to(e.registry_cicd, 3)"
+      ],
+      "gist": "The versioning and lineage of model artifacts have been raised by {model_monica}."
+    },
+    {
+      "id": "gen_override_blind_spot_monica_eval_registry_handover",
+      "challenge_id": 117,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} asked for the hand-over from model evaluation to the registry to be automated. She wants evaluation results to flow into the registry without a manual step.",
+      "fact": "{model_monica} asked for the hand-over from model evaluation to the registry to be automated.",
+      "reading": "She wants evaluation results to flow into the registry without a manual step.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "e.eval_registry",
+        "axis": "automation",
+        "level": 3
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Model evaluation and registry handover processes have been raised by {model_monica}."
+    },
+    {
+      "id": "gen_override_blind_spot_monica_experiment_tracking",
+      "challenge_id": 117,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} mentioned that experiment tracking is currently done by hand. She would accept keeping experiment tracking done by hand if the registry automation is prioritized.",
+      "fact": "{model_monica} mentioned that experiment tracking is currently done by hand.",
+      "reading": "She would accept keeping experiment tracking done by hand if the registry automation is prioritized.",
+      "ops": [],
+      "concedes": {
+        "target": "model.experiment_tracking",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "How model experiments are recorded and tracked has been mentioned by {model_monica}."
+    },
+    {
+      "id": "gen_override_blind_spot_monica_training_pipeline",
+      "challenge_id": 117,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} noted that the training pipeline is currently done by hand. She would accept keeping the training pipeline done by hand if the registry and evaluation hand-over are automated.",
+      "fact": "{model_monica} noted that the training pipeline is currently done by hand.",
+      "reading": "She would accept keeping the training pipeline done by hand if the registry and evaluation hand-over are automated.",
+      "ops": [],
+      "concedes": {
+        "target": "model.training_pipeline",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The model training pipeline has been raised as a topic of concern in recent team discussions."
+    },
+    {
+      "id": "gen_override_blind_spot_reuben_registry_governance",
+      "challenge_id": 117,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} proposed that no model enters the registry without a manual, documented review of its evaluation metrics. He will not allow a model to be registered without a human signing off.",
+      "fact": "{requirements_reuben} proposed that no model enters the registry without a manual, documented review of its evaluation metrics.",
+      "reading": "He will not allow a model to be registered without a human signing off.",
+      "holds": {
+        "component": "model.registry",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The documented review of evaluation metrics before a model enters the registry has been raised."
+    },
+    {
+      "id": "gen_override_blind_spot_reuben_eval_registry_governance",
+      "challenge_id": 117,
+      "stakeholder_id": "requirements_reuben",
+      "type": "trade_off",
+      "description": "{requirements_reuben} noted that the hand-over from evaluation to registry is currently done by hand. He would accept an automated hand-over if the registry itself had a manual review step.",
+      "fact": "{requirements_reuben} noted that the hand-over from evaluation to registry is currently done by hand.",
+      "reading": "He would accept an automated hand-over if the registry itself had a manual review step.",
+      "ops": [],
+      "concedes": {
+        "target": "e.eval_registry",
+        "axis": "governance",
+        "accepts_max_level": 0
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The hand-over from evaluation to registry keeps coming up whenever you talk to {requirements_reuben}."
+    },
+    {
+      "id": "gen_override_blind_spot_dave_drift_check",
+      "challenge_id": 117,
+      "stakeholder_id": "data_dave",
+      "type": "driver",
+      "description": "{data_dave} proposed automating the hand off from hyperparameter tuning to the training pipeline. He wants the hand off to fire automatically so training starts without delay.",
+      "fact": "{data_dave} proposed automating the hand off from hyperparameter tuning to the training pipeline.",
+      "reading": "He wants the hand off to fire automatically so training starts without delay.",
+      "metric_id": "data",
+      "suggested": {
+        "target": "e.hpo_train",
+        "axis": "automation",
+        "level": 3
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The data hand off from hyperparameter tuning to the training pipeline keeps coming up."
+    },
+    {
+      "id": "gen_override_blind_spot_dave_feature_store",
+      "challenge_id": 117,
+      "stakeholder_id": "data_dave",
+      "type": "trade_off",
+      "description": "{data_dave} mentioned that the feature store hand-over is currently done by hand. He would accept keeping the feature store hand-over done by hand if the drift check was automated.",
+      "fact": "{data_dave} mentioned that the feature store hand-over is currently done by hand.",
+      "reading": "He would accept keeping the feature store hand-over done by hand if the drift check was automated.",
+      "ops": [],
+      "concedes": {
+        "target": "e.fs_train",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The hand-over of features into the store keeps coming up whenever the data team talks."
+    },
+    {
+      "id": "gen_override_blind_spot_emilia_hpo",
+      "challenge_id": 117,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted that hyperparameter tuning is currently missing. She would accept keeping hyperparameter tuning missing if the registry and evaluation were fully automated.",
+      "fact": "{efficiency_emilia} noted that hyperparameter tuning is currently missing.",
+      "reading": "She would accept keeping hyperparameter tuning missing if the registry and evaluation were fully automated.",
+      "ops": [],
+      "concedes": {
+        "target": "model.hpo",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Hyperparameter tuning in the weekly model retraining workflow keeps coming up in conversations with {efficiency_emilia}."
+    },
+    {
+      "id": "gen_override_blind_spot_emilia_evaluation",
+      "challenge_id": 117,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} mentioned that model evaluation is currently done by hand. She wants to automate model evaluation to reduce the time to market.",
+      "fact": "{efficiency_emilia} mentioned that model evaluation is currently done by hand.",
+      "reading": "She wants to automate model evaluation to reduce the time to market.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "model.evaluation",
+        "axis": "automation",
+        "level": 3
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The current manual approach to evaluating model performance has been brought up by {efficiency_emilia}."
+    },
+    {
+      "id": "gen_override_blind_spot_emilia_retraining",
+      "challenge_id": 117,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted that the retraining trigger is currently missing. She would accept keeping the retraining trigger missing if the registry and evaluation were fully automated.",
+      "fact": "{efficiency_emilia} noted that the retraining trigger is currently missing.",
+      "reading": "She would accept keeping the retraining trigger missing if the registry and evaluation were fully automated.",
+      "ops": [],
+      "concedes": {
+        "target": "e.retrain_train",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The retraining trigger for Shelfcast models keeps coming up in conversations with {efficiency_emilia}."
+    },
+    {
+      "id": "gen_override_blind_spot_fact_registry_broken",
+      "challenge_id": 117,
+      "type": "fact",
+      "description": "The model registry is broken and cannot accept new model versions. The registry exists but is currently non functional.",
+      "fact": "The model registry is broken and cannot accept new model versions.",
+      "reading": "The registry exists but is currently non functional.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "model.registry",
+        "axis": "automation",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_override_blind_spot_fact_eval_registry_handover",
+      "challenge_id": 117,
+      "type": "fact",
+      "description": "The hand-over from model evaluation to the registry is done by hand and triggered by a manual request. A human must manually move the evaluation results to the registry today.",
+      "fact": "The hand-over from model evaluation to the registry is done by hand and triggered by a manual request.",
+      "reading": "A human must manually move the evaluation results to the registry today.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.eval_registry",
+        "axis": "automation",
+        "level": 2,
+        "trigger": "manual_request"
+      }
+    },
+    {
+      "id": "gen_override_blind_spot_fact_drift_check",
+      "challenge_id": 117,
+      "type": "fact",
+      "description": "The drift check before training is missing and has no trigger. There is currently no automated or manual drift check in the pipeline.",
+      "fact": "The drift check before training is missing and has no trigger.",
+      "reading": "There is currently no automated or manual drift check in the pipeline.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.driftcheck_train",
+        "axis": "automation",
+        "level": 1,
+        "trigger": "none"
+      }
+    },
+    {
+      "id": "gen_silent_forecast_failure_emilia_perf_audit",
+      "challenge_id": 119,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} proposed keeping the performance monitoring logs reviewed by hand once a month. She would accept a manual monthly audit of the logs to save on tooling costs for the monitoring pipeline.",
+      "fact": "{efficiency_emilia} proposed keeping the performance monitoring logs reviewed by hand once a month.",
+      "reading": "She would accept a manual monthly audit of the logs to save on tooling costs for the monitoring pipeline.",
+      "ops": [],
+      "concedes": {
+        "target": "ops.performance_monitoring",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Manual review of monthly performance monitoring logs keeps coming up in discussions with {efficiency_emilia}."
+    },
+    {
+      "id": "gen_silent_forecast_failure_emilia_drift_pause",
+      "challenge_id": 119,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} suggested pausing the production drift monitoring tool to reduce infrastructure spend. She would accept pausing the drift monitoring tool if the savings cover the cost of the new alerting service.",
+      "fact": "{efficiency_emilia} suggested pausing the production drift monitoring tool to reduce infrastructure spend.",
+      "reading": "She would accept pausing the drift monitoring tool if the savings cover the cost of the new alerting service.",
+      "ops": [],
+      "concedes": {
+        "target": "ops.production_drift_monitoring",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The cost of running the production drift monitoring tool keeps coming up in {efficiency_emilia}'s discussions."
+    },
+    {
+      "id": "gen_silent_forecast_failure_emilia_rollback_manual",
+      "challenge_id": 119,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} mentioned that the rollback mechanism can remain a manual procedure for now. She would accept keeping the rollback done by hand if it avoids the cost of a new deployment tool.",
+      "fact": "{efficiency_emilia} mentioned that the rollback mechanism can remain a manual procedure for now.",
+      "reading": "She would accept keeping the rollback done by hand if it avoids the cost of a new deployment tool.",
+      "ops": [],
+      "concedes": {
+        "target": "ops.rollback",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The manual rollback procedure for the forecast job has been raised as an efficiency topic by {efficiency_emilia}."
+    },
+    {
+      "id": "gen_silent_forecast_failure_emilia_alert_edge",
+      "challenge_id": 119,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted that reconnecting the hand-over from performance monitoring to alerting does not need a new integration layer. She would accept that hand-over being connected by hand if it avoids the expense of new integration tooling.",
+      "fact": "{efficiency_emilia} noted that reconnecting the hand-over from performance monitoring to alerting does not need a new integration layer.",
+      "reading": "She would accept that hand-over being connected by hand if it avoids the expense of new integration tooling.",
+      "ops": [],
+      "concedes": {
+        "target": "e.perf_alert",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The hand over from performance monitoring to alerting has been raised by {efficiency_emilia} as a topic for discussion."
+    },
+    {
+      "id": "gen_silent_forecast_failure_ruth_pipeline_driver",
+      "challenge_id": 119,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} asked for the monitoring hand off to fire automatically and for monitoring and alerting to need formal sign off. She wants the hand off to trigger without anyone, with an owner approving monitoring and alert changes.",
+      "fact": "{reliability_ruth} asked for the monitoring hand off to fire automatically and for monitoring and alerting to need formal sign off.",
+      "reading": "She wants the hand off to trigger without anyone, with an owner approving monitoring and alert changes.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "e.observe_perf",
+        "axis": "automation",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.performance_monitoring",
+          "axis": "governance",
+          "value": 3
+        },
+        {
+          "kind": "raise_to",
+          "target": "ops.alerting",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(e.observe_perf, 3)",
+        "raise_to(ops.performance_monitoring, 3)",
+        "raise_to(ops.alerting, 3)"
+      ],
+      "gist": "The monitoring hand off and its required formal sign off are the subject of this note."
+    },
+    {
+      "id": "gen_silent_forecast_failure_ruth_alert_govern",
+      "challenge_id": 119,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} proposed that the alerting system be governed with strict sign off. She wants the alerting system to have full governance so that every alert is acknowledged and resolved with a formal record.",
+      "fact": "{reliability_ruth} proposed that the alerting system be governed with strict sign off.",
+      "reading": "She wants the alerting system to have full governance so that every alert is acknowledged and resolved with a formal record.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "ops.alerting",
+        "axis": "governance",
+        "level": 3
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The governance structure for the alerting system keeps coming up in discussions with {reliability_ruth}."
+    },
+    {
+      "id": "gen_silent_forecast_failure_monica_drift_tool",
+      "challenge_id": 119,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} asked for the production drift monitoring to be automated with a dedicated tool. She would accept an in-house script if the dedicated tool is too expensive for the current budget.",
+      "fact": "{model_monica} asked for the production drift monitoring to be automated with a dedicated tool.",
+      "reading": "She would accept an in-house script if the dedicated tool is too expensive for the current budget.",
+      "ops": [],
+      "concedes": {
+        "target": "ops.production_drift_monitoring",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x": {
+        "description": "Automate drift monitoring with a dedicated tool",
+        "target": "ops.production_drift_monitoring",
+        "axis": "automation",
+        "level": 2,
+        "ops": [],
+        "atoms": []
+      },
+      "branch_y": {
+        "description": "Keep drift monitoring manual",
+        "target": "ops.production_drift_monitoring",
+        "axis": "automation",
+        "level": 1,
+        "ops": [],
+        "atoms": []
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Drift detection for the forecast model in production is the subject of a note from {model_monica}."
+    },
+    {
+      "id": "gen_silent_forecast_failure_monica_retrain_edge",
+      "challenge_id": 119,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} suggested that the hand-over from performance monitoring to alerting be reconnected so a model problem reaches the team sooner. She wants that hand-over working again so the team hears about a slipping forecast as soon as it shows.",
+      "fact": "{model_monica} suggested that the hand-over from performance monitoring to alerting be reconnected so a model problem reaches the team sooner.",
+      "reading": "She wants that hand-over working again so the team hears about a slipping forecast as soon as it shows.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "e.perf_alert",
+        "axis": "automation",
+        "level": 2
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Reconnecting the hand-over from performance monitoring to alerting keeps coming up in discussions about the model."
+    },
+    {
+      "id": "gen_silent_forecast_failure_reuben_rollback_govern",
+      "challenge_id": 119,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} noted that the alerting system is currently missing from the workflow. He will not accept a release if alerting is absent or broken.",
+      "fact": "{requirements_reuben} noted that the alerting system is currently missing from the workflow.",
+      "reading": "He will not accept a release if alerting is absent or broken.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "ops.alerting",
+        "axis": "automation",
+        "level": 2
+      },
+      "holds": {
+        "component": "ops.alerting",
+        "axis": "automation",
+        "op": "gte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.alerting",
+          "axis": "automation",
+          "value": 2
+        }
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Alerting for the replenishment workflow is the specific topic {requirements_reuben} has raised."
+    },
+    {
+      "id": "gen_silent_forecast_failure_reuben_observability_govern",
+      "challenge_id": 119,
+      "stakeholder_id": "requirements_reuben",
+      "type": "driver",
+      "description": "{requirements_reuben} proposed that the logging and observability be governed with formal sign off. He wants the logging and observability to be governed so that every log entry is reviewed and signed off for compliance.",
+      "fact": "{requirements_reuben} proposed that the logging and observability be governed with formal sign off.",
+      "reading": "He wants the logging and observability to be governed so that every log entry is reviewed and signed off for compliance.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "ops.observability",
+        "axis": "governance",
+        "level": 3
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Governance of logging and observability is the subject of a note from {requirements_reuben}."
+    },
+    {
+      "id": "gen_silent_forecast_failure_reuben_alert_edge",
+      "challenge_id": 119,
+      "stakeholder_id": "requirements_reuben",
+      "type": "trade_off",
+      "description": "{requirements_reuben} mentioned that the hand-over from alerting to the rollback mechanism can remain manual if the full sign off is delayed. He would accept a manual hand-over from alerting to rollback if the full sign off is delayed by a compliance audit.",
+      "fact": "{requirements_reuben} mentioned that the hand-over from alerting to the rollback mechanism can remain manual if the full sign off is delayed.",
+      "reading": "He would accept a manual hand-over from alerting to rollback if the full sign off is delayed by a compliance audit.",
+      "ops": [],
+      "concedes": {
+        "target": "e.alert_rollback",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Governance of the hand-over from alerting to the rollback mechanism is the subject of a note from {requirements_reuben}."
+    },
+    {
+      "id": "gen_silent_forecast_failure_fact_perf_broken",
+      "challenge_id": 119,
+      "type": "fact",
+      "description": "The performance monitoring pipeline is broken and has not been connected to the alerting service since the last update. That is simply the current state of the performance monitoring pipeline.",
+      "fact": "The performance monitoring pipeline is broken and has not been connected to the alerting service since the last update.",
+      "reading": "That is simply the current state of the performance monitoring pipeline.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.perf_alert",
+        "axis": "automation",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_silent_forecast_failure_fact_alerting_none",
+      "challenge_id": 119,
+      "type": "fact",
+      "description": "The alerting system has no governance and nobody reviews the alerts. That is simply the current state of the alerting governance.",
+      "fact": "The alerting system has no governance and nobody reviews the alerts.",
+      "reading": "That is simply the current state of the alerting governance.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "ops.alerting",
+        "axis": "governance",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_silent_forecast_failure_fact_observability_manual",
+      "challenge_id": 119,
+      "type": "fact",
+      "description": "The logging and observability is done by hand and has no governance. That is simply the current state of the logging and observability.",
+      "fact": "The logging and observability is done by hand and has no governance.",
+      "reading": "That is simply the current state of the logging and observability.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "ops.observability",
+        "axis": "automation",
+        "level": 2
+      }
+    },
+    {
+      "id": "gen_loyalty_consent_gap_reuben_composite_driver",
+      "challenge_id": 114,
+      "stakeholder_id": "requirements_reuben",
+      "type": "driver",
+      "description": "{requirements_reuben} wants the hand-off to fire automatically while the rest stays manual. He wants the hand-off to fire automatically without waiting for a human.",
+      "fact": "{requirements_reuben} wants the hand-off to fire automatically while the rest stays manual.",
+      "reading": "He wants the hand-off to fire automatically without waiting for a human.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "e.risk_acceptance",
+        "axis": "automation",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.acceptance_criteria",
+          "axis": "automation",
+          "value": 2
+        },
+        {
+          "kind": "raise_to",
+          "target": "req.risk_assessment",
+          "axis": "automation",
+          "value": 2
+        }
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(e.risk_acceptance, 3)",
+        "raise_to(req.acceptance_criteria, 2)",
+        "raise_to(req.risk_assessment, 2)"
+      ],
+      "gist": "The automated hand off of loyalty data is the specific process under discussion by {requirements_reuben}."
+    },
+    {
+      "id": "gen_loyalty_consent_gap_reuben_boundary",
+      "challenge_id": 114,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} proposed that the consent rules be written into the data contracts before anything uses them. He will not accept loyalty data being used while the data contracts are missing or broken.",
+      "fact": "{requirements_reuben} proposed that the consent rules be written into the data contracts before anything uses them.",
+      "reading": "He will not accept loyalty data being used while the data contracts are missing or broken.",
+      "holds": {
+        "component": "req.data_contracts",
+        "axis": "automation",
+        "op": "gte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.data_contracts",
+          "axis": "automation",
+          "value": 2
+        }
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The scope of loyalty data contract requirements regarding consent rules has been raised for discussion."
+    },
+    {
+      "id": "gen_loyalty_consent_gap_reuben_trade_kpi",
+      "challenge_id": 114,
+      "stakeholder_id": "requirements_reuben",
+      "type": "trade_off",
+      "description": "{requirements_reuben} proposed leaving the KPI definitions exactly as hand reviewed as they are today. He would accept the KPI definitions staying hand reviewed if the data contracts audit lands first.",
+      "fact": "{requirements_reuben} proposed leaving the KPI definitions exactly as hand reviewed as they are today.",
+      "reading": "He would accept the KPI definitions staying hand reviewed if the data contracts audit lands first.",
+      "ops": [],
+      "concedes": {
+        "target": "req.kpi_definition",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The current state of KPI definition review practices keeps coming up whenever the loyalty data audit is discussed."
+    },
+    {
+      "id": "gen_loyalty_consent_gap_reuben_trade_metric",
+      "challenge_id": 114,
+      "stakeholder_id": "requirements_reuben",
+      "type": "trade_off",
+      "description": "{requirements_reuben} proposed dropping the owner sign off on the acceptance criteria to get the audit moving. He would drop that sign off if it gets the audit moving sooner.",
+      "fact": "{requirements_reuben} proposed dropping the owner sign off on the acceptance criteria to get the audit moving.",
+      "reading": "He would drop that sign off if it gets the audit moving sooner.",
+      "ops": [],
+      "concedes": {
+        "metric_id": "requirements",
+        "loss": 3,
+        "target": "req.acceptance_criteria",
+        "axis": "governance",
+        "accepts_max_level": 0
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Requirements for the loyalty data audit acceptance criteria are on the agenda."
+    },
+    {
+      "id": "gen_loyalty_consent_gap_emilia_trade_contracts",
+      "challenge_id": 114,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} proposed a middle ground on how far the data contracts audit goes. She would accept the audit staying partial if the leaflet planning cycle keeps moving.",
+      "fact": "{efficiency_emilia} proposed a middle ground on how far the data contracts audit goes.",
+      "reading": "She would accept the audit staying partial if the leaflet planning cycle keeps moving.",
+      "ops": [],
+      "concedes": {
+        "target": "req.data_contracts",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The cost and effort of the data contracts audit is the subject of a note from {efficiency_emilia}."
+    },
+    {
+      "id": "gen_loyalty_consent_gap_emilia_boundary",
+      "challenge_id": 114,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "boundary",
+      "description": "{efficiency_emilia} asked for a formal sign off on the data contracts. She will not let the pipeline run without that formal sign off in place.",
+      "fact": "{efficiency_emilia} asked for a formal sign off on the data contracts.",
+      "reading": "She will not let the pipeline run without that formal sign off in place.",
+      "holds": {
+        "axis": "governance",
+        "op": "gte",
+        "level": 3,
+        "component": "req.data_contracts"
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.data_contracts",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The loyalty data audit keeps coming up whenever {efficiency_emilia} discusses the middle aisle allocation pipeline."
+    },
+    {
+      "id": "gen_loyalty_consent_gap_alex_driver",
+      "challenge_id": 114,
+      "stakeholder_id": "automation_alex",
+      "type": "driver",
+      "description": "{automation_alex} proposed automating the hand-off from risk assessment to acceptance criteria. The hand-off should fire automatically so risk reviews move faster.",
+      "fact": "{automation_alex} proposed automating the hand-off from risk assessment to acceptance criteria.",
+      "reading": "The hand-off should fire automatically so risk reviews move faster.",
+      "metric_id": "automation",
+      "suggested": {
+        "target": "e.risk_acceptance",
+        "axis": "automation",
+        "level": 3
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The automated hand-off from risk assessment to acceptance criteria has been raised in {automation_alex} discussions."
+    },
+    {
+      "id": "gen_loyalty_consent_gap_alex_trade_metric",
+      "challenge_id": 114,
+      "stakeholder_id": "automation_alex",
+      "type": "trade_off",
+      "description": "{automation_alex} proposed leaving the KPI definitions agreed by hand so the audit work comes first. He would leave the KPI definitions agreed by hand if the audit work comes first.",
+      "fact": "{automation_alex} proposed leaving the KPI definitions agreed by hand so the audit work comes first.",
+      "reading": "He would leave the KPI definitions agreed by hand if the audit work comes first.",
+      "ops": [],
+      "concedes": {
+        "metric_id": "automation",
+        "loss": 4,
+        "target": "req.kpi_definition",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The automation level of KPI definitions is the topic of the note, which mentions the loyalty data audit."
+    },
+    {
+      "id": "gen_loyalty_consent_gap_alex_trade_kpi_gov",
+      "challenge_id": 114,
+      "stakeholder_id": "automation_alex",
+      "type": "trade_off",
+      "description": "{automation_alex} proposed leaving KPI governance exactly as relaxed as it is today. He would accept KPI definitions keeping no formal review step if the audit lands first.",
+      "fact": "{automation_alex} proposed leaving KPI governance exactly as relaxed as it is today.",
+      "reading": "He would accept KPI definitions keeping no formal review step if the audit lands first.",
+      "ops": [],
+      "concedes": {
+        "target": "req.kpi_definition",
+        "axis": "governance",
+        "accepts_max_level": 0
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The level of automation applied to KPI checks during the loyalty data audit keeps coming up."
+    },
+    {
+      "id": "gen_loyalty_consent_gap_ruth_driver",
+      "challenge_id": 114,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} proposed that risk assessment carry a formal owner sign off. A signed off risk assessment gives every later check something firm to rest on.",
+      "fact": "{reliability_ruth} proposed that risk assessment carry a formal owner sign off.",
+      "reading": "A signed off risk assessment gives every later check something firm to rest on.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "req.risk_assessment",
+        "axis": "governance",
+        "level": 3
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Formal ownership of the reliability risk assessment for the loyalty data pipeline keeps coming up."
+    },
+    {
+      "id": "gen_loyalty_consent_gap_ruth_boundary",
+      "challenge_id": 114,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} wants a named owner to sign off on the risk assessment hand-off. She refuses to let that hand-off proceed without a formal owner sign off.",
+      "fact": "{reliability_ruth} wants a named owner to sign off on the risk assessment hand-off.",
+      "reading": "She refuses to let that hand-off proceed without a formal owner sign off.",
+      "holds": {
+        "axis": "governance",
+        "op": "gte",
+        "level": 3,
+        "edge": "e.risk_acceptance"
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.risk_acceptance",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The risk assessment hand off for loyalty data keeps coming up whenever you talk to {reliability_ruth}."
+    },
+    {
+      "id": "gen_loyalty_consent_gap_fact_kpi_manual",
+      "challenge_id": 114,
+      "type": "fact",
+      "description": "KPI definitions are still agreed on by hand each cycle. That is simply how the KPI definitions get agreed on today.",
+      "fact": "KPI definitions are still agreed on by hand each cycle.",
+      "reading": "That is simply how the KPI definitions get agreed on today.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "req.kpi_definition",
+        "axis": "automation",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_loyalty_consent_gap_fact_risk_manual",
+      "challenge_id": 114,
+      "type": "fact",
+      "description": "Risk assessment for new data sources is still done by hand. That is simply how new data sources get reviewed today.",
+      "fact": "Risk assessment for new data sources is still done by hand.",
+      "reading": "That is simply how new data sources get reviewed today.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "req.risk_assessment",
+        "axis": "automation",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_loyalty_consent_gap_fact_contracts_broken",
+      "challenge_id": 114,
+      "type": "fact",
+      "description": "Data contracts are broken; the consent fields are gone from the schema. That is simply the state the data contracts schema is in right now.",
+      "fact": "Data contracts are broken; the consent fields are gone from the schema.",
+      "reading": "That is simply the state the data contracts schema is in right now.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "req.data_contracts",
+        "axis": "automation",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_heatwave_forecast_gap_monica_auto_eval",
+      "challenge_id": 112,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} asked for the hand off from the evaluation harness to the registry to fire as soon as a new model version is ready. Weather feature testing stalls if the registry waits for a human to notice a new version.",
+      "fact": "{model_monica} asked for the hand off from the evaluation harness to the registry to fire as soon as a new model version is ready.",
+      "reading": "Weather feature testing stalls if the registry waits for a human to notice a new version.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "e.eval_registry",
+        "axis": "automation",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "set_trigger",
+          "target": "e.eval_registry",
+          "value": "on_new_version"
+        }
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(e.eval_registry, 3)",
+        "set_trigger(e.eval_registry, on_new_version)"
+      ],
+      "gist": "The model registry hand off from the evaluation harness keeps coming up in conversations with {model_monica}."
+    },
+    {
+      "id": "gen_heatwave_forecast_gap_monica_composite_pipeline",
+      "challenge_id": 112,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} asked for the entire model training and evaluation flow to run on its own from feature arrival to registry entry. {model_monica.first} needs the whole chain to be automated to test weather features without waiting for manual triggers at each step.",
+      "fact": "{model_monica} asked for the entire model training and evaluation flow to run on its own from feature arrival to registry entry.",
+      "reading": "{model_monica.first} needs the whole chain to be automated to test weather features without waiting for manual triggers at each step.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "e.fs_train",
+        "axis": "automation",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.eval_registry",
+          "axis": "automation",
+          "value": 3
+        }
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(e.fs_train, 3)",
+        "raise_to(e.eval_registry, 3)"
+      ],
+      "gist": "The forecasting model's training and evaluation process is the subject of {model_monica}'s recent note."
+    },
+    {
+      "id": "gen_heatwave_forecast_gap_monica_gov_registry",
+      "challenge_id": 112,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} mentioned that the model registry does not require formal sign-off before a model is promoted. {model_monica.first} would accept full governance on the registry if it does not block the rapid iteration on evaluation.",
+      "fact": "{model_monica} mentioned that the model registry does not require formal sign-off before a model is promoted.",
+      "reading": "{model_monica.first} would accept full governance on the registry if it does not block the rapid iteration on evaluation.",
+      "ops": [],
+      "concedes": {
+        "target": "model.registry",
+        "axis": "governance",
+        "accepts_max_level": 3
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The governance of model registry promotion and sign-off has been raised by {model_monica}."
+    },
+    {
+      "id": "gen_heatwave_forecast_gap_monica_tradeoff_train_eval",
+      "challenge_id": 112,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} noted that the hand-over from training to evaluation is triggered manually. {model_monica.first} would accept a manual trigger for the training to evaluation hand-over if the evaluation harness itself is fixed.",
+      "fact": "{model_monica} noted that the hand-over from training to evaluation is triggered manually.",
+      "reading": "{model_monica.first} would accept a manual trigger for the training to evaluation hand-over if the evaluation harness itself is fixed.",
+      "ops": [],
+      "concedes": {
+        "target": "e.train_eval",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The hand-over between model training and evaluation keeps coming up in the team's discussions."
+    },
+    {
+      "id": "gen_heatwave_forecast_gap_reuben_manual_eval",
+      "challenge_id": 112,
+      "stakeholder_id": "requirements_reuben",
+      "type": "trade_off",
+      "description": "{requirements_reuben} proposed keeping the model evaluation harness manual to ensure every test case is documented. {requirements_reuben.first} would accept a higher level of automation for the evaluation harness if the documentation of test cases is preserved.",
+      "fact": "{requirements_reuben} proposed keeping the model evaluation harness manual to ensure every test case is documented.",
+      "reading": "{requirements_reuben.first} would accept a higher level of automation for the evaluation harness if the documentation of test cases is preserved.",
+      "ops": [],
+      "concedes": {
+        "target": "model.evaluation",
+        "axis": "automation",
+        "accepts_max_level": 2
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Documentation practices for the model evaluation harness are under discussion among the requirements stakeholders."
+    },
+    {
+      "id": "gen_heatwave_forecast_gap_reuben_boundary_gov_eval",
+      "challenge_id": 112,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} noted that the model evaluation harness has no formal review process. {requirements_reuben.first} will not allow any model to be considered for deployment unless the evaluation harness has full formal governance.",
+      "fact": "{requirements_reuben} noted that the model evaluation harness has no formal review process.",
+      "reading": "{requirements_reuben.first} will not allow any model to be considered for deployment unless the evaluation harness has full formal governance.",
+      "holds": {
+        "component": "model.evaluation",
+        "axis": "governance",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.evaluation",
+          "axis": "governance",
+          "value": 3
+        }
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The model evaluation harness and its formal review process have been raised by {requirements_reuben}."
+    },
+    {
+      "id": "gen_heatwave_forecast_gap_dave_driver_fs_train",
+      "challenge_id": 112,
+      "stakeholder_id": "data_dave",
+      "type": "driver",
+      "description": "{data_dave} proposed that the hand-over from the evaluation harness to the registry should fire when fresh data arrives. {data_dave.first} wants the registry updated whenever new weather data lands, without manual steps.",
+      "fact": "{data_dave} proposed that the hand-over from the evaluation harness to the registry should fire when fresh data arrives.",
+      "reading": "{data_dave.first} wants the registry updated whenever new weather data lands, without manual steps.",
+      "metric_id": "data",
+      "suggested": {
+        "target": "e.eval_registry",
+        "axis": "automation",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "set_trigger",
+          "target": "e.eval_registry",
+          "value": "on_data_arrival"
+        }
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(e.eval_registry, 3)",
+        "set_trigger(e.eval_registry, on_data_arrival)"
+      ],
+      "gist": "The timing of the evaluation harness hand-over to the registry keeps coming up in data discussions."
+    },
+    {
+      "id": "gen_heatwave_forecast_gap_dave_tradeoff_gov_tracking",
+      "challenge_id": 112,
+      "stakeholder_id": "data_dave",
+      "type": "trade_off",
+      "description": "{data_dave} mentioned that experiment tracking is done by hand without any formal review. {data_dave.first} would accept a lack of governance on experiment tracking if the data pipeline is automated.",
+      "fact": "{data_dave} mentioned that experiment tracking is done by hand without any formal review.",
+      "reading": "{data_dave.first} would accept a lack of governance on experiment tracking if the data pipeline is automated.",
+      "ops": [],
+      "concedes": {
+        "target": "model.experiment_tracking",
+        "axis": "governance",
+        "accepts_max_level": 0
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Experiment tracking records for the training data sets are the subject of a note from {data_dave}."
+    },
+    {
+      "id": "gen_heatwave_forecast_gap_emilia_driver_eval_gov",
+      "challenge_id": 112,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} asked for the model evaluation harness to have full formal governance to ensure compliance. {efficiency_emilia.first} wants full governance on the evaluation harness to meet compliance requirements.",
+      "fact": "{efficiency_emilia} asked for the model evaluation harness to have full formal governance to ensure compliance.",
+      "reading": "{efficiency_emilia.first} wants full governance on the evaluation harness to meet compliance requirements.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "model.evaluation",
+        "axis": "governance",
+        "level": 3
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The formal governance status of the model evaluation harness keeps surfacing in efficiency reviews with {efficiency_emilia}."
+    },
+    {
+      "id": "gen_heatwave_forecast_gap_emilia_tradeoff_auto_hpo",
+      "challenge_id": 112,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted that hyperparameter tuning is done manually and takes a long time. {efficiency_emilia.first} would accept a lack of automation in hyperparameter tuning if the evaluation is fast.",
+      "fact": "{efficiency_emilia} noted that hyperparameter tuning is done manually and takes a long time.",
+      "reading": "{efficiency_emilia.first} would accept a lack of automation in hyperparameter tuning if the evaluation is fast.",
+      "ops": [],
+      "concedes": {
+        "target": "model.hpo",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The time spent on manual hyperparameter tuning has been raised as a recurring operational concern."
+    },
+    {
+      "id": "gen_heatwave_forecast_gap_emilia_tradeoff_gov_registry",
+      "challenge_id": 112,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} suggested that the model registry could be left without formal sign-off to speed up deployment. {efficiency_emilia.first} would accept a lack of governance on the registry if the deployment is fast.",
+      "fact": "{efficiency_emilia} suggested that the model registry could be left without formal sign-off to speed up deployment.",
+      "reading": "{efficiency_emilia.first} would accept a lack of governance on the registry if the deployment is fast.",
+      "ops": [],
+      "concedes": {
+        "target": "model.registry",
+        "axis": "governance",
+        "accepts_max_level": 0
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Formal sign-off for the model registry has been raised as a potential bottleneck for deployment speed."
+    },
+    {
+      "id": "gen_heatwave_forecast_gap_fact_eval_broken",
+      "challenge_id": 112,
+      "type": "fact",
+      "description": "The model evaluation harness is broken and does not run. The evaluation harness exists but has stopped working.",
+      "fact": "The model evaluation harness is broken and does not run.",
+      "reading": "The evaluation harness exists but has stopped working.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "model.evaluation",
+        "axis": "automation",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_heatwave_forecast_gap_fact_registry_absent",
+      "challenge_id": 112,
+      "type": "fact",
+      "description": "The model registry is missing and does not exist. No model registry has ever been implemented.",
+      "fact": "The model registry is missing and does not exist.",
+      "reading": "No model registry has ever been implemented.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "model.registry",
+        "axis": "automation",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_heatwave_forecast_gap_fact_fs_train_trigger",
+      "challenge_id": 112,
+      "type": "fact",
+      "description": "The hand-over from the feature store to the training pipeline is triggered by a manual request. The trigger for the feature store to training pipeline hand-over is set to manual request.",
+      "fact": "The hand-over from the feature store to the training pipeline is triggered by a manual request.",
+      "reading": "The trigger for the feature store to training pipeline hand-over is set to manual request.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.fs_train",
+        "axis": "automation",
+        "level": 2,
+        "trigger": "manual_request"
+      }
+    },
+    {
+      "id": "gen_shadow_deployment_contract_alex_shadow_stability",
+      "challenge_id": 118,
+      "stakeholder_id": "automation_alex",
+      "type": "boundary",
+      "description": "{automation_alex} proposed keeping the shadow environment running by hand. He will not let the shadow environment go fully automated while the live forecast is unstable.",
+      "fact": "{automation_alex} proposed keeping the shadow environment running by hand.",
+      "reading": "He will not let the shadow environment go fully automated while the live forecast is unstable.",
+      "holds": {
+        "component": "deploy.shadow",
+        "axis": "automation",
+        "op": "lte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.shadow",
+          "axis": "automation",
+          "value": 2
+        }
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The shadow environment keeps coming up whenever you talk to {automation_alex} about keeping it running by hand."
+    },
+    {
+      "id": "gen_shadow_deployment_contract_alex_pipeline_trigger",
+      "challenge_id": 118,
+      "stakeholder_id": "automation_alex",
+      "type": "driver",
+      "description": "{automation_alex} asked for the hand-off from testing to serving to fire automatically. He wants the transition to the serving endpoint to happen without manual steps.",
+      "fact": "{automation_alex} asked for the hand-off from testing to serving to fire automatically.",
+      "reading": "He wants the transition to the serving endpoint to happen without manual steps.",
+      "metric_id": "automation",
+      "suggested": {
+        "target": "e.canary_serving",
+        "axis": "automation",
+        "level": 3
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The question of who triggers the move from testing to serving keeps surfacing in Shelfcast meetings."
+    },
+    {
+      "id": "gen_shadow_deployment_contract_alex_canary_concede",
+      "challenge_id": 118,
+      "stakeholder_id": "automation_alex",
+      "type": "trade_off",
+      "description": "{automation_alex} mentioned that the canary testing environment can stay done by hand. He would accept leaving the canary environment done by hand if the shadow environment is prioritized.",
+      "fact": "{automation_alex} mentioned that the canary testing environment can stay done by hand.",
+      "reading": "He would accept leaving the canary environment done by hand if the shadow environment is prioritized.",
+      "ops": [],
+      "concedes": {
+        "target": "deploy.canary_ab",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The canary testing environment's manual execution process has come up in recent discussions."
+    },
+    {
+      "id": "gen_shadow_deployment_contract_alex_rollback_concede",
+      "challenge_id": 118,
+      "stakeholder_id": "automation_alex",
+      "type": "trade_off",
+      "description": "{automation_alex} noted that the rollback process to the serving endpoint can remain manual. He would accept keeping the rollback process manual if it keeps the serving endpoint stable.",
+      "fact": "{automation_alex} noted that the rollback process to the serving endpoint can remain manual.",
+      "reading": "He would accept keeping the rollback process manual if it keeps the serving endpoint stable.",
+      "ops": [],
+      "concedes": {
+        "target": "e.rollback_serving",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The manual rollback procedure for the serving endpoint keeps coming up in discussions with {automation_alex}."
+    },
+    {
+      "id": "gen_shadow_deployment_contract_reuben_shadow_governance",
+      "challenge_id": 118,
+      "stakeholder_id": "requirements_reuben",
+      "type": "driver",
+      "description": "{requirements_reuben} proposed that the shadow environment should have a formal sign-off process. He wants the shadow environment to be fully governed before any model is promoted.",
+      "fact": "{requirements_reuben} proposed that the shadow environment should have a formal sign-off process.",
+      "reading": "He wants the shadow environment to be fully governed before any model is promoted.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "deploy.shadow",
+        "axis": "governance",
+        "level": 3
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The sign-off process for the shadow environment keeps coming up in discussions with {requirements_reuben}."
+    },
+    {
+      "id": "gen_shadow_deployment_contract_reuben_serving_concede",
+      "challenge_id": 118,
+      "stakeholder_id": "requirements_reuben",
+      "type": "trade_off",
+      "description": "{requirements_reuben} suggested that the model serving endpoint can remain without governance for now. He would accept leaving the serving endpoint without governance if the shadow environment is prioritized.",
+      "fact": "{requirements_reuben} suggested that the model serving endpoint can remain without governance for now.",
+      "reading": "He would accept leaving the serving endpoint without governance if the shadow environment is prioritized.",
+      "ops": [],
+      "concedes": {
+        "target": "deploy.serving",
+        "axis": "governance",
+        "accepts_max_level": 0
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Governance status of the model serving endpoint keeps coming up whenever you talk to {requirements_reuben}."
+    },
+    {
+      "id": "gen_shadow_deployment_contract_ruth_shadow_governance",
+      "challenge_id": 118,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} asked for the shadow environment to have a full formal sign-off. A fully signed off shadow run means a bad forecast model never reaches live traffic.",
+      "fact": "{reliability_ruth} asked for the shadow environment to have a full formal sign-off.",
+      "reading": "A fully signed off shadow run means a bad forecast model never reaches live traffic.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "deploy.shadow",
+        "axis": "governance",
+        "level": 3
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The shadow environment and its formal sign off process have been raised by {reliability_ruth}."
+    },
+    {
+      "id": "gen_shadow_deployment_contract_ruth_serving_driver",
+      "challenge_id": 118,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} asked for the model serving endpoint to be fully automated. She wants the serving endpoint to run without manual intervention to ensure reliability.",
+      "fact": "{reliability_ruth} asked for the model serving endpoint to be fully automated.",
+      "reading": "She wants the serving endpoint to run without manual intervention to ensure reliability.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "deploy.serving",
+        "axis": "automation",
+        "level": 3
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The model serving endpoint has been raised as a topic in conversations with {reliability_ruth}."
+    },
+    {
+      "id": "gen_shadow_deployment_contract_emilia_pipeline_composite",
+      "challenge_id": 118,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} asked for the hand-off to the serving endpoint to fire automatically and for the endpoint to run on a managed platform. She wants the hand-off to the serving endpoint to fire automatically and the endpoint to run on a managed platform.",
+      "fact": "{efficiency_emilia} asked for the hand-off to the serving endpoint to fire automatically and for the endpoint to run on a managed platform.",
+      "reading": "She wants the hand-off to the serving endpoint to fire automatically and the endpoint to run on a managed platform.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "e.canary_serving",
+        "axis": "automation",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.serving",
+          "axis": "automation",
+          "value": 3
+        }
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [
+        "raise_to(e.canary_serving, 3)",
+        "raise_to(deploy.serving, 3)"
+      ],
+      "gist": "The hand-off to the serving endpoint and its managed platform hosting have been raised by {efficiency_emilia}."
+    },
+    {
+      "id": "gen_shadow_deployment_contract_emilia_canary_concede",
+      "challenge_id": 118,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} proposed that the canary testing environment can remain done by hand. She would accept leaving the canary environment done by hand if the main pipeline is automated.",
+      "fact": "{efficiency_emilia} proposed that the canary testing environment can remain done by hand.",
+      "reading": "She would accept leaving the canary environment done by hand if the main pipeline is automated.",
+      "ops": [],
+      "concedes": {
+        "target": "deploy.canary_ab",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The manual effort required for canary testing has been raised as a topic of discussion."
+    },
+    {
+      "id": "gen_shadow_deployment_contract_emilia_shadow_concede",
+      "challenge_id": 118,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted that the shadow environment can stay done by hand. She would accept leaving the shadow environment done by hand if the governance is in place.",
+      "fact": "{efficiency_emilia} noted that the shadow environment can stay done by hand.",
+      "reading": "She would accept leaving the shadow environment done by hand if the governance is in place.",
+      "ops": [],
+      "concedes": {
+        "target": "deploy.shadow",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The manual operation of the shadow environment has been raised by {efficiency_emilia}."
+    },
+    {
+      "id": "gen_shadow_deployment_contract_fact_shadow_broken",
+      "challenge_id": 118,
+      "type": "fact",
+      "description": "The shadow environment is broken and not running. That is simply the current state of the shadow environment.",
+      "fact": "The shadow environment is broken and not running.",
+      "reading": "That is simply the current state of the shadow environment.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "deploy.shadow",
+        "axis": "automation",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_shadow_deployment_contract_fact_cicd_shadow_trigger",
+      "challenge_id": 118,
+      "type": "fact",
+      "description": "The hand-over from the CI/CD pipeline to the shadow environment has no trigger set. That is simply the current state of the hand-over.",
+      "fact": "The hand-over from the CI/CD pipeline to the shadow environment has no trigger set.",
+      "reading": "That is simply the current state of the hand-over.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.cicd_shadow",
+        "axis": "automation",
+        "level": 1,
+        "trigger": "none"
+      }
+    },
+    {
+      "id": "gen_shadow_deployment_contract_fact_serving_governance",
+      "challenge_id": 118,
+      "type": "fact",
+      "description": "The model serving endpoint has no governance in place. That is simply the current state of the serving endpoint.",
+      "fact": "The model serving endpoint has no governance in place.",
+      "reading": "That is simply the current state of the serving endpoint.",
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "deploy.serving",
+        "axis": "governance",
+        "level": 0
       }
     }
   ]

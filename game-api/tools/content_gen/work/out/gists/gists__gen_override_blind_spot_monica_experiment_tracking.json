@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_monica_experiment_tracking",
+  "stage": "gists",
+  "input_hash": "8818ae06878c027030d3836c340e431cf71d1adc50007c11fdb1904573a276b7",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_monica_experiment_tracking",
+    "fact": "{model_monica} mentioned that experiment tracking is currently done by hand.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "How model experiments are recorded and tracked has been mentioned by {model_monica}.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the topic of model experiment tracking but does not express a desire for more, a refusal, a trade-off, or a specific factual state, thus it is a neutral naming of a topic."
+  }
+}

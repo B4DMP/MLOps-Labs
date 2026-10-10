@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_reuben_eval_registry_governance",
+  "stage": "gists",
+  "input_hash": "c2f1ded41eaa2f68f243df8b38bf2350fc41cd07c38cde186fb932fa4fb9bd69",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_reuben_eval_registry_governance",
+    "fact": "{requirements_reuben} noted that the hand-over from evaluation to registry is currently done by hand.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The hand-over from evaluation to registry keeps coming up whenever you talk to {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a recurring topic regarding the hand-over process but does not express a stance, desire, or refusal, so it does not commit to a specific reading."
+  }
+}

@@ -1,7 +1,7 @@
 {
   "item_id": "artifacts:gen_loyalty_consent_gap_emilia_boundary",
   "stage": "artifacts",
-  "input_hash": "ad5abea782645e0d9ad8858250bc5c9d41ce09b01e5ec2a7bb332c6b6757c569",
+  "input_hash": "a06aacc34e65ecabbc61665b56698b592e81078b7c0fea8f213ffcdadc38193e",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -10,21 +10,21 @@
       "challenge_id": -1,
       "stakeholder_id": "efficiency_emilia",
       "type": "boundary",
-      "description": "{efficiency_emilia} proposed that the hand-off into ingestion carry a formal sign off. She will not accept that hand-off shipping data without that formal sign off in place.",
-      "fact": "{efficiency_emilia} proposed that the hand-off into ingestion carry a formal sign off.",
-      "reading": "She will not accept that hand-off shipping data without that formal sign off in place.",
+      "description": "{efficiency_emilia} asked for a formal sign off on the data contracts. She will not let the pipeline run without that formal sign off in place.",
+      "fact": "{efficiency_emilia} asked for a formal sign off on the data contracts.",
+      "reading": "She will not let the pipeline run without that formal sign off in place.",
       "metric_id": null,
       "suggested": null,
       "holds": {
-        "edge": "e.contracts_ingest",
         "axis": "governance",
         "op": "gte",
-        "level": 3
+        "level": 3,
+        "component": "req.data_contracts"
       },
       "ops": [
         {
           "kind": "raise_to",
-          "target": "e.contracts_ingest",
+          "target": "req.data_contracts",
           "axis": "governance",
           "value": 3
         }
@@ -50,8 +50,8 @@
     }
   },
   "output": {
-    "content": "The promotion calendar does not pause for a data pipeline debate. I am happy to keep the current manual review for the loyalty basket ingestion to protect the weekly leaflet deadlines. However, there is a hard line here. The hand off into the ingestion layer must carry a formal sign off. If that sign off is missing, the data does not move. I will not accept a state where personal data enters the pipeline without that explicit approval. This is not a preference for process; it is the condition under which I can support the current workflow. Without that gate, I cannot sign off on the promotion planning cycle, and the entire allocation schedule stalls.",
+    "content": "We cannot proceed with the loyalty basket integration until the data contracts are formally signed off. The legal audit has exposed a gap in consent records, and operating without a documented approval puts the entire promotion planning cycle at risk. I will not authorize the pipeline to run on unverified personal data. Until that formal sign off is complete, any forecast relying on loyalty signals is invalid for our business decisions. This is a hard stop. We need the governance layer locked down before we discuss further feature expansion or automation of the consent checks. No exceptions, no temporary workarounds. The integrity of the data foundation is non negotiable.",
     "reclassified_as": "boundary",
-    "reclassify_reason": "The author explicitly defines a non-negotiable condition (formal sign-off) and states that without it, they will refuse to proceed, making it a line whose crossing means refusal."
+    "reclassify_reason": "The text explicitly defines a hard stop with no exceptions or workarounds, establishing a strict limit that cannot be crossed without formal sign-off."
   }
 }

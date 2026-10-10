@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_override_blind_spot_emilia_retraining",
+  "stage": "artifacts",
+  "input_hash": "96ea5499378660c26b4bb4bcdf1da1991538a779ebb5f8e59b95c29e32d09c95",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_override_blind_spot_emilia_retraining",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted that the retraining trigger is currently missing. She would accept keeping the retraining trigger missing if the registry and evaluation were fully automated.",
+      "fact": "{efficiency_emilia} noted that the retraining trigger is currently missing.",
+      "reading": "She would accept keeping the retraining trigger missing if the registry and evaluation were fully automated.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "e.retrain_train",
+        "axis": "automation",
+        "accepts_max_level": 1
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "author": {
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    },
+    "challenge": {
+      "name": "The Override Blind Spot",
+      "description": "Store managers are overriding order suggestions at an alarming rate because they cannot verify if the model behind them is the one they tested. #model_monica# wants a fully automated registry to ensure every deployment is traceable and reproducible. #requirements_reuben# has a red line: no model enters the registry without a manual, documented review of its evaluation metrics to ensure compliance, so he insists on keeping the process manual."
+    }
+  },
+  "output": {
+    "content": "The retraining trigger is currently missing, which means the models stay static until someone manually forces a run. I am prepared to accept that gap remaining in place for the next quarter. If the deployment registry and evaluation pipeline become fully automated, we gain the traceability and speed needed to fix the override blind spot. The static models are a known cost, but the lack of traceability is a strategic risk. We trade the freshness of the current week's data for the certainty that every version of Shelfcast is documented and reproducible. This allows us to trust the order suggestions without waiting for a human to verify each build.",
+    "reclassified_as": "trade_off",
+    "reclassify_reason": "The author explicitly states they are prepared to accept the gap of missing retraining triggers and trade current data freshness for the certainty of traceability and reproducibility."
+  }
+}

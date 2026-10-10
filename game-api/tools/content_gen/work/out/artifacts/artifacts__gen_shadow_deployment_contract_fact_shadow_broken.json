@@ -1,7 +1,7 @@
 {
   "item_id": "artifacts:gen_shadow_deployment_contract_fact_shadow_broken",
   "stage": "artifacts",
-  "input_hash": "97202457afde2a7c6eeead41228d74c1228900a7727889d95b9ce8395d9beaf8",
+  "input_hash": "eaa3e6bb02112c7e30899c45536e7266eb9ea93a294f6640a8706fef3a36977a",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -10,9 +10,9 @@
       "challenge_id": -1,
       "stakeholder_id": null,
       "type": "fact",
-      "description": "Shadow deployment is broken; nothing has used it in weeks. That is simply the state shadow deployment is in right now.",
-      "fact": "Shadow deployment is broken; nothing has used it in weeks.",
-      "reading": "That is simply the state shadow deployment is in right now.",
+      "description": "The shadow environment is broken and not running. That is simply the current state of the shadow environment.",
+      "fact": "The shadow environment is broken and not running.",
+      "reading": "That is simply the current state of the shadow environment.",
       "metric_id": null,
       "suggested": null,
       "holds": null,
@@ -45,8 +45,8 @@
     "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "The shadow deployment pipeline for the nightly forecast job is currently non functional. It has not executed a successful run in over three weeks. The last time it processed a live data stream, the output logs were empty and the comparison metrics never populated. Because the automated check fails, the team bypasses the shadow stage entirely during the weekly retraining cycle. Instead, engineers manually trigger a test run against a static historical dataset to verify the model code before pushing it to production. This manual verification step takes about an hour and requires a human to confirm the results visually before the deployment proceeds.",
+    "content": "The shadow environment for Shelfcast is currently non functional. The nightly sync between the production feature store and the shadow cluster failed during the last two deployment cycles and has not recovered. No automated pipeline is running in that isolated space. The team is manually exporting sample data from the production database and loading it into a local notebook to verify feature parity before merging new model versions. This manual copy step happens roughly every three days when a model update is pending. The shadow database schema matches production, but the data volume is limited to a single region to keep the manual process manageable. No alerts are firing because the monitoring agents in the shadow environment are also offline. The infrastructure team has logged a ticket, but the service remains down.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text describes the current operational state of the pipeline and the existing manual workaround without expressing any wishes, refusals, or stated trade-offs."
+    "reclassify_reason": "The text is a purely descriptive status report detailing the current non-functional state of the shadow environment and the resulting manual workarounds, without expressing any wishes, refusals, or explicit trade-offs."
   }
 }
