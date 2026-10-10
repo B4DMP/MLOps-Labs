@@ -310,6 +310,16 @@
 
 .cellRight { outline: 2px solid rgba(42, 120, 214, 0.55); outline-offset: -2px; }
 
+/* HoverTooltip's block wrapper forces its span to display:block; stretch and re-center the count
+   to match the cell's own height (scoped here, not on HoverTooltip's shared .block, which other
+   callers - e.g. the pitch chat's intel chips - use inside unbounded scroll areas). */
+.cell > span {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ── HUD-style metric gauge (matches the in-game MetricTab) ──────────────── */
 
 .gauge {
