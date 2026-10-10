@@ -1,51 +1,38 @@
-import { useState, useEffect, useCallback, useContext, useLayoutEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useContext, useLayoutEffect, useMemo, useRef, type CSSProperties } from "react";
 import { Icon } from "@iconify/react";
-import { EmojiIcon } from "../utils/emojiIcons";
-import HoverTooltip from "./HoverToolTip";
+import HoverTooltip, { HoverTooltipTheme, useTooltipController } from "./HoverToolTip";
 import PhaseOverview from "./PhaseOverview";
+import DashboardInspector from "./DashboardInspector";
 import MetricTab from "./MetricTab";
-import type { IntelEntry, StakeholderDossierEntry } from "./StakeholderDossier";
+import type { StakeholderDossierEntry } from "./StakeholderDossier";
+import type { LinkedNote } from "./composeSidebar/IntelNoteRows";
 import { StakeholderContext } from "./StakeholderProvider";
-import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import { healthBucket, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
 import {
-  CappedChainGlyph,
   CrossPhaseStub,
   EDGE_FLOW_ANIM,
   edgeStrokeWidth,
   FlowParticle,
-  LevelMeter,
   NodeDefs,
-  NodeIcon,
-  NodeTitleAberration,
-  LevelCaption,
   NODE_STATE_ANIM,
-  SelectionReticle,
   TriggerChip,
 } from "./graph/nodeChrome";
+import StageNode from "./graph/StageNode";
+import GraphLegend, { type LegendGroup } from "./graph/GraphLegend";
+import YarnLine, { YarnMarkers } from "./graph/YarnLine";
+import { CARD, EDGE_ON_CORK, edgeMarkerForLevel } from "./graph/cardPalette";
+import ComposeTagDetail from "./composeSidebar/ComposeTagDetail";
 import {
-  NODE_COLORS,
-  NODE_ICON_OFFSET,
-  NODE_CAPTION_Y,
-  NODE_METER_Y,
-  NODE_PAD_X,
-  NODE_TITLE_LH,
-  NODE_TITLE_Y,
-  NODE_RX,
-  RAIL_W,
-  nodeFace,
-  BOX_W,
-  BOX_H,
-  AUTOMATION_LABELS,
-  crossPhaseExplanation,
   formatAxisLevel,
-  levelRungs,
+  AUTOMATION_META,
+  GOVERNANCE_META,
   TRIGGER_ICONS,
   compactLayout,
   edgeEnds,
   fitToBoxStyle,
-  wrapLabel,
+  stubSideOccupied,
+  STUB_DROP,
 } from "../utils/stageCanvas";
 import styles from "./PerformanceDashboard.module.css";
 
@@ -57,7 +44,7 @@ interface PatternRef {
   name: string;
 }
 
-interface StageData {
+export interface StageData {
   id: string;
   name: string;
   locked: boolean;
@@ -78,7 +65,7 @@ interface FlowData {
   weakest_edge_id: string;
 }
 
-interface ComponentData {
+export interface ComponentData {
   id: string;
   name: string;
   stage_id: string;
@@ -109,7 +96,7 @@ interface EdgeData {
   capped_by?: string;
 }
 
-interface TechnicalStage {
+export interface TechnicalStage {
   components: ComponentData[];
   edges: EdgeData[];
 }
@@ -117,7 +104,7 @@ interface TechnicalStage {
 /** A dependency edge that runs between two different phases: components are grouped one
  *  diagram per phase, so the far side is never on this canvas - the stub only records enough
  *  about it to draw the dangling line and explain it on click. */
-interface CrossPhaseStubInfo {
+export interface CrossPhaseStubInfo {
   edgeId: string;
   localCompId: string;
   direction: "out" | "in";
@@ -170,117 +157,68 @@ interface StageNeighbour {
   color?: string;
 }
 
-/** One dossier note, carrying who it belongs to so clicking it can jump the dossier there. */
-interface LinkedNote {
-  item: IntelEntry;
-  stakeholderName: string;
-  stakeholderId?: string;
-}
-
-const NOTE_SOURCE_META: Record<string, { icon: string; label: string }> = {
-  public_record: { icon: "ph:megaphone-duotone", label: "Said openly in the team channel" },
-  interview: { icon: "ph:chats-circle-bold", label: "They told you this directly" },
-  debate: { icon: "ph:microphone-stage-bold", label: "Came out during the pitch" },
-  offline_artifact: { icon: "ph:file-text-bold", label: "You read this in a document" },
-};
-
-function noteSourceMeta(item: IntelEntry) {
-  return NOTE_SOURCE_META[(item.source || "offline_artifact").toLowerCase()]
-    ?? NOTE_SOURCE_META.offline_artifact;
-}
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
 const EMPTY_STAGES: StageData[] = [];
 
-/** Same icon the component's own graph node uses (authored per-component in MlopsGraph.json) -
- *  falls back to a generic glyph only if a component was never given one. Used anywhere this
- *  dashboard lists components outside the SVG canvas itself (which reads `c.icon` directly). */
-function componentGlyph(icon?: string): string {
-  return icon || "ph:cube-bold";
-}
-
 function statusColor(status?: string): string {
-  if (status === "healthy") return "#16a34a";
-  if (status === "degraded") return "#ea580c";
-  if (status === "broken") return "#dc3545";
+  if (status === "healthy") return "#1f7a45";
+  if (status === "degraded") return CARD.capped;
+  if (status === "broken") return CARD.broken;
   return "#64748b";
 }
+/** The key to the board, for this screen: the title-bar states, the meters, the strings, the flags. */
+const LEGEND_BAR: CSSProperties = { width: "22px", height: "8px", borderRadius: "1px" };
+const LEGEND_STRING: CSSProperties = { width: "22px", height: "3px", borderRadius: "2px", boxShadow: "0 0 0 1px rgba(40, 24, 8, 0.3)" };
+function buildDashboardLegend(hasFeedback: boolean): LegendGroup[] {
+  return [
+    {
+      heading: "Title bar (state)",
+      items: [
+        { label: "Running as built", swatch: { ...LEGEND_BAR, background: CARD.bar } },
+        { label: "Held back by a bottleneck", swatch: { ...LEGEND_BAR, background: CARD.capped } },
+        { label: "Starved: something upstream is broken", swatch: { ...LEGEND_BAR, background: CARD.starved } },
+        { label: "Broken: its border tears", swatch: { ...LEGEND_BAR, background: CARD.broken } },
+        { label: "A stage ahead of you", swatch: { ...LEGEND_BAR, background: CARD.viewOnly } },
+      ],
+    },
+    {
+      heading: "Automation track (meter, left)",
+      items: [
+        ...AUTOMATION_META.map((rung, i) => ({ label: `${i}. ${rung.label}`, swatch: { background: rung.color } })),
+        { label: "Built but not running", swatch: { background: AUTOMATION_META[3].color, opacity: 0.33 } },
+        { label: "Not built", swatch: { background: CARD.empty } },
+      ],
+    },
+    {
+      heading: "Governance track (meter, right)",
+      items: GOVERNANCE_META.slice(1).map((rung, i) => ({ label: `${i + 1}. ${rung.label}`, swatch: { background: rung.color } })),
+    },
+    {
+      heading: "Strings (hand-offs)",
+      items: [
+        { label: "Automated", swatch: { ...LEGEND_STRING, background: EDGE_ON_CORK["arr-success"] } },
+        { label: "Partly automated or manual", swatch: { ...LEGEND_STRING, background: EDGE_ON_CORK["arr-warning"] } },
+        { label: "Stalled", swatch: { ...LEGEND_STRING, background: EDGE_ON_CORK["arr-danger"] } },
+        { label: "A stage ahead of you", swatch: { ...LEGEND_STRING, background: EDGE_ON_CORK["arr-viewonly"] } },
+      ],
+    },
+    {
+      heading: "Marks",
+      items: [
+        { label: "Flag: the component carries technical debt", icon: "ph:receipt-duotone", iconColor: CARD.debt },
+        { label: "Corner brackets: selected", icon: "ph:corners-out-bold", iconColor: CARD.select },
+        { label: "Dashed outline: a stage ahead of you", swatch: { border: `1.5px dashed ${CARD.ink}`, background: "#fcf8ec" } },
+      ],
+    },
+    ...(hasFeedback
+      ? [{ heading: "Stage strip", items: [{ label: "Feedback loop (the arcs above the strip)", swatch: { ...LEGEND_STRING, background: "#1f7a45" } }] }]
+      : []),
+  ];
+}
+
 
 function healthText(stage: StageData): string {
   if (stage.locked) return "not there yet";
   return HEALTH_BUCKET_WORD[healthBucket(stage.health)];
-}
-
-/** Governance pips: one per rung above `none`, violet, no capped state (governance never caps). */
-function GovernancePips({ level }: { level: number }) {
-  return (
-    <HoverTooltip description={`Governance: ${formatAxisLevel("governance", level)}`}>
-    <span className="d-inline-flex gap-1 align-items-center">
-      {[1, 2, 3].map((i) => (
-        <span
-          key={i}
-          style={{
-            width: 10,
-            height: 10,
-            borderRadius: 2,
-            display: "inline-block",
-            background: i <= level ? "#7c3aed" : "transparent",
-            border: `1px solid ${i <= level ? "#7c3aed" : "#d8cff5"}`,
-          }}
-        />
-      ))}
-    </span>
-    </HoverTooltip>
-  );
-}
-
-/** Both axes side by side: automation as round pips (green, orange where capped), governance
- *  as violet squares - different shapes so the two never read as one scale. */
-function AxisPips({ c }: { c: ComponentData }) {
-  return (
-    <span className="d-inline-flex gap-2 align-items-center">
-      <LevelPips nominal={c.nominal_automation ?? 1} effective={c.effective_automation} />
-      <GovernancePips level={c.nominal_governance ?? 0} />
-    </span>
-  );
-}
-
-/** Automation pips, broken..automated. */
-function LevelPips({ nominal, effective }: { nominal: number; effective?: number }) {
-  const MAX = AUTOMATION_LABELS.length - 1;
-  return (
-    <span className="d-inline-flex gap-1 align-items-center">
-      {Array.from({ length: MAX + 1 }, (_, i) => {
-        const isBroken = i === 0;
-        const filled = i <= nominal;
-        const cappedOff = effective !== undefined && i > effective && i <= nominal;
-        let bg = "transparent";
-        let border = "1px solid #cbd5e1";
-        if (isBroken && nominal === 0) {
-          bg = "#dc3545";
-          border = "1px solid #dc3545";
-        } else if (filled) {
-          bg = cappedOff ? "#ea580c" : "#16a34a";
-          border = `1px solid ${bg}`;
-        }
-        return (
-          <HoverTooltip key={i} description={`Automation: ${AUTOMATION_LABELS[i]}`}>
-          <span
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: "50%",
-              display: "inline-block",
-              background: bg,
-              border,
-            }}
-          />
-          </HoverTooltip>
-        );
-      })}
-    </span>
-  );
 }
 
 function CrossStageArcs({
@@ -402,13 +340,17 @@ function StageConnector({ flow, toId }: { flow?: FlowData; toId: string }) {
   );
 }
 
-/** The colour of a component's status rail: what the player should worry about first. */
-function railColor(c: ComponentData): string {
-  // Broken is what this component is; capped covers what its upstream does to it, starving
-  // included. Reading `effective` here would paint every victim of one break as broken.
-  if ((c.nominal_automation ?? 1) === 0) return NODE_COLORS.broken;
-  if (c.capped_by) return NODE_COLORS.capped;
-  return NODE_COLORS.healthy;
+/** One line on a node's tooltip: what state it is in, in words. */
+function nodeStatusLine(c: ComponentData, locked: boolean, nameOf: (id: string) => string): string {
+  if (locked) return "This stage is ahead of you: its state is not readable yet.";
+  if ((c.nominal_automation ?? 1) === 0) return "Current status: Broken";
+  if (c.nominal_automation === undefined) return "You have not uncovered this component yet.";
+  if ((c.effective_automation ?? 1) === 0) return "Current status: Starved. Something upstream is broken, so nothing reaches it.";
+  if (c.capped_by) return `Current status: Held back by ${nameOf(c.capped_by)}`;
+  return `Current: ${formatAxisLevel("automation", c.effective_automation ?? c.nominal_automation)} · ${formatAxisLevel(
+    "governance",
+    c.nominal_governance ?? 0
+  )}`;
 }
 
 function StageSvg({
@@ -418,6 +360,8 @@ function StageSvg({
   crossPhaseStubs = [],
   selectedCrossStubId,
   onSelectCrossStub,
+  stageLocked,
+  nameOf,
 }: {
   technical: TechnicalStage;
   selectedComponentId: string | null;
@@ -425,7 +369,11 @@ function StageSvg({
   crossPhaseStubs?: CrossPhaseStubInfo[];
   selectedCrossStubId?: string | null;
   onSelectCrossStub?: (stub: CrossPhaseStubInfo) => void;
+  /** The stage is ahead of the project: its cards are shown, not readable. */
+  stageLocked: boolean;
+  nameOf: (id: string) => string;
 }) {
+  const tip = useTooltipController();
   const hasLayout = technical.components.some((c) => c.layout);
 
   if (!hasLayout) return null;
@@ -440,198 +388,142 @@ function StageSvg({
   const viewW = svgW + stubMargin * 2;
 
   return (
-    <svg
-      viewBox={`${-stubMargin} 0 ${viewW} ${svgH}`}
-      preserveAspectRatio="xMidYMid meet"
-      style={fitToBoxStyle(viewW, svgH)}
-    >
-      <style>{NODE_STATE_ANIM}</style>
-      <style>{EDGE_FLOW_ANIM}</style>
-      <NodeDefs prefix="dash" />
+    <>
+      <svg
+        viewBox={`${-stubMargin} 0 ${viewW} ${svgH}`}
+        preserveAspectRatio="xMidYMid meet"
+        style={fitToBoxStyle(viewW, svgH)}
+      >
+        <style>{NODE_STATE_ANIM}</style>
+        <style>{EDGE_FLOW_ANIM}</style>
+        <NodeDefs prefix="dash" theme="cork" />
+        <defs>
+          <YarnMarkers />
+        </defs>
 
-      {/* Connecting Edges */}
-      {technical.edges.map((e) => {
-        const from = posOf(e.from_id);
-        const to = posOf(e.to_id);
-        if (!from || !to) return null;
-        const [ax, ay, bx, by] = edgeEnds(from.x, from.y, to.x, to.y);
-        const x1b = ax, y1b = ay, x2b = bx, y2b = by;
-        // Flow is an automation question only; governance never changes what gets through.
-        const lvl = e.automation;
-        const color = lvl === 0 ? "#dc3545" : lvl && lvl >= 3 ? "#16a34a" : "#ea580c";
-        const isAutomated = lvl !== undefined && lvl !== null && lvl >= 3;
-        return (
-          <g key={e.id}>
-            <defs>
-              <marker id={`arr-${e.id}`} markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                <path d="M0,0 L0,6 L6,3 z" fill={color} />
-              </marker>
-            </defs>
-            <line
-              x1={x1b} y1={y1b} x2={x2b} y2={y2b}
-              stroke={color}
-              strokeWidth={edgeStrokeWidth(lvl)}
-              className={
-                lvl === 0 ? "pipe-dead"
-                  : lvl != null && lvl >= 3 ? "pipe-flow"
-                  : "pipe-flow-slow"
-              }
-              markerEnd={`url(#arr-${e.id})`}
-            />
-            {isAutomated && <FlowParticle x1={x1b} y1={y1b} x2={x2b} y2={y2b} color={color} />}
-            {e.trigger && e.trigger !== "none" && (
-              <TriggerChip
-                x={(x1b + x2b) / 2}
-                y={(y1b + y2b) / 2 - 4}
-                label={TRIGGER_ICONS[e.trigger] ?? "?"}
-                title={`Automation: ${formatAxisLevel("automation", lvl)} · Governance: ${formatAxisLevel("governance", e.governance ?? 0)}`}
-                color={color}
+        {/* Connecting edges: yarn pinned across the board, in the colour of how automated the hand-off is */}
+        {technical.edges.map((e) => {
+          const from = posOf(e.from_id);
+          const to = posOf(e.to_id);
+          if (!from || !to) return null;
+          const [ax, ay, bx, by] = edgeEnds(from.x, from.y, to.x, to.y);
+          // Flow is an automation question only; governance never changes what gets through.
+          const lvl = e.automation;
+          const marker = stageLocked ? "arr-viewonly" : edgeMarkerForLevel(lvl);
+          const color = EDGE_ON_CORK[marker];
+          const isAutomated = !stageLocked && lvl !== undefined && lvl !== null && lvl >= 3;
+          return (
+            <g key={e.id}>
+              <YarnLine
+                x1={ax}
+                y1={ay}
+                x2={bx}
+                y2={by}
+                marker={marker}
+                width={Math.max(edgeStrokeWidth(lvl), 1.5) + 1}
+                flowClass={
+                  stageLocked ? undefined : lvl === 0 ? "pipe-dead" : lvl != null && lvl >= 3 ? "pipe-flow" : "pipe-flow-slow"
+                }
+                viewOnly={stageLocked}
               />
-            )}
-          </g>
-        );
-      })}
-
-      {/* Component Nodes */}
-      {technical.components.map((c) => {
-        const pos = posOf(c.id);
-        if (!pos) return null;
-        const { x, y } = pos;
-        const isSelected = selectedComponentId === c.id;
-        const rail = railColor(c);
-        const isBroken = (c.nominal_automation ?? 1) === 0;
-        // Runs at nothing, but is not itself broken: something upstream is down. Saying
-        // BROKEN here would blame the victim of a break for the break.
-        const isStarved = !isBroken && (c.effective_automation ?? 1) === 0;
-        const rawName = c.name || c.id.split(".").pop()?.replace(/_/g, " ") || c.id;
-        const lines = wrapLabel(rawName, 17);
-
-        return (
-          <g
-            key={c.id}
-            className="stage-node"
-            transform={`translate(${x - BOX_W / 2}, ${y - BOX_H / 2})`}
-            onClick={() => onSelectComponent(isSelected ? null : c.id)}
-          >
-            <g className={isBroken ? "node-broken" : undefined}>
-            {/* Card face, with the status rail hugging its left edge */}
-            <rect
-              width={BOX_W}
-              height={BOX_H}
-              rx={NODE_RX}
-              fill={nodeFace("dash", { selected: isSelected, broken: isBroken })}
-              stroke={isSelected ? NODE_COLORS.selected : "#dde5ee"}
-              strokeWidth={1}
-              filter={`url(#dash-${isBroken ? "broken-face" : isSelected ? "shadow-lifted" : "shadow"})`}
-            />
-            <clipPath id={`dash-clip-${c.id.replace(/\./g, "_")}`}>
-              <rect width={BOX_W} height={BOX_H} rx={NODE_RX} />
-            </clipPath>
-            <rect
-              width={RAIL_W}
-              height={BOX_H}
-              fill={rail}
-              clipPath={`url(#dash-clip-${c.id.replace(/\./g, "_")})`}
-            />
-            {!isBroken && c.capped_by && <CappedChainGlyph color={rail} />}
-
-            {/* Icon, sharing the title's row */}
-            {c.icon && <NodeIcon icon={c.icon} color={rail} />}
-
-            {/* Component Title, with its colour-split ghosts underneath when broken */}
-            {isBroken && (
-              <NodeTitleAberration
-                lines={lines}
-                x={() => NODE_PAD_X + (c.icon ? NODE_ICON_OFFSET : 0)}
-                fontWeight={isSelected ? 700 : 600}
-              />
-            )}
-            {lines.map((line, i) => (
-              <text
-                key={i}
-                x={NODE_PAD_X + (c.icon ? NODE_ICON_OFFSET : 0)}
-                y={NODE_TITLE_Y + i * NODE_TITLE_LH}
-                fill={isSelected ? "var(--primary-bg, #266682)" : "#15243b"}
-                fontSize={11}
-                fontWeight={isSelected ? 700 : 600}
-                letterSpacing="0.1"
-              >
-                {line}
-              </text>
-            ))}
-
-                {c.nominal_automation !== undefined && (
-                  <LevelMeter
-                    automation={c.nominal_automation}
-                    effectiveAutomation={c.effective_automation}
-                    governance={c.nominal_governance}
-                    automationRungs={levelRungs(c.allowed_automation)}
-                    governanceRungs={levelRungs(c.allowed_governance)}
-                    y={NODE_METER_Y}
-                  />
-                )}
-                <LevelCaption
-                  level={c.effective_automation ?? c.nominal_automation ?? 0}
-                  governance={c.nominal_governance}
-                  y={NODE_CAPTION_Y}
-                  // Starved is about upstream, not about a rung, so it keeps the rail's colour.
-                  text={isStarved ? "starved" : undefined}
-                  color={isStarved ? rail : undefined}
+              {isAutomated && <FlowParticle x1={ax} y1={ay} x2={bx} y2={by} color={color} />}
+              {e.trigger && e.trigger !== "none" && (
+                <TriggerChip
+                  x={(ax + bx) / 2}
+                  y={(ay + by) / 2 - 4}
+                  label={TRIGGER_ICONS[e.trigger] ?? "?"}
+                  color={lvl === 0 ? "#b3202f" : lvl && lvl >= 3 ? "#1f7a45" : "#c2570c"}
                 />
-
-            {/* Inspect affordance, quiet until the node is hovered or selected */}
-            <circle
-              className={isSelected ? undefined : "node-peek"}
-              cx={BOX_W - 13}
-              cy={13}
-              r={8}
-              fill={isSelected ? NODE_COLORS.selected : "#eef2f7"}
-              stroke={isSelected ? NODE_COLORS.selected : "#dde5ee"}
-              strokeWidth={1}
-            />
-            <text
-              className={isSelected ? undefined : "node-peek"}
-              x={BOX_W - 13}
-              y={16.5}
-              fontSize={9}
-              textAnchor="middle"
-              fill={isSelected ? "#ffffff" : "#64748b"}
-            >
-              ⌕
-            </text>
-
+              )}
             </g>
+          );
+        })}
 
-            {isSelected && <SelectionReticle />}
-          </g>
-        );
-      })}
+        {/* Component nodes: index cards pinned to the board */}
+        {technical.components.map((c) => {
+          const pos = posOf(c.id);
+          if (!pos) return null;
+          const isSelected = selectedComponentId === c.id;
+          const isBroken = !stageLocked && (c.nominal_automation ?? 1) === 0;
+          // Runs at nothing, but is not itself broken: something upstream is down. Saying BROKEN here
+          // would blame the victim of a break for the break.
+          const isStarved = !stageLocked && !isBroken && (c.effective_automation ?? 1) === 0;
+          const rawName = c.name || c.id.split(".").pop()?.replace(/_/g, " ") || c.id;
+          const nodeTip = tip.bind(
+            <ComposeTagDetail
+              label={rawName}
+              lines={[
+                nodeStatusLine(c, stageLocked, nameOf),
+                c.debt && c.debt.length > 0 ? "Carries technical debt." : undefined,
+                "Click to inspect",
+              ]}
+            />
+          );
+          return (
+            <StageNode
+              key={c.id}
+              id={c.id}
+              x={pos.x}
+              y={pos.y}
+              name={rawName}
+              icon={c.icon}
+              prefix="dash"
+              state={{
+                otherPhase: stageLocked,
+                broken: isBroken,
+                uncertain: false,
+                // A held-back component keeps its own colour; broken wins over it, as before.
+                capped: !stageLocked && Boolean(c.capped_by),
+                starved: isStarved,
+              }}
+              automation={c.nominal_automation}
+              effectiveAutomation={c.effective_automation}
+              governance={c.nominal_governance}
+              allowedAutomation={c.allowed_automation}
+              allowedGovernance={c.allowed_governance}
+              showMeter={c.nominal_automation !== undefined}
+              titleSize={10.5}
+              captionLevel={c.effective_automation ?? c.nominal_automation ?? 0}
+              selected={isSelected}
+              debt={Boolean(c.debt && c.debt.length > 0)}
+              gProps={{
+                onClick: () => onSelectComponent(isSelected ? null : c.id),
+                ...nodeTip,
+              }}
+            />
+          );
+        })}
 
-      {/* Cross-phase dependency stubs: the far end is never on this canvas, so they dangle */}
-      {crossPhaseStubs.map((stub) => {
-        const pos = posOf(stub.localCompId);
-        if (!pos) return null;
-        const laneSiblings = crossPhaseStubs.filter(
-          (s) => s.localCompId === stub.localCompId && s.forward === stub.forward
-        );
-        const lane = laneSiblings.indexOf(stub) - (laneSiblings.length - 1) / 2;
-        return (
-          <CrossPhaseStub
-            key={stub.edgeId}
-            x={pos.x}
-            y={pos.y}
-            forward={stub.forward}
-            lane={lane}
-            prefix="dash"
-            id={stub.edgeId}
-            active={selectedCrossStubId === stub.edgeId}
-            onClick={() => onSelectCrossStub?.(stub)}
-          />
-        );
-      })}
-    </svg>
+        {/* Cross-phase dependency stubs: the far end is never on this canvas, so they dangle */}
+        {crossPhaseStubs.map((stub) => {
+          const pos = posOf(stub.localCompId);
+          if (!pos) return null;
+          const laneSiblings = crossPhaseStubs.filter(
+            (s) => s.localCompId === stub.localCompId && s.forward === stub.forward
+          );
+          const lane = laneSiblings.indexOf(stub) - (laneSiblings.length - 1) / 2;
+          return (
+            <CrossPhaseStub
+              key={stub.edgeId}
+              x={pos.x}
+              y={pos.y + (stubSideOccupied(stub.localCompId, stub.forward, technical.edges, positions) ? STUB_DROP : 0)}
+              forward={stub.forward}
+              lane={lane}
+              prefix="dash"
+              id={stub.edgeId}
+              idleColor="#0f6e7e"
+              activeColor={CARD.select}
+              active={selectedCrossStubId === stub.edgeId}
+              onClick={() => onSelectCrossStub?.(stub)}
+            />
+          );
+        })}
+      </svg>
+      {tip.bubble}
+    </>
   );
 }
+
 
 // ── Animations ───────────────────────────────────────────────────────────────
 
@@ -641,10 +533,6 @@ const PIPELINE_ANIM = `
   50% { border-color: rgba(220, 53, 69, 0.3); }
 }
 .pipe-stage-failing { animation: pipeFailing 1.8s ease-in-out infinite; }
-.stage-node { cursor: pointer; }
-.stage-node rect, .stage-node circle, .stage-node text { transition: opacity .12s ease, fill .12s ease; }
-.stage-node .node-peek { opacity: 0; }
-.stage-node:hover .node-peek { opacity: 1; }
 `;
 
 /** A stage's neighbour, drawn as a thin rail beside the canvas: the architecture view is a
@@ -1006,12 +894,23 @@ export default function PerformanceDashboard({
     return { inbound, outbound };
   }, [activeStage, graphState, stageName, pipelineStages]);
 
+  /** Jump to a component that may sit on another stage (a held-back component names its bottleneck). */
+  const jumpToComponent = useCallback(
+    (id: string) => {
+      const stage = (graphState?.stages ?? []).find((s) => graphState?.technical[s.id]?.components.some((c) => c.id === id));
+      if (stage) setSelectedStage(stage.id);
+      selectComponent(id);
+    },
+    [graphState, selectComponent]
+  );
+
   const selectStage = useCallback((stageId: string) => {
     setSelectedStage(stageId);
     selectComponent(null);
   }, [selectComponent]);
 
   return (
+    <HoverTooltipTheme variant="paper">
     <div
       className={`${styles.helpOverlayLayer} ${
         isDashboardOpen ? styles.helpLayerVisible : styles.helpLayerHidden
@@ -1177,15 +1076,8 @@ export default function PerformanceDashboard({
                           )}
                         </div>
 
-                        {/* Legend */}
-                        <div className="d-flex gap-3" style={{ fontSize: "0.76rem", color: "var(--text-secondary, #475569)" }}>
-                          {(graphState.feedback_flows?.length ?? 0) > 0 && (
-                            <span className="d-flex align-items-center gap-1">
-                              <svg width="16" height="6" aria-hidden><line x1="0" y1="3" x2="16" y2="3" stroke={statusColor("healthy")} strokeWidth="2" /></svg>
-                              feedback loop
-                            </span>
-                          )}
-                        </div>
+                        {/* Legend: the key to the board, on demand */}
+                        <GraphLegend groups={buildDashboardLegend((graphState.feedback_flows?.length ?? 0) > 0)} tone="light" />
                       </div>
 
                       {/* Active Patterns */}
@@ -1217,6 +1109,8 @@ export default function PerformanceDashboard({
                             crossPhaseStubs={activeStage ? crossPhaseStubsByStage[activeStage.id] ?? [] : []}
                             selectedCrossStubId={selectedCrossStub?.edgeId ?? null}
                             onSelectCrossStub={selectCrossStub}
+                            stageLocked={activeStage.locked}
+                            nameOf={(id) => allComponentsById.get(id)?.name ?? id}
                           />
                         </div>
                         {neighbours.outbound && (
@@ -1226,7 +1120,7 @@ export default function PerformanceDashboard({
 
                       {/* Non-pipeline edges summary */}
                       {activeTechnical.edges.filter((e) => e.kind !== "pipeline").length > 0 && (
-                        <div className="p-2 rounded bg-light border" style={{ fontSize: "0.76rem" }}>
+                        <div className={styles.connectionsNote}>
                           <span className="fw-bold text-secondary text-uppercase" style={{ fontSize: "0.68rem" }}>Cross-Stage Connections: </span>
                           {activeTechnical.edges.filter((e) => e.kind !== "pipeline").map((e, idx) => (
                             <span key={e.id} className="text-muted ms-2">
@@ -1244,265 +1138,27 @@ export default function PerformanceDashboard({
                 {/* Right column: the inspector spans the strip and the architecture */}
                 <div className={styles.detailsColumn}>
                   {activeStage && activeTechnical ? (
-                    <div className={styles.detailsCard}>
-                        <div className={styles.detailsCardHeader}>
-                          <span className="d-flex align-items-center gap-2">
-                            <Icon icon={selectedCrossStub ? "ph:link-break-bold" : selComponentData ? "ph:cube-bold" : "ph:cards-bold"} />
-                            <span>
-                              {selectedCrossStub
-                                ? "Cross-Phase Dependency"
-                                : selComponentData
-                                ? selComponentData.name
-                                : `${activeStage.name} Components`}
-                            </span>
-                          </span>
-                          {(selComponentData || selectedCrossStub) && (
-                            <HoverTooltip description="Back to component list">
-                              <button
-                                type="button"
-                                className="btn btn-sm btn-link text-white text-decoration-none p-0"
-                                onClick={() => {
-                                  setSelectedComp(null);
-                                  setSelectedCrossStub(null);
-                                }}
-                                style={{ fontSize: "0.78rem" }}
-                              >
-                                ✕ Close
-                              </button>
-                            </HoverTooltip>
-                          )}
-                        </div>
-
-                        <div className={styles.detailsCardBody}>
-                          {selectedCrossStub ? (
-                            /* Cross-phase dependency: purely informational, nothing to build or sign off on here */
-                            <>
-                              <div className="d-flex align-items-center gap-2 flex-wrap">
-                                <Icon icon="ph:link-break-bold" style={{ fontSize: "1.2rem", color: "var(--primary-bg, #266682)" }} />
-                                <span className="fw-bold fs-6" style={{ color: "var(--text-primary, #1e293b)" }}>
-                                  Cross-Phase Dependency
-                                </span>
-                              </div>
-                              <p className="small mb-0" style={{ color: "var(--text-secondary, #475569)" }}>
-                                {crossPhaseExplanation(
-                                  selectedCrossStub.direction,
-                                  selectedCrossStub.otherName,
-                                  selectedCrossStub.otherStageName
-                                )}
-                              </p>
-                              <button
-                                type="button"
-                                className="btn btn-sm btn-outline-secondary mt-auto"
-                                onClick={() => setSelectedCrossStub(null)}
-                              >
-                                ← Back to Component List
-                              </button>
-                            </>
-                          ) : selComponentData ? (
-                            /* Detailed view for selected component */
-                            <>
-                              <div className="d-flex align-items-center gap-2 flex-wrap">
-                                <Icon
-                                  icon={componentGlyph(selComponentData.icon)}
-                                  style={{ fontSize: "1.2rem", color: "var(--primary-bg, #266682)" }}
-                                />
-                                <span className="fw-bold fs-6" style={{ color: "var(--text-primary, #1e293b)" }}>
-                                  {selComponentData.name}
-                                </span>
-                              </div>
-
-                              <div className="d-flex gap-1 flex-wrap">
-                                {selComponentData.owner_id && (
-                                  ownerEntry && onOpenStakeholder ? (
-                                    <HoverTooltip description={`Open ${ownerEntry.name}'s dossier page`}>
-                                    <button
-                                      type="button"
-                                      className={styles.ownerLink}
-                                      onClick={() => onOpenStakeholder(ownerEntry.stakeholder_id)}
-                                    >
-                                      <StakeholderAvatarComponent
-                                        stakeholderId={ownerEntry.stakeholder_id}
-                                        avatar={stakeholders[ownerEntry.stakeholder_id]?.avatar}
-                                        stakeholderColor={stakeholders[ownerEntry.stakeholder_id]?.stakeholder_color}
-                                        isFramed={false}
-                                        size={18}
-                                        hoverToSuspicious={false}
-                                        className={styles.ownerLinkAvatar}
-                                      />
-                                      <span>Owner: {ownerEntry.name}</span>
-                                      <Icon icon="ph:arrow-square-out-bold" className={styles.ownerLinkGo} />
-                                    </button>
-                                    </HoverTooltip>
-                                  ) : (
-                                    <span className="badge bg-light text-secondary border" style={{ fontSize: "0.68rem" }}>
-                                      Owner: {selComponentData.owner_id.replace(/_/g, " ")}
-                                    </span>
-                                  )
-                                )}
-                              </div>
-
-                              {selComponentData.nominal_automation !== undefined ? (
-                                <>
-                                  <div className="p-2 rounded bg-light border">
-                                    <div className="d-flex align-items-center justify-content-between mb-1">
-                                      <span className="small text-muted fw-semibold">Automation:</span>
-                                      <LevelPips nominal={selComponentData.nominal_automation} effective={selComponentData.effective_automation} />
-                                    </div>
-                                    <div className="small mb-2" style={{ color: "var(--text-primary, #1e293b)" }}>
-                                      Runs <strong>{formatAxisLevel("automation", selComponentData.effective_automation ?? selComponentData.nominal_automation)}</strong>
-                                      {selComponentData.capped_by && selComponentData.effective_automation !== undefined && selComponentData.effective_automation < selComponentData.nominal_automation && (
-                                        <> (set up for <strong>{formatAxisLevel("automation", selComponentData.nominal_automation)}</strong>)</>
-                                      )}
-                                    </div>
-                                    <div className="d-flex align-items-center justify-content-between mb-1">
-                                      <span className="small text-muted fw-semibold">Governance:</span>
-                                      <GovernancePips level={selComponentData.nominal_governance ?? 0} />
-                                    </div>
-                                    <div className="small" style={{ color: "var(--text-primary, #1e293b)" }}>
-                                      Its output is <strong>{formatAxisLevel("governance", selComponentData.nominal_governance ?? 0)}</strong>
-                                    </div>
-                                  </div>
-
-                                  {selComponentData.capped_by && selComponentData.effective_automation !== undefined && selComponentData.nominal_automation !== undefined && selComponentData.effective_automation < selComponentData.nominal_automation && (
-                                    <div className="p-2 rounded" style={{ fontSize: "0.78rem", color: "#9a3412", background: "#fff7ed", border: "1px solid #ffedd5" }}>
-                                      <strong><EmojiIcon name="chains" /> Held Back:</strong> Bottlenecked by <strong>{selComponentData.capped_by}</strong>. Raising this component changes nothing until that is addressed.
-                                    </div>
-                                  )}
-
-                                  {selComponentData.debt && selComponentData.debt.length > 0 && (
-                                    <div className="p-2 rounded" style={{ fontSize: "0.78rem", color: "#854d0e", background: "#fefce8", border: "1px solid #fef08a" }}>
-                                      <strong><EmojiIcon name="techDebtReceipt" /> Technical Debt:</strong> {selComponentData.debt[0].axis === "governance" ? "Governance meant" : "Meant"} to be <strong>{formatAxisLevel(selComponentData.debt[0].axis ?? "automation", selComponentData.debt[0].intended)}</strong>, landed <strong>{formatAxisLevel(selComponentData.debt[0].axis ?? "automation", selComponentData.debt[0].applied)}</strong>
-                                      {selComponentData.debt[0].owner_id && <> without support from {selComponentData.debt[0].owner_id.replace(/_/g, " ")}</>}.
-                                    </div>
-                                  )}
-
-                                  {selComponentData.story && (
-                                    <p className="small mb-0" style={{ color: "var(--text-secondary, #475569)", fontStyle: "italic", lineHeight: 1.45 }}>
-                                      "{selComponentData.story}"
-                                    </p>
-                                  )}
-
-                                  {selComponentData.instances && selComponentData.instances.length > 0 && (
-                                    <div>
-                                      <span className="small text-muted fw-bold text-uppercase" style={{ fontSize: "0.68rem" }}>
-                                        Running Services:
-                                      </span>
-                                      <div className="d-flex flex-column gap-1 mt-1">
-                                        {selComponentData.instances.map((inst) => (
-                                          <div key={inst.id} className="p-1 px-2 rounded bg-light border d-flex align-items-center justify-content-between" style={{ fontSize: "0.75rem" }}>
-                                            <span className="fw-semibold">{inst.name}</span>
-                                            <span className="badge bg-info-subtle text-info-emphasis border border-info-subtle">{inst.state}</span>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-                                </>
-                              ) : (
-                                <p className="text-muted small mb-0">
-                                  {activeStage.locked
-                                    ? "This component belongs to a stage you have not reached yet. Its name and wiring are part of the plan; its state becomes readable once the project gets there."
-                                    : "You have not uncovered intel about this component yet. Verify stakeholder intel and resolve objections to unlock deeper insights."}
-                                </p>
-                              )}
-
-                              {linkedNotes.length > 0 && (
-                                <div>
-                                  <span className="small text-muted fw-bold text-uppercase" style={{ fontSize: "0.68rem" }}>
-                                    Intel on this component ({linkedNotesLabel}):
-                                  </span>
-                                  <div className={styles.noteLinkList}>
-                                    {linkedNotes.map(({ item, stakeholderId }) => {
-                                      const meta = noteSourceMeta(item);
-                                      return (
-                                        <HoverTooltip
-                                          key={item.id}
-                                          description={onSelectIntel ? "Jump to this note in your dossier" : meta.label}
-                                          block
-                                        >
-                                        <button
-                                          type="button"
-                                          className={`${styles.noteLink} ${onSelectIntel ? "" : styles.noteLinkFlat}`}
-                                          disabled={!onSelectIntel}
-                                          onClick={() => onSelectIntel?.(item.id, stakeholderId)}
-                                        >
-                                          <Icon icon={meta.icon} className={styles.noteLinkIcon} />
-                                          <span className={styles.noteLinkText}>
-                                            {item.fact || item.description}
-                                          </span>
-                                          {onSelectIntel && (
-                                            <Icon icon="ph:arrow-bend-up-left-bold" className={styles.noteLinkGo} />
-                                          )}
-                                        </button>
-                                        </HoverTooltip>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              )}
-
-                              <button
-                                type="button"
-                                className="btn btn-sm btn-outline-secondary mt-auto"
-                                onClick={() => setSelectedComp(null)}
-                              >
-                                ← Back to Component List
-                              </button>
-                            </>
-                          ) : (
-                            /* Stage component list view when no single component is selected */
-                            <>
-                              <div className="alert alert-info border-0 p-2 mb-2 d-flex align-items-center gap-2" style={{ background: "rgba(38, 102, 130, 0.08)", color: "var(--primary-bg)", fontSize: "0.78rem" }}>
-                                <Icon icon="ph:cursor-click-bold" className="flex-shrink-0" />
-                                <span>
-                                  {activeStage.locked
-                                    ? "This stage is ahead of you. You can see what it will contain, not how any of it is doing."
-                                    : "Click any component in the diagram or list to view parameters."}
-                                </span>
-                              </div>
-
-                              <div className="d-flex flex-column gap-2" style={{ overflowY: "auto", overflowX: "hidden" }}>
-                                {activeTechnical.components.map((c) => {
-                                  return (
-                                    <HoverTooltip key={c.id} description="Click to view details" block>
-                                    <div
-                                      onClick={() => setSelectedComp(c.id)}
-                                      className={styles.componentListItem}
-                                    >
-                                      <div className="d-flex align-items-center gap-2 min-width-0">
-                                        <Icon
-                                          icon={componentGlyph(c.icon)}
-                                          style={{ fontSize: "1rem", color: "var(--primary-bg, #266682)", flexShrink: 0 }}
-                                        />
-                                        <span className="fw-semibold text-truncate" style={{ fontSize: "0.82rem", color: "var(--text-primary, #1e293b)" }}>
-                                          {c.name || c.id.split(".").pop()}
-                                        </span>
-                                      </div>
-                                      <div className="d-flex align-items-center gap-2 flex-shrink-0">
-                                        {c.nominal_automation !== undefined && <AxisPips c={c} />}
-                                        <Icon icon="ph:arrow-right-bold" style={{ color: "var(--primary-bg)", fontSize: "0.85rem" }} />
-                                      </div>
-                                    </div>
-                                    </HoverTooltip>
-                                  );
-                                })}
-                              </div>
-                            </>
-                          )}
-                      </div>
-                    </div>
+                    <DashboardInspector
+                      stage={activeStage}
+                      technical={activeTechnical}
+                      selectedComponent={selComponentData ?? null}
+                      selectedCrossStub={selectedCrossStub}
+                      linkedNotes={linkedNotes}
+                      linkedNotesLabel={linkedNotesLabel}
+                      stakeholders={stakeholders}
+                      ownerEntry={ownerEntry}
+                      onOpenStakeholder={onOpenStakeholder}
+                      onSelectIntel={onSelectIntel}
+                      onSelectComponent={selectComponent}
+                      onClearSelection={() => {
+                        setSelectedComp(null);
+                        setSelectedCrossStub(null);
+                      }}
+                      onJumpToComponent={jumpToComponent}
+                      nameOf={(id) => allComponentsById.get(id)?.name ?? id}
+                    />
                   ) : (
-                    <div className={styles.detailsCard}>
-                      <div className={styles.detailsCardHeader}>
-                        <span className="d-flex align-items-center gap-2">
-                          <Icon icon="ph:cards-bold" />
-                          <span>Components</span>
-                        </span>
-                      </div>
-                      <div className={styles.detailsCardBody}>
-                        <p className="text-muted small mb-0">Pick a stage above to inspect its components.</p>
-                      </div>
-                    </div>
+                    <div className={styles.detailsEmpty}>Pick a stage above to inspect its components.</div>
                   )}
                 </div>
               </div>
@@ -1513,5 +1169,6 @@ export default function PerformanceDashboard({
         </div>
       </div>
     </div>
+    </HoverTooltipTheme>
   );
 }
