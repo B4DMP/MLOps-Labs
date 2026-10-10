@@ -80,9 +80,14 @@ def _best_card_with_lock(world, locked, others, rng):
     return best_outcome, best_health, pool
 
 
+# A "tie": within this much health of the best, at the same outcome rank. Distinguishes "one
+# recipient uniquely best" from "many recipients reach the same ceiling, one just sorts first".
+TIE_TOLERANCE = 0.02
+
 print(f"{'id':>4} {'no-pen':<8} {'best w/ pen':<12} {'band':<7} {'holder':<20} {'target':<28} "
-      f"{'won back':>8}  verdict")
+      f"{'won back':>8}  {'tied-recipients':>15}  verdict")
 per_recipient_best: dict[str, int] = {}
+per_recipient_tied: dict[str, int] = {}
 challenges_seen = 0
 never_veto_free_low = []
 
@@ -107,7 +112,10 @@ for ch in challenges:
         (graph.owner_of(c.id), c.id) for c in graph.components if graph.owner_of(c.id) in room_ids
     ]
 
-    challenge_best = ("VETO", 0.0, None, None)
+    # Every (stakeholder, target, band) result this challenge, not just the first-encountered
+    # winner - `graph.components` lists one stage's targets first, so picking only the first
+    # match at a tie silently favours whoever that stage's owner is.
+    results = []
     for stakeholder_id, target in owned_targets:
         for band, trust in BAND_TRUST.items():
             emotions = dict(world["emotions"])
@@ -128,25 +136,51 @@ for ch in challenges:
             if band == "low" and RANK.get(outcome, 0) == 0:
                 never_veto_free_low.append((ch.id, stakeholder_id, target))
 
-            if RANK.get(outcome, 0) > RANK.get(challenge_best[0], 0) or (
-                RANK.get(outcome, 0) == RANK.get(challenge_best[0], 0) and health > challenge_best[1]
-            ):
-                challenge_best = (outcome, health, band, stakeholder_id, target)
+            results.append((RANK.get(outcome, 0), health, outcome, band, stakeholder_id, target))
 
-    best_outcome, best_health, best_band, best_holder, best_target = (
-        challenge_best if len(challenge_best) == 5 else (*challenge_best, None)
-    )
-    if best_holder:
-        per_recipient_best[best_holder] = per_recipient_best.get(best_holder, 0) + 1
-        print(f"{ch.id:>4} {no_pen_outcome:<8} {best_outcome:<12} {best_band:<7} {best_holder:<20} "
-              f"{best_target:<28} {best_health:>8.2f}")
+    if results:
+        top_rank = max(r[0] for r in results)
+        top_health = max(r[1] for r in results if r[0] == top_rank)
+        tied = [r for r in results if r[0] == top_rank and r[1] >= top_health - TIE_TOLERANCE]
+        tied_recipients = sorted({r[4] for r in tied})
+        # Pick one representative row to print (first found, same as before) but report the
+        # whole tied set's size and recipients, so a wide tie reads as a wide tie.
+        rank0, health0, outcome0, band0, holder0, target0 = tied[0]
+        per_recipient_best[holder0] = per_recipient_best.get(holder0, 0) + 1
+        for st_id in tied_recipients:
+            per_recipient_tied[st_id] = per_recipient_tied.get(st_id, 0) + 1
+        print(f"{ch.id:>4} {no_pen_outcome:<8} {outcome0:<12} {band0:<7} {holder0:<20} "
+              f"{target0:<28} {health0:>8.2f}  {len(tied_recipients):>7} of {len(owned_targets):<5}")
     else:
         print(f"{ch.id:>4} {no_pen_outcome:<8} {'(no draft)':<12}")
 
 print()
-print("best-recipient tally (a single dominant name across most challenges would be a red flag):")
+print("best-recipient tally, FIRST-FOUND ONLY (what a naive 'pick one winner' report would show):")
 for st_id, n in sorted(per_recipient_best.items(), key=lambda kv: -kv[1]):
     print(f"  {st_id:<20} best in {n}/{challenges_seen} challenges")
+
+print()
+print(f"recipients within {TIE_TOLERANCE} health of the top rank (a real red flag is one name here")
+print("near 100% while everyone else is near 0%; most names near 100% just means the room has")
+print("enough slack that almost any target recovers once the other 3 slots are free to help):")
+for st_id, n in sorted(per_recipient_tied.items(), key=lambda kv: -kv[1]):
+    print(f"  {st_id:<20} tied for best in {n}/{challenges_seen} challenges")
+
+print()
+print("the same tally, normalised by how many of those challenges the stakeholder was even")
+print("eligible for (owns a component and is in the room) - this is the number that actually")
+print("answers 'is this recipient's draft better than peers', not just 'who's in the room most'):")
+eligible_counts: dict[str, int] = {}
+for ch in challenges:
+    world = _world(ch.id, entered=True)
+    room_ids = {st_id for st_id, _, _ in world["room"]}
+    owners = {world["graph"].owner_of(c.id) for c in world["graph"].components}
+    for st_id in room_ids & owners:
+        eligible_counts[st_id] = eligible_counts.get(st_id, 0) + 1
+for st_id in sorted(eligible_counts, key=lambda s: -per_recipient_tied.get(s, 0) / eligible_counts[s]):
+    tied_n = per_recipient_tied.get(st_id, 0)
+    elig_n = eligible_counts[st_id]
+    print(f"  {st_id:<20} tied for best in {tied_n}/{elig_n} challenges they were eligible for ({100*tied_n/elig_n:.0f}%)")
 
 print()
 if never_veto_free_low:
