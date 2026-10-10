@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup: Conversation History as meeting minutes</title>
+<script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+<script src="shared/avatars.js"></script>
+<style>
+/* Mockup only. Left: today's chatscope panel. Right: the proposal, built from the dossier and
+   composer vocabulary (paper slips, brass, rubber stamps, sticky notes). Nothing is wired to the game. */
+@font-face { font-family: 'Delius'; src: url('../../game-ui/public/fonts/delius-v21-latin-regular.woff2') format('woff2'); }
+:root {
+  --primary-bg: rgb(38,102,130); --secondary-bg: rgb(17,48,62);
+  --desk: #2a211b; --desk-2: #3a2c22; --brass: #d9b978; --brass-dim: #7a5c2e; --desk-ink: #f5ebd9; --desk-ink-soft: #d8c7a8;
+  --paper: #f7f4ea; --ink: #2b2118; --ink-soft: #5b4b3a; --ink-mute: #7a6a58;
+  --stamp: #b3261e; --ok: #1f7a4d;
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --shadow-lift: 0 10px 20px rgba(0,0,0,.28), 0 3px 6px rgba(0,0,0,.18);
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; font-family: 'Delius', cursive; color: #d7e7ee;
+  background: radial-gradient(1200px 700px at 60% 0%, #1f4b5e 0%, #11303e 55%, #0b1d26 100%); }
+iconify-icon { display: inline-block; vertical-align: -0.125em; }
+button { font: inherit; }
+.wrap { max-width: 1280px; margin: 0 auto; padding: 18px 20px 40px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; font-size: .82rem; }
+.toolbar h1 { font-size: 1rem; margin: 0 14px 0 0; color: #fff; }
+.toolbar button { background: rgba(255,255,255,.08); color: #e8f3f8; border: 1px solid rgba(255,255,255,.25); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.toolbar button.on { background: #e9c46a; color: #2a1d0e; font-weight: 700; border-color: #e9c46a; }
+#dossierChip { margin-left: auto; display: inline-flex; gap: 6px; align-items: center; padding: 6px 12px; border-radius: 8px;
+  background: #f3ead0; color: #3a2b0f; border: 1px solid #c9ad6a; transition: transform .25s var(--ease-spring); }
+#dossierChip.bump { transform: scale(1.18) rotate(-3deg); }
+.cols { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; }
+.col h2 { font-size: .85rem; color: #fff; letter-spacing: .06em; text-transform: uppercase; margin: 0 0 8px; }
+.col h2 small { color: #9fb8c4; text-transform: none; letter-spacing: 0; margin-left: 6px; }
+.stage { position: relative; }
+.notesPanel { flex: 1 1 280px; max-width: 340px; font-size: .78rem; line-height: 1.45; display: none; }
+body.notes .notesPanel { display: block; }
+.notesPanel h2 { margin-top: 0; }
+.notesPanel ol { margin: 0; padding: 0; list-style: none; counter-reset: n; }
+.notesPanel li { counter-increment: n; display: grid; grid-template-columns: 24px 1fr; gap: 8px; margin-bottom: 9px; }
+.notesPanel li::before { content: counter(n); width: 22px; height: 22px; border-radius: 50%; background: #e11d48; color: #fff;
+  font-weight: 700; font-size: .72rem; display: grid; place-items: center; }
+.notesPanel b { color: #fff; }
+.callout { position: absolute; z-index: 400; width: 22px; height: 22px; border-radius: 50%; background: #e11d48; color: #fff;
+  font-size: .72rem; font-weight: 700; display: none; place-items: center; box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(0,0,0,.5); pointer-events: none; }
+body.notes .callout { display: grid; }
+
+/* ───────── TODAY (approximation of the current chatscope look) ───────── */
+.today { width: 400px; height: 640px; border-radius: 10px; border: 1px solid rgba(255,255,255,.2); padding: 10px;
+  background: rgba(18,22,32,.9); display: flex; flex-direction: column; position: relative; }
+.today .hd { font-size: .72rem; letter-spacing: .05em; color: #aab4c0; text-transform: uppercase; font-family: system-ui, sans-serif; margin-bottom: 8px; }
+.today .tb { display: flex; gap: 6px; margin-bottom: 8px; font-family: system-ui, sans-serif; }
+.today .tab { display: inline-flex; gap: 6px; align-items: center; padding: 4px 10px; border-radius: 8px; font-size: .75rem; font-weight: 600;
+  border: 1px solid rgba(255,255,255,.15); background: rgba(0,0,0,.25); color: #cbd5e1; }
+.today .tab.a { background: var(--primary-bg); color: #fff; border-color: var(--secondary-bg); }
+.today .tab i { font-style: normal; background: rgba(255,255,255,.2); border-radius: 8px; padding: 0 5px; font-size: .65rem; }
+.today .list { flex: 1; overflow: auto; padding: 8px; background: rgba(0,0,0,.2); border-radius: 8px; font-family: system-ui, sans-serif; }
+.today .row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 10px; }
+.today .row .ph { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; border: 1.5px solid rgba(255,255,255,.2); flex: none; }
+.today .row .ph svg { width: 100%; height: 100%; }
+.today .bub { background: #1c2230; border: 1px solid rgba(255,255,255,.16); border-radius: 12px; padding: 8px 12px; color: #fff; font-size: .92rem; line-height: 1.4; }
+.today .bub u { text-decoration: underline wavy #e11d48; }
+.today .bub u.d { text-decoration: underline dotted; }
+.today .pill { margin: 0 auto 10px; width: 92%; text-align: center; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06);
+  border-radius: 10px; padding: 8px 10px; color: #fff; font-size: .9rem; }
+.today .pill b { color: #60a5fa; }
+.today .mx { position: absolute; top: 40px; right: 16px; width: 32px; height: 32px; border-radius: 50%; background: var(--primary-bg);
+  border: 2px solid rgba(255,255,255,.75); display: grid; place-items: center; color: #fff; }
+
+/* ───────── PROPOSED ───────── */
+
+.panel { width: 540px; height: 640px; display: flex; flex-direction: column; border-radius: 12px; position: relative;
+  background: rgba(24,18,14,.84); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.1);
+  box-shadow: 0 10px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05); }
+.pHead { display: flex; align-items: flex-end; gap: 6px; padding: 10px 10px 0 12px; }
+.pTitle { display: none; }
+.tabs { display: flex; gap: 4px; flex: 1; }
+.ftab { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px 7px; border-radius: 9px 9px 0 0;
+  background: #3a2c22; color: var(--desk-ink-soft); border: 0; cursor: pointer; font-size: .78rem;
+  transition: transform .18s var(--ease-spring), background .15s; top: 1px; white-space: nowrap; }
+.ftab:hover { transform: translateY(-2px); background: #4a382b; }
+.ftab.on { background: var(--paper); color: var(--ink); font-weight: 700; z-index: 2; }
+.ftab .n { font-size: .62rem; background: rgba(0,0,0,.2); padding: 0 5px; border-radius: 8px; }
+.ftab.on .n { background: rgba(60,45,30,.14); }
+.ftab .dot { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 0 0 rgba(245,158,11,.7); animation: ping 1.6s infinite; }
+@keyframes ping { to { box-shadow: 0 0 0 8px rgba(245,158,11,0); } }
+.ftab .grip { opacity: 0; font-size: .8rem; margin-left: -4px; transition: opacity .15s; }
+.ftab:hover .grip { opacity: .6; }
+.maxBtn { align-self: center; width: 28px; height: 28px; border-radius: 8px; border: 1px solid rgba(217,185,120,.35); background: transparent; color: var(--brass); cursor: pointer; display: grid; place-items: center; transition: background .15s, transform .2s var(--ease-spring); }
+.maxBtn:hover { background: rgba(217,185,120,.15); transform: scale(1.08); }
+
+.sheet { flex: 1; min-height: 0; display: flex; flex-direction: column; background: var(--paper); margin: 0 10px 10px; border-radius: 0 8px 8px 8px;
+  border-top: 2px solid var(--paper); position: relative; overflow: hidden; color: var(--ink);
+  background-image: repeating-linear-gradient(transparent 0 27px, rgba(60,45,30,.07) 27px 28px); }
+.verdicts { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px dashed rgba(60,45,30,.25); background: rgba(243,234,208,.7); }
+.verdicts .lbl { font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-mute); margin-right: 2px; }
+.vd { display: flex; align-items: center; gap: 5px; padding: 2px 8px 2px 2px; border-radius: 20px; background: rgba(60,45,30,.08); font-size: .68rem; padding: 3px 10px; transition: transform .2s var(--ease-spring); }
+.vd:hover { transform: translateY(-2px); }
+.vd.no { background: #fde8e6; color: var(--stamp); font-weight: 700; }
+.vd.wait { color: var(--ink-mute); }
+.dots i { display: inline-block; width: 4px; height: 4px; border-radius: 50%; background: currentColor; margin-right: 2px; animation: bob 1s infinite; }
+.dots i:nth-child(2) { animation-delay: .15s; } .dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes bob { 50% { transform: translateY(-3px); opacity: .5; } }
+
+.pane { flex: 1; overflow-y: auto; padding: 12px 12px 18px; scrollbar-width: thin; scrollbar-color: #b9a77c transparent; }
+.entry { animation: rise .2s var(--ease-spring) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px) scale(.98); } }
+
+.receipt { display: flex; align-items: center; gap: 8px; padding: 7px 10px; margin-bottom: 12px; background: #fff;
+  border-radius: 9px; font-size: .78rem; box-shadow: 0 1px 3px rgba(60,45,30,.18); }
+.receipt .rt { font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--primary-bg); font-weight: 700; }
+.receipt .chip { margin-left: auto; padding: 1px 8px; border-radius: 12px; background: #dbeafe; color: #1e40af; font-size: .68rem; }
+.receipt .meta { color: var(--ink-mute); font-size: .66rem; }
+
+.slip { display: grid; grid-template-columns: 46px 1fr; gap: 10px; margin-bottom: 14px; position: relative; transition: opacity .2s, transform .2s; }
+.slip.dim { opacity: .35; }
+.av { position: relative; width: 46px; height: 46px; border: 0; padding: 0; background: none; cursor: pointer; border-radius: 50%; }
+.av .face { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: color-mix(in srgb, var(--c) 28%, #fff); display: block; }
+.av .face svg { width: 100%; height: 100%; display: block; }
+.av .play { position: absolute; right: -6px; bottom: -6px; width: 26px; height: 26px; border-radius: 50%; background: var(--desk); color: var(--brass);
+  border: 2px solid var(--paper); display: grid; place-items: center; font-size: 14px; transition: transform .18s var(--ease-spring), background .15s; }
+.av:hover .play { transform: scale(1.15); background: var(--brass); color: var(--desk); }
+.slip.live .av .face { animation: sway 1.2s ease-in-out infinite; }
+@keyframes sway { 50% { transform: rotate(-3deg) scale(1.03); } }
+.paper { position: relative; background: #fff; border-radius: 8px; padding: 7px 12px 10px 14px;
+  box-shadow: 0 1px 3px rgba(60,45,30,.18), 0 4px 10px -6px rgba(60,45,30,.35); transition: transform .18s var(--ease-spring), box-shadow .18s; }
+.slip:hover .paper { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+.slip.live .paper { box-shadow: var(--shadow-lift); }
+.paper header { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.paper header b { font-size: .95rem; color: color-mix(in srgb, var(--c) 70%, #000); }
+.role { font-size: .62rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-mute); }
+.emo { font-size: .62rem; padding: 0 7px; border-radius: 10px; background: color-mix(in srgb, var(--c) 14%, #fff); color: var(--ink-soft); }
+.tools { margin-left: auto; display: flex; gap: 2px; opacity: 0; transition: opacity .15s; }
+.slip:hover .tools { opacity: 1; }
+.tools button { width: 22px; height: 22px; border: 0; border-radius: 6px; background: transparent; color: var(--ink-mute); cursor: pointer; }
+.tools button:hover { background: rgba(60,45,30,.1); color: var(--ink); }
+.paper p { margin: 0; font-size: .96rem; line-height: 1.5; color: var(--ink); }
+.s { transition: background .2s, color .2s, opacity .2s; border-radius: 3px; }
+.slip.live .s { opacity: .55; }
+.slip.live .s.on { opacity: 1; background: rgba(233,196,106,.55); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.slip.live .s.done { opacity: .9; }
+/* Underlines come from the glossary category (style and accent), exactly as in the game. Two sample categories. */
+.g { text-decoration: underline dotted 1px #6366f1; text-underline-offset: 2px; text-decoration-skip-ink: none; cursor: help; transition: background .15s; }
+.g.w { text-decoration-style: wavy; text-decoration-color: #dc2626; text-underline-offset: 3px; }
+.g:hover { text-decoration-style: solid; background: rgba(99,102,241,.14); } .g.w:hover { background: rgba(220,38,38,.1); }
+.stamp { position: absolute; right: 10px; bottom: -8px; transform: rotate(-7deg); padding: 1px 9px; border: 2.5px solid var(--stamp); color: var(--stamp);
+  border-radius: 5px; font-weight: 700; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; background: rgba(255,255,255,.7); opacity: .92; pointer-events: none; }
+.stamp.slam { animation: slam .35s cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes slam { from { transform: rotate(-7deg) scale(2.2); opacity: 0; } 70% { opacity: 1; } }
+
+.note { position: relative; margin: 4px auto 18px; width: 86%; padding: 9px 12px 9px 12px; border-radius: 3px; transform: rotate(-1.2deg);
+  background: color-mix(in srgb, var(--tp) 55%, #fffdf3); box-shadow: 0 3px 8px rgba(0,0,0,.18), 6px 5px 6px -4px rgba(0,0,0,.28);
+  cursor: pointer; transition: transform .2s var(--ease-spring), box-shadow .2s; display: block; text-align: left; border: 0; font: inherit; color: var(--ink); width: 86%; }
+.note::before { content: ""; position: absolute; top: -9px; left: 50%; width: 64px; height: 18px; transform: translateX(-50%) rotate(2deg); background: rgba(235,225,180,.75); box-shadow: 0 1px 2px rgba(0,0,0,.15); }
+.note:hover { transform: rotate(0) translateY(-3px) scale(1.02); box-shadow: var(--shadow-lift); }
+.note .nt { display: flex; align-items: center; gap: 6px; font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 3px; }
+.note .nt iconify-icon { color: var(--tc); font-size: .95rem; }
+.note .nt .go { margin-left: auto; opacity: .0; transition: opacity .15s, transform .2s; display: inline-flex; gap: 3px; align-items: center; text-transform: none; letter-spacing: 0; }
+.note:hover .nt .go { opacity: .8; transform: translateX(-3px); }
+.note .tx { font-size: .86rem; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.note .stamp { right: 8px; bottom: -10px; border-color: var(--ok); color: var(--ok); }
+
+.you { display: flex; justify-content: flex-end; margin: 0 0 14px 40px; }
+.you .card { display: flex; gap: 10px; align-items: center; background: var(--desk-2); color: var(--desk-ink); border-radius: 10px;
+  padding: 7px 12px; box-shadow: 0 3px 8px rgba(0,0,0,.3); transition: transform .18s var(--ease-spring); }
+.you .card:hover { transform: translateY(-2px) rotate(.4deg); }
+.you .ic { width: 32px; height: 32px; border-radius: 7px; background: var(--brass); color: var(--desk); display: grid; place-items: center; font-size: 1.2rem; flex: none; }
+.you .t { font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--brass); }
+.you .b { font-size: .86rem; line-height: 1.3; }
+
+.typing { display: grid; grid-template-columns: 46px 1fr; gap: 10px; align-items: center; margin-bottom: 8px; }
+.typing .paper { display: inline-flex; align-items: center; gap: 8px; width: fit-content; padding: 6px 12px 6px 12px; font-size: .8rem; color: var(--ink-mute); }
+.typing .av { cursor: default; }
+.typing .dots { color: var(--c); }
+.typing .dots i { width: 5px; height: 5px; }
+.divider { display: flex; align-items: center; gap: 8px; margin: 4px 0 12px; font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-mute); }
+.divider::before, .divider::after { content: ""; flex: 1; border-top: 1px dashed rgba(60,45,30,.3); }
+.toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 8px 14px; border-radius: 8px; font-size: .8rem; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 999; }
+.toast.on { opacity: 1; }
+/* ───────── GLASS (v2): a live transcript on the boardroom display ─────────
+   Same smoked glass as the table scene, UI sans, no cards. Paper stays the player's own notebook. */
+.tag { display: none; }
+.panel.glass { border-radius: 6px; background: rgba(14,20,32,.78); border: 1px solid rgba(255,255,255,.1); font-family: 'Inter', system-ui, sans-serif; }
+.glass .pHead { padding: 8px 10px 0; align-items: flex-end; }
+.glass .tabs { flex: 1; gap: 4px; }
+.glass .ftab { padding: 4px 10px 5px; border-radius: 5px 5px 0 0; background: rgba(255,255,255,.03); color: #94a3b8; font-size: .78rem; border: 0; }
+.glass .ftab:hover { background: rgba(255,255,255,.07); color: #fff; }
+.glass .ftab.on { background: rgba(255,255,255,.07); color: #fff; font-weight: 600; }
+.glass .ftab .n { background: rgba(255,255,255,.12); color: #cbd5e1; }
+.glass .ftab.on .n { background: rgba(255,255,255,.2); }
+.glass .maxBtn { align-self: center; border: 0; color: #94a3b8; }
+.glass .maxBtn:hover { background: rgba(255,255,255,.1); color: #fff; }
+.glass .sheet { background: rgba(255,255,255,.07); margin: 0 8px 8px; border-radius: 0 5px 5px 5px; border-top: 0; color: #e2e8f0; }
+.glass .verdicts { padding: 5px 10px; gap: 8px; background: none; border-bottom: 1px solid rgba(255,255,255,.08); justify-content: space-between; flex-wrap: wrap; }
+.glass .rc { display: flex; align-items: center; gap: 7px; font-size: .78rem; color: #e2e8f0; min-width: 0; }
+.glass .rc iconify-icon { color: #7dd3fc; }
+.glass .rc .chip { padding: 0 7px; border-radius: 4px; background: rgba(125,211,252,.16); color: #bae6fd; font-size: .68rem; }
+.vds { display: flex; gap: 5px; }
+.glass .vd { border-radius: 4px; padding: 1px 7px; background: rgba(255,255,255,.07); color: #cbd5e1; }
+.glass .vd.no { background: rgba(248,113,113,.16); color: #fca5a5; }
+.glass .vd.wait { color: #94a3b8; }
+.glass .pane { scrollbar-color: rgba(255,255,255,.25) transparent; padding: 16px 8px 8px; }
+/* Subtle bubble tinted by the stakeholder colour, avatar on its top-left corner. No outline. */
+.glass .slip { display: block; position: relative; margin: 19px 6px 0 14px; padding: 0; border-radius: 0; }
+.glass .slip .av { position: absolute; left: -10px; top: -12px; width: 34px; height: 34px; z-index: 2; }
+.glass .slip:hover .paper, .glass .slip.live .paper { transform: none; box-shadow: none; }
+.glass .paper { background: color-mix(in srgb, var(--c) 15%, #141b2a); box-shadow: none; padding: 5px 11px 8px; border-radius: 2px 6px 6px 6px; transition: background .2s; }
+.glass .slip:hover .paper { background: color-mix(in srgb, var(--c) 21%, #141b2a); }
+.glass .slip.live .paper { background: color-mix(in srgb, var(--c) 26%, #141b2a); }
+.glass .paper header { padding-left: 26px; min-height: 18px; margin-bottom: 1px; gap: 6px; }
+.glass .paper header b { color: color-mix(in srgb, var(--c) 55%, #fff); font-weight: 600; font-size: .9rem; }
+.glass .role { color: #7f8da0; }
+.glass .emo { border-radius: 3px; background: color-mix(in srgb, var(--c) 22%, transparent); color: #dbe4ef; }
+.glass .tools button { color: #94a3b8; }
+.glass .tools button:hover { background: rgba(255,255,255,.1); color: #fff; }
+.glass .paper p { color: #e8edf4; font-size: .9rem; line-height: 1.45; }
+.glass .av .face { background: color-mix(in srgb, var(--c) 30%, #1e293b); }
+.glass .av .play { background: #0f172a; color: #e2e8f0; border-color: #1b2536; }
+.glass .av:hover .play { background: #e2e8f0; color: #0f172a; }
+.glass .slip.live .s.on { background: rgba(125,211,252,.22); }
+.glass .g { text-decoration-color: #a5b4fc; }
+.glass .g.w { text-decoration-color: #f87171; }
+.glass .g:hover { background: rgba(165,180,252,.18); }
+.glass .g.w:hover { background: rgba(248,113,113,.16); }
+.glass .tag { display: inline-flex; align-items: center; gap: 4px; font-size: .64rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+  padding: 0 6px; border-radius: 3px; background: rgba(248,113,113,.18); color: #fca5a5; }
+.gchip { display: flex; align-items: center; gap: 10px; margin: 6px 6px 0 14px; width: calc(100% - 20px); padding: 6px 10px; border: 0; border-radius: 6px;
+  background: rgba(255,255,255,.06); color: #e2e8f0; cursor: pointer; text-align: left; font: inherit; font-family: 'Inter', system-ui, sans-serif;
+  transition: background .15s, transform .2s var(--ease-spring); }
+.gchip:hover { background: rgba(255,255,255,.11); transform: translateX(3px); }
+.gchip .gi { width: 26px; height: 26px; border-radius: 5px; flex: none; display: grid; place-items: center; font-size: 1.05rem;
+  background: color-mix(in srgb, var(--tc) 24%, transparent); color: color-mix(in srgb, var(--tc) 55%, #fff); }
+.gchip .gb { display: block; min-width: 0; }
+.gchip .gl { display: flex; gap: 5px; align-items: center; font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; color: #8795a8; }
+.gchip .gl .ok { color: #6ee7b7; }
+.gchip .gt { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: .84rem; line-height: 1.35; }
+.gchip .go { margin-left: auto; flex: none; display: inline-flex; gap: 4px; align-items: center; font-size: .72rem; color: #94a3b8; opacity: 0; transition: opacity .15s; }
+.gchip:hover .go { opacity: 1; }
+.glass .receipt { background: rgba(255,255,255,.06); box-shadow: none; color: #e2e8f0; margin: 2px 4px 4px; padding: 5px 10px; border-radius: 6px; }
+.pb { display: none; }
+.glass .pb { display: grid; place-items: center; width: 22px; height: 22px; border: 0; border-radius: 4px; background: rgba(255,255,255,.1); color: #e2e8f0; cursor: pointer; font-size: 13px; transition: background .15s, transform .18s var(--ease-spring); }
+.glass .pb:hover { background: #e2e8f0; color: #0f172a; transform: scale(1.12); }
+.glass .av .play { display: none; }
+.glass .receipt .rt { color: #7dd3fc; }
+.glass .receipt .chip { background: rgba(125,211,252,.16); color: #bae6fd; }
+.glass .receipt .meta { color: #8795a8; }
+.glass .divider { display: none; }
+.glass .divider::before, .glass .divider::after { border-top: 1px solid rgba(255,255,255,.08); }
+.glass .you { justify-content: center; margin: 2px 6px 10px; }
+.glass .you .card { background: rgba(255,255,255,.06); box-shadow: none; padding: 4px 10px 4px 5px; gap: 8px; border-radius: 6px; color: #94a3b8; font-size: .8rem; }
+.glass .you .card:hover { transform: none; }
+.glass .you .ic { width: 20px; height: 20px; border-radius: 4px; background: rgba(255,255,255,.12); color: #e2e8f0; font-size: .9rem; }
+.glass .you .t { display: inline; color: #e2e8f0; font-weight: 600; letter-spacing: 0; text-transform: none; font-size: .8rem; }
+.glass .you .t::after { content: " · "; color: #64748b; font-weight: 400; }
+.glass .you .b { display: inline; color: #94a3b8; font-size: .8rem; }
+.glass .typing { display: block; position: relative; margin: 19px 6px 0 14px; }
+.glass .typing .av { position: absolute; left: -10px; top: -12px; width: 34px; height: 34px; z-index: 2; }
+.glass .typing .paper { display: inline-flex; padding: 4px 11px 4px 30px; color: #94a3b8; width: auto; border-radius: 2px 6px 6px 6px; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="toolbar">
+    <h1>Mockup: Conversation History</h1>
+    <button id="btnGlass" class="on">Glass (v2, room)</button>
+    <button id="btnPaper">Paper (v1, notebook)</button>
+    <button id="btnNotes">Notes</button>
+    <button id="btnReplay">Replay arrival and narration</button>
+    <span id="dossierChip"><iconify-icon icon="ph:notebook-bold"></iconify-icon> Dossier</span>
+  </div>
+  <div class="cols">
+    <div class="col">
+      <h2>Today <small>chatscope, slate bubbles</small></h2>
+      <div class="today" id="today"></div>
+    </div>
+    <div class="col">
+      <h2>Proposed <small id="modeHint"></small></h2>
+      <div class="stage" id="stage">
+        <div class="panel" id="panel">
+          <div class="pHead">
+            <span class="pTitle">Conversation history</span>
+            <div class="tabs" id="tabs"></div>
+            <button class="maxBtn" title="Maximize"><iconify-icon icon="ph:arrows-out-simple-bold"></iconify-icon></button>
+          </div>
+          <div class="sheet">
+            <div class="verdicts" id="verdicts"></div>
+            <div class="pane" id="pane"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notesPanel"><h2>What changed</h2><ol id="notes"></ol></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* The four people on this table (names and metric colours as in the screenshot). */
+const CAST = {
+  aaron: { ...PEOPLE.alex,   name: 'Aaron', metric: 'Automation' },
+  ruth:  { ...PEOPLE.ruth,   name: 'Ruth',  metric: 'Reliability' },
+  ellen: { ...PEOPLE.emilia, name: 'Ellen', metric: 'Efficiency' },
+  ryan:  { ...PEOPLE.reuben, name: 'Ryan',  metric: 'Requirements' },
+};
+const g = (t, w) => `<span class="g${w ? ' w' : ''}" title="Glossary: ${t}">${t}</span>`;
+
+const TABS = {
+  pitch: { title: 'Action Pitch #1', icon: 'ph:presentation-chart-bold', n: 5, unread: false },
+  sync:  { title: 'Team Sync-Up',    icon: 'ph:users-three-bold',        n: 5, unread: true },
+};
+const SCRIPT = {
+  pitch: [
+    { k: 'receipt' },
+    { k: 'say', who: 'aaron', mood: 'skeptical', emo: 'Frustrated',
+      s: [`The proposal doesn't address our push to automate ${g('risk assessment', 1)} reviews.`, 'Manual steps are exactly what slow us down and introduce delays.', 'We need to prioritize eliminating those bottlenecks.'] },
+    { k: 'intel', type: 'driver', who: 'aaron', verified: true, text: 'Automation Aaron proposed moving risk assessment reviews off manual handling' },
+    { k: 'say', who: 'ruth', mood: 'seethe', emo: 'Furious', stamp: 'Objection', live: true,
+      s: ['This proposal crosses a critical red line.', `We cannot accept manual checks for ${g('acceptance criteria')}, it violates our ${g('reliability')} constraints and introduces unacceptable risk.`, `The system must enforce automated ${g('governance', 1)} before any data enters the ${g('pipeline')}.`] },
+    { k: 'typing', who: 'ryan' },
+  ],
+  sync: [
+    { k: 'you', icon: 'ph:users-three-bold', t: 'You played Team Sync-Up', b: 'All team. Gauge sentiment on the open requirements.' },
+    { k: 'say', who: 'ellen', mood: 'nod', emo: 'Hopeful', s: [`If we trim the ${g('edge')} budget we can ship the dashboard sooner.`, 'I would rather ship small and learn.'] },
+    { k: 'say', who: 'ryan', mood: 'neutral', emo: 'Neutral', s: [`I need the ${g('KPI')} definitions signed off before anyone builds against them.`] },
+    { k: 'say', who: 'ruth', mood: 'wince', emo: 'Anxious', s: ['Sign-off cannot be informal.', 'Last quarter an unwritten rule cost us a week of rework.'] },
+    { k: 'say', who: 'aaron', mood: 'nod', emo: 'Keen', s: ['Fine, but write it down once and automate the check.'] },
+  ],
+};
+const TYPE = { driver: ['#ccfbf1', '#0d9488', 'ph:compass-bold', 'Driver'], fact: ['#ffe4e6', '#dc2626', 'ph:seal-check-bold', 'Fact'] };
+let tab = 'pitch', speaking = null, timer = null, mode = 'glass';
+
+const $ = (s, r = document) => r.querySelector(s);
+const toast = (m) => { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('on'), 2200); };
+const face = (who, mood) => Avatars.svg(CAST[who], mood);
+
+/* ── Today (static, for comparison) ── */
+$('#today').innerHTML = `
+  <div class="hd">💬 Conversation history (10)</div>
+  <div class="tb"><span class="tab a">▣ Action Pitch #1 <i>5</i></span><span class="tab">⠿ Team Sync-Up <i>5</i></span></div>
+  <div class="mx"><iconify-icon icon="ph:arrows-out-simple-bold"></iconify-icon></div>
+  <div class="list">
+    <div class="row"><div class="ph">${face('aaron', 'skeptical')}</div><div class="bub">The proposal doesn't address our push to automate <u>risk assessment</u> reviews. Manual steps are exactly what slow us down and introduce delays. We need to prioritize eliminating those bottlenecks.</div></div>
+    <div class="pill">verified intel item: <b>Automation Aaron proposed moving risk assessment reviews off...</b> ↗</div>
+    <div class="row"><div class="ph">${face('ruth', 'seethe')}</div><div class="bub">This proposal crosses a critical red line. We cannot accept manual checks for <u class="d">acceptance criteria</u>, it violates our <u class="d">reliability</u> constraints and introduces unacceptable risk. The system must enforce automated <u>governance</u> before any data enters the <u class="d">pipeline</u>.</div></div>
+  </div>`;
+
+/* ── Tabs ── */
+function renderTabs() {
+  $('#tabs').innerHTML = Object.entries(TABS).map(([id, t]) =>
+    `<button class="ftab ${id === tab ? 'on' : ''}" data-tab="${id}"><iconify-icon class="grip" icon="ph:dots-six-vertical-bold"></iconify-icon>
+      <iconify-icon icon="${t.icon}"></iconify-icon>${t.title}<span class="n">${t.n}</span>${t.unread && id !== tab ? '<span class="dot"></span>' : ''}</button>`).join('');
+}
+$('#tabs').addEventListener('click', (e) => {
+  const b = e.target.closest('.ftab'); if (!b) return;
+  tab = b.dataset.tab; TABS[tab].unread = false; stop(); render();
+});
+
+/* ── Verdict strip ── */
+function renderVerdicts() {
+  if (tab !== 'pitch') { $('#verdicts').style.display = 'none'; return; }
+  $('#verdicts').style.display = 'flex';
+  const v = [['ryan', 'wait', 'writing'], ['ellen', 'wait', 'reading'], ['aaron', 'no', 'Pushback'], ['ruth', 'no', 'Objection']];
+  if (mode === 'glass') {
+    $('#verdicts').innerHTML = `<span class="rc" title="Action proposal, 1/4 changes"><iconify-icon icon="ph:git-pull-request-bold"></iconify-icon><b>kpi definition</b><span class="chip">Manual</span></span>
+      <span class="vds">${v.map(([w, st, label]) => `<span class="vd ${st}" title="${CAST[w].name}: ${label}">${CAST[w].name}${st === 'wait' ? '<span class="dots"><i></i><i></i><i></i></span>' : '<iconify-icon icon="ph:x-bold"></iconify-icon>'}</span>`).join('')}</span>`;
+    return;
+  }
+  $('#verdicts').innerHTML = `<span class="lbl">Verdicts</span>` + v.map(([w, st, label]) =>
+    `<span class="vd ${st}" data-who="${w}" >${CAST[w].name}&nbsp;${st === 'wait' ? `<span class="dots"><i></i><i></i><i></i></span>` : `<iconify-icon icon="ph:x-bold"></iconify-icon> ${label}`}</span>`).join('');
+}
+
+/* ── Entries ── */
+function chipHTML(e) { const [, ink, icon, label] = TYPE[e.type];
+  return `<button class="gchip" style="--tc:${ink}" data-intel><span class="gi"><iconify-icon icon="${icon}"></iconify-icon></span>
+    <span class="gb"><span class="gl">${e.verified ? '<iconify-icon class="ok" icon="ph:check-circle-fill"></iconify-icon> Verified' : 'Revealed'} ${label} · ${CAST[e.who].name}</span>
+    <span class="gt">${e.text}</span></span><span class="go"><iconify-icon icon="ph:arrow-line-left-bold"></iconify-icon> Dossier</span></button>`; }
+/* Glass: the proposal moves into the top band and each intel item becomes a footer of the bubble that revealed it. */
+function prep(list) {
+  if (mode !== 'glass') return list;
+  const out = [];
+  list.forEach((e) => {
+    if (e.k === 'receipt') return;
+    const prev = out[out.length - 1];
+    out.push(e.k === 'say' ? { ...e, intels: [] } : e);
+  });
+  return out;
+}
+function entryHTML(e) {
+  if (e.k === 'receipt') return `<div class="receipt entry"><iconify-icon icon="ph:git-pull-request-bold" style="color:var(--primary-bg)"></iconify-icon><span class="rt">Action proposal</span>
+      <span>kpi definition</span><span class="chip">Manual</span><span class="meta">1/4 changes</span></div><div class="divider">Responses</div>`;
+  if (e.k === 'you') return `<div class="you entry"><div class="card"><span class="ic"><iconify-icon icon="${e.icon}"></iconify-icon></span><div><div class="t">${e.t}</div><div class="b">${e.b}</div></div></div></div>`;
+  if (e.k === 'intel' && mode === 'glass') return chipHTML(e).replace('class="gchip"', 'class="gchip entry"');
+  if (e.k === 'intel') { const [paper, ink, icon, label] = TYPE[e.type];
+    return `<button class="note entry" style="--tp:${paper};--tc:${ink}" data-intel>
+      <div class="nt"><iconify-icon icon="${icon}"></iconify-icon>${e.verified ? 'Verified' : 'Revealed'} ${label} · ${CAST[e.who].name}<span class="go"><iconify-icon icon="ph:arrow-line-left-bold"></iconify-icon> Dossier</span></div>
+      <div class="tx">${e.text}</div>${e.verified ? '<span class="stamp">Verified</span>' : ''}</button>`; }
+  if (e.k === 'typing') { const p = CAST[e.who];
+    return `<div class="typing entry" style="--c:${p.color}"><span class="av"><span class="face">${face(e.who, 'neutral')}</span></span>
+      <div class="paper" style="--c:${p.color}"><span class="dots"><i></i><i></i><i></i></span>${p.name} is writing</div></div>`; }
+  const p = CAST[e.who];
+  const tag = e.stamp && mode === 'glass' ? `<span class="tag"><iconify-icon icon="ph:warning-bold"></iconify-icon>${e.stamp}</span>` : '';
+  const stamp = e.stamp && mode !== 'glass' ? `<span class="stamp">${e.stamp}</span>` : '';
+  return `<article class="slip entry" data-who="${e.who}" data-mood="${e.mood}" ${e.live ? 'data-live' : ''} style="--c:${p.color}">
+    <button class="av" aria-label="Read aloud"><span class="face">${face(e.who, e.mood)}</span><span class="play"><iconify-icon icon="ph:play-fill"></iconify-icon></span></button>
+    <div class="paper"><header><b>${p.name}</b><span class="role">${p.metric}</span><span class="emo">${e.emo}</span>${tag}
+      <span class="tools"><button title="Pin to case board"><iconify-icon icon="ph:push-pin-bold"></iconify-icon></button><button title="Copy"><iconify-icon icon="ph:copy-bold"></iconify-icon></button></span><button class="pb" aria-label="Read aloud"><iconify-icon icon="ph:play-fill"></iconify-icon></button></header>
+      <p>${e.s.map((s) => `<span class="s">${s}</span>`).join(' ')}</p>${(e.intels || []).map(chipHTML).join('')}${stamp}</div></article>`;
+}
+function render(animate = true) {
+  renderTabs(); renderVerdicts();
+  const pane = $('#pane');
+  pane.innerHTML = prep(SCRIPT[tab]).map(entryHTML).join('');
+  if (!animate) pane.querySelectorAll('.entry').forEach((n) => (n.style.animation = 'none'));
+  pane.querySelectorAll('.stamp').forEach((s, i) => { s.classList.add('slam'); s.style.animationDelay = `${0.3 + i * 0.25}s`; });
+  layoutCallouts();
+}
+
+/* ── Narration karaoke ── */
+function stop() { clearInterval(timer); timer = null; if (speaking) { speaking.classList.remove('live'); speaking.querySelectorAll('.s').forEach((s) => s.classList.remove('on', 'done')); setPlay(speaking, false); } speaking = null; }
+function setPlay(slip, on) { slip.querySelectorAll('.play iconify-icon, .pb iconify-icon').forEach((i) => i.setAttribute('icon', on ? 'ph:stop-fill' : 'ph:play-fill')); }
+function speak(slip) {
+  stop(); speaking = slip; slip.classList.add('live'); setPlay(slip, true);
+  const ss = [...slip.querySelectorAll('.s')]; let i = 0;
+  const step = () => { ss.forEach((s, j) => { s.classList.toggle('on', j === i); s.classList.toggle('done', j < i); });
+    if (i++ >= ss.length) { stop(); } };
+  step(); timer = setInterval(step, 1700);
+}
+$('#pane').addEventListener('click', (e) => {
+  const av = e.target.closest('.av, .pb'); const slip = e.target.closest('.slip');
+  if (av && slip) { slip === speaking ? stop() : speak(slip); return; }
+  if (e.target.closest('.tools button')) { toast(e.target.closest('button').title + ' (not wired in the mockup)'); return; }
+  const note = e.target.closest('[data-intel]');
+  if (note) fly(note);
+});
+/* Hover on an avatar keeps the suspicious face (playtesters like it). */
+$('#pane').addEventListener('mouseover', (e) => { const av = e.target.closest('.slip .av'); if (av && !av._h) { av._h = 1; $('.face', av).innerHTML = face(av.closest('.slip').dataset.who, 'skeptical'); } });
+$('#pane').addEventListener('mouseout', (e) => { const av = e.target.closest('.slip .av'); if (av && !av.contains(e.relatedTarget)) { av._h = 0; const s = av.closest('.slip'); $('.face', av).innerHTML = face(s.dataset.who, s.dataset.mood); } });
+
+
+/* ── Intel note flies to the dossier ── */
+function fly(note) {
+  const a = note.getBoundingClientRect(), b = $('#dossierChip').getBoundingClientRect();
+  const ghost = note.cloneNode(true); Object.assign(ghost.style, { position: 'fixed', left: a.left + 'px', top: a.top + 'px', width: a.width + 'px', margin: 0, zIndex: 900, pointerEvents: 'none', animation: 'none' });
+  document.body.appendChild(ghost);
+  ghost.animate([{ transform: 'rotate(-1.2deg) scale(1)', opacity: 1 }, { transform: `translate(${b.left - a.left - a.width / 2 + 40}px, ${b.top - a.top}px) rotate(-12deg) scale(.15)`, opacity: .2 }],
+    { duration: 650, easing: 'cubic-bezier(.5,0,.8,.4)' }).onfinish = () => { ghost.remove(); $('#dossierChip').classList.add('bump'); setTimeout(() => $('#dossierChip').classList.remove('bump'), 300); toast('Opens the item in the dossier (Intel tab)'); };
+}
+
+/* ── Notes / callouts ── */
+const NOTES_GLASS = [
+  ['.tabs', 'Folder tabs', 'Folder tabs as in the paper version, in glass: the active tab joins the sheet below. Drag handle on hover, a pulsing dot for unread lines in the other tab. Maximize sits in this row so it never covers a line.'],
+['.verdicts', 'Proposal and verdicts, one band', 'The committed proposal on the left, who is writing or has answered on the right (names only; the stance tag in the bubble says why). Replaces the spinner during pitch evaluation.'],
+  ['.slip header', 'Name, metric, mood', 'A subtle bubble tinted with the stakeholder colour, avatar on its top-left corner. Name in their colour as text, metric in small caps, mood tag. No outlines.'],
+  ['.slip .pb', 'Play in the header', 'A 24px button in the bubble header, so it no longer covers the avatar and needs no DOM measuring. The suspicious hover face is kept.'],
+  ['.slip.live p', 'Spoken-sentence highlight', 'Current sentence washed, finished ones settle, the rest dim. The avatar sways while narrating. No glow ring.'],
+  ['.tag', 'Stance tag', 'A plain tag instead of a rubber stamp. Needs a stance on the payload, or one derived from the mood.'],
+  ['.gchip', 'Evidence chip', 'A separate chip between bubbles, with the dossier type icon and colour so it is recognisable. Click flies it to the notebook.'],
+  ['.typing', 'Named typing line', '"Ryan is writing" with his face, instead of a generic indicator.'],
+  ['.g', 'Glossary underline', 'Unchanged. Style and colour come from the term category. These were designed for dark surfaces, so contrast is no longer a risk here.'],
+];
+const NOTES_PAPER = [
+  ['.ftab.on', 'Folder tabs', 'Same shape as the dossier tabs. Drag handle only on hover, a pulsing dot for unread lines in the other tab, one steady panel opacity. Maximize sits in the header row so it never covers a line.'],
+  ['.verdicts', 'Verdict strip', 'Text only, no avatars. Who has answered: writing, reading, then a verdict chip. Replaces the generic spinner during pitch evaluation.'],
+  ['.receipt', 'Proposal receipt', 'The committed proposal pinned at the top of its tab, so replies read against it.'],
+  ['.slip .paper header', 'Name, metric, mood', 'The speaker is named, in their colour as text. Identity otherwise comes from the avatar tint. No coloured borders or spines. The mood chip echoes the dossier chips.'],
+  ['.slip .pb', 'Play in the header', 'A 24px button in the bubble header, so it no longer covers the avatar and needs no DOM measuring. The suspicious hover face is kept.'],
+  ['.slip.live p', 'Spoken-sentence highlight', 'Current sentence lit, finished ones settle, the rest dim. The avatar sways while narrating. No glow ring.'],
+  ['.slip .stamp', 'Objection stamp', 'Reuses the dossier rubber stamp. Needs a stance on the payload, or one derived from the mood.'],
+  ['.note', 'Evidence as a sticky note', 'Typed colours from the dossier, two-line clamp, VERIFIED or CORRECTED stamp. Click flies it to the dossier.'],
+  ['.typing', 'Named typing slip', '"Ryan is writing" with his face, instead of a generic indicator.'],
+];
+const callouts = [];
+let NOTES = NOTES_GLASS;
+function renderNotes() { $('#notes').innerHTML = NOTES.map(([, t, d]) => `<li><div><b>${t}.</b> ${d}</div></li>`).join(''); }
+renderNotes();
+for (let i = 0; i < 10; i++) { const c = document.createElement('div'); c.className = 'callout'; c.textContent = i + 1; $('#stage').appendChild(c); callouts.push(c); }
+function layoutCallouts() {
+  const st = $('#stage').getBoundingClientRect(), pane = $('#pane').getBoundingClientRect();
+  callouts.forEach((c, i) => { if (i >= NOTES.length) c.style.visibility = 'hidden'; });
+  NOTES.forEach(([sel], i) => {
+    const el = $(sel, $('#stage')), c = callouts[i];
+    if (!el) { c.style.visibility = 'hidden'; return; }
+    const r = el.getClientRects()[0] || el.getBoundingClientRect(), inPane = $('#pane').contains(el);
+    const hide = inPane && (r.top < pane.top || r.bottom > pane.bottom);
+    c.style.visibility = hide ? 'hidden' : 'visible';
+    c.style.left = (r.left - st.left - 8) + 'px'; c.style.top = (r.top - st.top - 8) + 'px';
+  });
+}
+$('#pane').addEventListener('scroll', layoutCallouts); window.addEventListener('resize', layoutCallouts);
+$('#btnNotes').onclick = (e) => { document.body.classList.toggle('notes'); e.target.classList.toggle('on'); layoutCallouts(); };
+$('#btnReplay').onclick = () => { stop(); tab = 'pitch'; render(); autoplay(); };
+function autoplay() { setTimeout(() => { const s = $('.slip[data-live]'); if (s) speak(s); }, 900); }
+
+function setMode(m) {
+  mode = m; stop();
+  $('#panel').className = 'panel' + (m === 'glass' ? ' glass' : '');
+  $('#modeHint').textContent = m === 'glass' ? 'a live transcript on the room display' : 'meeting minutes on the desk (the notebook look)';
+  $('#btnGlass').classList.toggle('on', m === 'glass'); $('#btnPaper').classList.toggle('on', m !== 'glass');
+  NOTES = m === 'glass' ? NOTES_GLASS : NOTES_PAPER; renderNotes();
+  tab = 'pitch'; render(); autoplay();
+}
+$('#btnGlass').onclick = () => setMode('glass');
+$('#btnPaper').onclick = () => setMode('paper');
+const qs = new URLSearchParams(location.search);
+setMode(qs.has('paper') ? 'paper' : 'glass');
+if (qs.has('sync')) { tab = 'sync'; TABS.sync.unread = false; stop(); render(); }
+if (qs.has('notes')) $('#btnNotes').click();
+</script>
+</body>
+</html>
