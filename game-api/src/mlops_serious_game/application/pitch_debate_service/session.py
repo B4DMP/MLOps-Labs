@@ -952,6 +952,7 @@ def evaluate_pitch(
     feedback: list[PitchFeedbackMessage] = []
     accumulated_deltas: dict[str, dict[str, float]] = {}
     reaction_signatures: dict[str, dict[str, float]] = {}
+    reactivity_by_st: dict[str, float] = {}
     impatience: dict[str, int] = {}
     repeat_context: dict[str, str] = {}
     items_to_correct: list[str] = []
@@ -1089,6 +1090,7 @@ def evaluate_pitch(
         if is_agreeing:
             align = 1.0
         react = calculate_reactivity(power, interest=interest)
+        reactivity_by_st[st_id] = react
         st_obj = StakeholderFactory.get_stakeholder(st_id)
         role_sens = getattr(st_obj, "emotion_sensitivities", {}) if st_obj else {}
         steps = prior.impatience.get(st_id, 0) if prior else 0
@@ -1151,6 +1153,16 @@ def evaluate_pitch(
                 for dim in ("trust", "fairness"):
                     boosted[dim] = round(boosted.get(dim, 0.0) + lift, 4)
                 accumulated_deltas[other] = boosted
+
+    # Hand the Pen: the holder resents doing the PM's work and the rest of the room resents not
+    # getting the same treatment. After the signatures, so re-pitch "quiet" logic is untouched.
+    if pen_bonus_due:
+        for st_id in room_ids:
+            cost = tuning.pen_holder_fairness_cost if st_id == pen_state.stakeholder_id else tuning.pen_room_fairness_cost
+            reactivity = reactivity_by_st.get(st_id, 1.0)
+            boosted = dict(accumulated_deltas.get(st_id, {}))
+            boosted["fairness"] = round(boosted.get("fairness", 0.0) - cost * reactivity, 4)
+            accumulated_deltas[st_id] = boosted
 
     # Update emotions with deltas
     updated_emotions: dict[str, dict[str, float]] = {}

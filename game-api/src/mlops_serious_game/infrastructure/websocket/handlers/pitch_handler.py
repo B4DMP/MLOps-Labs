@@ -591,7 +591,19 @@ async def handle_pitch_evaluate(websocket: WebSocket, user_id: int, payload: dic
             GameEvent(
                 step="object", kind="emotion", subject_id=holder_id, direction="up", magnitude="slight",
                 cause="emotion.pen_trust", params={"st": holder_name},
-            ).stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id)
+            ).stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id),
+            GameEvent(
+                step="object", kind="emotion", subject_id=holder_id, direction="down", magnitude="slight",
+                cause="emotion.pen_holder_resentment", params={"st": holder_name},
+            ).stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id),
+            *[
+                GameEvent(
+                    step="object", kind="emotion", subject_id=st_id, direction="down", magnitude="slight",
+                    cause="emotion.pen_favouritism",
+                    params={"st": ctx.names.get(st_id, st_id), "holder": holder_name},
+                ).stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id)
+                for st_id in ctx.room_ids if st_id != holder_id
+            ],
         ])
         holder_st = StakeholderFactory.get_stakeholder(holder_id)
         reveal_msg = await generate_stakeholder_response(

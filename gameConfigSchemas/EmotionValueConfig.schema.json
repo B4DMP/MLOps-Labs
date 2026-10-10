@@ -127,7 +127,9 @@
           },
           "default": { "low": 0.12, "medium": 0.07, "high": 0.03 }
         },
-        "pen_trust_dividend_steps": { "type": "integer", "title": "Hand the Pen: most rungs a High-trust draft can move in one slot", "default": 2 }
+        "pen_trust_dividend_steps": { "type": "integer", "title": "Hand the Pen: most rungs a High-trust draft can move in one slot", "default": 2 },
+        "pen_holder_fairness_cost": { "type": "number", "title": "Hand the Pen: fairness the holder loses for doing the PM's work, scaled by reactivity", "default": 0.04 },
+        "pen_room_fairness_cost": { "type": "number", "title": "Hand the Pen: fairness every other stakeholder loses, scaled by reactivity", "default": 0.03 }
       }
     },
     "emotionDeltaRules": {

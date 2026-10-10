@@ -476,6 +476,8 @@ class PitchTuning(BaseModel):
         description="Hand the Pen: sense-of-control gain to the holder at the next evaluate, per trust band",
     )
     pen_trust_dividend_steps: int = Field(default=2, description="Hand the Pen: most rungs a High-trust draft can move in one slot")
+    pen_holder_fairness_cost: float = Field(default=0.04, description="Hand the Pen: fairness the holder loses for doing the PM's work, scaled by reactivity")
+    pen_room_fairness_cost: float = Field(default=0.03, description="Hand the Pen: fairness every other stakeholder loses for not getting the same treatment, scaled by reactivity")
 
 
 class EmotionConfig(BaseModel):

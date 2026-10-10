@@ -129,6 +129,7 @@ deleted.
 |---|---|
 | hand-over | component reserved, slot locked, event logged. No dossier note yet |
 | at the next evaluate, for the holder | trust and sense of control rise, **more the lower their trust was**, scaled by `calculate_reactivity(power, interest)`: `pen_trust_gain` per band (default low 0.12, medium 0.07, high 0.03) and `pen_control_gain`. This is the lever that can lift a distrustful owner over the 0.4 line |
+| at the same evaluate, cost | the holder loses a little fairness for doing the PM's work (`pen_holder_fairness_cost`, 0.04), and every other stakeholder in the room loses a little for not getting the same treatment (`pen_room_fairness_cost`, 0.03), both scaled by reactivity. Charged once, after the reaction signatures so re-pitch rules are untouched. Causes `emotion.pen_holder_resentment`, `emotion.pen_favouritism` |
 | reveal | a note is added to the dossier when the draft came from one of their items (verified, "they told you directly"). An owner's default draft adds none |
 | simulation | no change. The holder's higher buy-in does the work through `resolve_degradation`; the debrief already shows who degraded what |
 | limits | `pen_max_per_challenge` (1), at least `pen_leave_player_slots` (1) other slot free, never in a demo phase, never after the pitch is committed |

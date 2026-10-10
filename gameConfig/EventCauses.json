@@ -20,6 +20,8 @@
   "pen.handed": { "text": "{st} takes the pen on {target}", "group": "card" },
   "pen.revealed": { "text": "{st} drafted {target} themselves", "group": "card" },
   "emotion.pen_trust": { "text": "warmer: {st} appreciates being trusted with the pen", "group": "emotion" },
+  "emotion.pen_holder_resentment": { "text": "put out: {st} did your drafting for you", "group": "emotion" },
+  "emotion.pen_favouritism": { "text": "put out: {st} noticed {holder} got the pen", "group": "emotion" },
 
   "objection.sound_out_on_board": { "text": "on board: {st} would go along with this card as it stands", "group": "objection" },
   "objection.sound_out_lukewarm": { "text": "lukewarm: {st} would go along, reluctantly", "group": "objection" },

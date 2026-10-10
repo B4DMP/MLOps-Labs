@@ -144,7 +144,9 @@ server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch e
      locked slot (no Remove) and the holder speaks a short line about what they did. How good the
      draft is for the player depends on the holder's Trust reading (Low/Medium/High, the same
      dossier emotion band) - handing it to someone who distrusts the player costs more but repairs
-     the relationship more. At most one per challenge by default (`pen_max_per_challenge`).
+     the relationship more. Nobody likes it entirely: the holder is a little put out at doing your
+     drafting, and everyone else in the room a little put out that they were not given the pen
+     (a small fairness drop, `pen_holder_fairness_cost` / `pen_room_fairness_cost`). At most one per challenge by default (`pen_max_per_challenge`).
    - Stages `PREPARE -> PITCHED -> DONE`. Events: `pitch:state`, `pitch:delegate` (Hand the Pen),
      `pitch:evaluate` (stakeholders react, no commit), `pitch:commit`, `pitch:veto_breaker`.
 6. **Outcome** (`scoring.py`): VETO if a high-power stakeholder has a violated boundary or low
