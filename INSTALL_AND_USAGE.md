@@ -199,3 +199,12 @@ make evaluate-agent NAME=eval_name STAKEHOLDER_ID=-1
 
 If you want to **directly call the agent bypassing the backend and UI logic**, you can do that by manually running the  [api_live_test.py](game-api\api_live_test.py).
 For a static test, run [action_card_generation_test.py](game-api\action_card_generation_test.py)
+### Test accounts per gameplay screen
+
+To jump straight to a screen without playing up to it, seed one account per screen (password `test1234`, campaign `test-accounts`):
+
+```bash
+docker compose exec api python -m tools.seed_test_accounts
+```
+
+Logins are `test-{stage}@test.com` (first real phase) and `test-intro-{stage}@test.com` (starts in the demo phase, its own campaign). Stages: `questionnaire`, `briefing`, `phase-briefing`, `offline-intel`, `pitch`, `veto`, `simulation`, plus `outro-questionnaire` and `results` for the main family only. From `offline-intel` on, the dossier is partly filled (some notes found, a few tagged wrong). The `pitch` accounts also start with three stakeholders losing patience (one step, two steps, one step), to test the patience tag. Pass full account names (e.g. `pitch intro-pitch`) to reseed only those. Re-running resets every account in place to its position.

@@ -1,5 +1,11 @@
 # Working in this repo
 
+## Write files with Write/Edit, not shell heredocs
+
+Never create or change file content through `cat <<EOF`, `python - <<EOF` or similar in Bash.
+They fail here (e.g. redirects to `/...` hit "Permission denied" on Windows Git Bash) and skip
+the Read/Edit safeguards. Use Write/Edit; reserve Bash for commands such as `sed -i` on line ranges.
+
 ## Never install into the host/global Python or Node environment
 
 This project runs entirely in Docker (`docker-compose.yml`: `postgres`, `api` / container
