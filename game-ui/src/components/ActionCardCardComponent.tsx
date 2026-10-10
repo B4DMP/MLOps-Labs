@@ -162,56 +162,62 @@ export default function ActionCardCardComponent({
 
         <div className={styles.minimizedBody}>
           {atomicChanges.length > 0 ? (
-            atomicChanges.map((ac, idx) => {
-              const name =
-                card.target_names?.[ac.target] ||
-                ac.target.split(".").pop()?.replace(/_/g, " ") ||
-                ac.target;
-              const pred = predictionFor(card, ac);
-              // This row's own requested level, never the prediction's `predicted` - a target
-              // chained through several steps on one axis shares one prediction per (target,
-              // axis) across every row (predictions_for keys on that pair, not on which step
-              // asked), so `predicted` is always the chain's final settled level regardless of
-              // which row reads it. Using it here duplicated the last step's badge onto every
-              // earlier one instead of each row naming its own step.
-              const level = ac.value;
-              const meta = ac.axis && typeof level === "number" ? axisMeta(ac.axis, level) : undefined;
-              return (
-                <div
-                  key={idx}
-                  className={`${styles.changeRow} ${idx % 2 === 1 ? styles.changeRowAlt : ""} ${
-                    onSelectChange ? styles.changeRowClickable : ""
-                  }`}
-                  style={meta ? ({ "--change-color": meta.color, "--change-ink": meta.ink } as React.CSSProperties) : undefined}
-                  onClick={
-                    onSelectChange
-                      ? (e) => {
-                          e.stopPropagation();
-                          onSelectChange(ac.target);
-                        }
-                      : undefined
-                  }
-                >
-                  <span className={`${styles.changeName} text-truncate`}>
-                    <Icon icon="ph:lightning-fill" className={styles.changeNameIcon} />
-                    <span className="text-truncate">{name}</span>
-                  </span>
-                  {pred?.upstream_uncertain ? (
-                    <span className={`${styles.changeBadge} ${styles.changeBadgeWarning}`}>
-                      <Icon icon="ph:question-fill" /> Uncertain
+            // A dedicated grid/scroll container for just the change rows - not the header,
+            // progress pill or footer - so a 4th slot makes this list a bit taller or (on short
+            // screens) a bit wider, instead of growing the whole card past the boardroom table's
+            // available height and pushing the Commit/Revise buttons below it out of reach.
+            <div className={styles.changeRowsList}>
+              {atomicChanges.map((ac, idx) => {
+                const name =
+                  card.target_names?.[ac.target] ||
+                  ac.target.split(".").pop()?.replace(/_/g, " ") ||
+                  ac.target;
+                const pred = predictionFor(card, ac);
+                // This row's own requested level, never the prediction's `predicted` - a target
+                // chained through several steps on one axis shares one prediction per (target,
+                // axis) across every row (predictions_for keys on that pair, not on which step
+                // asked), so `predicted` is always the chain's final settled level regardless of
+                // which row reads it. Using it here duplicated the last step's badge onto every
+                // earlier one instead of each row naming its own step.
+                const level = ac.value;
+                const meta = ac.axis && typeof level === "number" ? axisMeta(ac.axis, level) : undefined;
+                return (
+                  <div
+                    key={idx}
+                    className={`${styles.changeRow} ${idx % 2 === 1 ? styles.changeRowAlt : ""} ${
+                      onSelectChange ? styles.changeRowClickable : ""
+                    }`}
+                    style={meta ? ({ "--change-color": meta.color, "--change-ink": meta.ink } as React.CSSProperties) : undefined}
+                    onClick={
+                      onSelectChange
+                        ? (e) => {
+                            e.stopPropagation();
+                            onSelectChange(ac.target);
+                          }
+                        : undefined
+                    }
+                  >
+                    <span className={`${styles.changeName} text-truncate`}>
+                      <Icon icon="ph:lightning-fill" className={styles.changeNameIcon} />
+                      <span className="text-truncate">{name}</span>
                     </span>
-                  ) : pred?.capped_by ? (
-                    <span className={`${styles.changeBadge} ${styles.changeBadgeCapped}`}>
-                      <Icon icon="ph:link-simple-bold" /> {formatAxisLevelCap(pred.axis ?? ac.axis ?? "automation", pred.predicted)}
-                    </span>
-                  ) : (
-                    <span className={styles.changeBadge}>
-                      {meta && <Icon icon={meta.icon} />} {formatAxisLevelCap(ac.axis ?? "automation", level)}
-                    </span>
-                  )}
-                </div>
-              );
-            })
+                    {pred?.upstream_uncertain ? (
+                      <span className={`${styles.changeBadge} ${styles.changeBadgeWarning}`}>
+                        <Icon icon="ph:question-fill" /> Uncertain
+                      </span>
+                    ) : pred?.capped_by ? (
+                      <span className={`${styles.changeBadge} ${styles.changeBadgeCapped}`}>
+                        <Icon icon="ph:link-simple-bold" /> {formatAxisLevelCap(pred.axis ?? ac.axis ?? "automation", pred.predicted)}
+                      </span>
+                    ) : (
+                      <span className={styles.changeBadge}>
+                        {meta && <Icon icon={meta.icon} />} {formatAxisLevelCap(ac.axis ?? "automation", level)}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           ) : (
             <HoverTooltip description={card.description}>
               <p className={styles.minimizedDescription}>{card.description}</p>

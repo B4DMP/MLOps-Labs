@@ -107,6 +107,18 @@
   padding-right: 7px;
 }
 
+/* Up to MAX_ATOMIC_CHANGES (4) rows. On a tall viewport they just stack (unchanged look); the
+   cap + scroll here is only a safety net for anything shorter than that - see the compact
+   grid below for the layout that actually keeps a 4-row proposal within the boardroom table's
+   available height on a short screen. */
+.changeRowsList {
+  display: flex;
+  flex-direction: column;
+  max-height: 45vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 .changeRow {
   display: flex;
   align-items: center;
@@ -121,6 +133,45 @@
 
 .changeRow:first-child {
   border-top: none;
+}
+
+/* ── Compact mode: short/narrow screens ──
+   The boardroom table sizes itself around this card, and a 4th change row (added when the
+   composer grew from 3 to 4 slots) made the single-column list tall enough to push the
+   Commit/Revise buttons below the table off the visible area on shorter screens. Laying the
+   same rows out 2-up keeps the card at roughly its old (3-row) height instead. */
+@media (max-height: 820px), (max-width: 480px) {
+  .changeRowsList {
+    display: grid;
+    /* minmax(0, 1fr), not plain 1fr: a bare 1fr track won't shrink below its row's
+       min-content width, and a nowrap badge + name forced that past the column's share of
+       250px - the row then quietly pushed .changeRowsList wider than the card, and because
+       overflow-y: auto was set with no overflow-x, the computed value rules turned that into
+       an unwanted horizontal scrollbar instead of the ellipsis truncation below. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    max-height: 32vh;
+  }
+
+  .changeRow {
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .changeRow:nth-child(odd) {
+    border-right: 1px solid #e2e8f0;
+  }
+
+  .changeRow:nth-child(-n + 2) {
+    border-top: none;
+  }
+
+  .changeName {
+    font-size: 0.66rem;
+  }
+
+  .changeBadge {
+    font-size: 0.56rem;
+    padding: 2px 5px;
+  }
 }
 /* Staggered by position rather than all landing at once - a proposal reads as separate
    commitments, so they arrive one beat apart instead of as a single block. Capped at 4 because
@@ -161,6 +212,14 @@
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+/* The name text itself, nested one level inside .changeName (icon is the other flex item).
+   Needs its own min-width: 0 - a flex item's default min-width is its content's full nowrap
+   width, so without this the text-truncate ellipsis never actually gets a chance to clip it,
+   and the row (and the grid it sits in) silently grows to fit the untruncated name instead. */
+.changeName span {
+  min-width: 0;
 }
 
 .changeNameIcon {
