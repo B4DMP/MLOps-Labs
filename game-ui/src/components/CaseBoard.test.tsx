@@ -69,15 +69,22 @@ const renderBoard = (state: BoardState, { outcome, ...extra }: Extra = {}) => {
 };
 
 const portrait = (id: string) => screen.getByTestId(`portrait-${id}`);
-const space = (id: string) => fireEvent.keyDown(portrait(id), { key: " " });
 
 describe("CaseBoard people", () => {
-  it("opens a person's page when they are clicked", () => {
+  it("picks a person to tie, rather than opening their page, on a plain click", () => {
     const onOpenStakeholder = vi.fn();
     renderBoard(board(), { onOpenStakeholder });
     fireEvent.click(portrait("cat"));
-    expect(onOpenStakeholder).toHaveBeenCalledWith("cat");
+    expect(portrait("cat").getAttribute("aria-pressed")).toBe("true");
+    expect(onOpenStakeholder).not.toHaveBeenCalled();
     expect(screen.queryByRole("menu")).toBeNull();
+  });
+
+  it("opens a person's page on double-click", () => {
+    const onOpenStakeholder = vi.fn();
+    renderBoard(board(), { onOpenStakeholder });
+    fireEvent.doubleClick(portrait("cat"));
+    expect(onOpenStakeholder).toHaveBeenCalledWith("cat");
   });
 
   it("breaks a name after the role word so a long one fits the card", () => {
@@ -99,7 +106,7 @@ describe("CaseBoard connecting", () => {
     fireEvent.pointerDown(portrait("amy"), { clientX: places.amy.x, clientY: places.amy.y, pointerId: 1 });
     fireEvent.pointerMove(screen.getByTestId("portrait-amy").parentElement!, { clientX: places.cat.x, clientY: places.cat.y, pointerId: 1 });
     fireEvent.pointerUp(screen.getByTestId("portrait-amy").parentElement!, { clientX: places.cat.x, clientY: places.cat.y, pointerId: 1 });
-    fireEvent.click(portrait("amy")); // the click a real drag also produces is not an "open"
+    fireEvent.click(portrait("amy")); // the click a real drag also produces is not a pick
 
     const menu = screen.getByRole("menu");
     expect(within(menu).getAllByRole("menuitem")).toHaveLength(5); // four kinds and Cancel
@@ -108,13 +115,13 @@ describe("CaseBoard connecting", () => {
     expect(onOpenStakeholder).not.toHaveBeenCalled();
   });
 
-  it("ties two people from the keyboard: Space on one, then Space on the other", () => {
+  it("ties two people by clicking one, then the other", () => {
     const onConnect = vi.fn();
     renderBoard(board(), { onConnect });
 
-    space("amy");
+    fireEvent.click(portrait("amy"));
     expect(portrait("amy").getAttribute("aria-pressed")).toBe("true");
-    space("cat");
+    fireEvent.click(portrait("cat"));
     fireEvent.click(within(screen.getByRole("menu")).getByText("Chain: one waits on the other"));
 
     expect(onConnect).toHaveBeenCalledWith("amy", "cat", "chain");
@@ -123,8 +130,8 @@ describe("CaseBoard connecting", () => {
 
   it("keeps every choice on one line", () => {
     renderBoard(board());
-    space("amy");
-    space("bob");
+    fireEvent.click(portrait("amy"));
+    fireEvent.click(portrait("bob"));
     for (const item of within(screen.getByRole("menu")).getAllByRole("menuitem")) {
       expect(item.textContent).not.toMatch(/\n/);
     }
@@ -133,17 +140,17 @@ describe("CaseBoard connecting", () => {
   it("closes the chooser on Escape without guessing", () => {
     const onConnect = vi.fn();
     renderBoard(board(), { onConnect });
-    space("amy");
-    space("bob");
+    fireEvent.click(portrait("amy"));
+    fireEvent.click(portrait("bob"));
     fireEvent.keyDown(screen.getByRole("menu"), { key: "Escape" });
     expect(screen.queryByRole("menu")).toBeNull();
     expect(onConnect).not.toHaveBeenCalled();
   });
 
-  it("Space on the picked person again cancels the pick", () => {
+  it("clicking the picked person again cancels the pick", () => {
     renderBoard(board());
-    space("amy");
-    space("amy");
+    fireEvent.click(portrait("amy"));
+    fireEvent.click(portrait("amy"));
     expect(portrait("amy").getAttribute("aria-pressed")).toBe("false");
   });
 

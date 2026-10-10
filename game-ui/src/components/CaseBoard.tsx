@@ -87,7 +87,7 @@ const CaseBoard: React.FC<CaseBoardProps> = ({ board, outcome, portraits, render
   const byId = useMemo(() => Object.fromEntries(portraits.map((p) => [p.id, p])), [portraits]);
   const places = useMemo(() => layoutPortraits(portraits.map((p) => p.id)), [portraits]);
   const corkRef = useRef<HTMLDivElement | null>(null);
-  const drag = useRef<{ from: string; x: number; y: number; moved: boolean } | null>(null);
+  const drag = useRef<{ from: string; x: number; y: number; moved: boolean; pointerId: number } | null>(null);
   const suppressClick = useRef(false);
   const [source, setSource] = useState<string | null>(null);
   const [chooser, setChooser] = useState<Chooser | null>(null);
@@ -158,17 +158,21 @@ const CaseBoard: React.FC<CaseBoardProps> = ({ board, outcome, portraits, render
 
   // Drag from one person to another to tie them together.
   const onPointerDown = (id: string) => (e: React.PointerEvent) => {
-    const p = toBoard(e);
-    drag.current = { from: id, x: p.x, y: p.y, moved: false };
-    corkRef.current?.setPointerCapture?.(e.pointerId);
+    drag.current = { from: id, x: e.clientX, y: e.clientY, moved: false, pointerId: e.pointerId };
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
     const d = drag.current;
     if (!d) return;
-    const p = toBoard(e);
-    if (!d.moved && Math.hypot(p.x - d.x, p.y - d.y) > DRAG_THRESHOLD) d.moved = true;
-    if (d.moved) setPointer(p);
+    // Real screen pixels, not board units, so the threshold does not shrink with the board's rendered size.
+    if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) > DRAG_THRESHOLD) {
+      d.moved = true;
+      // Captured only once a real drag starts: capturing on every pointerdown retargets the
+      // pointerup (and the click it produces) to the cork container, so a plain click never
+      // reaches the portrait's own click handler.
+      corkRef.current?.setPointerCapture?.(d.pointerId);
+    }
+    if (d.moved) setPointer(toBoard(e));
   };
 
   const onPointerUp = (e: React.PointerEvent) => {
@@ -182,16 +186,9 @@ const CaseBoard: React.FC<CaseBoardProps> = ({ board, outcome, portraits, render
     if (target) openChooser(d.from, target, p);
   };
 
-  // A plain click (or Enter) opens the person's page; a drag that ended on someone else is not a click.
-  const onPortraitClick = (id: string) => () => {
-    if (suppressClick.current) {
-      suppressClick.current = false;
-      return;
-    }
-    onOpenStakeholder(id);
-  };
-
-  // The keyboard way to tie two people: Space on one, then Space on the other.
+  // Click one person, then another, to tie them; click back on the picked one to cancel. A drag
+  // that ended on someone else is not a click. A button's native Enter/Space activation is a click
+  // too, so this is also the keyboard path.
   const pick = (id: string) => {
     if (source === null) {
       setSource(id);
@@ -204,12 +201,16 @@ const CaseBoard: React.FC<CaseBoardProps> = ({ board, outcome, portraits, render
     }
   };
 
-  const onPortraitKeyDown = (id: string) => (e: React.KeyboardEvent) => {
-    if (e.key === " ") {
-      e.preventDefault();
-      pick(id);
+  const onPortraitClick = (id: string) => () => {
+    if (suppressClick.current) {
+      suppressClick.current = false;
+      return;
     }
+    pick(id);
   };
+
+  // Double-click still opens the person's page, since a single click now picks them to tie.
+  const onPortraitDoubleClick = (id: string) => () => onOpenStakeholder(id);
 
   const choose = (kind: ThreadKind) => {
     if (!chooser) return;
@@ -246,7 +247,7 @@ const CaseBoard: React.FC<CaseBoardProps> = ({ board, outcome, portraits, render
   const count = (kind: ThreadKind) => board.found.filter((t) => t.kind === kind).length;
   const sourcePlace: Place | undefined = source ? places[source] : undefined;
   const dragPlace: Place | undefined = drag.current?.moved ? places[drag.current.from] : undefined;
-  const helpText = "Drag from one person to another to tie them, or press Space on two. Click a person to open their page.";
+  const helpText = "Click one person, then another, to tie them (dragging works too). Double-click a person to open their page.";
 
   return (
     <div className={styles.board} onKeyDown={onKeyDown}>
@@ -336,14 +337,13 @@ const CaseBoard: React.FC<CaseBoardProps> = ({ board, outcome, portraits, render
                     aria-pressed={isSource}
                     aria-label={
                       source && !isSource
-                        ? `Tie ${name(source)} to ${p.name}: press Space`
-                        : `${p.name}: open their page. Drag to another person, or press Space, to tie them.`
+                        ? `Tie ${name(source)} to ${p.name}`
+                        : `${p.name}: click to pick them for tying to another person. Double-click to open their page.`
                     }
                     onPointerDown={onPointerDown(p.id)}
                     onDragStart={(e) => e.preventDefault()}
                     onClick={onPortraitClick(p.id)}
-                    onKeyDown={onPortraitKeyDown(p.id)}
-                    onKeyUp={(e) => e.key === " " && e.preventDefault()}
+                    onDoubleClick={onPortraitDoubleClick(p.id)}
                     onMouseEnter={() => setActiveId(p.id)}
                     onMouseLeave={() => setActiveId(null)}
                     onFocus={() => setActiveId(p.id)}
