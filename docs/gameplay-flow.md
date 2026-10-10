@@ -94,8 +94,18 @@ server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch e
      Challenge-Intel and, compact, by the board), `CaseBoardTab.tsx` (the tab and the portraits),
      `useCaseBoard.ts` and `useGraphTargets.ts`.
 5. **Pitch** (`pitch_debate.tsx`): dossier left; right column = boardroom table (stakeholder
-   seats, Pitch Deck plaque, stat chips), chat (`StakeholderInteractionArea.tsx`), engagement card
+   seats, Pitch Deck plaque, stat chips), the conversation history (`conversationHistory/`), engagement card
    shelf.
+   - Conversation history (`conversationHistory/ConversationHistory.tsx`): a transcript on the room's
+     glass, one folder tab per conversation (pitch, each card played, verification). Each stakeholder
+     line is a bubble tinted with their colour, avatar on its corner, name, role, mood, and a play
+     button that reads it aloud. Intel a line reveals is a chip under it (type icon and colour as in
+     the dossier, Verified or Corrected); clicking it opens that note in the dossier. The player's
+     own moves and system messages are centred lines ("You played Team Sync-Up"). On the pitch tab
+     a band above the transcript shows the pitched proposal and one chip per stakeholder (waiting,
+     backs it, pushback, objection); their last reply carries the same Pushback or Objection tag. It
+     scrolls vertically, never sideways, and follows the newest line. Plan:
+     `docs/plans/conversation-history.md`.
    - Cards (`GameEngagementCards.json`): Verify Intel (`intel:verify_item`), 1-to-1, Probe,
      Team Sync-Up, Generic Question (`gather:open/ask/close`). attention tokens per challenge (`attention_tokens` in `GameProgression.json`: 20 in the practice round, 15 in phases 1-2, 12 in phases 3-5).
    - Pitch Deck opens `ComposeActionProposalModal.tsx`: graph of components and edges, two axes

@@ -1,6 +1,6 @@
 # Conversation history: a live transcript on the boardroom glass, extracted into its own component
 
-Status: proposed, not started.
+Status: implemented (steps 0 to 7). Step 8, the playtest, is the remaining item. See "As built" for where the build differs from the mockup.
 
 Mockup (static, nothing is wired to the game): [../mockups/conversation-history.html](../mockups/conversation-history.html).
 Open it in a browser. It opens on the **Glass (v2)** direction; the toolbar switches to **Paper (v1)**
@@ -198,3 +198,31 @@ All of this is shown in the mockup's Glass view; the numbers in its Notes overla
 - Keep a small "Conversation history" label in the header, or let the tabs speak for themselves?
 - `StakeholdersList` and `DialogueOption`: delete with the old component, or does something else
   need them? (Check in Step 1.)
+
+## As built
+
+Where the code differs from the spec above or from the mockup:
+
+- **Files.** `game-ui/src/components/conversationHistory/`: `ConversationHistory.tsx`, `MessageBubble.tsx`,
+  `IntelChip.tsx`, `ActionReceipt.tsx`, `SpeechControls.tsx`, `HistoryTabs.tsx`, `ProposalBand.tsx`, `chat.ts`
+  (types, `getTabInfo`, `shortName`), the CSS module and `ConversationHistory.test.tsx`. The old
+  `StakeholderInteractionArea.tsx`, its CSS, the dead dialogue-options card, the stakeholder-list wiring and the
+  `@chatscope/chat-ui-kit-react` dependency are removed (the lockfile was regenerated in the `ui` container).
+- **Scrolling.** The list scrolls vertically with a thin scrollbar and never sideways (`overflow-x: hidden`);
+  it stays pinned to the newest line. Tabs scroll sideways with no scrollbar.
+- **Name and role.** Where a role is shown beside the name, a leading role word is dropped
+  (`shortName`: "Reliability Ruth" with a "Reliability" label is "Ruth"). The proposal band, the intel chip and
+  the typing line show no role, so they keep the full name.
+- **Dropped from the spec.** The unread dot on tabs (the active tab always follows the newest line, so another
+  tab is never the one that just received it), the hover toolbar (pin and copy), and grouping consecutive lines
+  under one header. Each line keeps its own bubble and avatar.
+- **Avatars.** The small head-and-shoulders crop (`thumb`) on the bubble and typing avatars.
+- **Font.** The game's existing UI stack (`"Helvetica Neue", Inter, ui-sans-serif`), not a newly loaded Inter.
+- **Data.** The band's proposal is the first of `pitchState.last_pitched_changes` plus a `+N` chip. A chip is
+  "backs it", "pushback" or "objection" from the server read's band (green, amber, red) once that stakeholder has
+  replied in the pitch tab, and "waiting" while a pitch is being evaluated and they have not. The stance tag uses
+  the same read, on their last reply. No backend change. Both apply only to the latest pitch tab.
+- **Typing line.** Names the stakeholder (and shows their face) for card conversations; a pitch evaluation shows
+  the generic "Stakeholders are reviewing the action proposal..." because there is no single writer.
+- **Not verified in a browser.** The component is covered by 23 jsdom tests. The CSS (avatar overhang, tints,
+  band wrapping) was ported from the mockup but has had no side-by-side check in the running game.

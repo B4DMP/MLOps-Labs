@@ -19,7 +19,7 @@ import OfflineIntelGathering from "./components/offline_intel_gathering";
 import { type IntelItem } from "./components/ActionCardCardComponent";
 import PitchDebate from "./components/pitch_debate";
 import AcSimulation from "./components/ac_simulation";
-import type { ChatMsg } from "./components/StakeholderInteractionArea";
+import type { ChatMsg } from "./components/conversationHistory/chat";
 import { MetricsContext } from "./components/MetricProvider";
 import { StakeholderContext, type Stakeholder } from "./components/StakeholderProvider";
 import { PhasesContext, hasIntroPhase } from "./components/PhaseProvider";

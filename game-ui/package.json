@@ -11,7 +11,6 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@chatscope/chat-ui-kit-react": "^2.1.1",
     "@coreui/coreui": "^5.9.0",
     "@coreui/react": "^5.13.0",
     "@emotion/react": "^11.14.0",

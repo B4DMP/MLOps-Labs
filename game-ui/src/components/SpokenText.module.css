@@ -1,6 +1,6 @@
 /* Reusable sentence-highlight narration pattern: one span per sentence, synced to `onSentence`'s
    index. Text color is inherited rather than hardcoded - callers range from light dossier
-   panels (IntelArtifactViewer/PrePhaseDialog) to dark chat bubbles (StakeholderInteractionArea's
+   panels (IntelArtifactViewer/PrePhaseDialog) to dark chat bubbles (ConversationHistory's
    chat history, pitch_debate's speech bubbles), and each already sets the right color on its own
    container. Only opacity (animated inline, not here) drives the spoken/upcoming distinction. */
 

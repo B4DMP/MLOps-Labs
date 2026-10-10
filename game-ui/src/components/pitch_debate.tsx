@@ -45,8 +45,8 @@ import StakeholderDossier, {
   type IntelEntry,
 } from "./StakeholderDossier";
 import OfflineIntelGathering, { type IntelArtifact } from "./offline_intel_gathering";
-import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
-import StakeholderInteractionArea, { type ChatMsg, type RevealedIntel } from "./StakeholderInteractionArea";
+import ConversationHistory from "./conversationHistory/ConversationHistory";
+import type { ChatMsg, ProposalSummary, RevealedIntel, Stance, Verdict } from "./conversationHistory/chat";
 import SpokenText from "./SpokenText";
 import PerformanceDashboard from "./PerformanceDashboard";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
@@ -1162,6 +1162,50 @@ export default function PitchDebate({
       })
     );
   }, [pitchState, stakeholders, chatMsgsState, evaluatingPitchConvId]);
+
+  // The pitch tab the band and stance tags read: the one being answered, else the latest.
+  const activePitchConvId = useMemo(() => {
+    if (evaluatingPitchConvId) return evaluatingPitchConvId;
+    const ids = Array.from(
+      new Set(chatMsgsState.map((m) => m.conversation_id || "").filter((id) => id.startsWith("pitch_")))
+    );
+    const num = (id: string) => parseInt(id.replace("pitch_", ""), 10) || 0;
+    return ids.sort((a, b) => num(b) - num(a))[0] || null;
+  }, [evaluatingPitchConvId, chatMsgsState]);
+
+  const { pitchVerdicts, pitchStances } = useMemo(() => {
+    const verdicts: Verdict[] = [];
+    const stances: Record<string, Stance> = {};
+    if (!pitchState || !activePitchConvId) return { pitchVerdicts: verdicts, pitchStances: stances };
+    pitchState.reads.forEach((r) => {
+      const st = stakeholders[r.stakeholder_id];
+      if (!st) return;
+      const spoke = chatMsgsState.some(
+        (m) => m.conversation_id === activePitchConvId && (m.id === r.stakeholder_id || m.id === st.name)
+      );
+      if (spoke) {
+        const state = r.band === "red" ? "objection" : r.band === "amber" ? "pushback" : "backs";
+        verdicts.push({ stakeholderId: r.stakeholder_id, name: st.name || r.stakeholder_id, state });
+        if (state !== "backs") stances[r.stakeholder_id] = state;
+      } else if (isPitchEvaluating && !r.quiet) {
+        verdicts.push({ stakeholderId: r.stakeholder_id, name: st.name || r.stakeholder_id, state: "waiting" });
+      }
+    });
+    return { pitchVerdicts: verdicts, pitchStances: stances };
+  }, [pitchState, activePitchConvId, chatMsgsState, stakeholders, isPitchEvaluating]);
+
+  const proposalSummary = useMemo((): ProposalSummary | null => {
+    const changes = pitchState?.last_pitched_changes;
+    if (!changes?.length) return null;
+    const first = describeAtomicChange(changes[0], findGraphTarget(graphState?.technical, changes[0].target));
+    return { label: first.title, count: changes.length };
+  }, [pitchState, graphState]);
+
+  const typingStakeholderId = useMemo(() => {
+    if (isPitchEvaluating) return null;
+    const key = Object.keys(conversations).find((k) => busyConversationKeys.has(k));
+    return key ? conversations[key].stakeholder_id : null;
+  }, [isPitchEvaluating, conversations, busyConversationKeys]);
 
   // Derived Intel Items from Dossier & Available Items
   const allIntelItems: IntelItem[] = useMemo(() => {
@@ -2444,51 +2488,33 @@ export default function PitchDebate({
                           />
                         </div>
 
-                        <div
-                          className={`flex-grow-1 ${styles.chatWrapper} ${isChatMaximized ? styles.chatWrapperMaximized : ""}`}
-                          style={{ minHeight: 0 }}
-                        >
-                          <StakeholderInteractionArea
+                        <div className="flex-grow-1" style={{ minHeight: 0 }}>
+                          <ConversationHistory
                             className="w-100 h-100"
                             chatMsgs={chatMsgsState}
                             engagementCards={cards}
-                            current_phase={currentPhase}
-                            current_challenge={currentChallenge}
+                            currentPhase={currentPhase}
+                            currentChallenge={currentChallenge}
                             isEnabled={true}
                             isTyping={busyConversationKeys.size > 0 || isPitchEvaluating}
                             typingText={isPitchEvaluating ? "Stakeholders are reviewing the action proposal..." : "A stakeholder is typing..."}
+                            typingStakeholderId={typingStakeholderId}
                             isPitchEvaluating={isPitchEvaluating}
                             evaluatingConversationId={evaluatingPitchConvId}
                             actionCards={[]}
                             onHoverCard={() => {}}
-                            showStakeholderList={false}
-                            showDialogueOptions={false}
+                            isMaximized={isChatMaximized}
+                            onToggleMaximize={() => setIsChatMaximized(!isChatMaximized)}
                             onInspectIntel={(intel, stId) => handleInspectIntel(intel, stId)}
                             activeSentenceIndex={activeSentenceIndex}
                             liveChatMsg={liveChatMsg}
                             onStopSpeech={skipCurrentSpeech}
                             onPlayMessage={playChatMessage}
+                            proposal={proposalSummary}
+                            verdicts={pitchVerdicts}
+                            stances={pitchStances}
+                            pitchConversationId={activePitchConvId}
                           />
-
-                          {/* Maximize / Minimize button */}
-                          <button
-                            type="button"
-                            className={styles.chatMaximizeBtn}
-                            onClick={() => setIsChatMaximized(!isChatMaximized)}
-                            onMouseEnter={(e) =>
-                              showInfoTag(e, isChatMaximized ? "Restore View" : "Maximize", isChatMaximized ? "Restore view" : "Maximize conversation history")
-                            }
-                            onMouseLeave={hideInfoTag}
-                            onFocus={(e) =>
-                              showInfoTag(e, isChatMaximized ? "Restore View" : "Maximize", isChatMaximized ? "Restore view" : "Maximize conversation history")
-                            }
-                            onBlur={hideInfoTag}
-                          >
-                            <Icon
-                              icon={isChatMaximized ? "ph:arrows-in-simple-bold" : "ph:arrows-out-simple-bold"}
-                              className={styles.chatMaximizeBtnIcon}
-                            />
-                          </button>
                         </div>
                       </div>
                     </div>

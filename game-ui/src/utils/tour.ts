@@ -4,7 +4,7 @@ import { getSpeechGeneration, onNarrationEvent, waitForNarrationIdle } from "./s
 
 /**
  * Shared driver for every `data-intro-group` guided tour in the app (see PrePhaseDialog,
- * StakeholderInteractionArea, offline_intel_gathering, pitch_debate, ComposeActionProposalModal,
+ * ConversationHistory, offline_intel_gathering, pitch_debate, ComposeActionProposalModal,
  * ac_simulation). Before this existed, each call site built its own `introJs()` with a repeated
  * `{ exitOnEsc: false, exitOnOverlayClick: false }` literal and no way to actually leave a tour -
  * intro.js's own "Skip" link was globally hidden by CSS. This gives every tour the same two
