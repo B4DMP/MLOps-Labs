@@ -4,13 +4,14 @@
   run --stage S [--only GLOB] [--limit N] [--force] [--dry-run] [--concurrency N] [--budget-tokens N]
   review --stage S                    writes work/review/S.csv and prints one line per item
   approve --stage S [--only GLOB]     marks done items approved; the next stage builds on approved ones
+  repair --stage S [--only GLOB] [--dry-run]   fixes the output an item already has (stage.repair), keeps it if it checks
   reject ITEM_ID --note "..."         queues an item for regeneration with the note in the prompt
   freeze --stage S [--only GLOB]      keeps the current output as approved and pins its hash
   try --stage S --item ID [--attempts N] [--show]   one item, printed, nothing written (prompt iteration)
   unstick                             releases items a killed run left running
   prune [--stage S] [--dry-run]       forgets ledger rows no longer in a stage's plan
   diff [--stage S]                    what the current config would make stale
-  assemble [--dry-run]                writes approved content into gameConfig
+  assemble [--dry-run] [--only T..]   writes approved content into gameConfig (--only: just those challenges)
   validate                            runs the content gates on gameConfig
   select-humor [--seed S] [--ratio R] [--per-challenge-cap N] [--dry-run]
                                        deterministically flags the next batch of artifacts
@@ -133,6 +134,45 @@ def cmd_try(ctx, ledger, args) -> int:
     return 1
 
 
+def cmd_repair(ctx, ledger, args) -> int:
+    """Runs a stage's repair on the output it already has, instead of regenerating it. The result is
+    kept only if the stage's checks pass."""
+    stage = STAGES[args.stage]
+    llm = _llm(args)
+    status = 0
+    for item in stage.plan(ctx):
+        if args.only and not fnmatch.fnmatch(item.item_id, args.only):
+            continue
+        path = ctx.out_path(stage.name, item.item_id)
+        if not path.exists():
+            print(f"{item.item_id}: no output to repair")
+            continue
+        record = json.loads(path.read_text(encoding="utf-8"))
+        async def rounds(output):
+            errors, tin, tout = [], 0, 0
+            for _ in range(3):  # each round feeds the remaining text problems back
+                output, used = await stage.repair(output, item, ctx, llm, tuple(errors))
+                tin, tout = tin + used.tokens_in, tout + used.tokens_out
+                errors = stage.check(output, item, ctx)
+                if not errors:
+                    break
+            return output, errors, type(used)(tin, tout)
+
+        output, errors, usage = asyncio.run(rounds(record["output"]))
+        print(f"{item.item_id}: tokens {usage.tokens_in}+{usage.tokens_out}, " + ("ok" if not errors else f"{len(errors)} problem(s)"))
+        for e in errors:
+            print(f"  - {e}")
+        if errors:
+            status = 1
+        elif not args.dry_run:
+            row = ledger.get(item.item_id)
+            record.update(output=output, model=llm.model_id, input_hash=item.input_hash(ctx.stage_version(stage), llm.model_id, row.note if row else ""))
+            path.write_text(json.dumps(record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            ledger.sync([item], ctx.stage_version(stage), llm.model_id)
+            ledger.finish(item.item_id, path.relative_to(ctx.work_dir).as_posix(), usage.tokens_in, usage.tokens_out, llm.model_id, record.get("attempts", 1))
+    return status
+
+
 def cmd_freeze(ctx, ledger, args) -> int:
     """Golden path: keep what was generated. Every item with an output file goes back to approved
     with its hash pinned to the current inputs, so prompt work does not queue a regeneration."""
@@ -197,7 +237,7 @@ def cmd_assemble(ctx, ledger, args) -> int:
     from content_gen.assemble import AssemblyError, assemble
 
     try:
-        summary = assemble(ctx, dry_run=args.dry_run)
+        summary = assemble(ctx, dry_run=args.dry_run, only=set(args.only) if args.only else None)
     except AssemblyError as e:
         print(e)
         return 1
@@ -283,6 +323,10 @@ def main(argv=None) -> int:
     p = sub.add_parser("approve")
     p.add_argument("--stage", required=True, choices=ORDER)
     p.add_argument("--only")
+    p = sub.add_parser("repair")
+    p.add_argument("--stage", required=True, choices=ORDER)
+    p.add_argument("--only")
+    p.add_argument("--dry-run", action="store_true")
     p = sub.add_parser("reject")
     p.add_argument("item_id")
     p.add_argument("--note", required=True)
@@ -302,6 +346,8 @@ def main(argv=None) -> int:
     p.add_argument("--stage", choices=ORDER)
     p = sub.add_parser("assemble")
     p.add_argument("--dry-run", action="store_true")
+    p.add_argument("--only", nargs="+", metavar="TEMPLATE_ID",
+                   help="replace just these challenges (e.g. ch_loyalty_consent_gap); the rest of gameConfig stays")
     sub.add_parser("validate")
     p = sub.add_parser("select-humor")
     p.add_argument("--seed", default="shelfcast-humor-v1")

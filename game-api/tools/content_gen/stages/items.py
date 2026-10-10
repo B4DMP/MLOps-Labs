@@ -1,6 +1,7 @@
 """Stage 2: the intel items of a challenge. Stances (Driver, Boundary, Trade-off) for the people in the
 room, Facts about the focus stage. Checked with the same payload gate the game loads with."""
 
+import json
 import math
 import re
 from typing import Any, Literal, Optional, Union
@@ -8,6 +9,7 @@ from typing import Any, Literal, Optional, Union
 from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
+from content_gen.llm import Usage
 from content_gen.solvability import repair_errors, room_of, veto_free_errors
 from content_gen.stages.common import (
     AXES, GAME_RULES, GAME_WORDS, LEVEL_TALK, WISH_WORDS, domain_errors, op_dict, parse_json_field, render,
@@ -24,6 +26,15 @@ STANCE_WORDS = re.compile(r"\b(refuses?|will not|won't|never|could accept|can ac
 # against its own asserted level, not just the number.
 BROKEN_WORDS = re.compile(r"\bbroken\b", re.I)
 ABSENT_WORDS = re.compile(r"\b(missing|absent)\b", re.I)
+# Wording that asks for something to run without hands. Automation level 3 is the only level that does.
+AUTOMATE_WORDS = re.compile(
+    r"\b(automat\w*|off manual|manual handling|no manual|without (anyone|a person|a human|manual)"
+    r"|on its own|by itself|(runs?|triggers?|fires?|starts?|handles?|kicks? off) itself|hands[- ]off)\b", re.I)
+AUTOMATED_TRIGGERS = ("scheduled", "on_data_arrival")
+# check() errors that a rewrite of the item's sentences can fix
+TEXT_PROBLEM = re.compile(
+    r"too long|too short|says how much|mentions levels|names a level number|copies the prompt|"
+    r"must all be different|never a component|says what, never why|must not repeat|must name the stakeholder|the driver says", re.I)
 EXAMPLE_READINGS = {
     "the more detail it shows, the better his forecasts get.",
     "he will not present to the board without it.",
@@ -50,6 +61,17 @@ class Readings(BaseModel):
 
 
 TAGS = ("driver", "boundary", "trade_off", "fact")
+
+
+class Rewrite(BaseModel):
+    fact: str
+    readings: Readings
+
+
+REWRITE_SYSTEM = GAME_RULES + """
+You fix the wording of one intel item. Its payload stays as it is, only the sentences change. A fact
+says what was asked or done, never why and never how much they care. Each reading is one short
+sentence. Write plain workplace English: no levels, no numbers, never the words component or stage."""
 
 # Playtesting (Sep 2026): rooms full of Boundaries left players with one legal proposal and no room
 # to bargain. Trade-offs are what give them something to spend, so a challenge is now mostly made of
@@ -123,6 +145,67 @@ def item_targets(r) -> set[str]:
             elif isinstance(node, list):
                 stack += node
     return targets - {None}
+
+
+def automation_wording_flags(reqs: list, graph) -> dict[str, str]:
+    """A driver whose text asks to automate or leave manual handling must reach automated (level 3)
+    somewhere. Many components stop at manual (2), so such a text there can never be met as worded.
+    Returns {requirement id: problem}."""
+    flags = {}
+    for r in reqs:
+        if r.type != "driver" or r.suggested is None:
+            continue
+        steps = [(r.suggested.target, r.suggested.axis, r.suggested.level)] + [
+            (o["target"], o.get("axis"), o["value"]) for o in r.ops if o.get("kind") == "raise_to"
+        ]
+        auto = [(t, lvl) for t, axis, lvl in steps if axis == "automation"]
+        fires = any(o.get("kind") == "set_trigger" and o.get("value") in AUTOMATED_TRIGGERS for o in r.ops)
+        if not auto or fires or max(lvl for _, lvl in auto) >= 3:
+            continue
+        # {automation_alex} is a name, not wording
+        m = AUTOMATE_WORDS.search(re.sub(r"\{\w+\}", " ", f"{r.fact} {r.reading}"))
+        if not m:
+            continue
+        capped = [t for t, _ in auto if graph.is_target(t) and max(graph.allowed_for(t, "automation")) < 3]
+        if len(capped) == len(auto):
+            fix = (f"{', '.join(sorted(set(capped)))} can only be done by hand, never automated; write the ask as "
+                   "setting it up by hand, or put it on a hand-over that can be automated")
+        else:
+            fix = "ask for automation level 3 on a target that reaches it, or drop the automation wording"
+        flags[r.id] = f"{r.id}: the driver says '{m.group(0)}' but asks for automation no higher than manual; {fix}"
+    return flags
+
+
+def automation_wording_errors(reqs: list, graph) -> list[str]:
+    return list(automation_wording_flags(reqs, graph).values())
+
+
+def retarget_to_hand_over(it: dict, current: dict, graph, ceilings: Optional[dict] = None) -> bool:
+    """Moves a flagged driver's automation ask onto targets that can reach automated, in place: a step
+    on a target that reaches 3 goes to 3, and a suggested target that stops at manual gives way to an
+    unused hand-over of the focus stage next to it. Capped extra steps stay. A target a compromise of
+    the challenge caps below 3 counts as capped. True if anything moved."""
+    ceilings = ceilings or {}
+
+    def reaches_3(t):
+        return graph.is_target(t) and 3 in graph.allowed_for(t, "automation") \
+            and ceilings.get((t, "automation"), 3) >= 3
+
+    moved = False
+    used = {it.get("suggested_target")} | {o.get("target") for o in it.get("ops") or []}
+    if it.get("suggested_axis") == "automation" and reaches_3(it["suggested_target"]) \
+            and (it.get("suggested_level") or 0) < 3:
+        it["suggested_level"], moved = 3, True
+    for o in it.get("ops") or []:
+        if o.get("kind") == "raise_to" and o.get("axis") == "automation" and reaches_3(o["target"]) and o["value"] < 3:
+            o["value"], moved = 3, True
+    target = it.get("suggested_target")
+    if it.get("suggested_axis") == "automation" and target and graph.is_target(target) and not reaches_3(target):
+        near = [e for e in current if graph.is_edge(e) and e not in used and reaches_3(e)
+                and current[e]["automation"] < 3 and target in (graph.edge(e).from_id, graph.edge(e).to_id)]
+        if near:
+            it["suggested_target"], it["suggested_level"], moved = near[0], 3, True
+    return moved
 
 
 def shape_errors(reqs: list, graph, shape: dict, stage_edges: set[str]) -> list[str]:
@@ -260,6 +343,16 @@ accept changes" are wrong: they could apply to any item and tell the player noth
   trade_off "Migrating to automated validation would mean rewriting those rules, which costs a sprint."
   fact      "That is simply how the validation setup works today."
 
+What the player can change in a room is only the focus stage components that your items name as their
+main target (suggested_target, concedes_target, holds, asserts_target), plus hand-overs between two such
+components. A boundary or driver on anything else can never be met. Give every hand-over you use two
+components that other items name, and never write two drivers for the same target, axis and level.
+
+Words must match the level asked for. Only automation level 3 runs without hands, and many components
+stop at 2 (done by hand): check allowed_automation. A driver for a target capped at 2 never says
+"automate", "off manual handling" or "on its own"; going from absent to 2 reads as "set up by hand".
+Asks to run on its own belong on hand-overs or components whose allowed_automation reaches 3.
+
 Every level in a payload is on one axis, automation or governance, and must name it. Pick the
 axis the item is really about: "automate it" is automation, "review it", "sign it off", "keep it
 by hand but controlled" is governance. Prefer asking for one step up on one axis over a big jump.
@@ -275,10 +368,11 @@ Tags and payloads:
   true after the player's proposal (e.g. {"component": "data.validation", "axis": "automation",
   "op": "gte", "level": 3}), and ops that make it true (e.g. {"kind": "raise_to", "target":
   "data.validation", "axis": "automation", "value": 3}). The reading is a refusal.
-- trade_off: something a stakeholder would give up or accept losing. Needs concedes_metric with
-  concedes_loss (1 to 10), or concedes_target with concedes_axis and concedes_max_level (the
-  highest level on that axis they would settle for). May carry ops such as set_attr sourcing
-  bought. The reading is acceptance of a cost.
+- trade_off: something a stakeholder would give up or accept losing. Needs concedes_target with
+  concedes_axis and concedes_max_level (the highest level on that axis they would settle for), a
+  step the player can leave low in the graph. concedes_metric with concedes_loss (1 to 10) may be
+  added on top but never stands alone. May carry ops such as set_attr sourcing bought. The reading
+  is acceptance of a cost.
 - fact: how the system is right now, nobody's wish. stakeholder_id null. Needs asserts_target (a
   focus stage component or edge), asserts_axis and asserts_level equal to its CURRENT level on that
   axis given below (and asserts_trigger for edges if you state it). Neutral wording with no wishes
@@ -452,7 +546,78 @@ class ItemsStage:
             it["fact"] = tokenize_names(it["fact"], ctx.stakeholders)
             it["readings"] = {t: tokenize_names(r, ctx.stakeholders) for t, r in it["readings"].items()}
         repair_foreclosures(data["items"], c["conflict"], i["current"])
-        return data, usage
+        data, extra = await self.repair(data, item, ctx, llm)
+        return data, Usage(usage.tokens_in + extra.tokens_in, usage.tokens_out + extra.tokens_out)
+
+    async def repair(self, output: dict, item, ctx, llm, errors: tuple = ()):
+        """Rewrites only the text of items with a wording problem (a driver promising more automation than
+        it asks for, or a text-only error from `check`), leaving every payload and every other item as it
+        was. Returns (output, usage)."""
+        c = item.inputs["challenge"]
+        slug = c["template_id"].removeprefix("ch_")
+        usage = Usage()
+        try:
+            flags = automation_wording_flags(self.to_requirements(output, c), ctx.graph)
+        except Exception:
+            return output, usage  # not valid intel yet; check() reports why
+        ceilings = compromise_ceilings(output["items"], c["conflict"])
+        moved = {it["key"] for it in output["items"]
+                 if f"gen_{slug}_{it['key']}" in flags
+                 and retarget_to_hand_over(it, item.inputs["current"], ctx.graph, ceilings)}
+        # Moving one item changes what the room names, so what is touchable: look again after each move.
+        reach_failed: set[str] = set()
+        for _ in range(8):
+            reqs = self.to_requirements(output, c)
+            stuck = [k for k in (r.id.removeprefix(f"gen_{slug}_") for r in reqs
+                                 if r.id in reachability_flags(reqs, ctx.graph, c["phase_id"])) if k not in reach_failed]
+            if not stuck:
+                break
+            it = next(x for x in output["items"] if x["key"] == stuck[0])
+            if retarget_to_reachable(it, touchable(reqs, ctx.graph, c["phase_id"]), item.inputs["current"], ctx.graph,
+                                     compromise_ceilings(output["items"], c["conflict"]),
+                                     own_caps(output["items"], it.get("stakeholder_id"))):
+                moved.add(it["key"])
+            else:
+                reach_failed.add(it["key"])
+        for it in output["items"]:
+            problems = [flags[f"gen_{slug}_{it['key']}"]] if f"gen_{slug}_{it['key']}" in flags else []
+            if it["key"] in moved:
+                problems.append("the ask was moved onto something the player can change in this room; the steps "
+                                "below are now what it asks for, so the text must describe them")
+            problems += [e for e in errors if re.match(rf"{re.escape(it['key'])}[: ]", e) and TEXT_PROBLEM.search(e)]
+            if not problems:
+                continue
+            steps = []
+            if it["tag"] in ("driver", "boundary"):
+                h = it.get("holds") if isinstance(it.get("holds"), dict) else {}
+                pairs = ([(it["suggested_target"], it.get("suggested_axis"), it.get("suggested_level"))]
+                         if it.get("suggested_target") else [])
+                pairs += [(o["target"], o.get("axis"), o["value"]) for o in it.get("ops") or [] if o.get("kind") == "raise_to"]
+                for target, axis, level in pairs:
+                    if not ctx.graph.is_target(target) or axis not in AXES:
+                        continue
+                    opt = next((o for o in ctx.graph.options_for(target, axis) if o.to_level == level), None)
+                    steps.append({"axis": axis, "asks_for": opt.description if opt else f"{axis} level {level}",
+                                  "highest_possible": max(ctx.graph.allowed_for(target, axis))})
+            user = "\n".join([
+                f"Challenge: {c['name']}. {c['description']}",
+                "This item's text has problems:",
+                render({"tag": it["tag"], "stakeholder_id": it["stakeholder_id"], "fact": it["fact"], "readings": it["readings"]}),
+                *[f"Problem: {p}" for p in problems],
+                *([f"What the {it['tag']} really asks for (automation: 2 means done by hand, 3 means automated; "
+                   "highest_possible 2 means it can never be automated; governance: 3 means formal sign off):",
+                   render(steps)] if steps else []),
+                "Rewrite fact and the four readings so they fix every problem, in the same voice and about the "
+                "same subject and voice. Keep {" + str(it["stakeholder_id"]) + "} in the fact. Describe exactly the "
+                "steps given: a hand-over that fires automatically is automated, say so; anything that can only be "
+                "done by hand is set up by hand and is never called automated, automatic, on its own or off manual "
+                "handling. Reading limits: 3 to 22 words each, all four different.",
+            ])
+            new, used = await llm.structured(Rewrite, system_for(ctx, REWRITE_SYSTEM), user, tags={"item_id": item.item_id})
+            usage = Usage(usage.tokens_in + used.tokens_in, usage.tokens_out + used.tokens_out)
+            it["fact"] = tokenize_names(new.fact, ctx.stakeholders)
+            it["readings"] = {t: tokenize_names(r, ctx.stakeholders) for t, r in new.readings.model_dump().items()}
+        return output, usage
 
     # ---- conversion and checks ----
 
@@ -627,6 +792,7 @@ class ItemsStage:
         stage_targets = {t for t in current}
         errors += shape_errors(reqs, g, i["stance_shape"], {t for t in current if g.is_edge(t)})
         errors += self_contradictions(reqs)
+        errors += automation_wording_errors(reqs, g)
         for r in reqs:
             where = r.id.removeprefix(f"gen_{c['template_id'].removeprefix('ch_')}_")
             errors += text_errors(f"{where} fact", r.fact, 4, 25)
@@ -679,6 +845,9 @@ class ItemsStage:
                 errors.append(f"{where}: a boundary needs holds and the ops that satisfy it")
             if r.type == "trade_off" and r.concedes is None:
                 errors.append(f"{where}: a trade_off needs what it concedes")
+            elif not item_targets(r):
+                errors.append(f"{where}: a {r.type} must name a graph target; a metric loss alone gives the "
+                              "player nothing to do, so add concedes_target with concedes_axis and concedes_max_level")
 
         conflict = c["conflict"]
         sides = {p["stakeholder_id"] for p in conflict["positions"]}
@@ -699,9 +868,10 @@ class ItemsStage:
                 errors.append(f"hard conflict: one of {sorted(sides)} needs a boundary whose holds refers to {conflict['target']}")
         if not errors:
             errors += veto_free_errors(ctx, c, i["roster"], reqs)
+        errors += reachability_errors(reqs, g, c["phase_id"])
         if not errors:
-            # Par is not known while generating: a repair that gets past a veto, with room to spare, is the floor.
-            errors += repair_errors(ctx.graph, challenge_state(ctx, c), reqs, room_of(i["roster"]), c, par="SOFT_PASS")
+            errors += repair_errors(ctx.graph, challenge_state(ctx, c), reqs, room_of(i["roster"]), c,
+                                    par=declared_par(ctx, c["template_id"]))
         return errors
 
     def summary(self, output: dict) -> str:
@@ -717,6 +887,124 @@ def challenge_state(ctx, challenge: dict):
     from mlops_serious_game.domain.graph import GraphOp
 
     return apply_ops(ctx.graph, ctx.start_state(), [GraphOp.model_validate(o) for o in challenge["on_enter_ops"]]).state
+
+
+def own_caps(items: list[dict], stakeholder_id: str) -> dict:
+    """Levels the stakeholder's own `lte` boundaries stop at, as {(target, axis): level}."""
+    caps = {}
+    for it in items:
+        h = it.get("holds") or {}
+        if it["tag"] == "boundary" and it.get("stakeholder_id") == stakeholder_id and isinstance(h, dict) \
+                and h.get("op") == "lte":
+            t = h.get("component") or h.get("edge")
+            caps[(t, h.get("axis"))] = min(h.get("level", 99), caps.get((t, h.get("axis")), 99))
+    return caps
+
+
+def retarget_to_reachable(it: dict, allowed: set, current: dict, graph, ceilings: dict, caps: dict) -> bool:
+    """Moves a driver or boundary the player cannot touch onto something they can, in place. The new
+    target is the touchable one nearest the old (shared hand-over ends first, hand-over for hand-over),
+    on the same axis and level, under the ceilings of the challenge's compromises and the
+    stakeholder's own `lte` boundaries. Extra steps with no touchable target are replaced the same way
+    or dropped. True if it moved."""
+    holds = it.get("holds") if isinstance(it.get("holds"), dict) else {}
+    if it["tag"] == "driver" and it.get("suggested_target"):
+        origin, axis, level = it["suggested_target"], it["suggested_axis"], it["suggested_level"]
+        named = {origin} | {o.get("target") for o in it.get("ops") or []}
+    elif it["tag"] == "boundary" and holds:
+        origin = holds.get("component") or holds.get("edge")
+        axis, level = holds.get("axis"), holds.get("level")
+        named = {origin}
+    else:
+        return False
+    if not origin or named & allowed:
+        return False
+
+    def ends(t):
+        e = graph.edge(t) if graph.is_edge(t) else None
+        return {e.from_id, e.to_id} if e else {t}
+
+    taken = set(named)
+
+    def best(want_axis, want_level, near):
+        found = []
+        for rank, t in enumerate(sorted(allowed)):
+            if t in taken or want_level not in graph.allowed_for(t, want_axis):
+                continue
+            if want_level > min(ceilings.get((t, want_axis), 99), caps.get((t, want_axis), 99)):
+                continue
+            if it["tag"] == "driver" and want_level <= current.get(t, {}).get(want_axis, -1):
+                continue
+            found.append((-(len(ends(t) & ends(near)) + (0.5 if graph.is_edge(t) == graph.is_edge(near) else 0)), rank, t))
+        return min(found)[2] if found else None
+
+    new = best(axis, level, origin)
+    if new is None:
+        return False
+    taken.add(new)
+    if it["tag"] == "driver":
+        it["suggested_target"] = new
+        kept = []
+        for o in it.get("ops") or []:
+            if o.get("target") in allowed:
+                kept.append(o)
+            elif o.get("kind") == "raise_to" and (alt := best(o.get("axis"), o["value"], o["target"])):
+                taken.add(alt)
+                kept.append({**o, "target": alt})
+        it["ops"] = kept
+    else:
+        holds.pop("component", None), holds.pop("edge", None)
+        holds["edge" if graph.is_edge(new) else "component"] = new
+        it["holds"] = holds
+        for o in it.get("ops") or []:
+            if o.get("target") == origin:
+                o["target"] = new
+    return True
+
+
+def declared_par(ctx, template_id: str) -> str:
+    """The par the shipped room declares (the grade and tests/test_room_par.py hold it to that). A room
+    not shipped yet has none: a repair that gets past a veto, with room to spare, is the floor."""
+    path = ctx.config_dir / "GameProgression.json"
+    for c in json.loads(path.read_text(encoding="utf-8"))["challenges"]:
+        if c.get("template_id") == template_id:
+            return c.get("par_outcome", "PASS")  # the model's default when a room does not set it
+    return "SOFT_PASS"
+
+
+def touchable(reqs: list, graph, phase_id: int) -> set:
+    from mlops_serious_game.infrastructure.websocket.handlers.pitch_handler import get_allowed_targets
+
+    return set(get_allowed_targets(graph, phase_id, -1, reqs))
+
+
+def reachability_flags(reqs: list, graph, phase_id: int) -> dict[str, str]:
+    """What the player can touch in the room is fixed by the intel (`get_allowed_targets`): a boundary
+    on anything else is violated for good, and a driver with no touchable target is unmet for good.
+    Returns {requirement id: problem}."""
+    from mlops_serious_game.domain.requirement import item_target_and_level
+
+    allowed = touchable(reqs, graph, phase_id)
+    flags = {}
+    for r in reqs:
+        if r.type == "boundary":
+            held = (r.holds or {}).get("component") or (r.holds or {}).get("edge")
+            if held and held not in allowed:
+                flags[r.id] = (f"{r.id}: the boundary holds on {held}, which the player cannot change in this room; "
+                               "hold it on a component of the focus stage that other items name, or on a hand-over "
+                               "between two such components")
+        elif r.type == "driver":
+            target, _, _ = item_target_and_level(r)
+            named = ({target} if target else set()) | {o.get("target") for o in r.ops}
+            if named and not named & allowed:
+                flags[r.id] = (f"{r.id}: the driver only names {sorted(named - {None})}, none of which the player "
+                               "can change in this room; aim it at a component of the focus stage that other items "
+                               "name, or at a hand-over between two such components")
+    return flags
+
+
+def reachability_errors(reqs: list, graph, phase_id: int) -> list[str]:
+    return list(reachability_flags(reqs, graph, phase_id).values())
 
 
 def current_levels(ctx, challenge: dict) -> dict:

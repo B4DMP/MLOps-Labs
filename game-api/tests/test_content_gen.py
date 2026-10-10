@@ -24,6 +24,7 @@ SCOPE = {
     "conflict_types": ["soft"],
     "facts_per_template": [3, 6],
     "orphans_block": False,
+    "board_gate": False,  # synthetic content has no case board threads to speak of
 }
 
 TEMPLATE = {
@@ -76,7 +77,8 @@ ITEMS = {"items": [
     {"key": "reuben_contract", "tag": "trade_off", "stakeholder_id": "requirements_reuben",
      "fact": "{requirements_reuben} brought up the data contract on every ingestion run.",
      "readings": {"driver": "D: The closer the better, as far as he is concerned.", "boundary": "B: No run of his goes ahead without that contract.", "trade_off": "T: He would drop the contract on the smaller feeds to get the outage closed.", "fact": "F: That is what the ingestion setup does today."},
-     "concedes_metric": "requirements", "concedes_loss": 2},
+     "concedes_metric": "requirements", "concedes_loss": 2,
+     "concedes_target": "data.feature_store", "concedes_axis": "governance", "concedes_max_level": 0},
     {"key": "fact_ingestion", "tag": "fact",
      "fact": "The ingestion job has produced no new records since last night.",
      "readings": {"driver": "D: That is simply the current state of the pipeline.", "boundary": "B: That is simply the current state of the pipeline.", "trade_off": "T: That is simply the current state of the pipeline.", "fact": "F: That is simply the current state of the pipeline."},
@@ -103,7 +105,7 @@ ITEMS = {"items": [
     {"key": "reuben_edge", "tag": "driver", "stakeholder_id": "requirements_reuben",
      "fact": "{requirements_reuben} asked for the data contract check to run on every ingestion hand over.",
      "readings": {"driver": "D: The more hand overs the check covers, the better for him.", "boundary": "B: He will not sign off on any ingestion without that check.", "trade_off": "T: He would drop the check on small feeds to get the outage closed.", "fact": "F: That check is only done by hand today."},
-     "metric_id": "requirements", "suggested_target": "e.contracts_ingest", "suggested_axis": "automation", "suggested_level": 2},
+     "metric_id": "requirements", "suggested_target": "e.validate_version", "suggested_axis": "automation", "suggested_level": 3},
     {"key": "reuben_drift", "tag": "trade_off", "stakeholder_id": "requirements_reuben",
      "fact": "{requirements_reuben} brought up the drift check on the training data.",
      "readings": {"driver": "D: Catching drift earlier is always better in his view.", "boundary": "B: He will not release a model without a drift check.", "trade_off": "T: He would let that drift check wait if the contract check is done first.", "fact": "F: That drift check is barely used today."},
@@ -111,7 +113,8 @@ ITEMS = {"items": [
     {"key": "emilia_nightly", "tag": "trade_off", "stakeholder_id": "efficiency_emilia",
      "fact": "{efficiency_emilia} raised the cost of running the checks every night.",
      "readings": {"driver": "D: Cheaper nightly checks are always better for her.", "boundary": "B: She will not approve any spend on nightly checks.", "trade_off": "T: She would pay for nightly checks if they stop the outages.", "fact": "F: Nightly checks run on a rented server today."},
-     "concedes_metric": "efficiency", "concedes_loss": 3},
+     "concedes_metric": "efficiency", "concedes_loss": 3,
+     "concedes_target": "data.labeling", "concedes_axis": "governance", "concedes_max_level": 0},
 ]}
 
 FILLER = ("This note sums up where things stand with the data pipeline this week and what it means for the "
@@ -484,6 +487,41 @@ def test_pipeline_assembles_into_a_config_the_game_loads_and_the_gates_pass(env)
     assert pick.template_id == "ch_ingest_outage"
 
 
+def test_assemble_leaves_a_hand_maintained_challenge_and_its_intel_alone(env, monkeypatch):
+    from content_gen import assemble as assembly
+
+    ctx, ledger = env
+    llm = FakeLLM(respond)
+    for stage in ("templates", "items", "artifacts", "objections", "fragments"):
+        run(stage, ctx, ledger, llm)
+        ledger.approve([r.item_id for r in ledger.rows(stage)])
+
+    cfg = ctx.config_dir
+    prog = json.loads((cfg / "GameProgression.json").read_text())
+    own = {"id": 900, "phase_id": 2, "template_id": "ch_hand_made", "name": "Hand made", "generated": True,
+           "fallback": False, "priority": 1}
+    prog["challenges"].append(own)
+    (cfg / "GameProgression.json").write_text(json.dumps(prog))
+    reqs = json.loads((cfg / "RequirementObjects.json").read_text())
+    reqs["requirements"].append({"id": "gen_hand_made_x", "challenge_id": 900})
+    (cfg / "RequirementObjects.json").write_text(json.dumps(reqs))
+    arts = json.loads((cfg / "OfflineIntelArtifacts.json").read_text())
+    arts["artifacts"].append({"id": "art_gen_hand_made_x", "challenge_id": 900})
+    (cfg / "OfflineIntelArtifacts.json").write_text(json.dumps(arts))
+    objs = json.loads((cfg / "MlopsObjections.json").read_text())
+    objs["stance"].append({"intel_id": "gen_hand_made_x", "text": "keep me"})
+    (cfg / "MlopsObjections.json").write_text(json.dumps(objs))
+
+    monkeypatch.setattr(assembly, "HAND_MAINTAINED", {"ch_hand_made"})
+    summary = assembly.assemble(ctx)
+
+    assert summary["kept"] == ["ch_hand_made"]
+    assert own in json.loads((cfg / "GameProgression.json").read_text())["challenges"]
+    assert {"id": "gen_hand_made_x", "challenge_id": 900} in json.loads((cfg / "RequirementObjects.json").read_text())["requirements"]
+    assert {"id": "art_gen_hand_made_x", "challenge_id": 900} in json.loads((cfg / "OfflineIntelArtifacts.json").read_text())["artifacts"]
+    assert any(o["intel_id"] == "gen_hand_made_x" for o in json.loads((cfg / "MlopsObjections.json").read_text())["stance"])
+
+
 # ---------- gists (D52, plan 11) ----------
 
 def respond_gists(schema, system, user):
@@ -724,3 +762,193 @@ def test_repair_keeps_drivers_under_the_ceilings_of_their_challenge():
     driver = items[1]
     assert driver["suggested_level"] == 2  # lowered to the ceiling, still above the current 1
     assert [o["target"] for o in driver["ops"]] == ["data.ingestion"]  # the step past the ceiling is dropped
+
+
+def test_board_gate_flags_a_room_with_too_little_to_find(tmp_path, config_dir):
+    """The case board needs threads to find in every room (docs/plans/case-board.md): drop the notes added
+    for challenge 111 and its room falls under the bar."""
+    import content_gen
+    from content_gen.gates import run_gates
+
+    cfg = tmp_path / "gameConfig"
+    shutil.copytree(config_dir, cfg)
+    dropped = {
+        "gen_cost_crisis_drift_gap_monica_driver_edge_retrain",
+        "gen_cost_crisis_drift_gap_reuben_driver_obs_review",
+    }
+
+    def strip(name, key, field):
+        path = cfg / name
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data[key] = [row for row in data[key] if row[field] not in dropped]
+        path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+    strip("RequirementObjects.json", "requirements", "id")
+    strip("OfflineIntelArtifacts.json", "artifacts", "requirement_id")
+    strip("MlopsObjections.json", "stance", "intel_id")
+    scopes = json.loads((Path(content_gen.__file__).parent / "scopes.json").read_text(encoding="utf-8"))
+
+    report = run_gates(cfg, tmp_path / "work", "tier1", scopes["tier1"])
+
+    assert any(e.startswith("board: ch_cost_crisis_drift_gap") for e in report.errors), report.errors
+    assert not any(e.startswith("board: ") and "ch_cost_crisis_drift_gap" not in e for e in report.errors)
+
+
+def test_items_check_rejects_a_trade_off_that_concedes_only_a_metric(env):
+    ctx, ledger = env
+    run("templates", ctx, ledger, FakeLLM(respond))
+    ledger.approve(["templates:p2:s0"])
+    [item] = STAGES["items"].plan(ctx)
+
+    bad = json.loads(json.dumps(ITEMS))
+    for k in ("concedes_target", "concedes_axis", "concedes_max_level"):
+        _by_key(bad, "reuben_contract").pop(k)  # keeps only concedes_metric and loss
+    errors = STAGES["items"].check(bad, item, ctx)
+    assert any("reuben_contract" in e and "must name a graph target" in e for e in errors)
+
+
+class _CapGraph:
+    """Stub graph: the component stops at manual, the hand-over reaches automated."""
+    caps = {"req.risk_assessment": [0, 1, 2], "e.risk_acceptance": [0, 1, 2, 3]}
+
+    def is_target(self, t):
+        return t in self.caps
+
+    def allowed_for(self, t, axis):
+        return self.caps[t]
+
+
+def _wording_driver(target, level, fact, ops=()):
+    from mlops_serious_game.domain.requirement import StakeholderRequirement
+
+    return StakeholderRequirement(
+        id="d", challenge_id=1, stakeholder_id="s", type="driver", description="d", fact=fact, reading="more is better",
+        metric_id="data", suggested={"target": target, "axis": "automation", "level": level}, ops=list(ops))
+
+
+def test_automate_wording_on_a_target_capped_at_manual_is_flagged():
+    from content_gen.stages.items import automation_wording_errors
+
+    r = _wording_driver("req.risk_assessment", 2, "{s} proposed moving risk assessment off manual handling.")
+    errors = automation_wording_errors([r], _CapGraph())
+    assert len(errors) == 1 and "can only be done by hand" in errors[0]
+
+
+def test_automate_wording_is_fine_once_a_step_reaches_automated():
+    from content_gen.stages.items import automation_wording_errors
+
+    op = {"kind": "raise_to", "target": "e.risk_acceptance", "axis": "automation", "value": 3}
+    r = _wording_driver("req.risk_assessment", 2, "{s} asked for the risk check to be automated.", [op])
+    assert automation_wording_errors([r], _CapGraph()) == []
+    assert automation_wording_errors([_wording_driver("req.risk_assessment", 2, "{s} asked for it to be set up by hand.")], _CapGraph()) == []
+
+
+def test_automate_wording_on_a_hand_over_asked_only_to_manual_is_flagged():
+    from content_gen.stages.items import automation_wording_errors
+
+    errors = automation_wording_errors([_wording_driver("e.risk_acceptance", 2, "{s} asked for the hand-over to be automated.")], _CapGraph())
+    assert len(errors) == 1 and "level 3" in errors[0]
+
+
+def test_automate_wording_ignores_a_stakeholder_name():
+    from content_gen.stages.items import automation_wording_errors
+
+    r = _wording_driver("req.risk_assessment", 2, "{automation_alex} asked for the risk check to be set up by hand.")
+    assert automation_wording_errors([r], _CapGraph()) == []
+
+
+def test_automate_wording_catches_triggers_itself():
+    from content_gen.stages.items import automation_wording_errors
+
+    r = _wording_driver("req.risk_assessment", 2, "{s} asked for the check to trigger itself.")
+    assert len(automation_wording_errors([r], _CapGraph())) == 1
+
+
+class _EdgeGraph(_CapGraph):
+    caps = {"req.risk_assessment": [0, 1, 2], "req.acceptance_criteria": [0, 1, 2], "e.risk_acceptance": [0, 1, 2, 3]}
+
+    def is_edge(self, t):
+        return t.startswith("e.")
+
+    def edge(self, t):
+        from types import SimpleNamespace
+
+        return SimpleNamespace(from_id="req.risk_assessment", to_id="req.acceptance_criteria")
+
+
+def test_retarget_moves_a_capped_ask_onto_the_neighbouring_hand_over():
+    from content_gen.stages.items import retarget_to_hand_over
+
+    current = {"req.risk_assessment": {"automation": 1}, "e.risk_acceptance": {"automation": 1}}
+    it = {"suggested_target": "req.risk_assessment", "suggested_axis": "automation", "suggested_level": 2, "ops": []}
+    assert retarget_to_hand_over(it, current, _EdgeGraph())
+    assert (it["suggested_target"], it["suggested_level"]) == ("e.risk_acceptance", 3)
+
+
+def test_retarget_raises_a_hand_over_stuck_at_manual_and_leaves_capped_extras():
+    from content_gen.stages.items import retarget_to_hand_over
+
+    ops = [{"kind": "raise_to", "target": "req.risk_assessment", "axis": "automation", "value": 2}]
+    it = {"suggested_target": "e.risk_acceptance", "suggested_axis": "automation", "suggested_level": 2, "ops": ops}
+    assert retarget_to_hand_over(it, {}, _EdgeGraph())
+    assert it["suggested_level"] == 3 and ops[0]["value"] == 2
+
+
+def test_items_check_rejects_a_driver_the_player_cannot_touch(env):
+    ctx, item, bad = _items_and_plan(env)
+    _by_key(bad, "reuben_edge")["suggested_target"] = "e.contracts_ingest"
+    from content_gen.stages.items import reachability_errors
+
+    reqs = STAGES["items"].to_requirements(bad, item.inputs["challenge"])
+    errors = reachability_errors(reqs, ctx.graph, item.inputs["challenge"]["phase_id"])
+    assert len(errors) == 1 and "e.contracts_ingest" in errors[0] and "can change in this room" in errors[0]
+
+
+def test_declared_par_is_the_shipped_rooms_and_soft_pass_for_unshipped_ones(env):
+    from content_gen.stages.items import declared_par
+
+    ctx, _ = env
+    assert declared_par(ctx, "ch_not_shipped_anywhere") == "SOFT_PASS"
+
+
+class _ReachGraph:
+    """Stub: edges e.ab (a-b), e.bc (b-c), e.xz (x-z, outside the room); every target reaches 3 on both axes."""
+    ends = {"e.ab": ("a", "b"), "e.bc": ("b", "c"), "e.xz": ("x", "z")}
+
+    def is_edge(self, t):
+        return t in self.ends
+
+    def edge(self, t):
+        from types import SimpleNamespace
+
+        return SimpleNamespace(from_id=self.ends[t][0], to_id=self.ends[t][1])
+
+    def allowed_for(self, t, axis):
+        return [0, 1, 2, 3]
+
+
+def test_retarget_to_reachable_moves_a_driver_to_the_nearest_touchable_hand_over():
+    from content_gen.stages.items import retarget_to_reachable
+
+    it = {"tag": "driver", "suggested_target": "e.xz", "suggested_axis": "automation", "suggested_level": 3, "ops": []}
+    current = {t: {"automation": 1, "governance": 0} for t in ("a", "b", "c", "e.ab", "e.bc")}
+    assert retarget_to_reachable(it, {"a", "b", "c", "e.ab", "e.bc"}, current, _ReachGraph(), {}, {})
+    assert it["suggested_target"] in {"e.ab", "e.bc"}
+
+
+def test_retarget_to_reachable_respects_ceilings_and_moves_a_boundary_with_its_ops():
+    from content_gen.stages.items import retarget_to_reachable
+
+    holds = {"edge": "e.xz", "axis": "governance", "op": "gte", "level": 3}
+    it = {"tag": "boundary", "holds": holds, "ops": [{"kind": "raise_to", "target": "e.xz", "axis": "governance", "value": 3}]}
+    current = {t: {"automation": 1, "governance": 0} for t in ("a", "b", "e.ab")}
+    assert retarget_to_reachable(it, {"a", "b", "e.ab"}, current, _ReachGraph(), {("e.ab", "governance"): 0}, {})
+    new = it["holds"].get("component") or it["holds"].get("edge")
+    assert new in {"a", "b"} and "edge" not in it["holds"] and it["ops"][0]["target"] == new
+
+
+def test_retarget_to_reachable_leaves_a_touchable_item_alone():
+    from content_gen.stages.items import retarget_to_reachable
+
+    it = {"tag": "driver", "suggested_target": "e.ab", "suggested_axis": "automation", "suggested_level": 3, "ops": []}
+    assert not retarget_to_reachable(it, {"a", "b", "e.ab"}, {}, _ReachGraph(), {}, {})

@@ -142,7 +142,7 @@ def run_gates(config_dir, work_dir, scope: str, scope_data: dict | None = None) 
     #     until content is regenerated under the new shape; `shape_blocks` turns them into errors.
     from content_gen.solvability import repair_errors, room_of, veto_free_errors
     from content_gen.stages.items import (
-        DEFAULT_STANCE_SHAPE, challenge_state, shape_errors, stance_quotas,
+        DEFAULT_STANCE_SHAPE, automation_wording_errors, challenge_state, shape_errors, stance_quotas,
     )
     from mlops_serious_game.domain.requirement import self_contradictions
 
@@ -158,6 +158,7 @@ def run_gates(config_dir, work_dir, scope: str, scope_data: dict | None = None) 
         stage_id = c["focus_stage_ids"][0]
         stage_edges = {e.id for e in g.edges if g.stage_of(e.id) == stage_id}
         shape_report += [f"shape: {c['template_id']}: {e}" for e in shape_errors(stances, g, shape, stage_edges)]
+        shape_report += [f"wording: {c['template_id']}: {e}" for e in automation_wording_errors(stances, g)]
 
         # 8d. No stakeholder's items undo each other (always blocking).
         report.errors += [f"contradiction: {c['template_id']}: {m}" for m in self_contradictions(stances)]

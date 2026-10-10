@@ -12,6 +12,11 @@ from content_gen.stages.items import ItemsStage, wrong_readings
 ID_LOCK = "assembly_ids.json"
 
 
+# Shipped challenges whose content is edited in gameConfig and has no pipeline source (the Honey
+# Vault intro). Assembly leaves them and their intel, artifacts and stance objections as they are.
+HAND_MAINTAINED = {"ch_heatwave_kpi_gap"}
+
+
 class AssemblyError(RuntimeError):
     pass
 
@@ -24,8 +29,9 @@ def _save(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def collect(ctx) -> dict:
-    """Everything approved, checked for completeness. Raises with the list of what is missing."""
+def collect(ctx, only: Optional[set] = None) -> dict:
+    """Everything approved, checked for completeness. Raises with the list of what is missing.
+    With `only` (template ids), just those challenges are collected and checked."""
     templates = ctx.approved("templates")
     items = {r["inputs"]["challenge"]["template_id"]: r for r in ctx.approved("items")}
     readings_by_req: dict[str, dict] = {}
@@ -46,6 +52,8 @@ def collect(ctx) -> dict:
     seen_templates: dict[str, str] = {}
     for rec in templates:
         ch = tstage.to_challenge(rec["output"], WorkItem("templates", rec["item_id"], rec["inputs"]))
+        if only is not None and ch["template_id"] not in only:
+            continue
         # Two templates with one id would share a single items record, so the second challenge would
         # silently be dealt with the first one's intel. Refuse rather than assemble that.
         if ch["template_id"] in seen_templates:
@@ -68,17 +76,20 @@ def collect(ctx) -> dict:
             if req.type != "fact" and req.id not in objections:
                 missing.append(f"objection for {req.id}")
     stage_ids = {c["focus_stage_ids"][0] for c in challenges}
-    for comp in ctx.graph.components:
-        if comp.stage_id in stage_ids and f"technical:{comp.id}" not in objections:
-            missing.append(f"technical objection for {comp.id}")
-    per_phase: dict[int, int] = {}
-    for ch in challenges:
-        per_phase[ch["phase_id"]] = per_phase.get(ch["phase_id"], 0) + 1
-    for phase_id in ctx.scope["phases"]:
-        wanted = ctx.templates_for_phase(phase_id)
-        if per_phase.get(phase_id, 0) != wanted:
-            missing.append(f"phase {phase_id} has {per_phase.get(phase_id, 0)} approved templates, "
-                           f"scope wants {wanted}")
+    if only is not None:
+        missing += [f"template {t}" for t in sorted(only - {c["template_id"] for c in challenges})]
+    else:
+        for comp in ctx.graph.components:
+            if comp.stage_id in stage_ids and f"technical:{comp.id}" not in objections:
+                missing.append(f"technical objection for {comp.id}")
+        per_phase: dict[int, int] = {}
+        for ch in challenges:
+            per_phase[ch["phase_id"]] = per_phase.get(ch["phase_id"], 0) + 1
+        for phase_id in ctx.scope["phases"]:
+            wanted = ctx.templates_for_phase(phase_id)
+            if per_phase.get(phase_id, 0) != wanted:
+                missing.append(f"phase {phase_id} has {per_phase.get(phase_id, 0)} approved templates, "
+                               f"scope wants {wanted}")
     if missing:
         raise AssemblyError("not everything is approved yet:\n  " + "\n  ".join(missing))
     return {"challenges": challenges, "requirements": requirements, "artifacts": artifacts,
@@ -183,14 +194,24 @@ def on_record_ids(
     return known
 
 
-def assemble(ctx, dry_run: bool = False) -> dict:
-    data = collect(ctx)
+def assemble(ctx, dry_run: bool = False, only: Optional[set] = None) -> dict:
+    """With `only` (template ids), just those challenges are replaced; every other generated
+    challenge, its intel and the technical objections stay as they are in gameConfig."""
+    data = collect(ctx, only)
     cfg = ctx.config_dir
     lock_path = ctx.work_dir / ID_LOCK
     lock = _load(lock_path) if lock_path.exists() else {}
 
     progression = _load(cfg / "GameProgression.json")
+    clash = HAND_MAINTAINED & {c["template_id"] for c in data["challenges"]}
+    if clash:
+        raise AssemblyError(f"{sorted(clash)} is hand maintained but the pipeline also has approved content for it")
     hand_written = [c for c in progression["challenges"] if not c.get("generated")]
+    frozen = set(HAND_MAINTAINED)
+    if only is not None:
+        frozen |= {c["template_id"] for c in progression["challenges"] if c.get("generated")} - set(only)
+    kept = [c for c in progression["challenges"] if c.get("template_id") in frozen]
+    kept_ids = {c["id"] for c in kept}
     next_id = max([c["id"] for c in progression["challenges"]] + list(lock.values()) + [99]) + 1
     ids: dict[str, int] = {}
     for ch in sorted(data["challenges"], key=lambda c: c["template_id"]):
@@ -199,9 +220,13 @@ def assemble(ctx, dry_run: bool = False) -> dict:
             next_id += 1
         ids[ch["template_id"]] = lock[ch["template_id"]]
     generated = [{"id": ids[ch["template_id"]], **ch, "generated": True} for ch in data["challenges"]]
-    carry_tuning(generated, [c for c in progression["challenges"] if c.get("generated")])
-    assign_fallbacks(generated, [c for c in hand_written if not c.get("retired")])
-    progression["challenges"] = hand_written + sorted(generated, key=lambda c: c["id"])
+    carry_tuning(generated, [c for c in progression["challenges"] if c.get("generated") and c["id"] not in kept_ids])
+    # Fallbacks are picked per phase over every generated challenge, so a partial assembly looks at the
+    # kept ones too (their flags come out as they were unless a priority changed).
+    pinned = [c for c in kept if c["template_id"] in HAND_MAINTAINED]
+    assign_fallbacks(generated + [c for c in kept if c not in pinned],
+                     [c for c in hand_written + pinned if not c.get("retired")])
+    progression["challenges"] = hand_written + sorted(kept + generated, key=lambda c: c["id"])
     for phase in progression["phases"]:
         # How many challenges a player gets dealt in a phase is pacing, not content: it is tuned by
         # hand against the target session length, so assembly only fills it in where it is missing.
@@ -212,9 +237,12 @@ def assemble(ctx, dry_run: bool = False) -> dict:
                 phase["challenges_per_phase"] = 1
 
     reqs = _load(cfg / "RequirementObjects.json")
-    reqs["requirements"] = [r for r in reqs["requirements"] if not str(r["id"]).startswith("gen_")]
+    reqs["requirements"] = [r for r in reqs["requirements"]
+                            if not str(r["id"]).startswith("gen_") or r.get("challenge_id") in kept_ids]
+    kept_req_ids = {r["id"] for r in reqs["requirements"] if r.get("challenge_id") in kept_ids}
     arts = _load(cfg / "OfflineIntelArtifacts.json")
-    arts["artifacts"] = [a for a in arts["artifacts"] if not str(a["id"]).startswith("art_gen_")]
+    arts["artifacts"] = [a for a in arts["artifacts"]
+                         if not str(a["id"]).startswith("art_gen_") or a.get("challenge_id") in kept_ids]
     known_ids = on_record_ids(
         data["requirements"], data["artifacts"],
         {ch["template_id"]: _conflict_target(ch) for ch in data["challenges"]},
@@ -247,14 +275,17 @@ def assemble(ctx, dry_run: bool = False) -> dict:
             "is_known": is_known,
         })
 
-    objections = {"stance": [], "technical": []}
+    previous = _load(cfg / "MlopsObjections.json")
+    objections = {"stance": [o for o in previous["stance"] if o["intel_id"] in kept_req_ids],
+                  "technical": list(previous["technical"]) if only is not None else []}
     # Approved objections of retired item ids stay in the ledger; only ship those for assembled intel.
     assembled_ids = {req.id for _, req in data["requirements"]}
     for key, rec in sorted(data["objections"].items()):
         out, i = rec["output"], rec["inputs"]
         if i["kind"] == "technical":
-            objections["technical"].append({"component_id": i["component"]["id"], "stakeholder_id": i["speaker"]["id"],
-                                            "text": out["line"]})
+            if only is None:
+                objections["technical"].append({"component_id": i["component"]["id"],
+                                                "stakeholder_id": i["speaker"]["id"], "text": out["line"]})
         elif i["requirement"]["id"] in assembled_ids:
             objections["stance"].append({"intel_id": i["requirement"]["id"], "stakeholder_id": i["speaker"]["id"],
                                          "kind": i["kind"], "text": out["objection"], "correction": out["correction"]})
@@ -272,6 +303,7 @@ def assemble(ctx, dry_run: bool = False) -> dict:
 
     summary = {
         "challenges": {t: i for t, i in sorted(ids.items())},
+        "kept": sorted(c["template_id"] for c in kept),
         "requirements": len(data["requirements"]),
         "artifacts": len(data["requirements"]),
         "objections": {k: len(v) for k, v in objections.items()},
