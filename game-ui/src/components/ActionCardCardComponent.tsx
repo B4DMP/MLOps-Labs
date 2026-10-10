@@ -373,7 +373,6 @@ export default function ActionCardCardComponent({
                           isFramed={false}
                           play_blink_animation={false}
                           size="100%"
-                          title={st.name}
                         />
                       </div>
                       <span>{st.name}</span>

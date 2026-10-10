@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@iconify/react";
+import HoverTooltip from "./HoverToolTip";
 import HeaderModal from "./HeaderModal";
 import { Accordion, AccordionSection } from "./Accordion";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
@@ -433,16 +434,17 @@ export default function SettingsPanel({ isVisible, onClose, onLogout }: Settings
                           </option>
                         ))}
                       </select>
-                      <button
-                        type="button"
-                        className={styles.previewButton}
-                        disabled={settings.mute_tts}
-                        onClick={() => handlePreview(slot, settings[field], previewText)}
-                        title="Hear a preview in this voice"
-                        aria-label={`Preview the ${label} voice`}
-                      >
-                        <Icon icon="ph:speaker-high-bold" />
-                      </button>
+                      <HoverTooltip description="Hear a preview in this voice">
+                        <button
+                          type="button"
+                          className={styles.previewButton}
+                          disabled={settings.mute_tts}
+                          onClick={() => handlePreview(slot, settings[field], previewText)}
+                          aria-label={`Preview the ${label} voice`}
+                        >
+                          <Icon icon="ph:speaker-high-bold" />
+                        </button>
+                      </HoverTooltip>
                     </div>
                   ))}
                 </div>

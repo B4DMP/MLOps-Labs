@@ -15,6 +15,7 @@ import {
 import { StakeholderContext } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
+import HoverTooltip from "./HoverToolTip";
 import type { AvatarEmotion } from "../types/StakeholderAvatar";
 import { colorForStakeholderId } from "../types/StakeholderAvatar";
 import type { DialogueOption } from "../types/DialogueOption";
@@ -323,16 +324,16 @@ export default function StakeholderInteractionArea({
           <EmojiIcon name="chatThread" /> Conversation History {chatMsgs.length > 0 ? `(${chatMsgs.length})` : ""}
         </h6>}
         {onToggleMaximize && (
-          <button
-            type="button"
-            className={styles.maximizeToggleBtn}
-            onClick={onToggleMaximize}
-            title={isMaximized ? "Restore view (Show Challenge & Pitch Deck)" : "Maximize conversation history"}
+          <HoverTooltip
+            description={isMaximized ? "Restore view (Show Challenge & Pitch Deck)" : "Maximize conversation history"}
+            labelsChild
           >
-            <Icon
-              icon={isMaximized ? "ph:arrows-in-simple-bold" : "ph:arrows-out-simple-bold"}
-            />
-          </button>
+            <button type="button" className={styles.maximizeToggleBtn} onClick={onToggleMaximize}>
+              <Icon
+                icon={isMaximized ? "ph:arrows-in-simple-bold" : "ph:arrows-out-simple-bold"}
+              />
+            </button>
+          </HoverTooltip>
         )}
       </div>
       {showStakeholderList && (
@@ -364,7 +365,6 @@ export default function StakeholderInteractionArea({
                     type="button"
                     className={`${styles.tabBtn} ${isActive ? styles.tabBtnActive : ""}`}
                     onClick={() => setActiveConversationId(cid)}
-                    title={info.title}
                   >
                     <Icon icon="ph:dots-six-vertical-bold" className={styles.tabDragHandle} />
                     <Icon icon={info.icon} className={styles.tabIcon} />
@@ -446,26 +446,28 @@ export default function StakeholderInteractionArea({
                   const showSpeechControls = !isSystem && Boolean(onPlayMessage);
                   const anchor = controlAnchors[index];
                   const playBtn = (
-                    <button
-                      type="button"
-                      className={styles.liveSpeechControlBtn}
-                      onClick={() => onPlayMessage?.(item)}
-                      title={isLive ? "Replay" : "Play"}
-                      aria-label={isLive ? "Replay from the start" : "Read this message aloud"}
-                    >
-                      <Icon icon={isLive ? "ph:arrow-clockwise-bold" : "ph:play-circle-bold"} />
-                    </button>
+                    <HoverTooltip description={isLive ? "Replay" : "Play"}>
+                      <button
+                        type="button"
+                        className={styles.liveSpeechControlBtn}
+                        onClick={() => onPlayMessage?.(item)}
+                        aria-label={isLive ? "Replay from the start" : "Read this message aloud"}
+                      >
+                        <Icon icon={isLive ? "ph:arrow-clockwise-bold" : "ph:play-circle-bold"} />
+                      </button>
+                    </HoverTooltip>
                   );
                   const stopBtn = isLive && onStopSpeech && (
-                    <button
-                      type="button"
-                      className={styles.liveSpeechControlBtn}
-                      onClick={onStopSpeech}
-                      title="Stop"
-                      aria-label="Stop speaking"
-                    >
-                      <Icon icon="ph:stop-circle-bold" />
-                    </button>
+                    <HoverTooltip description="Stop">
+                      <button
+                        type="button"
+                        className={styles.liveSpeechControlBtn}
+                        onClick={onStopSpeech}
+                        aria-label="Stop speaking"
+                      >
+                        <Icon icon="ph:stop-circle-bold" />
+                      </button>
+                    </HoverTooltip>
                   );
 
                   return (
@@ -553,7 +555,6 @@ export default function StakeholderInteractionArea({
                             onMouseEnter={() => setHoveredMsgAvatarIndex(index)}
                             onMouseLeave={() => setHoveredMsgAvatarIndex(null)}
                             style={{ cursor: "pointer" }}
-                            title={senderName}
                           >
                             {/* A real animated avatar (mouth-flap + head-sway while isLive) rather
                                 than a static image - Avatar renders this in place of its own
@@ -581,8 +582,15 @@ export default function StakeholderInteractionArea({
                           {item.revealed_intel.map((intel: RevealedIntel, idx: number) => {
                             const isClickable = Boolean(onInspectIntel);
                             return (
-                              <div
+                              <HoverTooltip
                                 key={intel.id || idx}
+                                description={
+                                  isClickable
+                                    ? `${intel.description.length > 60 ? `${intel.description}\n` : ""}Click to highlight this note in ${intel.stakeholder_name || "stakeholder"}'s dossier`
+                                    : intel.description
+                                }
+                              >
+                              <div
                                 className={`transparent-div ${styles.indicationPill} ${isClickable ? styles.revealedIntelItemClickable : ""}`}
                                 onClick={() => {
                                   if (onInspectIntel) {
@@ -597,11 +605,6 @@ export default function StakeholderInteractionArea({
                                     onInspectIntel!(intel, intel.stakeholder_id || item.id);
                                   }
                                 }}
-                                title={
-                                  isClickable
-                                    ? `Click to highlight this note in ${intel.stakeholder_name || "stakeholder"}'s dossier`
-                                    : intel.description
-                                }
                               >
                                 <div className={styles.indicationText}>
                                   <span className={styles.revealedIntelLabel}>
@@ -611,10 +614,7 @@ export default function StakeholderInteractionArea({
                                       ? "verified intel item: "
                                       : "revealed intel item: "}
                                   </span>
-                                  <span
-                                    style={{ fontWeight: "bold", color: "#60a5fa" }}
-                                    title={intel.description}
-                                  >
+                                  <span style={{ fontWeight: "bold", color: "#60a5fa" }}>
                                     {intel.description.length > 60 ? `${intel.description.slice(0, 60)}...` : intel.description}
                                   </span>
                                   {isClickable && (
@@ -626,6 +626,7 @@ export default function StakeholderInteractionArea({
                                   )}
                                 </div>
                               </div>
+                              </HoverTooltip>
                             );
                           })}
                         </div>

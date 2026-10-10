@@ -21,39 +21,21 @@ import PitchDebate from "./components/pitch_debate";
 import AcSimulation from "./components/ac_simulation";
 import type { ChatMsg } from "./components/StakeholderInteractionArea";
 import { MetricsContext } from "./components/MetricProvider";
-import { StakeholderContext } from "./components/StakeholderProvider";
+import { StakeholderContext, type Stakeholder } from "./components/StakeholderProvider";
 import { PhasesContext, hasIntroPhase } from "./components/PhaseProvider";
 import PrePhaseDialog from "./components/PrePhaseDialog";
 import ErrorDialog from "./components/ErrorDialog";
 import PerformanceDashboard from "./components/PerformanceDashboard";
 import SettingsPanel from "./components/SettingsPanel";
+import HoverTooltip from "./components/HoverToolTip";
 import LoadingScreen from "./components/LoadingScreen";
 import { motion, AnimatePresence } from "motion/react";
 import { FADE_TRANSITION } from "./utils/transitions";
 import { replaceProgress, type GamePhaseLabel } from "./utils/urlSync";
 import { hasSeenBriefing, markBriefingSeen } from "./utils/seenBriefings";
 import type { StakeholderDossierEntry } from "./components/StakeholderDossier";
-import type { StakeholderAvatar } from "./types/StakeholderAvatar";
 import { colorForStakeholderId } from "./types/StakeholderAvatar";
 import type { DialogueOption } from "./types/DialogueOption";
-
-interface Stakeholder {
-  id: string;
-  name: string;
-  responsibilities: string;
-  priorities: string;
-  constraints?: string;
-  role_description: string;
-  metric_id: string;
-  voice?: "male" | "female" | "neutral";
-  stakeholder_color?: string;
-  facial_expression?: string;
-  emotion?: string;
-  avatar?: StakeholderAvatar;
-  power?: string;
-  interest?: string;
-  emotional_state?: string;
-}
 
 interface Metric {
   id: string;
@@ -842,10 +824,10 @@ function App({ onLogout }: AppProps) {
           BriefingPage with no header of its own, even though it shows at progressionIndex 2
           (the same index real gameplay uses) - so it needs this gear too. */}
       {(progressionIndex !== 2 || isRealBriefingOpen) && progressionIndex !== null && !isLoadingSave && (
+        <HoverTooltip description={isSettingsOpen ? "Close settings" : "Open settings"} labelsChild>
         <button
           type="button"
           onClick={() => setIsSettingsOpen((v) => !v)}
-          title={isSettingsOpen ? "Close settings" : "Open settings"}
           style={{
             position: "fixed",
             top: 16,
@@ -866,6 +848,7 @@ function App({ onLogout }: AppProps) {
         >
           <Icon icon="ph:gear-six-bold" />
         </button>
+        </HoverTooltip>
       )}
       <AnimatePresence mode="wait">
         {isLoadingSave || progressionIndex === null ? (

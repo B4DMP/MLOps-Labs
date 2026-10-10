@@ -1,4 +1,5 @@
 import { useEffect, type CSSProperties, type ReactNode } from "react";
+import HoverTooltip from "./HoverToolTip";
 
 export interface HeaderModalProps {
   isVisible: boolean;
@@ -86,14 +87,16 @@ export default function HeaderModal({
         onClick={(e) => e.stopPropagation()}
       >
         {showCloseButton && (
-          <button
-            type="button"
-            className="btn-close btn-close-white"
-            onClick={onClose}
-            title={`Close ${closeLabel} (Esc)`}
-            aria-label={`Close ${closeLabel}`}
-            style={{ position: "absolute", top: 8, right: 12, zIndex: 1 }}
-          />
+          <span style={{ position: "absolute", top: 8, right: 12, zIndex: 1, lineHeight: 0 }}>
+            <HoverTooltip description={`Close ${closeLabel} (Esc)`}>
+              <button
+                type="button"
+                className="btn-close btn-close-white"
+                onClick={onClose}
+                aria-label={`Close ${closeLabel}`}
+              />
+            </HoverTooltip>
+          </span>
         )}
         {children}
       </div>

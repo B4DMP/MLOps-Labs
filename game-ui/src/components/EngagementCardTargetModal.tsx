@@ -10,7 +10,7 @@ import styles from "./EngagementCardTargetModal.module.css";
 import type { EngagementCard } from "../types/EngagementCard";
 import type { Stakeholder } from "./StakeholderProvider";
 import EngagementCardComponent from "./EngagementCardComponent";
-import NarratedText from "./NarratedText";
+import HoverTooltip from "./HoverToolTip";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import { intelTagMeta } from "../types/IntelTag";
 
@@ -60,6 +60,7 @@ export default function EngagementCardTargetModal({
   const [selectedIntelId, setSelectedIntelId] = useState<string | null>(null);
   const [selectedStakeholderFilter, setSelectedStakeholderFilter] = useState<string>("ALL");
   const [isClosing, setIsClosing] = useState(false);
+  const [tooltipLayer, setTooltipLayer] = useState<HTMLDivElement | null>(null);
 
   // Reset selections upon modal opening or card switch
   useEffect(() => {
@@ -221,16 +222,17 @@ export default function EngagementCardTargetModal({
                 <span>Target Selection • {card.title}</span>
               </DialogTitle>
               <p className={styles.headerSubtitle}>
-                {/* Only the card and what to do next are read out: the lists below are for browsing. */}
-                <NarratedText text={subtitle} lead={`${card.title}. ${card.description}`} />
+                {subtitle}
               </p>
             </div>
 
             <div className={styles.headerBadges}>
-              <div className={styles.costBadge} title={`${card.token_cost} Attention Tokens required`}>
-                <Icon icon="ph:coin-fill" style={{ color: "var(--token-color)" }} />
-                <span>{card.token_cost} Cost</span>
-              </div>
+              <HoverTooltip description={`${card.token_cost} Attention Tokens required`} portalTarget={tooltipLayer}>
+                <div className={styles.costBadge}>
+                  <Icon icon="ph:coin-fill" style={{ color: "var(--token-color)" }} />
+                  <span>{card.token_cost} Cost</span>
+                </div>
+              </HoverTooltip>
               <button
                 type="button"
                 className={styles.closeBtn}
@@ -356,15 +358,16 @@ export default function EngagementCardTargetModal({
                           )}
                         </select>
                         {selectedStakeholderFilter !== "ALL" && (
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-secondary py-1 px-2"
-                            style={{ fontSize: "0.72rem" }}
-                            onClick={() => setSelectedStakeholderFilter("ALL")}
-                            title="Reset filter to show all stakeholders"
-                          >
-                            Clear
-                          </button>
+                          <HoverTooltip description="Reset filter to show all stakeholders" portalTarget={tooltipLayer}>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-secondary py-1 px-2"
+                              style={{ fontSize: "0.72rem" }}
+                              onClick={() => setSelectedStakeholderFilter("ALL")}
+                            >
+                              Clear
+                            </button>
+                          </HoverTooltip>
                         )}
                       </div>
                     )}
@@ -458,7 +461,7 @@ export default function EngagementCardTargetModal({
                                       }`}
                                     >
                                       <Icon
-                                        icon={isConfirmed ? "ph:seal-check-fill" : "ph:question-fill"}
+                                        icon={isConfirmed ? "ph:certificate-duotone" : "ph:question-fill"}
                                         style={{ fontSize: "0.85rem" }}
                                       />
                                       <span>{isConfirmed ? "Confirmed" : "Unconfirmed"}</span>
@@ -483,7 +486,7 @@ export default function EngagementCardTargetModal({
 
                                 {!isSelectable ? (
                                   <span className={styles.lockedBadge}>
-                                    <Icon icon="ph:check-circle-fill" /> Already Verified
+                                    <Icon icon="ph:certificate-duotone" /> Already Verified
                                   </span>
                                 ) : isSelected ? (
                                   <Icon icon="ph:check-circle-fill" className={styles.checkedIcon} />
@@ -507,16 +510,16 @@ export default function EngagementCardTargetModal({
                         const stAvatar = stakeholders[st.id]?.avatar || st.avatar;
 
                         return (
-                          <div
+                          <HoverTooltip
                             key={st.id}
+                            block
+                            portalTarget={tooltipLayer}
+                            description={isAlreadyTargeted ? undefined : `Click to ${isSelected ? "deselect" : "select"} ${st.name}`}
+                          >
+                          <div
                             className={`${styles.stakeholderCard} ${isSelected ? styles.stakeholderSelected : ""
                               } ${!isSelectable ? styles.stakeholderDisabled : ""}`}
                             onClick={() => isSelectable && handleToggleStakeholder(st.id)}
-                            title={
-                              isAlreadyTargeted
-                                ? `This stakeholder was already targeted by this card in this challenge.`
-                                : `Click to ${isSelected ? "deselect" : "select"} ${st.name}`
-                            }
                           >
                             {/* Prominent Stakeholder Avatar Frame */}
                             <div
@@ -541,7 +544,7 @@ export default function EngagementCardTargetModal({
                             {/* Stakeholder Details */}
                             <div className={styles.stakeholderMeta}>
                               <div className={styles.stakeholderHeaderRow}>
-                                <h6 className={styles.stakeholderName} title={st.name}>
+                                <h6 className={styles.stakeholderName}>
                                   {st.name}
                                 </h6>
                                 <div className={styles.statusIndicator}>
@@ -552,7 +555,7 @@ export default function EngagementCardTargetModal({
                                     />
                                   )}
                                   {isAlreadyTargeted && (
-                                    <span title="Already targeted by this card in this challenge" style={{ display: "inline-flex" }}>
+                                    <span style={{ display: "inline-flex" }}>
                                       <Icon
                                         icon="ph:lock-key-fill"
                                         className={styles.lockedIcon}
@@ -585,6 +588,7 @@ export default function EngagementCardTargetModal({
                               )}
                             </div>
                           </div>
+                          </HoverTooltip>
                         );
                       })}
                     </div>
@@ -623,6 +627,8 @@ export default function EngagementCardTargetModal({
             </div>
           </div>
         </DialogPanel>
+        {/* Click-through layer for tooltips; the panel's transform would otherwise trap fixed children. */}
+        <div ref={setTooltipLayer} className={styles.tooltipLayer} />
       </div>
     </Dialog>
   );

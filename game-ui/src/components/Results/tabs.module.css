@@ -382,3 +382,19 @@
   gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
+
+/* HoverTooltip wraps these in a span that would otherwise override their display. */
+.tileRow > span > .tile {
+  display: flex;
+  height: 100%;
+}
+
+.rowHead > span:has(> .trackInline) {
+  flex: 1;
+  display: flex;
+  min-width: 4rem;
+}
+
+.rowMeta > span > .chip {
+  display: inline-flex;
+}

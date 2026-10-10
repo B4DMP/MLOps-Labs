@@ -372,3 +372,10 @@
   }
 }
 
+
+/* Click-through layer that tooltips portal into, so they sit inside the dialog. */
+.tooltipLayer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}

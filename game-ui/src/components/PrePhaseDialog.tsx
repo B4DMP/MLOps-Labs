@@ -314,21 +314,21 @@ export default function PrePhaseDialog({
               {!isReview && (
                 <>
                   {onSettingsToggle && (
-                    <button
-                      type="button"
-                      className={`${styles.dashboardLink} ${isSettingsOpen ? styles.dashboardLinkActive : ""}`}
-                      onClick={onSettingsToggle}
-                      title={isSettingsOpen ? "Close settings" : "Open settings"}
-                    >
-                      <Icon icon="ph:gear-six-bold" />
-                      <span>Settings</span>
-                    </button>
+                    <HoverTooltip description={isSettingsOpen ? "Close settings" : "Open settings"} portalTarget={bubbleLayer}>
+                      <button
+                        type="button"
+                        className={`${styles.dashboardLink} ${isSettingsOpen ? styles.dashboardLinkActive : ""}`}
+                        onClick={onSettingsToggle}
+                      >
+                        <Icon icon="ph:gear-six-bold" />
+                        <span>Settings</span>
+                      </button>
+                    </HoverTooltip>
                   )}
                   <button
                     type="button"
                     className={styles.dashboardLink}
                     onClick={() => setIsCheatSheetOpen(true)}
-                    title="Cheat Sheet"
                   >
                     <Icon icon="ph:question-bold" />
                     <span>Cheat Sheet</span>
@@ -336,14 +336,15 @@ export default function PrePhaseDialog({
                 </>
               )}
               {isReview && (
-                <button
-                  type="button"
-                  className="btn-close btn-close-white"
-                  onClick={handleClose}
-                  aria-label="Close Phase Briefing"
-                  title="Close Phase Briefing (Esc)"
-                  style={{ cursor: "pointer" }}
-                />
+                <HoverTooltip description="Close Phase Briefing (Esc)" portalTarget={bubbleLayer}>
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    onClick={handleClose}
+                    aria-label="Close Phase Briefing"
+                    style={{ cursor: "pointer" }}
+                  />
+                </HoverTooltip>
               )}
             </div>
           </div>
@@ -415,25 +416,27 @@ export default function PrePhaseDialog({
                           />
                         )}
                         {isNarratingBriefing && (
+                          <HoverTooltip description="Stop" portalTarget={bubbleLayer}>
+                            <button
+                              type="button"
+                              onClick={stopBriefingNarration}
+                              className={`${styles.briefingNarrationButton} ${styles.briefingNarrationButtonPulsing}`}
+                              aria-label="Stop"
+                            >
+                              <Icon icon="ph:stop-circle-bold" />
+                            </button>
+                          </HoverTooltip>
+                        )}
+                        <HoverTooltip description="Play again" portalTarget={bubbleLayer}>
                           <button
                             type="button"
-                            onClick={stopBriefingNarration}
-                            className={`${styles.briefingNarrationButton} ${styles.briefingNarrationButtonPulsing}`}
-                            title="Stop"
-                            aria-label="Stop"
+                            onClick={replayBriefingNarration}
+                            className={styles.briefingNarrationButton}
+                            aria-label="Play again"
                           >
-                            <Icon icon="ph:stop-circle-bold" />
+                            <Icon icon="ph:arrow-clockwise-bold" />
                           </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={replayBriefingNarration}
-                          className={styles.briefingNarrationButton}
-                          title="Play again"
-                          aria-label="Play again"
-                        >
-                          <Icon icon="ph:arrow-clockwise-bold" />
-                        </button>
+                        </HoverTooltip>
                       </span>
                     )}
                   </div>

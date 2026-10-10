@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import EventLog from "./EventLog";
+import HoverTooltip from "./HoverToolTip";
 import type { GameEventPayload } from "../types/GameEvent";
 import styles from "./EventLogModal.module.css";
 
@@ -58,14 +59,15 @@ export default function EventLogModal({
               </span>
             )}
           </h4>
-          <button
-            type="button"
-            className="btn-close btn-close-white"
-            onClick={onClose}
-            aria-label="Close Event Log"
-            title="Close Event Log (Esc)"
-            style={{ cursor: "pointer" }}
-          />
+          <HoverTooltip description="Close Event Log (Esc)" portalTarget={panelNode}>
+            <button
+              type="button"
+              className="btn-close btn-close-white"
+              onClick={onClose}
+              aria-label="Close Event Log"
+              style={{ cursor: "pointer" }}
+            />
+          </HoverTooltip>
         </div>
 
         <div className={styles.modalBody}>

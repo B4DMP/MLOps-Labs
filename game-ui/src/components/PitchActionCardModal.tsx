@@ -74,6 +74,7 @@ export default function PitchActionCardModal({
   const [selectedTagFilter, setSelectedTagFilter] = useState<IntelTag | "all">("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isClosing, setIsClosing] = useState(false);
+  const [tooltipLayer, setTooltipLayer] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -181,7 +182,7 @@ export default function PitchActionCardModal({
       return {
         label: isPublicRecord || conf === "on_record" ? "On Record" : "Confirmed",
         className: styles.confirmationPillVerified,
-        icon: "ph:seal-check-fill",
+        icon: isPublicRecord || conf === "on_record" ? "ph:star-fill" : "ph:certificate-duotone",
       };
     }
     return {
@@ -412,17 +413,21 @@ export default function PitchActionCardModal({
                     const currentBranch = tradeOffBranches[item.id] || "X";
 
                     return (
-                      <div
+                      <HoverTooltip
                         key={item.id}
-                        className={`${styles.intelCard} ${isSelected ? styles.intelSelected : ""} ${
-                          isFull ? styles.intelCardDisabled : ""
-                        }`}
-                        onClick={() => handleToggleIntel(item)}
-                        title={
+                        block
+                        portalTarget={tooltipLayer}
+                        description={
                           isFull
                             ? `Card slots full (${MAX_CARD_ITEMS} / ${MAX_CARD_ITEMS}). Deselect an item first.`
                             : undefined
                         }
+                      >
+                      <div
+                        className={`${styles.intelCard} ${isSelected ? styles.intelSelected : ""} ${
+                          isFull ? styles.intelCardDisabled : ""
+                        }`}
+                        onClick={() => handleToggleIntel(item)}
                       >
                         <div className={styles.intelTopRow}>
                           <div className={styles.intelBadges}>
@@ -489,6 +494,7 @@ export default function PitchActionCardModal({
                           </div>
                         </div>
                       </div>
+                      </HoverTooltip>
                     );
                   })}
                 </div>
@@ -527,6 +533,7 @@ export default function PitchActionCardModal({
             </div>
           </div>
         </DialogPanel>
+        <div ref={setTooltipLayer} className={styles.tooltipLayer} />
       </div>
     </Dialog>
   );

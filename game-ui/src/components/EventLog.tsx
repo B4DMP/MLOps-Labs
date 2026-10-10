@@ -61,6 +61,7 @@ const KIND_META: Record<GameEventKind, KindMeta> = {
   outcome: { label: "Outcome", icon: "ph:flag-checkered-bold", description: "How the room, or the gate, actually decided." },
   grudge: { label: "Grudge", icon: "ph:eye-bold", description: "Something a stakeholder is holding onto, and when it came due." },
   graph: { label: "System", icon: "ph:graph-bold", description: "A change in the ML system itself, underneath the conversation." },
+  thread: { label: "Board", icon: "ph:push-pin-bold", description: "A tie between two stakeholders you pinned on the case board." },
   metric: { label: "Metric", icon: "ph:chart-line-up-bold", description: "A tracked number that moved." },
 };
 
@@ -214,11 +215,13 @@ export default function EventLog({
   return (
     <div className={`${styles.wrap} ${fill ? styles.wrapFill : ""}`}>
       {showToggle && (
-        <button className={styles.toggle} onClick={() => setCollapsed((v) => !v)} title="What happened, and why">
-          <Icon icon={collapsed ? "ph:caret-right-bold" : "ph:caret-down-bold"} />
-          <span>{title}</span>
-          {events.length > 0 && <span className={styles.count}>{events.length}</span>}
-        </button>
+        <HoverTooltip description="What happened, and why" portalTarget={tooltipPortalTarget}>
+          <button className={styles.toggle} onClick={() => setCollapsed((v) => !v)}>
+            <Icon icon={collapsed ? "ph:caret-right-bold" : "ph:caret-down-bold"} />
+            <span>{title}</span>
+            {events.length > 0 && <span className={styles.count}>{events.length}</span>}
+          </button>
+        </HoverTooltip>
       )}
 
       {(!showToggle || !collapsed) && (
@@ -235,15 +238,16 @@ export default function EventLog({
                 className={styles.searchInput}
               />
               {query && (
-                <button
-                  type="button"
-                  className={styles.searchClear}
-                  onClick={() => setQuery("")}
-                  title="Clear search"
-                  aria-label="Clear search"
-                >
-                  <Icon icon="ph:x-bold" />
-                </button>
+                <HoverTooltip description="Clear search" portalTarget={tooltipPortalTarget}>
+                  <button
+                    type="button"
+                    className={styles.searchClear}
+                    onClick={() => setQuery("")}
+                    aria-label="Clear search"
+                  >
+                    <Icon icon="ph:x-bold" />
+                  </button>
+                </HoverTooltip>
               )}
             </div>
 

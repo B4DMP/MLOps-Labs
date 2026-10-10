@@ -340,3 +340,8 @@
   text-transform: uppercase;
   color: var(--muted);
 }
+
+/* HoverTooltip's wrapper span would otherwise override the pillar's flex display. */
+.pillars > span > .pillar {
+  display: flex;
+}

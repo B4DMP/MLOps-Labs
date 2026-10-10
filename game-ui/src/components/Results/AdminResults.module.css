@@ -150,3 +150,8 @@
   font-weight: 700;
   color: var(--text-primary, #1e293b);
 }
+
+/* HoverTooltip's wrapper span would otherwise override the button's flex display. */
+.runButtons > span > .runButton {
+  display: inline-flex;
+}

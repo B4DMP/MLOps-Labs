@@ -75,6 +75,8 @@ export interface Player {
   runs?: number;
   /** They used a playtest tool, so their data is left out of the research aggregates. */
   playtestTainted?: boolean;
+  /** Connected to the game right now. */
+  online?: boolean;
   /** 2 while they are playing challenges. */
   progressIndex?: number;
   /** Per-account debug switches; each is also on for everyone when the API enables it globally. */
@@ -1570,11 +1572,9 @@ export function Admin({
                               <td>
                                 <div className="d-flex align-items-center gap-2">
                                   <Icon icon="ph:user-circle-bold" className="text-secondary fs-5" />
-                                  <Icon
-                            icon="ph:circle-fill"
-                            title={p.online ? "Online now" : "Offline"}
-                            style={{ color: p.online ? "#22c55e" : "#d1d5db", fontSize: "0.6rem" }}
-                          />
+                                  <span title={p.online ? "Online now" : "Offline"}>
+                            <Icon icon="ph:circle-fill" style={{ color: p.online ? "#22c55e" : "#d1d5db", fontSize: "0.6rem" }} />
+                            </span>
                           <span className="fw-bold">{p.name}</span>
                                 </div>
                               </td>

@@ -1,4 +1,5 @@
 import { Icon } from "@iconify/react";
+import HoverTooltip from "./HoverToolTip";
 import styles from "./EngagementCardComponent.module.css";
 import type { EngagementCard } from "../types/EngagementCard";
 
@@ -42,7 +43,7 @@ export default function EngagementCardComponent({
   const isPlayable = isEnabled && canAfford && !isSingleUseExhausted && !isPreview;
 
   const cardTooltip = isPreview
-    ? `${card.title} - ${card.description}`
+    ? undefined
     : !isEnabled
       ? "Interaction currently disabled"
       : isSingleUseExhausted
@@ -52,12 +53,12 @@ export default function EngagementCardComponent({
           : `Drag to Pitch Deck / Chat or click to play ${card.title}`;
 
   return (
+    <HoverTooltip description={isDragging ? undefined : cardTooltip}>
     <div
       draggable={isPlayable}
       onDragStart={isPlayable ? onDragStart : undefined}
       onDragEnd={isPlayable ? onDragEnd : undefined}
       onClick={isPlayable && onClick ? onClick : undefined}
-      title={cardTooltip}
       className={`
         ${styles.playingCard}
         ${is_minimized ? styles.minimizedCard : ""}
@@ -72,13 +73,15 @@ export default function EngagementCardComponent({
       <div className={styles.innerFrame}>
         {/* Top Header: Title & Attention Token Cost Gem */}
         <div className={styles.cardHeader}>
-          <h6 className={styles.cardTitle} title={card.title}>
+          <h6 className={styles.cardTitle}>
             {card.title}
           </h6>
-          <div className={styles.costBadge} title={`${card.token_cost} Attention Tokens`}>
-            <Icon icon="ph:coin-fill" style={{ color: "var(--token-color)" }} />
-            <span>{card.token_cost}</span>
-          </div>
+          <HoverTooltip description={`${card.token_cost} Attention Tokens`}>
+            <div className={styles.costBadge}>
+              <Icon icon="ph:coin-fill" style={{ color: "var(--token-color)" }} />
+              <span>{card.token_cost}</span>
+            </div>
+          </HoverTooltip>
         </div>
 
         {/* Card Artwork Illustration Window (omitted in compact/minimized view) */}
@@ -112,12 +115,10 @@ export default function EngagementCardComponent({
 
             {/* Drag Handle Indicator */}
             {isPlayable && (
-              <span title="Drag to play" style={{ display: "inline-flex" }}>
-                <Icon
-                  icon="teenyicons:drag-outline"
-                  className={styles.dragHandle}
-                />
-              </span>
+              <Icon
+                icon="teenyicons:drag-outline"
+                className={styles.dragHandle}
+              />
             )}
           </div>
         )}
@@ -150,13 +151,12 @@ export default function EngagementCardComponent({
 
             {/* Turns Badge (D49) */}
             {card.target_type !== "intel" && (card.turns ?? 0) > 0 && (
-              <span
-                className={`${styles.metaBadge} ${styles.intelBadge}`}
-                title={`Buys ${card.turns} turn${(card.turns ?? 1) > 1 ? "s" : ""} per target`}
-              >
-                <Icon icon="ph:files-bold" />
-                <span>+{card.turns}</span>
-              </span>
+              <HoverTooltip description={`Buys ${card.turns} turn${(card.turns ?? 1) > 1 ? "s" : ""} per target`}>
+                <span className={`${styles.metaBadge} ${styles.intelBadge}`}>
+                  <Icon icon="ph:files-bold" />
+                  <span>+{card.turns}</span>
+                </span>
+              </HoverTooltip>
             )}
           </div>
         </div>
@@ -171,5 +171,6 @@ export default function EngagementCardComponent({
         </div>
       </div>
     </div>
+    </HoverTooltip>
   );
 }

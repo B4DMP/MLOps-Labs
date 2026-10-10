@@ -7,6 +7,7 @@ import { Icon } from "@iconify/react";
 import { motion, AnimatePresence } from "motion/react";
 import type { StakeholderAvatar } from "../types/StakeholderAvatar";
 import type { GatherOptionKind, GatherStatePayload } from "../types/Gather";
+import HoverTooltip from "./HoverToolTip";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import styles from "./GatherConversationPanel.module.css";
 
@@ -74,16 +75,17 @@ export default function GatherConversationPanel({
           </span>
         </div>
         {!conversation.closed && conversation.turns_left > 0 && (
-          <button
-            type="button"
-            className={styles.endBtn}
-            onClick={onClose}
-            disabled={busy}
-            title="End this conversation early - unused turns are lost"
-          >
-            <Icon icon="ph:door-bold" className={styles.endBtnIcon} />
-            <span>End conversation</span>
-          </button>
+          <HoverTooltip description="End this conversation early - unused turns are lost">
+            <button
+              type="button"
+              className={styles.endBtn}
+              onClick={onClose}
+              disabled={busy}
+            >
+              <Icon icon="ph:door-bold" className={styles.endBtnIcon} />
+              <span>End conversation</span>
+            </button>
+          </HoverTooltip>
         )}
       </div>
 
@@ -150,8 +152,12 @@ export default function GatherConversationPanel({
               const isSingle = conversation.options.length === 1;
 
               return (
-                <motion.button
+                <HoverTooltip
                   key={`${opt.option}-${opt.component_id || opt.item_id || idx}`}
+                  block
+                  description={opt.reason || (opt.prompt ? undefined : meta.hint)}
+                >
+                <motion.button
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.15, delay: idx * 0.03 }}
@@ -165,11 +171,11 @@ export default function GatherConversationPanel({
                       item_id: opt.item_id ?? undefined,
                     })
                   }
-                  title={opt.reason || opt.prompt || meta.hint}
                 >
                   <Icon icon={meta.icon} className={styles.turnBtnIcon} />
                   <span className={styles.turnBtnText}>{displayText}</span>
                 </motion.button>
+                </HoverTooltip>
               );
             })}
           </motion.div>

@@ -171,3 +171,17 @@
     transform: rotate(360deg);
   }
 }
+
+/* HoverTooltip wraps these in a span; keep the layout they had as direct children. */
+span > .endBtn,
+span > .turnBtn {
+  display: flex;
+}
+
+span:has(> .endBtn) {
+  margin-left: auto;
+}
+
+.turnGrid > span:only-child {
+  grid-column: 1 / -1;
+}

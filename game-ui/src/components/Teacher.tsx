@@ -1,5 +1,6 @@
 import { Icon } from "@iconify/react";
 import styles from "./Admin.module.css";
+import HoverTooltip from "./HoverToolTip";
 import { TeacherDashboardView } from "./TeacherDashboardView";
 import { fetchTeacherDashboard, resetPlayerTokens } from "../services/api/teacher";
 
@@ -34,15 +35,12 @@ export function Teacher({ userName, onLogout, onSessionExpired }: TeacherProps) 
               <Icon icon="ph:user-circle-bold" />
               <span>{userName}</span>
             </span>
-            <button
-              type="button"
-              className={styles.openGameButton}
-              onClick={onLogout}
-              title="Log out of the teacher session"
-            >
-              <Icon icon="ph:sign-out-bold" />
-              <span>Logout</span>
-            </button>
+            <HoverTooltip description="Log out of the teacher session">
+              <button type="button" className={styles.openGameButton} onClick={onLogout}>
+                <Icon icon="ph:sign-out-bold" />
+                <span>Logout</span>
+              </button>
+            </HoverTooltip>
           </div>
         </div>
 

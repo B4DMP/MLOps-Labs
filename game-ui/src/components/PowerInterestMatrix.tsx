@@ -479,22 +479,26 @@ export default function PowerInterestMatrix({
           ))}
         </div>
         {introQueue.length > 0 && (
-          <button
-            type="button"
-            className={styles.introReplayBtn}
-            onClick={replayIntros}
-            disabled={Boolean(activeIntro)}
-            title={
+          <HoverTooltip
+            description={
               activeIntro
                 ? "Stakeholders are introducing themselves"
                 : introStopped
                 ? "Play the stakeholder introductions again"
                 : "Replay the stakeholder introductions"
             }
+            portalTarget={bubblePortalTarget}
           >
-            <Icon icon="ph:chat-teardrop-text-bold" className={styles.dynamicChipIcon} />
-            <span>{activeIntro ? "Introducing..." : "Replay intros"}</span>
-          </button>
+            <button
+              type="button"
+              className={styles.introReplayBtn}
+              onClick={replayIntros}
+              disabled={Boolean(activeIntro)}
+            >
+              <Icon icon="ph:chat-teardrop-text-bold" className={styles.dynamicChipIcon} />
+              <span>{activeIntro ? "Introducing..." : "Replay intros"}</span>
+            </button>
+          </HoverTooltip>
         )}
       </div>
 
@@ -726,7 +730,6 @@ export default function PowerInterestMatrix({
             "--intro-color": activeIntro.color,
           } as unknown as CSSProperties}
           onClick={advanceIntro}
-          title="Click to skip to the next introduction"
         >
           <div className={styles.introBubbleHeader}>
             <span className={styles.introBubbleName}>{activeIntro.name}</span>
@@ -735,30 +738,32 @@ export default function PowerInterestMatrix({
                 {introState.queueIndex + 1} / {introQueue.length}
               </span>
             )}
-            <button
-              type="button"
-              className={`${styles.introSkipBtn} ${
-                introState?.queueIndex === null ? styles.introSkipBtnAlone : ""
-              }`}
-              onClick={(e) => {
-                e.stopPropagation();
-                advanceIntro();
-              }}
-              title="Skip to next introduction"
-            >
-              <Icon icon="ph:skip-forward-fill" />
-            </button>
-            <button
-              type="button"
-              className={styles.introCloseBtn}
-              onClick={(e) => {
-                e.stopPropagation();
-                stopIntros();
-              }}
-              title="Stop the introductions"
-            >
-              <Icon icon="ph:x-bold" />
-            </button>
+            <HoverTooltip description="Skip to next introduction" labelsChild portalTarget={bubblePortalTarget}>
+              <button
+                type="button"
+                className={`${styles.introSkipBtn} ${
+                  introState?.queueIndex === null ? styles.introSkipBtnAlone : ""
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  advanceIntro();
+                }}
+              >
+                <Icon icon="ph:skip-forward-fill" />
+              </button>
+            </HoverTooltip>
+            <HoverTooltip description="Stop the introductions" labelsChild portalTarget={bubblePortalTarget}>
+              <button
+                type="button"
+                className={styles.introCloseBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  stopIntros();
+                }}
+              >
+                <Icon icon="ph:x-bold" />
+              </button>
+            </HoverTooltip>
           </div>
           <p className={styles.introBubbleText}>{activeIntro.message}</p>
         </div>,

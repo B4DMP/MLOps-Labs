@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import styles from "./Admin.module.css";
+import HoverTooltip from "./HoverToolTip";
 import { TeacherDashboardView } from "./TeacherDashboardView";
 import {
   createAdminTeacher,
@@ -275,36 +276,39 @@ export function TeacherManager({ campaigns }: TeacherManagerProps) {
                       ) : (
                         <div className="d-inline-flex align-items-center gap-2">
                           {editingCampaignsFor !== t.id && (
+                            <HoverTooltip description="Change assigned campaigns">
+                              <button
+                                type="button"
+                                className={styles.outlineButton}
+                                style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem" }}
+                                onClick={() => startEditingCampaigns(t)}
+                              >
+                                <Icon icon="ph:flag-banner-bold" />
+                                <span>Campaigns</span>
+                              </button>
+                            </HoverTooltip>
+                          )}
+                          <HoverTooltip description="Set a new password">
                             <button
                               type="button"
                               className={styles.outlineButton}
                               style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem" }}
-                              onClick={() => startEditingCampaigns(t)}
-                              title="Change assigned campaigns"
+                              onClick={() => setPasswordResetFor(t.id)}
                             >
-                              <Icon icon="ph:flag-banner-bold" />
-                              <span>Campaigns</span>
+                              <Icon icon="ph:key-bold" />
+                              <span>Password</span>
                             </button>
-                          )}
-                          <button
-                            type="button"
-                            className={styles.outlineButton}
-                            style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem" }}
-                            onClick={() => setPasswordResetFor(t.id)}
-                            title="Set a new password"
-                          >
-                            <Icon icon="ph:key-bold" />
-                            <span>Password</span>
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-outline-danger"
-                            style={{ fontSize: "0.8rem" }}
-                            onClick={() => setTeacherToDelete(t)}
-                            title="Delete teacher account"
-                          >
-                            <Icon icon="ph:trash-bold" />
-                          </button>
+                          </HoverTooltip>
+                          <HoverTooltip description="Delete teacher account" labelsChild>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-danger"
+                              style={{ fontSize: "0.8rem" }}
+                              onClick={() => setTeacherToDelete(t)}
+                            >
+                              <Icon icon="ph:trash-bold" />
+                            </button>
+                          </HoverTooltip>
                         </div>
                       )}
                     </td>

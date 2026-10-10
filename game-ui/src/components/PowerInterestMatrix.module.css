@@ -540,7 +540,8 @@
 
 .introBubble {
   position: fixed;
-  z-index: 10050;
+  /* Just above the dossier (10000) but below tooltips (10010), so button tooltips show over it. */
+  z-index: 10005;
   pointer-events: auto;
   box-sizing: border-box;
   background: #f8fafc;

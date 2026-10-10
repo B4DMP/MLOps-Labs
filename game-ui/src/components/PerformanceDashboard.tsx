@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useContext, useLayoutEffect, useMemo, useRef } from "react";
 import { Icon } from "@iconify/react";
 import { EmojiIcon } from "../utils/emojiIcons";
+import HoverTooltip from "./HoverToolTip";
 import PhaseOverview from "./PhaseOverview";
 import MetricTab from "./MetricTab";
 import type { IntelEntry, StakeholderDossierEntry } from "./StakeholderDossier";
@@ -214,7 +215,8 @@ function healthText(stage: StageData): string {
 /** Governance pips: one per rung above `none`, violet, no capped state (governance never caps). */
 function GovernancePips({ level }: { level: number }) {
   return (
-    <span className="d-inline-flex gap-1 align-items-center" title={`Governance: ${formatAxisLevel("governance", level)}`}>
+    <HoverTooltip description={`Governance: ${formatAxisLevel("governance", level)}`}>
+    <span className="d-inline-flex gap-1 align-items-center">
       {[1, 2, 3].map((i) => (
         <span
           key={i}
@@ -229,6 +231,7 @@ function GovernancePips({ level }: { level: number }) {
         />
       ))}
     </span>
+    </HoverTooltip>
   );
 }
 
@@ -262,9 +265,8 @@ function LevelPips({ nominal, effective }: { nominal: number; effective?: number
           border = `1px solid ${bg}`;
         }
         return (
+          <HoverTooltip key={i} description={`Automation: ${AUTOMATION_LABELS[i]}`}>
           <span
-            key={i}
-            title={`Automation: ${AUTOMATION_LABELS[i]}`}
             style={{
               width: 10,
               height: 10,
@@ -274,6 +276,7 @@ function LevelPips({ nominal, effective }: { nominal: number; effective?: number
               border,
             }}
           />
+          </HoverTooltip>
         );
       })}
     </span>
@@ -657,17 +660,18 @@ function NeighbourRail({
 }) {
   const isLink = Boolean(info.stageId);
   return (
+    <HoverTooltip description={info.title}>
     <button
       type="button"
       className={`${styles.neighbourRail} ${side === "in" ? styles.neighbourIn : styles.neighbourOut} ${isLink ? "" : styles.neighbourTerminal}`}
       style={info.color ? { color: info.color } : undefined}
       disabled={!isLink}
-      title={info.title}
       onClick={() => info.stageId && onSelect(info.stageId)}
     >
       <Icon icon={info.icon} className={styles.neighbourIcon} />
       <span className={styles.neighbourLabel}>{info.label}</span>
     </button>
+    </HoverTooltip>
   );
 }
 
@@ -1031,14 +1035,15 @@ export default function PerformanceDashboard({
           <div className={styles.headerPhases}>
             <PhaseOverview />
           </div>
-          <button
-            type="button"
-            className="btn-close btn-close-white"
-            onClick={handleClose}
-            aria-label="Close Performance Dashboard"
-            title="Close Performance Dashboard (Esc)"
-            style={{ cursor: "pointer" }}
-          />
+          <HoverTooltip description="Close Performance Dashboard (Esc)">
+            <button
+              type="button"
+              className="btn-close btn-close-white"
+              onClick={handleClose}
+              aria-label="Close Performance Dashboard"
+              style={{ cursor: "pointer" }}
+            />
+          </HoverTooltip>
         </div>
 
         {/* Modal Body */}
@@ -1092,18 +1097,18 @@ export default function PerformanceDashboard({
                           return (
                             <div
                               key={stage.id}
-                              className="d-flex align-items-center gap-2"
+                              className={`d-flex align-items-center gap-2 ${styles.stageSlot}`}
                               style={{ flex: "1 1 0", minWidth: 0 }}
                               ref={(el) => { stageRefs.current[stage.id] = el; }}
                             >
                               {i > 0 && (
                                 <StageConnector flow={flow} toId={stage.id} />
                               )}
+                              <HoverTooltip description={stage.locked ? `${stage.name} is ahead of you - preview what it will contain` : `Click to inspect ${stage.name}`}>
                               <button
                                 type="button"
                                 onClick={() => selectStage(stage.id)}
                                 className={`${styles.stageButton} ${isStageActive ? styles.stageButtonActive : ""} ${stage.locked ? styles.stageButtonUpcoming : ""} ${!stage.locked && stage.status === "broken" ? "pipe-stage-failing" : ""}`}
-                                title={stage.locked ? `${stage.name} is ahead of you - preview what it will contain` : `Click to inspect ${stage.name}`}
                               >
                                 <div className="fw-bold" style={{ color: stage.locked ? "#64748b" : "var(--text-primary, #1e293b)" }}>
                                   {stage.name}
@@ -1128,21 +1133,22 @@ export default function PerformanceDashboard({
                                 {!stage.locked && stage.patterns && stage.patterns.length > 0 && (
                                   <div className="d-flex justify-content-center gap-1 mt-1">
                                     {stage.patterns.map((p) => (
-                                      <span
-                                        key={p.id}
-                                        style={{
-                                          width: 6,
-                                          height: 6,
-                                          borderRadius: "50%",
-                                          background: p.kind === "anti" ? "#dc3545" : "#16a34a",
-                                          display: "inline-block",
-                                        }}
-                                        title={p.name}
-                                      />
+                                      <HoverTooltip key={p.id} description={p.name}>
+                                        <span
+                                          style={{
+                                            width: 6,
+                                            height: 6,
+                                            borderRadius: "50%",
+                                            background: p.kind === "anti" ? "#dc3545" : "#16a34a",
+                                            display: "inline-block",
+                                          }}
+                                        />
+                                      </HoverTooltip>
                                     ))}
                                   </div>
                                 )}
                               </button>
+                              </HoverTooltip>
                             </div>
                           );
                         })}
@@ -1186,14 +1192,14 @@ export default function PerformanceDashboard({
                       {activeStage.patterns && activeStage.patterns.length > 0 && (
                         <div className="d-flex gap-1 flex-wrap">
                           {activeStage.patterns.map((p) => (
-                            <span
-                              key={p.id}
-                              className="badge"
-                              style={{ background: p.kind === "anti" ? "#dc3545" : "#16a34a", fontSize: "0.7rem" }}
-                              title={p.id}
-                            >
-                              {p.name}
-                            </span>
+                            <HoverTooltip key={p.id} description={p.id}>
+                              <span
+                                className="badge"
+                                style={{ background: p.kind === "anti" ? "#dc3545" : "#16a34a", fontSize: "0.7rem" }}
+                              >
+                                {p.name}
+                              </span>
+                            </HoverTooltip>
                           ))}
                         </div>
                       )}
@@ -1251,18 +1257,19 @@ export default function PerformanceDashboard({
                             </span>
                           </span>
                           {(selComponentData || selectedCrossStub) && (
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-link text-white text-decoration-none p-0"
-                              onClick={() => {
-                                setSelectedComp(null);
-                                setSelectedCrossStub(null);
-                              }}
-                              title="Back to component list"
-                              style={{ fontSize: "0.78rem" }}
-                            >
-                              ✕ Close
-                            </button>
+                            <HoverTooltip description="Back to component list">
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-link text-white text-decoration-none p-0"
+                                onClick={() => {
+                                  setSelectedComp(null);
+                                  setSelectedCrossStub(null);
+                                }}
+                                style={{ fontSize: "0.78rem" }}
+                              >
+                                ✕ Close
+                              </button>
+                            </HoverTooltip>
                           )}
                         </div>
 
@@ -1307,11 +1314,11 @@ export default function PerformanceDashboard({
                               <div className="d-flex gap-1 flex-wrap">
                                 {selComponentData.owner_id && (
                                   ownerEntry && onOpenStakeholder ? (
+                                    <HoverTooltip description={`Open ${ownerEntry.name}'s dossier page`}>
                                     <button
                                       type="button"
                                       className={styles.ownerLink}
                                       onClick={() => onOpenStakeholder(ownerEntry.stakeholder_id)}
-                                      title={`Open ${ownerEntry.name}'s dossier page`}
                                     >
                                       <StakeholderAvatarComponent
                                         stakeholderId={ownerEntry.stakeholder_id}
@@ -1325,6 +1332,7 @@ export default function PerformanceDashboard({
                                       <span>Owner: {ownerEntry.name}</span>
                                       <Icon icon="ph:arrow-square-out-bold" className={styles.ownerLinkGo} />
                                     </button>
+                                    </HoverTooltip>
                                   ) : (
                                     <span className="badge bg-light text-secondary border" style={{ fontSize: "0.68rem" }}>
                                       Owner: {selComponentData.owner_id.replace(/_/g, " ")}
@@ -1407,13 +1415,16 @@ export default function PerformanceDashboard({
                                     {linkedNotes.map(({ item, stakeholderId }) => {
                                       const meta = noteSourceMeta(item);
                                       return (
-                                        <button
+                                        <HoverTooltip
                                           key={item.id}
+                                          description={onSelectIntel ? "Jump to this note in your dossier" : meta.label}
+                                          block
+                                        >
+                                        <button
                                           type="button"
                                           className={`${styles.noteLink} ${onSelectIntel ? "" : styles.noteLinkFlat}`}
                                           disabled={!onSelectIntel}
                                           onClick={() => onSelectIntel?.(item.id, stakeholderId)}
-                                          title={onSelectIntel ? "Jump to this note in your dossier" : meta.label}
                                         >
                                           <Icon icon={meta.icon} className={styles.noteLinkIcon} />
                                           <span className={styles.noteLinkText}>
@@ -1423,6 +1434,7 @@ export default function PerformanceDashboard({
                                             <Icon icon="ph:arrow-bend-up-left-bold" className={styles.noteLinkGo} />
                                           )}
                                         </button>
+                                        </HoverTooltip>
                                       );
                                     })}
                                   </div>
@@ -1452,11 +1464,10 @@ export default function PerformanceDashboard({
                               <div className="d-flex flex-column gap-2" style={{ overflowY: "auto", overflowX: "hidden" }}>
                                 {activeTechnical.components.map((c) => {
                                   return (
+                                    <HoverTooltip key={c.id} description="Click to view details" block>
                                     <div
-                                      key={c.id}
                                       onClick={() => setSelectedComp(c.id)}
                                       className={styles.componentListItem}
-                                      title="Click to view details"
                                     >
                                       <div className="d-flex align-items-center gap-2 min-width-0">
                                         <Icon
@@ -1472,6 +1483,7 @@ export default function PerformanceDashboard({
                                         <Icon icon="ph:arrow-right-bold" style={{ color: "var(--primary-bg)", fontSize: "0.85rem" }} />
                                       </div>
                                     </div>
+                                    </HoverTooltip>
                                   );
                                 })}
                               </div>

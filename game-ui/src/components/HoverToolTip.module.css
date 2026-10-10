@@ -3,9 +3,24 @@
     cursor: help;
 }
 
-.tooltipWrapper>* {
+:where(.tooltipWrapper)>* {
     display: inline-block;
     max-width: 100%;
+}
+
+/* Disabled controls swallow mouse events in some browsers; let the wrapper receive them. */
+.tooltipWrapper>:disabled,
+.tooltipWrapper>[aria-disabled="true"] {
+    pointer-events: none;
+}
+
+.block {
+    display: block;
+}
+
+.block>* {
+    display: block;
+    width: 100%;
 }
 
 .tooltipContent {
@@ -32,4 +47,24 @@
     /* Descriptions may use
  to separate their parts onto their own lines */
     white-space: pre-line;
+}
+
+/* The composer's drafting-table paper. */
+.paper {
+    background: #fbf7ee;
+    color: #2b2118;
+    border: 1px solid #cdbfa6;
+    box-shadow: 0 5px 14px rgba(32, 22, 10, 0.35), 0 0 0 1px rgba(32, 22, 10, 0.05);
+    border-radius: 4px;
+    padding: 4px 9px 5px;
+}
+
+/* Matches the dossier's own hover tag (.headerHoverTagFlip in StakeholderDossier.module.css). */
+.parchment {
+    background: #f3e5c4;
+    color: #2a1f18;
+    border: 1px solid #7a5c2e;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 5px 12px rgba(0, 0, 0, 0.5);
+    font-family: 'Delius', cursive;
+    border-radius: 4px;
 }

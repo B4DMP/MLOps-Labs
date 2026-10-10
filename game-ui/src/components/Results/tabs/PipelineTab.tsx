@@ -2,6 +2,7 @@ import { Icon } from "@iconify/react";
 import { HEALTH_BUCKET_WORD, healthBucket, healthBucketColor } from "../../../utils/systemHealth";
 import { Empty, Section, StatTile, TileRow } from "../parts";
 import type { PatternRef, PipelineStage, ResultsPayload } from "../types";
+import HoverTooltip from "../../HoverToolTip";
 import styles from "../tabs.module.css";
 
 const STATUS_CHIP: Record<string, { icon: string; chip: string }> = {
@@ -45,30 +46,36 @@ function StageRow({ stage }: { stage: PipelineStage }) {
       <div>
         <div className={styles.rowHead}>
           <span className={styles.rowTitle}>{stage.name}</span>
-          <span className={styles.trackInline} title={word(stage.health)}>
-            <span
-              className={styles.trackInlineFill}
-              style={{
-                width: `${Math.round(Math.max(0, Math.min(100, stage.health ?? 0)))}%`,
-                background: healthBucketColor(healthBucket(stage.health)),
-              }}
-            />
-          </span>
+          <HoverTooltip description={word(stage.health)}>
+            <span className={styles.trackInline}>
+              <span
+                className={styles.trackInlineFill}
+                style={{
+                  width: `${Math.round(Math.max(0, Math.min(100, stage.health ?? 0)))}%`,
+                  background: healthBucketColor(healthBucket(stage.health)),
+                }}
+              />
+            </span>
+          </HoverTooltip>
         </div>
         {(notes.length > 0 || anti.length > 0 || design.length > 0) && (
           <div className={styles.rowMeta}>
             {notes.length > 0 && <span className={styles.rowSub}>{notes.join(" · ")}</span>}
             {anti.map((p) => (
-              <span key={p.id} className={`${styles.chip} ${styles.chipBad}`} title="An anti-pattern left in the system">
-                <Icon icon="ph:warning-bold" aria-hidden />
-                {p.name}
-              </span>
+              <HoverTooltip key={p.id} description="An anti-pattern left in the system">
+                <span className={`${styles.chip} ${styles.chipBad}`}>
+                  <Icon icon="ph:warning-bold" aria-hidden />
+                  {p.name}
+                </span>
+              </HoverTooltip>
             ))}
             {design.map((p) => (
-              <span key={p.id} className={`${styles.chip} ${styles.chipGood}`} title="A good practice you put in place">
-                <Icon icon="ph:seal-check-bold" aria-hidden />
-                {p.name}
-              </span>
+              <HoverTooltip key={p.id} description="A good practice you put in place">
+                <span className={`${styles.chip} ${styles.chipGood}`}>
+                  <Icon icon="ph:seal-check-bold" aria-hidden />
+                  {p.name}
+                </span>
+              </HoverTooltip>
             ))}
           </div>
         )}

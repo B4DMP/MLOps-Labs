@@ -181,9 +181,9 @@ a {
    offline_intel_gathering.module.css: navPillOnRecordFact is #dc2626, navPillOnRecord is #1d4ed8)
    - matching it here instead of the default teal makes the tooltip text and the pill it's
    pointing at read as the same thing, not two unrelated highlights. */
-.introjs-tooltiptext mark.mlops-mark-purple {
-    background: rgba(124, 58, 237, 0.28);
-    color: #d8b4fe;
+.introjs-tooltiptext mark.mlops-mark-red {
+    background: rgba(220, 38, 38, 0.28);
+    color: #fca5a5;
 }
 
 .introjs-tooltiptext mark.mlops-mark-blue {

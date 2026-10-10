@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Question } from "./types/Question";
 import { Icon } from "@iconify/react";
+import HoverTooltip from "./components/HoverToolTip";
 import { useSettings } from "./components/SettingsProvider";
 import styles from "./Questionaire.module.css";
 
@@ -307,17 +308,17 @@ export default function Questionaire({
         {/* Stepper */}
         <div className={styles.stepper}>
           {sections.map((section, i) => (
-            <button
-              key={i}
-              type="button"
-              className={`${styles.stepDot} ${i === safeStep ? styles.stepDotActive : ""} ${
-                i < safeStep ? styles.stepDotDone : ""
-              }`}
-              onClick={() => setStep(i)}
-              title={section.title}
-            >
-              <Icon icon={section.icon} />
-            </button>
+            <HoverTooltip key={i} description={section.title} labelsChild>
+              <button
+                type="button"
+                className={`${styles.stepDot} ${i === safeStep ? styles.stepDotActive : ""} ${
+                  i < safeStep ? styles.stepDotDone : ""
+                }`}
+                onClick={() => setStep(i)}
+              >
+                <Icon icon={section.icon} />
+              </button>
+            </HoverTooltip>
           ))}
           <div className={styles.stepperTrack}>
             <div
@@ -367,15 +368,16 @@ export default function Questionaire({
                     <span className={styles.questionNumberPill}>Q{index + 1}</span>
                     <p className={styles.questionText}>{renderRich(question.question)}</p>
                     {question.debug && (
-                      <button
-                        type="button"
-                        className={styles.debugToggle}
-                        onClick={() => toggleDebug(index)}
-                        title={`Debug: correct answer is "${question.debug.correct_text}"`}
-                        aria-label="Toggle answer key (debug)"
-                      >
-                        <Icon icon="ph:key-duotone" />
-                      </button>
+                      <HoverTooltip description={`Debug: correct answer is "${question.debug.correct_text}"`}>
+                        <button
+                          type="button"
+                          className={styles.debugToggle}
+                          onClick={() => toggleDebug(index)}
+                          aria-label="Toggle answer key (debug)"
+                        >
+                          <Icon icon="ph:key-duotone" />
+                        </button>
+                      </HoverTooltip>
                     )}
                   </div>
 

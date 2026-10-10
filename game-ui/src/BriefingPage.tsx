@@ -9,6 +9,7 @@ import { useSpeech } from "./components/useSpeech";
 import { cancelSpeech } from "./utils/speech";
 import SpokenText from "./components/SpokenText";
 import GlossaryText from "./components/glossary/GlossaryText";
+import HoverTooltip from "./components/HoverToolTip";
 import { StakeholderAvatarComponent } from "./components/StakeholderAvatarComponent";
 import type { StakeholderAvatar } from "./types/StakeholderAvatar";
 import styles from "./BriefingPage.module.css";
@@ -165,25 +166,27 @@ export default function BriefingPage({
                 />
               )}
               {isNarrating && (
+                <HoverTooltip description="Stop">
+                  <button
+                    type="button"
+                    onClick={stopNarration}
+                    className={`${styles.narrationButton} ${styles.narrationButtonPulsing}`}
+                    aria-label="Stop"
+                  >
+                    <Icon icon="ph:stop-circle-bold" />
+                  </button>
+                </HoverTooltip>
+              )}
+              <HoverTooltip description="Play again">
                 <button
                   type="button"
-                  onClick={stopNarration}
-                  className={`${styles.narrationButton} ${styles.narrationButtonPulsing}`}
-                  title="Stop"
-                  aria-label="Stop"
+                  onClick={startNarration}
+                  className={styles.narrationButton}
+                  aria-label="Play again"
                 >
-                  <Icon icon="ph:stop-circle-bold" />
+                  <Icon icon="ph:arrow-clockwise-bold" />
                 </button>
-              )}
-              <button
-                type="button"
-                onClick={startNarration}
-                className={styles.narrationButton}
-                title="Play again"
-                aria-label="Play again"
-              >
-                <Icon icon="ph:arrow-clockwise-bold" />
-              </button>
+              </HoverTooltip>
             </span>
           )}
         </div>

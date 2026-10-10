@@ -17,6 +17,7 @@ import {
 } from "../services/api/admin";
 import GlossaryPreview from "./glossary/GlossaryPreview";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
+import HoverTooltip from "./HoverToolTip";
 import styles from "./Admin.module.css";
 
 interface ConfigEditorProps {
@@ -143,14 +144,15 @@ const MetricChangesControl = (props: ControlProps) => {
                     onChange={(e) => handleValueChange(key, e.target.value)}
                     style={{ width: "80px", padding: "4px 8px" }}
                   />
-                  <IconButton
-                    size="small"
-                    color="error"
-                    onClick={() => handleRemoveKey(key)}
-                    title={`Remove ${key}`}
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
+                  <HoverTooltip description={`Remove ${key}`} labelsChild>
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={() => handleRemoveKey(key)}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </HoverTooltip>
                 </div>
               </div>
             </div>
@@ -223,14 +225,15 @@ const WrongDescriptionsControl = (props: ControlProps) => {
                 <span className="fw-bold text-info" style={{ fontSize: "0.9rem" }}>
                   Wrong Description for Category: <code className="text-light">{key}</code>
                 </span>
-                <IconButton
-                  size="small"
-                  color="error"
-                  onClick={() => handleRemoveKey(key)}
-                  title={`Remove ${key}`}
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
+                <HoverTooltip description={`Remove ${key}`} labelsChild>
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={() => handleRemoveKey(key)}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </HoverTooltip>
               </div>
               <textarea
                 className="form-control form-control-sm bg-dark text-light border-secondary"
@@ -588,7 +591,7 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
                       {/* Info & Trait Badges */}
                       <div className="d-flex flex-column flex-grow-1 overflow-hidden">
                         <div className="d-flex justify-content-between align-items-center mb-1">
-                          <h6 className="fw-bold text-light mb-0 text-truncate" title={stName} style={{ fontSize: "0.95rem" }}>
+                          <h6 className="fw-bold text-light mb-0 text-truncate" style={{ fontSize: "0.95rem" }}>
                             {stName}
                           </h6>
                           {metricId && (
@@ -598,9 +601,11 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
                           )}
                         </div>
 
-                        <p className="text-muted small mb-2 text-truncate" style={{ fontSize: "0.78rem" }} title={st.role_description}>
-                          {st.role_description || "Project Stakeholder"}
-                        </p>
+                        <HoverTooltip description={st.role_description} block>
+                          <p className="text-muted small mb-2 text-truncate" style={{ fontSize: "0.78rem" }}>
+                            {st.role_description || "Project Stakeholder"}
+                          </p>
+                        </HoverTooltip>
 
                         <div className="d-flex flex-wrap gap-1 align-items-center">
                           {av.head && (
@@ -624,26 +629,28 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
                             </span>
                           )}
                           {av.skinColor && (
-                            <span
-                              className="rounded-circle border border-light d-inline-block"
-                              style={{
-                                width: "14px",
-                                height: "14px",
-                                backgroundColor: `#${av.skinColor.replace('#', '')}`,
-                              }}
-                              title={`Skin: #${av.skinColor}`}
-                            />
+                            <HoverTooltip description={`Skin: #${av.skinColor}`}>
+                              <span
+                                className="rounded-circle border border-light d-inline-block"
+                                style={{
+                                  width: "14px",
+                                  height: "14px",
+                                  backgroundColor: `#${av.skinColor.replace('#', '')}`,
+                                }}
+                              />
+                            </HoverTooltip>
                           )}
                           {av.clothingColor && (
-                            <span
-                              className="rounded-circle border border-light d-inline-block"
-                              style={{
-                                width: "14px",
-                                height: "14px",
-                                backgroundColor: `#${av.clothingColor.replace('#', '')}`,
-                              }}
-                              title={`Outfit: #${av.clothingColor}`}
-                            />
+                            <HoverTooltip description={`Outfit: #${av.clothingColor}`}>
+                              <span
+                                className="rounded-circle border border-light d-inline-block"
+                                style={{
+                                  width: "14px",
+                                  height: "14px",
+                                  backgroundColor: `#${av.clothingColor.replace('#', '')}`,
+                                }}
+                              />
+                            </HoverTooltip>
                           )}
                         </div>
                       </div>

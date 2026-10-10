@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import { EmojiIcon } from "../utils/emojiIcons";
 import styles from "./BuyInMeter.module.css";
+import HoverTooltip from "./HoverToolTip";
 
 export type BuyInBand = "very_low" | "low" | "medium" | "high" | "very_high";
 export type BuyInTone = "resistant" | "wavering" | "persuaded";
@@ -84,17 +85,22 @@ const Reason: React.FC<{ dir: ReasonDir; text: string }> = ({ dir, text }) => (
   </li>
 );
 
-const Notches: React.FC<{ filled: number; tone: BuyInTone; threshold?: number }> = ({
+const Notches: React.FC<{ filled: number; tone: BuyInTone; threshold?: number; crossed?: boolean }> = ({
   filled,
   tone,
   threshold,
+  crossed,
 }) => (
   <span className={styles.notches}>
     {[1, 2, 3, 4, 5].map((n) => (
       <span key={n} className={`${styles.notch} ${n <= filled ? styles[`notchOn_${tone}`] : ""}`} />
     ))}
     {threshold !== undefined && (
-      <span className={styles.line} style={{ left: `${threshold * 100}%` }} aria-hidden="true" />
+      <span
+        className={`${styles.line} ${crossed ? styles.lineCrossed : ""}`}
+        style={{ left: `${threshold * 100}%` }}
+        aria-hidden="true"
+      />
     )}
   </span>
 );
@@ -104,7 +110,7 @@ const Notches: React.FC<{ filled: number; tone: BuyInTone; threshold?: number }>
  * the reasons and the veto line. The card is portaled to document.body for the same stacking
  * reason as the emotion badge: dossier notes are tilted and form their own stacking contexts.
  */
-const BuyInMeter: React.FC<{ info: StakeholderBuyInInfo }> = ({ info }) => {
+const BuyInMeter: React.FC<{ info: StakeholderBuyInInfo ; embedded?: boolean }> = ({ info, embedded = false }) => {
   const { band, tone } = resolveBuyIn(info);
   const meta = BUY_IN_BAND_META[band];
   const isBoundaryViolated = Boolean(info.boundaryViolated);
@@ -186,7 +192,7 @@ const BuyInMeter: React.FC<{ info: StakeholderBuyInInfo }> = ({ info }) => {
   const moveText = move ? `${move.dir === "up" ? "Warmer" : "Cooler"} than before (${move.from})` : "";
 
   return (
-    <div className={styles.meter}>
+    <div className={`${styles.meter} ${embedded ? styles.meterEmbedded : ""}`}>
       <div
         ref={anchorRef}
         className={`${styles.row} ${isRevealed ? styles.rowLive : ""}`}
@@ -208,14 +214,16 @@ const BuyInMeter: React.FC<{ info: StakeholderBuyInInfo }> = ({ info }) => {
           aria-valuenow={filled}
           aria-valuetext={isRevealed ? stanceText : "Not yet revealed"}
         >
-          <Notches filled={filled} tone={tone} threshold={info.threshold} />
+          <Notches filled={filled} tone={tone} threshold={info.threshold} crossed={isBoundaryViolated} />
         </span>
         {isRevealed ? (
           <>
             {move && (
-              <span className={move.dir === "up" ? styles.moveUp : styles.moveDown} title={moveText}>
-                {move.dir === "up" ? "▲" : "▼"}
-              </span>
+              <HoverTooltip description={moveText}>
+                <span className={move.dir === "up" ? styles.moveUp : styles.moveDown}>
+                  {move.dir === "up" ? "▲" : "▼"}
+                </span>
+              </HoverTooltip>
             )}
             <span className={`${styles.stance} ${styles[`stance_${stanceTone}`]}`}>{stanceText}</span>
           </>

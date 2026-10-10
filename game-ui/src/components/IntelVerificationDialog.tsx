@@ -5,7 +5,6 @@ import { StakeholderContext } from "./StakeholderProvider";
 import HoverTooltip from "./HoverToolTip";
 import { intelTagMeta } from "../types/IntelTag";
 import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
-import NarratedText from "./NarratedText";
 import OnceIcon from "./Results/OnceIcon";
 import PUZZLE_SQUARE_ICON from "./Results/icons/puzzle-square.json";
 import WARNING_TRIANGLE_ICON from "./Results/icons/warning-triangle.json";
@@ -31,6 +30,7 @@ export default function IntelVerificationDialog({
 }: IntelVerificationDialogProps) {
   const { stakeholders } = useContext(StakeholderContext);
   const [isClosing, setIsClosing] = useState(false);
+  const [tooltipLayer, setTooltipLayer] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -70,12 +70,6 @@ export default function IntelVerificationDialog({
       s.id?.toLowerCase().replace(/_/g, " ") === resultData.stakeholderName.toLowerCase().replace(/_/g, " ")
   );
 
-  const sourceName = stakeholder?.name || resultData.stakeholderName;
-  const narrationLead = `${
-    wasCorrect
-      ? `Correct stance identified. You correctly identified this stance as ${trueMeta.label}. The item is now verified in your dossier.`
-      : `Categorization corrected. Originally tagged as ${oldMeta.label}, corrected to ${trueMeta.label}. Updated and verified in your dossier.`
-  } Stance statement from ${sourceName}.`;
 
   return (
     <div
@@ -91,17 +85,18 @@ export default function IntelVerificationDialog({
         {/* Header matching PrePhaseDialog theme */}
         <div className={styles.header}>
           <h1 className={styles.headerTitle}>
-            <Icon icon="ph:seal-check-bold" className={styles.headerIcon} />
+            <Icon icon="ph:certificate-duotone" className={styles.headerIcon} />
             <span>Intel Stance Verification</span>
           </h1>
-          <button
-            type="button"
-            className="btn-close btn-close-white"
-            onClick={handleClose}
-            aria-label="Close"
-            title="Close (Esc)"
-            style={{ cursor: "pointer" }}
-          />
+          <HoverTooltip description="Close (Esc)" portalTarget={tooltipLayer}>
+            <button
+              type="button"
+              className="btn-close btn-close-white"
+              onClick={handleClose}
+              aria-label="Close"
+              style={{ cursor: "pointer" }}
+            />
+          </HoverTooltip>
         </div>
 
         {/* Modal Body */}
@@ -171,7 +166,7 @@ export default function IntelVerificationDialog({
                 <span>Intel Item</span>
               </div>
               <span className={styles.verifiedStanceBadge}>
-                <Icon icon="ph:seal-check-fill" />
+                <Icon icon="ph:certificate-duotone" />
                 Verified {trueMeta.label}
               </span>
             </div>
@@ -190,7 +185,7 @@ export default function IntelVerificationDialog({
                 <div className={styles.sourceInfo}>
                   <span className={styles.sourceLabel}>Source:</span>
                   {stakeholder?.role_description ? (
-                    <HoverTooltip description={stakeholder.role_description}>
+                    <HoverTooltip description={stakeholder.role_description} portalTarget={tooltipLayer}>
                       <span className={styles.stakeholderName}>
                         {stakeholder.name}
                       </span>
@@ -209,7 +204,7 @@ export default function IntelVerificationDialog({
                   Stance Statement
                 </span>
                 <p className={styles.descriptionText}>
-                  <NarratedText text={resultData.description} lead={narrationLead} />
+                  {resultData.description}
                 </p>
               </div>
             </div>
@@ -230,6 +225,7 @@ export default function IntelVerificationDialog({
           </div>
         </div>
       </div>
+      <div ref={setTooltipLayer} className={styles.tooltipLayer} />
     </div>
   );
 }

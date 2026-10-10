@@ -324,3 +324,7 @@
   align-items: center;
   gap: 4px;
 }
+/* HoverTooltip forces inline-block on its child; keep these elements' own display. */
+span > .playingCard { display: flex; vertical-align: top; }
+span > .costBadge { display: inline-flex; }
+span > .metaBadge { display: flex; }

@@ -4,6 +4,7 @@ import { Icon } from "@iconify/react";
 import { EmojiIcon } from "../utils/emojiIcons";
 import { submitBugReport } from "../services/api/bugReports";
 import styles from "./CheatSheetModal.module.css";
+import HoverTooltip from "./HoverToolTip";
 import { INTEL_TAGS } from "../types/IntelTag";
 import { useSpeech } from "./useSpeech";
 import { startTour } from "../utils/tour";
@@ -99,13 +100,13 @@ const STAMP_LEGEND: {
   detail: string;
 }[] = [
   { label: "? UNCONFIRMED", styleKey: "unconfirmed", detail: "Your first read. Not checked yet." },
-  { label: "✓ CONFIRMED", styleKey: "verified", detail: "You verified it yourself, talking to them." },
+  { label: "CONFIRMED", styleKey: "verified", detail: "You verified it yourself, talking to them." },
   { label: "★ ON RECORD", styleKey: "onRecord", detail: "They said it in the open. Nothing to confirm." },
 ];
 
 /** Mirrors gameConfig/GameEngagementCards.json's six cards, in that file's order. */
 const ENGAGEMENT_CARD_LEGEND: { icon: string; label: string; detail: string }[] = [
-  { icon: "ph:seal-check-bold", label: "Verify Intel Item", detail: "Fact-check one unconfirmed note." },
+  { icon: "ph:certificate-duotone", label: "Verify Intel Item", detail: "Fact-check one unconfirmed note." },
   { icon: "ph:user-focus-bold", label: "1-to-1 Meeting", detail: "Deep-dive one stakeholder, 3 questions." },
   { icon: "ph:magnifying-glass-bold", label: "Probe Requirements", detail: "Ask one stakeholder about a component." },
   { icon: "ph:users-bold", label: "Team Sync-Up", detail: "Ask everyone at once. Once per phase." },
@@ -324,14 +325,15 @@ export default function CheatSheetModal({
             <Icon icon="ph:question-bold" className={styles.headerIcon} />
             <span>Cheat Sheet</span>
           </h1>
-          <button
-            type="button"
-            className="btn-close btn-close-white"
-            onClick={handleClose}
-            aria-label="Close"
-            title="Close (Esc)"
-            style={{ cursor: "pointer" }}
-          />
+          <HoverTooltip description="Close (Esc)">
+            <button
+              type="button"
+              className="btn-close btn-close-white"
+              onClick={handleClose}
+              aria-label="Close"
+              style={{ cursor: "pointer" }}
+            />
+          </HoverTooltip>
         </div>
 
         <div className={styles.tabBar}>
@@ -403,15 +405,16 @@ export default function CheatSheetModal({
                 ))}
               </ul>
               {currentPhase === 0 && canReplayComposerGuide ? (
-                <button
-                  type="button"
-                  className={styles.replayDemoButton}
-                  onClick={handleReplayComposerGuide}
-                  title="Replay the guide in the composer"
-                >
-                  <Icon icon="ph:play-circle-bold" />
-                  <span>Replay graph walkthrough</span>
-                </button>
+                <HoverTooltip description="Replay the guide in the composer">
+                  <button
+                    type="button"
+                    className={styles.replayDemoButton}
+                    onClick={handleReplayComposerGuide}
+                  >
+                    <Icon icon="ph:play-circle-bold" />
+                    <span>Replay graph walkthrough</span>
+                  </button>
+                </HoverTooltip>
               ) : currentPhase === 0 ? (
                 <div className={styles.glyphLine}>
                   <span>Open the Pitch Deck, then press ? in the composer to replay the walkthrough.</span>
@@ -468,15 +471,16 @@ export default function CheatSheetModal({
                 <Icon icon={section.icon} className={styles.cardIcon} />
                 <span>{section.title}</span>
                 {section.title === activeSectionTitle && SECTION_TOUR_GROUP[section.title] && (
-                  <button
-                    type="button"
-                    className={styles.replayDemoButton}
-                    onClick={() => handleReplayDemo(SECTION_TOUR_GROUP[section.title])}
-                    title="Replay the guided walkthrough for this screen"
-                  >
-                    <Icon icon="ph:play-circle-bold" />
-                    <span>Replay Demo</span>
-                  </button>
+                  <HoverTooltip description="Replay the guided walkthrough for this screen">
+                    <button
+                      type="button"
+                      className={styles.replayDemoButton}
+                      onClick={() => handleReplayDemo(SECTION_TOUR_GROUP[section.title])}
+                    >
+                      <Icon icon="ph:play-circle-bold" />
+                      <span>Replay Demo</span>
+                    </button>
+                  </HoverTooltip>
                 )}
               </div>
               {section.title === "Briefing" ? (
@@ -502,7 +506,8 @@ export default function CheatSheetModal({
                   {STAMP_LEGEND.map((stamp) => (
                     <div key={stamp.label} className={styles.tagChip}>
                       <span className={`${styles.miniStamp} ${STAMP_STYLE_CLASS[stamp.styleKey]}`}>
-                        {stamp.label}
+                        {stamp.styleKey === "verified" && <Icon icon="ph:certificate-duotone" style={{ verticalAlign: "-0.15em" }} />}
+                        {stamp.styleKey === "verified" ? " " : ""}{stamp.label}
                       </span>
                       <span className={styles.tagChipDetail}>{stamp.detail}</span>
                     </div>

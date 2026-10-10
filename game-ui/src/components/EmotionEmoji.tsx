@@ -3,6 +3,7 @@ import lottie, { type AnimationItem } from "lottie-web";
 import { faceForEmotionState } from "../utils/emotionFace";
 import type { AvatarEmotion } from "../types/StakeholderAvatar";
 import styles from "./EmotionEmoji.module.css";
+import HoverTooltip from "./HoverToolTip";
 
 import ANGRY from "./emoji/angry.json";
 import ANXIOUS from "./emoji/anxious.json";
@@ -73,14 +74,15 @@ export default function EmotionEmoji({ emotionState, className }: EmotionEmojiPr
   const label = titleCase((emotionState || "").trim().toLowerCase());
 
   return (
-    <span
-      className={`${styles.emoji} ${className || ""}`}
-      tabIndex={0}
-      role="img"
-      aria-label={`Feeling ${label}`}
-      title={`Feeling ${label}. Voices don't change with mood, so watch for this instead.`}
-    >
-      <span ref={containerRef} className={styles.animation} aria-hidden="true" />
-    </span>
+    <HoverTooltip description={`Feeling ${label}. Voices don't change with mood, so watch for this instead.`}>
+      <span
+        className={`${styles.emoji} ${className || ""}`}
+        tabIndex={0}
+        role="img"
+        aria-label={`Feeling ${label}`}
+      >
+        <span ref={containerRef} className={styles.animation} aria-hidden="true" />
+      </span>
+    </HoverTooltip>
   );
 }

@@ -3,6 +3,7 @@ import type { StakeholderAvatar, AvatarEmotion } from "../types/StakeholderAvata
 import { colorForStakeholderId } from "../types/StakeholderAvatar";
 import { generateOpenPeepsDataUri } from "../assets/openPeepsAvatar";
 import styles from "./StakeholderAvatarComponent.module.css";
+import HoverTooltip from "./HoverToolTip";
 
 // Talking mouth-flap: alternates an "open mouth" face with a "closed mouth" one, picking a
 // random face from each pool every beat so the same stakeholder doesn't repeat one fixed loop.
@@ -36,6 +37,10 @@ export interface StakeholderAvatarProps {
   stakeholderId?: string;
   backgroundColor?: string;
   flip?: boolean;
+  /** Crops to the head and shoulders. Use it wherever the avatar is drawn small. */
+  thumb?: boolean;
+  /** Head and shoulders in a card-shaped frame, with room at the foot for a caption. */
+  portrait?: boolean;
   hoverToSuspicious?: boolean;
   isHovered?: boolean;
   onClick?: () => void;
@@ -58,6 +63,8 @@ export function StakeholderAvatarComponent({
   stakeholderId,
   backgroundColor,
   flip,
+  thumb = false,
+  portrait = false,
   hoverToSuspicious = true,
   isHovered: propIsHovered,
   onClick,
@@ -150,8 +157,10 @@ export function StakeholderAvatarComponent({
       backgroundColor: bgCol,
       flip: finalFlip,
       blink: isBlinking,
+      thumb,
+      portrait,
     });
-  }, [avatar, emotion, isBlinking, isSpeaking, speakMouth, isFramed, clothingColor, stakeholderColor, stakeholderId, backgroundColor, flip, hoverToSuspicious, isHovered]);
+  }, [avatar, emotion, isBlinking, isSpeaking, speakMouth, isFramed, clothingColor, stakeholderColor, stakeholderId, backgroundColor, flip, thumb, portrait, hoverToSuspicious, isHovered]);
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLImageElement>) => {
     if (hoverToSuspicious) {
@@ -167,11 +176,10 @@ export function StakeholderAvatarComponent({
     onMouseLeave?.(e);
   };
 
-  return (
+  const img = (
     <img
       src={svgDataUri}
       alt={title || "Stakeholder Avatar"}
-      title={title}
       className={`stakeholder-avatar ${isSpeaking ? styles.speaking : ""} ${className}`}
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
@@ -187,6 +195,14 @@ export function StakeholderAvatarComponent({
         ...style,
       }}
     />
+  );
+
+  // A percentage size needs a block wrapper, or it collapses inside the inline tooltip span.
+  const fillsParent = typeof size === "string" && size.endsWith("%");
+  return (
+    <HoverTooltip description={title} block={fillsParent}>
+      {img}
+    </HoverTooltip>
   );
 }
 

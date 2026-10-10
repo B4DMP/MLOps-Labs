@@ -284,3 +284,8 @@
   font-size: 0.78rem;
   color: #9ee6b8;
 }
+
+/* HoverTooltip wrapper span would otherwise override the button flex display. */
+.voiceRow > span > .previewButton {
+  display: flex;
+}

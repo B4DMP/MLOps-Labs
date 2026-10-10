@@ -1,6 +1,7 @@
 import { Icon } from "@iconify/react";
 import styles from "./VetoDialog.module.css";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
+import HoverTooltip from "./HoverToolTip";
 import OnceIcon from "./Results/OnceIcon";
 import ROAD_BARRIER_ICON from "./Results/icons/road-barrier.json";
 import { ESCALATIONS, TABLE_IT, VETO_FEEDBACK } from "../content/helpCopy";
@@ -114,7 +115,6 @@ export default function VetoDialog({
                   size={84}
                   stakeholderColor={stColor}
                   stakeholderId={stId}
-                  title={stName}
                 />
               </div>
               <div className={styles.stakeholderName}>{stName}</div>
@@ -184,26 +184,29 @@ export default function VetoDialog({
               <span>Revise Action Card & Re-Pitch</span>
             </button>
             {onTableIt && (
-              <button type="button" className={styles.vetoBreakerButton} onClick={onTableIt} title={TABLE_IT.hint}>
-                <Icon icon="ph:pause-circle-bold" />
-                <span>{TABLE_IT.button}</span>
-              </button>
+              <HoverTooltip description={TABLE_IT.hint} block>
+                <button type="button" className={styles.vetoBreakerButton} onClick={onTableIt}>
+                  <Icon icon="ph:pause-circle-bold" />
+                  <span>{TABLE_IT.button}</span>
+                </button>
+              </HoverTooltip>
             )}
             {onVetoBreaker && (
-              <button
-                type="button"
-                className={styles.vetoBreakerButton}
-                onClick={onVetoBreaker}
-                disabled={!canBreakVeto}
-                title={vetoBreakerHint}
-              >
-                <Icon icon="ph:lightning-bold" />
-                <span>
-                  {isBreakingVeto
-                    ? "Overriding..."
-                    : `Push It Through${escalationPoints !== null ? ` (${pointsLeft} left)` : ""}`}
-                </span>
-              </button>
+              <HoverTooltip description={vetoBreakerHint} block>
+                <button
+                  type="button"
+                  className={styles.vetoBreakerButton}
+                  onClick={onVetoBreaker}
+                  disabled={!canBreakVeto}
+                >
+                  <Icon icon="ph:lightning-bold" />
+                  <span>
+                    {isBreakingVeto
+                      ? "Overriding..."
+                      : `Push It Through${escalationPoints !== null ? ` (${pointsLeft} left)` : ""}`}
+                  </span>
+                </button>
+              </HoverTooltip>
             )}
           </div>
         </div>

@@ -363,7 +363,7 @@
    asked for there and its markers are already smaller/simpler by design. */
 .compact .step:hover .marker,
 .compact .step:focus-within .marker {
-  transform: scale(1.15) translateY(-1px);
+  transform: scale(1.15);
 }
 
 .compact .nextCycle:hover .nextCycleIcon,

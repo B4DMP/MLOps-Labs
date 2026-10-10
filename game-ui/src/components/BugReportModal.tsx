@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import { submitBugReport } from "../services/api/bugReports";
 import styles from "./BugReportModal.module.css";
+import HoverTooltip from "./HoverToolTip";
 
 interface BugReportModalProps {
   isOpen: boolean;
@@ -94,14 +95,15 @@ export default function BugReportModal({
             <Icon icon="ph:bug-bold" className={styles.headerIcon} />
             <span>Report a Bug</span>
           </h1>
-          <button
-            type="button"
-            className="btn-close btn-close-white"
-            onClick={handleClose}
-            aria-label="Close"
-            title="Close (Esc)"
-            style={{ cursor: "pointer" }}
-          />
+          <HoverTooltip description="Close (Esc)">
+            <button
+              type="button"
+              className="btn-close btn-close-white"
+              onClick={handleClose}
+              aria-label="Close"
+              style={{ cursor: "pointer" }}
+            />
+          </HoverTooltip>
         </div>
 
         <div className={styles.modalBody}>

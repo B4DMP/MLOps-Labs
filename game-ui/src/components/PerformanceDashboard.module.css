@@ -184,7 +184,7 @@
 
 .stageButton:hover:not(:disabled) {
   border-color: var(--primary-bg);
-  transform: translateY(-1px);
+  transform: scale(1.02);
   box-shadow: 0 3px 8px rgba(38, 102, 130, 0.15);
   z-index: 2;
 }
@@ -525,3 +525,13 @@
   border-radius: 50%;
   overflow: hidden;
 }
+
+/* HoverTooltip wraps these in a span that forces inline-block; keep their own display and flex sizing. */
+span > .stageButton,
+span > .noteLink,
+span > .componentListItem,
+span > .neighbourRail { display: flex; }
+span > .ownerLink { display: inline-flex; }
+.stageSlot > span { flex: 1 1 0; min-width: 0; display: flex; }
+.canvasRow > span { flex: 0 0 24px; display: flex; }
+.canvasRow > span > .neighbourRail { flex: 1 1 auto; }

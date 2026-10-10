@@ -819,3 +819,14 @@
     transform: scale(0.95) translateY(10px);
   }
 }
+.tooltipLayer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* HoverTooltip forces its child's display; keep these elements' own. */
+span > .stakeholderCard,
+span > .costBadge {
+  display: flex;
+}

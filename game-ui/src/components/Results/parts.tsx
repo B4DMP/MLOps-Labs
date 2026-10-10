@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Icon } from "@iconify/react";
+import HoverTooltip from "../HoverToolTip";
 import styles from "./tabs.module.css";
 
 /** One headline number with its label: the "stat tile" the data-viz method prefers to a one-bar
@@ -14,10 +15,12 @@ export function StatTile({
   hint?: string;
 }) {
   return (
-    <div className={styles.tile} title={hint}>
-      <span className={styles.tileValue}>{value}</span>
-      <span className={styles.tileLabel}>{label}</span>
-    </div>
+    <HoverTooltip description={hint} block>
+      <div className={styles.tile}>
+        <span className={styles.tileValue}>{value}</span>
+        <span className={styles.tileLabel}>{label}</span>
+      </div>
+    </HoverTooltip>
   );
 }
 

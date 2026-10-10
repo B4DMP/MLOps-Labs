@@ -299,9 +299,9 @@
 }
 
 .tagDriver {
-  background: #e0f2fe;
-  color: #0369a1;
-  border: 1px solid #bae6fd;
+  background: #ccfbf1;
+  color: #115e59;
+  border: 1px solid #99f6e4;
 }
 
 .tagBoundary {
@@ -311,9 +311,9 @@
 }
 
 .tagTradeOff {
-  background: #f3e8ff;
-  color: #7e22ce;
-  border: 1px solid #e9d5ff;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
 }
 
 .tagFact {
@@ -592,4 +592,15 @@
 @keyframes modalScaleOut {
   from { opacity: 1; transform: scale(1) translateY(0); }
   to { opacity: 0; transform: scale(0.95) translateY(10px); }
+}
+
+.tooltipLayer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* HoverTooltip forces its child's display; keep the card's own. */
+span > .intelCard {
+  display: flex;
 }

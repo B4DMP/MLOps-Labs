@@ -21,6 +21,7 @@ import {
   type Pillar,
   type ResultsPayload,
 } from "./types";
+import HoverTooltip from "../HoverToolTip";
 import styles from "./ResultsHero.module.css";
 
 const percent = (score: number) => Math.round(Math.max(0, Math.min(1, score)) * 100);
@@ -55,7 +56,8 @@ const BEAT_CAPTION: Record<string, string> = {
 function PillarMeter({ pillar }: { pillar: Pillar }) {
   const value = percent(pillar.score);
   return (
-    <div className={styles.pillar} title={PILLAR_HINT[pillar.id]}>
+    <HoverTooltip description={PILLAR_HINT[pillar.id]} block>
+    <div className={styles.pillar}>
       <div className={styles.pillarHead}>
         <span className={styles.pillarLabel}>
           <Icon icon={PILLAR_ICON[pillar.id]} aria-hidden />
@@ -76,6 +78,7 @@ function PillarMeter({ pillar }: { pillar: Pillar }) {
       </div>
       {pillar.relative && <span className={styles.pillarNote}>gained on the system you inherited</span>}
     </div>
+    </HoverTooltip>
   );
 }
 

@@ -1,5 +1,5 @@
 import { forwardRef, useImperativeHandle } from "react";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import VetoDialog, { type VetoInfo } from "./VetoDialog";
@@ -63,7 +63,8 @@ describe("VetoDialog", () => {
     renderDialog({ onVetoBreaker: vi.fn(), escalationPoints: 0 });
     const button = screen.getByRole("button", { name: /Push It Through/ });
     expect(button).toBeDisabled();
-    expect(button).toHaveAttribute("title", "No Escalation Points left this playthrough.");
+    fireEvent.mouseEnter(button.parentElement!);
+    expect(screen.getByRole("tooltip")).toHaveTextContent("No Escalation Points left this playthrough.");
   });
 
   it("hides the count while it has not arrived yet, and treats it as unusable", () => {
@@ -90,10 +91,8 @@ describe("VetoDialog", () => {
 
   it("names the stakeholder who will remember it, in the hint", () => {
     renderDialog({ onVetoBreaker: vi.fn(), escalationPoints: 1 });
-    expect(screen.getByRole("button", { name: /Push It Through/ })).toHaveAttribute(
-      "title",
-      expect.stringContaining("Alex will remember it"),
-    );
+    fireEvent.mouseEnter(screen.getByRole("button", { name: /Push It Through/ }).parentElement!);
+    expect(screen.getByRole("tooltip")).toHaveTextContent(/Alex will remember it/);
   });
 
   it("still fires Revise even when the Veto Breaker is disabled", async () => {

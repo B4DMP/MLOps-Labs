@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import styles from "./Admin.module.css";
+import HoverTooltip from "./HoverToolTip";
 import type { TeacherDashboardData, TeacherPlayerRow } from "../services/api/teacher";
 
 export interface TeacherDashboardViewProps {
@@ -224,19 +225,20 @@ export function TeacherDashboardView({
                 ))}
               </select>
             )}
-            <button
-              type="button"
-              className={styles.outlineButton}
-              onClick={() => load(true)}
-              disabled={isLoading}
-              title="Refresh now"
-            >
-              <Icon
-                icon={isLoading ? "ph:spinner-bold" : "ph:arrows-clockwise-bold"}
-                className={isLoading ? styles.spinner : ""}
-              />
-              <span>Refresh</span>
-            </button>
+            <HoverTooltip description="Refresh now">
+              <button
+                type="button"
+                className={styles.outlineButton}
+                onClick={() => load(true)}
+                disabled={isLoading}
+              >
+                <Icon
+                  icon={isLoading ? "ph:spinner-bold" : "ph:arrows-clockwise-bold"}
+                  className={isLoading ? styles.spinner : ""}
+                />
+                <span>Refresh</span>
+              </button>
+            </HoverTooltip>
           </div>
         </div>
 
@@ -278,19 +280,18 @@ export function TeacherDashboardView({
                       <td>
                         <div className="d-flex align-items-center gap-2">
                           <Icon icon="ph:user-circle-bold" className="text-secondary fs-5" />
-                          <Icon
-                            icon="ph:circle-fill"
-                            title={p.online ? "Online now" : "Offline"}
-                            style={{ color: p.online ? "#22c55e" : "#d1d5db", fontSize: "0.6rem" }}
-                          />
+                          <HoverTooltip description={p.online ? "Online now" : "Offline"} labelsChild>
+                            <span>
+                              <Icon icon="ph:circle-fill" style={{ color: p.online ? "#22c55e" : "#d1d5db", fontSize: "0.6rem" }} />
+                            </span>
+                          </HoverTooltip>
                           <span className="fw-bold">{p.name}</span>
                           {p.playtestTainted && (
-                            <span
-                              className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1"
-                              title="This account used a playtest tool - its data is not research-clean."
-                            >
-                              Playtest
-                            </span>
+                            <HoverTooltip description="This account used a playtest tool - its data is not research-clean.">
+                              <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">
+                                Playtest
+                              </span>
+                            </HoverTooltip>
                           )}
                         </div>
                       </td>
@@ -346,16 +347,17 @@ export function TeacherDashboardView({
                                 </button>
                               </div>
                             ) : (
-                              <button
-                                type="button"
-                                className="btn btn-sm btn-outline-secondary"
-                                style={{ fontSize: "0.8rem" }}
-                                onClick={() => setConfirmResetEmail(p.email)}
-                                title="Give this player back the attention tokens of the challenge they are in. Nothing else changes."
-                              >
-                                <Icon icon="ph:coin-bold" />
-                                <span className="ms-1">Reset tokens</span>
-                              </button>
+                              <HoverTooltip description="Give this player back the attention tokens of the challenge they are in. Nothing else changes.">
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-secondary"
+                                  style={{ fontSize: "0.8rem" }}
+                                  onClick={() => setConfirmResetEmail(p.email)}
+                                >
+                                  <Icon icon="ph:coin-bold" />
+                                  <span className="ms-1">Reset tokens</span>
+                                </button>
+                              </HoverTooltip>
                             )
                           )}
                         </td>

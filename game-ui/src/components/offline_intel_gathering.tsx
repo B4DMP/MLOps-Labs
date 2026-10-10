@@ -26,6 +26,7 @@ import FILE_POLICY_ICON from "./Results/icons/file-policy.json";
 import LIST_RULES_ICON from "./Results/icons/list-rules.json";
 import MAGNIFIER_ICON from "./Results/icons/magnifier.json";
 import RADIO_WALKIE_TALKIE_ICON from "./Results/icons/radio-walkie-talkie.json";
+import HoverTooltip from "./HoverToolTip";
 import SERVER_ICON from "./Results/icons/server.json";
 import LAYERS_ICON from "./Results/icons/layers.json";
 import EYE_ICON from "./Results/icons/eye.json";
@@ -101,6 +102,8 @@ const REQUIREMENT_TAGS = [...INTEL_TAGS, CHALLENGE_INTEL_META].map((t) => ({
   label: t.label,
   icon: t.icon,
   color: t.color,
+  paper: t.paper,
+  ink: t.ink,
   description: t.description,
   about: t.about,
 }));
@@ -793,7 +796,7 @@ export default function OfflineIntelGathering({
                     className={styles.navPillsContainer}
                     data-intro-group="introDossier"
                     data-title="On the Record vs. Yours to Call"
-                    data-intro="Three of these items are already on the record: <mark class='mlops-mark-purple'><iconify-icon icon='ph:certificate-duotone'></iconify-icon> the challenge itself</mark>, and the conflicting opinions of the two main <mark class='mlops-mark-blue'><iconify-icon icon='ph:user-sound-duotone'></iconify-icon> stakeholders</mark> - look for the <iconify-icon icon='ph:lightning-fill' class='mlops-icon-yellow'></iconify-icon> bolt between their pills, that's exactly where the disagreement sits. Nothing to tag there - just read them, they've made up their minds without asking you. Every other numbered pill is yours to categorize, and getting it right is what actually earns you usable intel, not just a completion checkmark."
+                    data-intro="Three of these items are already on the record: <mark class='mlops-mark-red'><iconify-icon icon='ph:seal-warning-duotone'></iconify-icon> the challenge itself</mark>, and the conflicting opinions of the two main <mark class='mlops-mark-blue'><iconify-icon icon='ph:user-sound-duotone'></iconify-icon> stakeholders</mark> - look for the <iconify-icon icon='ph:lightning-fill' class='mlops-icon-yellow'></iconify-icon> bolt between their pills, that's exactly where the disagreement sits. Nothing to tag there - just read them, they've made up their minds without asking you. Every other numbered pill is yours to categorize, and getting it right is what actually earns you usable intel, not just a completion checkmark."
                     data-step="7"
                   >
                     <button
@@ -1214,15 +1217,16 @@ export default function OfflineIntelGathering({
                     >
                       <div className={styles.taggingPanelHeader}>
                         {!singleArtifact && (
-                          <button
-                            onClick={handlePrevItem}
-                            disabled={currentIndex <= 0}
-                            className={styles.navButton}
-                            title="Previous Intel Artifact"
-                            aria-label="Previous Intel Artifact"
-                          >
-                            <Icon icon="ph:caret-left-bold" className={styles.navButtonIcon} />
-                          </button>
+                          <HoverTooltip description="Previous Intel Artifact">
+                            <button
+                              onClick={handlePrevItem}
+                              disabled={currentIndex <= 0}
+                              className={styles.navButton}
+                              aria-label="Previous Intel Artifact"
+                            >
+                              <Icon icon="ph:caret-left-bold" className={styles.navButtonIcon} />
+                            </button>
+                          </HoverTooltip>
                         )}
 
                         <div className={styles.taggingPanelHeaderText}>
@@ -1237,6 +1241,7 @@ export default function OfflineIntelGathering({
                             {isOnKnownArtifact ? "On Record" : "Stance"}
                           </span>
                           {currentArtifact.debug && (
+                            <HoverTooltip description={`Debug: true tag is ${currentArtifact.debug.correct_tag}`}>
                             <button
                               type="button"
                               className={`${styles.debugToggle} ${
@@ -1247,28 +1252,31 @@ export default function OfflineIntelGathering({
                                     : styles.debugWrong
                               }`}
                               onClick={() => setIsDebugOpen((open) => !open)}
-                              title={`Debug: true tag is ${currentArtifact.debug.correct_tag}`}
                               aria-label="Toggle answer key (debug)"
                             >
                               <Icon icon="ph:bug-bold" />
                             </button>
+                            </HoverTooltip>
                           )}
                           {currentArtifact.debug?.artifact && (
+                            <HoverTooltip
+                              description={
+                                currentArtifact.debug.artifact.humor_archetype
+                                  ? `Debug: humor applied (${currentArtifact.debug.artifact.humor_archetype})`
+                                  : "Debug: no humor applied"
+                              }
+                            >
                             <button
                               type="button"
                               className={`${styles.debugToggle} ${
                                 currentArtifact.debug.artifact.humor_archetype ? styles.debugRight : styles.debugWrong
                               }`}
                               onClick={() => setIsDebugOpen((open) => !open)}
-                              title={
-                                currentArtifact.debug.artifact.humor_archetype
-                                  ? `Debug: humor applied (${currentArtifact.debug.artifact.humor_archetype})`
-                                  : "Debug: no humor applied"
-                              }
                               aria-label="Toggle answer key (debug)"
                             >
                               <Icon icon={currentArtifact.debug.artifact.humor_archetype ? "ph:mask-happy-bold" : "ph:mask-happy"} />
                             </button>
+                            </HoverTooltip>
                           )}
                           </div>
                           <h6 className={styles.taggingTitle}>
@@ -1302,7 +1310,6 @@ export default function OfflineIntelGathering({
                                 className={`${styles.actionButton} ${styles.returnHeaderButton} ${
                                   nextAction === "finish" ? styles.actionButtonNudge : ""
                                 }`}
-                                title="All intel categorized. Return to summary to continue to the pitch debate."
                                 aria-describedby={visibleHintKind === "finish" ? "intel-hint-finish" : undefined}
                               >
                                 <span>Finish & Continue</span>
@@ -1317,7 +1324,6 @@ export default function OfflineIntelGathering({
                               className={`${styles.navButton} ${hintStyles.navButtonLabeled} ${
                                 nextAction === "next" ? styles.navButtonNudge : ""
                               }`}
-                              title={currentIndex < artifacts.length - 1 ? "Next artifact" : "See summary"}
                               aria-label={currentIndex < artifacts.length - 1 ? "Next artifact" : "See summary"}
                               aria-describedby={
                                 visibleHintKind === "next" || visibleHintKind === "known" ? `intel-hint-${visibleHintKind}` : undefined
@@ -1341,7 +1347,6 @@ export default function OfflineIntelGathering({
                             type="button"
                             onClick={onGoBack}
                             className={`${styles.actionButton} ${styles.returnHeaderButton}`}
-                            title="Return to pitch debate"
                           >
                             <span>Return to pitch debate</span>
                             <Icon icon="ph:arrow-right-bold" />
@@ -1420,43 +1425,48 @@ export default function OfflineIntelGathering({
                               </div>
                             )}
                             <div className={colClass}>
+                              <HoverTooltip
+                                block
+                                description={isOnKnownArtifact ? "Already on record, nothing to change here" : undefined}
+                              >
                               <button
                                 onClick={() => handleTagArtifact(tag.type)}
                                 onMouseEnter={() => setHoveredTag(tag.type)}
                                 onMouseLeave={() => setHoveredTag(null)}
                                 disabled={isOnKnownArtifact}
-                                title={isOnKnownArtifact ? "Already on record, nothing to change here" : undefined}
                                 className={`btn ${styles.tagButton} ${sizeClass} ${isSelected ? styles.tagButtonSelected : ""} ${
                                   isOnKnownArtifact ? styles.tagButtonLocked : ""
                                 } ${nextAction === "tag" ? styles.tagButtonNudge : ""}`}
-                                style={{ borderColor: tag.color }}
+                                style={{ borderColor: tag.color, background: tag.paper }}
                               >
                                 <div className={styles.tagButtonHeader}>
                                   <span className={styles.tagButtonLabelGroup}>
                                     <Icon icon={tag.icon} style={{ color: tag.color }} />{" "}
-                                    <span className={styles.tagButtonLabel} style={{ color: tag.color }}>{tag.label}</span>
+                                    <span className={styles.tagButtonLabel} style={{ color: tag.ink }}>{tag.label}</span>
                                   </span>
                                   {isSelected && (
-                                    <span
-                                      className={`badge text-white ${styles.tagButtonBadge}`}
-                                      title={
+                                    <HoverTooltip
+                                      description={
                                         isOnKnownArtifact
                                           ? "This is the right category, already filed for you"
                                           : "Pick another category to re-tag this artifact"
                                       }
                                     >
+                                    <span className={`badge text-white ${styles.tagButtonBadge}`}>
                                       <Icon
                                         icon={isOnKnownArtifact ? "ph:lock-simple-bold" : "ph:pencil-simple-bold"}
                                         className={styles.tagButtonBadgeIcon}
                                       />
                                       {isOnKnownArtifact ? "On record" : "Selected"}
                                     </span>
+                                    </HoverTooltip>
                                   )}
                                 </div>
                                 <small className={styles.tagButtonDescription}>
                                   {tag.description}
                                 </small>
                               </button>
+                              </HoverTooltip>
                             </div>
                             </Fragment>
                           );

@@ -15,6 +15,7 @@ import type { AdminPlayerResults, AdminResultsData, Stats } from "./adminTypes";
 import { CHART_INK, prettify, stakeholderColor } from "./palette";
 import { PILLAR_LABEL, type GradeLetter, type PillarId } from "./types";
 import type { MetricInfo } from "./tabs/MetricsTab";
+import HoverTooltip from "../HoverToolTip";
 import tabStyles from "./tabs.module.css";
 import styles from "./AdminResults.module.css";
 
@@ -315,17 +316,20 @@ export default function AdminResults({ adminToken, campaigns, metricInfo = {} }:
                         {player.runs.map((run) => {
                           const active = selected?.player === player.name && selected.run === run.run_index;
                           return (
-                            <button
+                            <HoverTooltip
                               key={run.run_index}
-                              type="button"
-                              aria-pressed={active}
-                              className={`${styles.runButton} ${active ? styles.runButtonActive : ""}`}
-                              onClick={() => setSelected({ player: player.name, run: run.run_index })}
-                              title={`Run ${run.run_index}${run.is_spiral ? " (next iteration)" : ""}: ${share(run.overall)} overall`}
+                              description={`Run ${run.run_index}${run.is_spiral ? " (next iteration)" : ""}: ${share(run.overall)} overall`}
                             >
-                              Run {run.run_index}: {run.grade}
-                              {run.is_spiral && <Icon icon="ph:arrows-clockwise-bold" aria-label="next iteration" />}
-                            </button>
+                              <button
+                                type="button"
+                                aria-pressed={active}
+                                className={`${styles.runButton} ${active ? styles.runButtonActive : ""}`}
+                                onClick={() => setSelected({ player: player.name, run: run.run_index })}
+                              >
+                                Run {run.run_index}: {run.grade}
+                                {run.is_spiral && <Icon icon="ph:arrows-clockwise-bold" aria-label="next iteration" />}
+                              </button>
+                            </HoverTooltip>
                           );
                         })}
                       </div>

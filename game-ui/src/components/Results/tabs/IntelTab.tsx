@@ -2,6 +2,7 @@ import { Icon } from "@iconify/react";
 import { BarRow, Empty, Section, StatTile, TileRow } from "../parts";
 import { prettify } from "../palette";
 import type { ResultsPayload } from "../types";
+import HoverTooltip from "../../HoverToolTip";
 import styles from "../tabs.module.css";
 
 /** The tags in the order the game teaches them. Facts are last: they describe the system, not a
@@ -96,9 +97,10 @@ export default function IntelTab({ results }: { results: ResultsPayload }) {
                           ? `rgba(42, 120, 214, ${0.12 + 0.6 * (count / maxCell)})`
                           : "rgba(100, 116, 139, 0.07)",
                       }}
-                      title={`${count} note${count === 1 ? "" : "s"}`}
                     >
-                      {count || ""}
+                      <HoverTooltip description={count ? `${count} note${count === 1 ? "" : "s"}` : undefined} block>
+                        <span>{count || ""}</span>
+                      </HoverTooltip>
                     </td>
                   );
                 })}

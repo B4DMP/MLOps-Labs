@@ -705,3 +705,11 @@
     transform: translateX(0);
   }
 }
+/* HoverTooltip forces inline-block on its child; keep the button's own display. */
+span > .dashboardLink {
+  display: flex;
+}
+
+span > .briefingNarrationButton {
+  display: inline-flex;
+}

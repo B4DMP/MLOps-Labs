@@ -344,7 +344,7 @@
     background-color: #fffaf9;
     border-color: #eb6864;
     box-shadow: 0 4px 10px rgba(235, 104, 100, 0.18);
-    transform: translateY(-1px);
+    transform: scale(1.02);
 }
 
 .journalOptionBtn:active:not(:disabled) {
@@ -374,7 +374,7 @@
 }
 
 .revealedIntelItemClickable:hover {
-    transform: translateY(-1px);
+    transform: scale(1.02);
     background: rgba(255, 255, 255, 0.12);
     border-color: var(--primary-bg);
 }

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import EmotionEmoji from "./EmotionEmoji";
 
@@ -47,8 +47,8 @@ describe("EmotionEmoji", () => {
 
   it("has an explanatory hover title mentioning voices don't change with mood", () => {
     render(<EmotionEmoji emotionState="overwhelmed" />);
-    expect(screen.getByRole("img")).toHaveAttribute(
-      "title",
+    fireEvent.mouseEnter(screen.getByRole("img").parentElement!);
+    expect(screen.getByRole("tooltip").textContent).toBe(
       "Feeling Overwhelmed. Voices don't change with mood, so watch for this instead.",
     );
   });
