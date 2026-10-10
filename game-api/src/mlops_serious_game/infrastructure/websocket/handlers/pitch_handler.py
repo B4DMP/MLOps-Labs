@@ -56,7 +56,15 @@ class PitchContext:
         self.graph = GraphFactory.get_graph()
         replay = graph_store.load_state(user_id)
         self.state = replay.state
-        self.all_intel = RequirementFactory.get_requirements_for_challenge(self.challenge_id)
+        from mlops_serious_game.application.intel_handler import filter_edge_intel, is_first_playthrough
+
+        # Edge-targeted requirements are held back entirely on a first playthrough - not just from
+        # the dossier, but from boundary checks, buy-in and veto reasoning too, since a stakeholder
+        # can't fairly block a player over intel the player was never shown (docs/gameplay-flow.md).
+        self.all_intel = filter_edge_intel(
+            RequirementFactory.get_requirements_for_challenge(self.challenge_id),
+            is_first_playthrough(user_id),
+        )
         self.room = [
             (ps.stakeholder_id, ps.power, ps.interest)
             for ps in PhaseFactory.get_phases()[self.phase_id].stakeholders
@@ -280,22 +288,13 @@ def _item_payload(item, chains: Optional[dict] = None) -> dict:
 
 
 def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView, **extra) -> dict:
-    from mlops_serious_game.application.intel_handler import (
-        chain_index,
-        is_edge_requirement,
-        is_first_playthrough,
-        speaker_of,
-    )
+    from mlops_serious_game.application.intel_handler import chain_index, speaker_of
 
     held = ctx.held_items()
     chains = chain_index(held)
-    # Display-only: `ctx.all_intel` itself stays the full set, since boundary checks and buy-in
-    # must still account for intel the player hasn't been shown yet (docs/gameplay-flow.md).
-    visible_intel = (
-        [r for r in ctx.all_intel if not is_edge_requirement(r)]
-        if is_first_playthrough(ctx.user_id) else ctx.all_intel
-    )
-    counted_pool = {r.id for r in visible_intel if speaker_of(r)}
+    # `ctx.all_intel` already excludes edge-targeted requirements on a first playthrough
+    # (PitchContext.__init__), so this stays in lockstep with boundary checks and buy-in.
+    counted_pool = {r.id for r in ctx.all_intel if speaker_of(r)}
     allowed_targets = get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel))
     upstream_map = {c.id: pitch.find_pipeline_predecessors(ctx.graph, c.id) for c in ctx.graph.components}
     _, compromise_pairs, after_notes, shared_steps, ally_pairs = (

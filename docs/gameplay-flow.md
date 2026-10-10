@@ -57,14 +57,16 @@ server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch e
      `data-step="4"` with the notes, after them in the DOM), so it is only highlighted when the
      tour starts with the dossier on the Challenge-Intel page.
    - Progressive disclosure: any intel item whose graph target is an edge (`is_edge_requirement`,
-     `intel_handler.py`) is left out of the deck, the dossier and every Gather/online-intel reveal
-     on a player's first playthrough (`is_first_playthrough`, `run_index == 1`) - a new player only
-     has to read intel about components. It starts appearing from the second playthrough on. The
-     requirement itself still counts in scoring (a hidden edge Boundary can still VETO), only its
-     display is gated; `ctx.all_intel` (pitch scoring ground truth) stays unfiltered, while the
-     `intel_total` shown to the player is filtered the same way the dossier is. A Fact about what the
-     challenge's opening event broke is exempt (`_is_incident_fact`) and is always on record at the
-     start, even when it is a hand-off: the player can always read what happened.
+     `intel_handler.py`) is left out of the deck, the dossier, every Gather/online-intel reveal, and
+     pitch scoring itself on a player's first playthrough (`is_first_playthrough`, `run_index == 1`)
+     - a new player only has to read intel about components, and cannot be vetoed or marked down
+     over a hand-off requirement they were never shown. It starts counting again, display and
+     scoring both, from the second playthrough on. `PitchContext.all_intel`
+     (`pitch_handler.py`, the single source buy-in, boundary checks and veto reasoning all read
+     from) is filtered with `filter_edge_intel` at construction time, so this one gate covers the
+     whole pitch phase instead of each caller re-checking it. A Fact about what the challenge's
+     opening event broke is exempt (`_is_incident_fact`) and is always on record at the start, even
+     when it is a hand-off: the player can always read what happened.
    - **Board tab** (`CaseBoard.tsx`, `useCaseBoard.ts`, backend `case_board_service/`): the last tab of
      the dossier, shown when the room has 3 or more stakeholders and not in the demo. This is where
      the player first ties two people together as allies (pushing the same way on one step), a rift (opposite asks) or a

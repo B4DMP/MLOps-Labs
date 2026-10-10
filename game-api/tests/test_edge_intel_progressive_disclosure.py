@@ -208,3 +208,34 @@ def test_results_available_intel_excludes_edges_only_for_the_run_that_never_show
         _start_run(user_id, 2, seeded_from_run=1)
         run_two = _intel_facts(user_id, 2, {7})
         assert run_two["counts"]["available"] == 2
+
+
+# ── Pitch scoring itself (buy-in, boundary checks, veto reasoning) ─────────────
+
+
+@pytest.mark.anyio
+async def test_pitch_context_excludes_edge_intel_from_scoring_on_a_first_playthrough_only(real, migrated_db):
+    """`PitchContext.all_intel` is the one list buy-in, boundary checks (hence VETOs) and veto
+    objection text all read from (`pitch_handler.py`). A hidden edge requirement must not just be
+    unlisted in the dossier - it must be absent here too, or a stakeholder can still veto, and a
+    veto message can still quote, a hand-off the player was never told about."""
+    from mlops_serious_game.domain.phase_factory import PhaseFactory
+    from mlops_serious_game.infrastructure.websocket.handlers.pitch_handler import PitchContext
+    from test_playtest import _begun_game, _dealt_challenge
+
+    node_item, edge_item = _stance("node_scoring", NODE_TARGET), _stance("edge_scoring", EDGE_TARGET)
+
+    user_id = await _begun_game()
+    challenge_id = _dealt_challenge(user_id)
+    challenge = PhaseFactory.get_challenge_by_id(challenge_id)
+
+    with patch.object(
+        RequirementFactory, "get_requirements_for_challenge",
+        side_effect=lambda cid: [node_item, edge_item] if cid == challenge.id else [],
+    ):
+        first_playthrough_ctx = PitchContext(user_id, challenge.phase_id, challenge.id)
+        assert {i.id for i in first_playthrough_ctx.all_intel} == {"node_scoring"}
+
+        _start_run(user_id, 2, seeded_from_run=1)
+        second_playthrough_ctx = PitchContext(user_id, challenge.phase_id, challenge.id)
+        assert {i.id for i in second_playthrough_ctx.all_intel} == {"node_scoring", "edge_scoring"}
