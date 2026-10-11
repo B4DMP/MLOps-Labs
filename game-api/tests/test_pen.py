@@ -62,6 +62,30 @@ def test_high_trust_prefers_a_trade_off_and_gets_the_dividend(real):
     assert (draft.change.target, draft.change.value) == ("data.validation", 3)
 
 
+def _concession(id, target, max_level, axis="automation", who="data_dave"):
+    from types import SimpleNamespace
+
+    return _item(id, who, "trade_off", concedes=SimpleNamespace(target=target, axis=axis, accepts_max_level=max_level))
+
+
+def test_a_concession_trade_off_is_drafted_as_a_step_toward_what_they_would_accept(real):
+    # Most Trade-offs in the content are concessions with no branches; they used to draft nothing.
+    draft = _draft(real, [_concession("t1", "data.validation", 2)])
+    assert draft.item_id == "t1"
+    assert (draft.change.target, draft.change.axis, draft.change.value) == ("data.validation", "automation", 2)
+
+
+def test_a_concession_already_met_is_not_an_ask(real):
+    # data.validation sits at automation 1: a ceiling of 1 is already reached, so nothing to draft from it.
+    draft = _draft(real, [_concession("t1", "data.validation", 1)])
+    assert draft is None or draft.item_id != "t1"
+
+
+def test_low_trust_does_not_draft_from_a_trade_off(real):
+    draft = _draft(real, [_concession("t1", "data.validation", 2)], trust=0.1)
+    assert draft is None or draft.item_id != "t1"
+
+
 def test_medium_trust_prefers_a_driver_over_a_trade_off(real):
     intel = [_trade_off("t1", "data.validation", 2), _driver("d1", "data.ingestion", 3)]
     assert _draft(real, intel).item_id == "d1"

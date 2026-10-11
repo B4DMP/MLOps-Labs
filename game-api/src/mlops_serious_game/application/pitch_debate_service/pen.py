@@ -91,7 +91,8 @@ def _boundary_safe(graph: Any, state: Any, all_intel: list, room_st_ids: list[st
 
 
 def _asks(item: Any, state: Any) -> list[tuple[str, str, int]]:
-    """The unmet (target, axis, level) an item asks for: a Driver's level, or each Trade-off branch."""
+    """The unmet (target, axis, level) an item asks for: a Driver's level, or each Trade-off branch
+    and concession ceiling."""
     kind = _type_of(item)
     out: list[tuple[str, str, int]] = []
     if kind == IntelTag.DRIVER.value:
@@ -105,6 +106,12 @@ def _asks(item: Any, state: Any) -> list[tuple[str, str, int]]:
             get = branch.get if isinstance(branch, dict) else lambda k, b=branch: getattr(b, k, None)
             if get("target") and get("level") is not None and get("axis"):
                 out.append((get("target"), get("axis"), get("level")))
+        # A concession ("I would accept it staying at most this high") is the ground they would
+        # give: they draft a step toward that level, never past it.
+        concedes = getattr(item, "concedes", None)
+        if concedes is not None and getattr(concedes, "accepts_max_level", None) is not None:
+            if getattr(concedes, "target", None) and getattr(concedes, "axis", None):
+                out.append((concedes.target, concedes.axis, concedes.accepts_max_level))
     return [(t, a, lv) for t, a, lv in out if state.value(t, a) < lv]
 
 
