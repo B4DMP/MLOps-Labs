@@ -1363,11 +1363,22 @@ export default function PitchDebate({
     ? "You do not have enough attention tokens."
     : pitchState?.stage === "DONE"
     ? "This challenge is already decided."
-    : penCanDraft.length === 0
-    ? "Nobody in the room has anything to draft right now."
     : null;
+  // With nobody able to draft, the card is not dealt and the composer button is not offered.
+  // Pep-Talk only moves confidence and sense of control, so it is pointless once all are High.
+  const pepHasEffect = Object.values(stakeholders as Record<string, any>).some((st) =>
+    (st?.emotion_dimensions_full || []).some(
+      (d: any) => (d.metric === "confidence" || d.metric === "sense_of_control") && d.bucket !== "high"
+    )
+  );
+  const handCards = cards.filter(
+    (c) =>
+      !(c.effect_kind === "pen" && penCanDraft.length === 0) &&
+      !(c.effect_kind === "patience_reset" && impatientStakeholderIds.length === 0) &&
+      !(c.effect_kind === "pep_talk" && !pepHasEffect)
+  );
   const penAction =
-    penCard && !pitchState?.is_demo
+    penCard && penCanDraft.length > 0 && !pitchState?.is_demo
       ? { cost: penCard.token_cost, tokens, blocked: penBlocked, onPlay: () => handleSelectEngagementCard(penCard) }
       : null;
   // Each stakeholder's Trust reading, in the dossier's own words, for the picker.
@@ -2617,7 +2628,7 @@ export default function PitchDebate({
                             data-step="5"
                           >
                             <EngagementCards
-                              cards={cards}
+                              cards={handCards}
                               attentionTokens={tokens}
                               playedCardIds={playedIds}
                               onSelectCard={handleSelectEngagementCard}

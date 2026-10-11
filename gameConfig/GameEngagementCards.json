@@ -63,7 +63,7 @@
       "title": "Pep-Talk",
       "icon": "ph:megaphone-bold",
       "token_cost": 3,
-      "description": "Hold a short stand-up to lift the room's mood. (1x per phase)",
+      "description": "Hold a short stand-up. Everyone's Confidence and Sense of control rise a little, more for the powerful and interested. Trust and fairness stay as they are. (1x per phase)",
       "stakeholder_selection_amount": -1,
       "target_type": "stakeholder",
       "response_snippet": "Lifted the room's mood with a quick stand-up.",
@@ -72,7 +72,7 @@
       "effect_kind": "pep_talk",
       "effect_label": "Morale",
       "effect_icon": "ph:smiley-bold",
-      "effect_hint": "Lifts the whole room's confidence and sense of control",
+      "effect_hint": "Raises every stakeholder's Confidence and Sense of control, not Trust or fairness",
       "allowed_requirement_types": []
     },
     {

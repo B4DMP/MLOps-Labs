@@ -110,7 +110,7 @@ const ENGAGEMENT_CARD_LEGEND: { icon: string; label: string; detail: string }[] 
   { icon: "ph:user-focus-bold", label: "Investigate Component", detail: "Ask one stakeholder about their top requirement or a component. Can target the same stakeholder again." },
   { icon: "ph:users-bold", label: "Team Sync-Up", detail: "Ask everyone at once. Once per phase." },
   { icon: "ph:hourglass-simple-bold", label: "Patience-Reset", detail: "Fully reset one impatient stakeholder's patience." },
-  { icon: "ph:megaphone-bold", label: "Pep-Talk", detail: "Small mood lift for the whole room. Once per phase." },
+  { icon: "ph:megaphone-bold", label: "Pep-Talk", detail: "Raises everyone's Confidence and Sense of control a little (not Trust or fairness). Once per phase." },
 ];
 
 const SECTIONS: CheatSheetSection[] = [
