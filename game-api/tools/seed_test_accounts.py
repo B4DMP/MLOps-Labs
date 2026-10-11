@@ -68,12 +68,22 @@ MAIN_STAGES = [
 INTRO_STAGES = [
     "questionnaire", "briefing", "phase-briefing", "offline-intel", "pitch", "veto", "simulation",
 ]
-ACCOUNTS = [f"intro-{s}" for s in INTRO_STAGES] + MAIN_STAGES
+# Accounts that sit in a later phase (`test-p2-pitch`), reached by playing the earlier ones through.
+LATER_PHASES = (2, 3)
+LATER_STAGES = ["phase-briefing", "offline-intel", "pitch", "veto", "simulation"]
+ACCOUNTS = (
+    [f"intro-{s}" for s in INTRO_STAGES]
+    + MAIN_STAGES
+    + [f"p{n}-{s}" for n in LATER_PHASES for s in LATER_STAGES]
+)
 # Some notes found, most tagged right, a few wrong: a representative mid-game dossier.
 PARTIAL = PlayProfile("seed-partial", intel_coverage=0.6, intel_accuracy=0.8)
 # Impatience steps (cap 3) for the stakeholders of the first real challenge and the demo; anyone
 # not listed stays calm.
-PATIENCE = {"requirements_reuben": 3, "automation_alex": 2, "efficiency_emilia": 1, "bear_bruce": 2, "mohawk_mark": 1}
+PATIENCE = {
+    "requirements_reuben": 3, "automation_alex": 2, "efficiency_emilia": 1, "data_dave": 2,
+    "bear_bruce": 2, "mohawk_mark": 1,
+}
 VETOING = PlayProfile("seed-veto", prefer="veto")
 
 
@@ -127,10 +137,16 @@ def _max_progress(user_id: int) -> int:
         ) or 0
 
 
-async def _to_phase_briefing(user_id: int) -> None:
+async def _to_phase_briefing(user_id: int, phase: int = 1) -> None:
+    """Starts the run, then plays challenges through the skip tool until one of `phase` is dealt."""
     _progress(user_id, 1)
     _progress(user_id, 2)
     await game_handler.handle_game_init(MagicMock(), user_id, {})
+    for _ in range(20):
+        if playtest_handler._current(user_id)[0].phase_id >= phase:
+            return
+        await playtest_handler.handle_playtest_skip_challenge(MagicMock(), user_id, {})
+    raise RuntimeError(f"never reached phase {phase}")
 
 
 async def _advance_loop(user_id: int, from_loop: int) -> None:
@@ -171,8 +187,11 @@ def _thin_dossier(user_id: int, main: bool) -> None:
     challenge's own rift (pinned for free) and one more tie are made findable, the rest are left
     for the player to earn. The demo phase has no board."""
     challenge, _row = playtest_handler._current(user_id)
+    # Only this phase's notes: earlier phases stay whole so their dossier pages render.
     with get_session() as session:
-        session.execute(delete(IntelItem).where(IntelItem.user_id == user_id))
+        for row in session.scalars(select(IntelItem).where(IntelItem.user_id == user_id)):
+            if row.intel_item_data.get("discovered_phase_id") == challenge.phase_id:
+                session.delete(row)
     service.auto_gather(user_id, challenge, PARTIAL)
     if not main:
         return
@@ -225,6 +244,9 @@ async def _finish_game(user_id: int) -> None:
 async def seed(account: str) -> None:
     intro = account.startswith("intro-")
     stage = account.removeprefix("intro-")
+    reach = 1
+    if stage[:1] == "p" and stage[1:2].isdigit():
+        reach, stage = int(stage[1]), stage[3:]
     main = not intro
     user_id = _create_user(account, intro)
     service.taint_user(user_id)
@@ -235,34 +257,34 @@ async def seed(account: str) -> None:
         case "briefing":
             _progress(user_id, 1)
         case "phase-briefing":
-            await _to_phase_briefing(user_id)
+            await _to_phase_briefing(user_id, reach)
         case "offline-intel":
-            await _to_phase_briefing(user_id)
+            await _to_phase_briefing(user_id, reach)
             _thin_dossier(user_id, main)
         case "pitch":
-            await _to_phase_briefing(user_id)
+            await _to_phase_briefing(user_id, reach)
             _thin_dossier(user_id, main)
             await _advance_loop(user_id, 0)
             _set_patience(user_id)
         case "veto":
-            await _to_phase_briefing(user_id)
+            await _to_phase_briefing(user_id, reach)
             await _advance_loop(user_id, 0)
             if await _commit_card(user_id, VETOING):
                 raise RuntimeError("the first challenge has a clean card but no vetoing one")
             _thin_dossier(user_id, main)
             _set_patience(user_id)
         case "simulation":
-            await _to_phase_briefing(user_id)
+            await _to_phase_briefing(user_id, reach)
             await _advance_loop(user_id, 0)
             if not await _commit_card(user_id, PERFECT):
                 raise RuntimeError("no card the room accepts for the first challenge")
             await _advance_loop(user_id, 2)
             _thin_dossier(user_id, main)
         case "outro-questionnaire":
-            await _to_phase_briefing(user_id)
+            await _to_phase_briefing(user_id, reach)
             await _finish_game(user_id)
         case "results":
-            await _to_phase_briefing(user_id)
+            await _to_phase_briefing(user_id, reach)
             await _finish_game(user_id)
             _progress(user_id, 4)
         case _:
