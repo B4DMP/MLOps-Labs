@@ -30,6 +30,9 @@ class EngagementCardFactory:
                 allowed_requirement_types=j.get("allowed_requirement_types", []),
                 repeatable_target=j.get("repeatable_target", False),
                 effect_kind=j.get("effect_kind", "gather"),
+                effect_label=j.get("effect_label", ""),
+                effect_icon=j.get("effect_icon", ""),
+                effect_hint=j.get("effect_hint", ""),
             )
             cls.cards.append(card)
 

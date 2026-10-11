@@ -98,6 +98,21 @@
               "pen"
             ],
             "default": "gather"
+          },
+          "effect_label": {
+            "type": "string",
+            "title": "Effect badge text on the card face for a direct-effect card (e.g. 'Calm')",
+            "default": ""
+          },
+          "effect_icon": {
+            "type": "string",
+            "title": "Iconify icon for the effect badge",
+            "default": ""
+          },
+          "effect_hint": {
+            "type": "string",
+            "title": "Tooltip for the effect badge: what the effect does, in a sentence",
+            "default": ""
           }
         }
       }

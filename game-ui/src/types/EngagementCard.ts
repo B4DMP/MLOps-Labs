@@ -13,6 +13,10 @@ export interface EngagementCard {
   allowed_requirement_types?: string[];
   repeatable_target?: boolean;
   effect_kind?: "gather" | "patience_reset" | "pep_talk" | "pen";
+  /** Badge on the face of a direct-effect card, in the slot a gather card's "+N turns" takes. */
+  effect_label?: string;
+  effect_icon?: string;
+  effect_hint?: string;
 }
 
 export interface PlayedEngagementCardState {

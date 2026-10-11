@@ -67,6 +67,9 @@ class EngagementCard(BaseModel):
         default="gather",
         description="'gather' opens a dialogue conversation; any other value applies a direct effect",
     )
+    effect_label: str = Field(default="", description="Short badge on the card face for a direct-effect card (e.g. 'Calm')")
+    effect_icon: str = Field(default="", description="Iconify icon for the effect badge")
+    effect_hint: str = Field(default="", description="Tooltip for the effect badge: what the effect does, in a sentence")
 
     def __str__(self) -> str:
         return f"EngagementCard(id={self.id}, title={self.title}, cost={self.token_cost})"

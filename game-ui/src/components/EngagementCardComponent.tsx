@@ -42,10 +42,12 @@ export default function EngagementCardComponent({
 
   const isPlayable = isEnabled && canAfford && !isSingleUseExhausted && !isPreview;
 
-  // Patience-Reset / Pep-Talk resolve instantly against the room (no dialogue), unlike
-  // "gather" cards that open a conversation - call that out with a distinct accent.
-  const isActionCard = card.effect_kind === "patience_reset" || card.effect_kind === "pep_talk";
+  // Direct-effect cards (Patience-Reset, Pep-Talk, Hand the Pen) resolve instantly (no dialogue),
+  // unlike "gather" cards that open a conversation - call that out with a distinct accent.
+  const isActionCard = card.effect_kind !== undefined && card.effect_kind !== "gather";
 
+  // Only says something when the card cannot be played: a playable card needs no hover note, and
+  // one would sit on top of the neighbouring cards in the fan.
   const cardTooltip = isPreview
     ? undefined
     : !isEnabled
@@ -54,7 +56,7 @@ export default function EngagementCardComponent({
         ? "Already played in this phase (1x per phase limit)"
         : attentionTokens !== undefined && attentionTokens < card.token_cost
           ? `Requires ${card.token_cost} Attention Tokens (you have ${attentionTokens})`
-          : `Drag to Pitch Deck / Chat or click to play ${card.title}`;
+          : undefined;
 
   return (
     // Keep `description` stable across isDragging: HoverTooltip renders an unwrapped
@@ -157,6 +159,16 @@ export default function EngagementCardComponent({
                 <span>{card.stakeholder_selection_amount} Targets</span>
               </span>
             ) : null}
+
+            {/* Effect badge: what a direct-effect card does, where a gather card shows its turns */}
+            {isActionCard && card.effect_label && (
+              <HoverTooltip description={card.effect_hint || card.effect_label}>
+                <span className={`${styles.metaBadge} ${styles.actionBadge}`}>
+                  {card.effect_icon && <Icon icon={card.effect_icon} />}
+                  <span>{card.effect_label}</span>
+                </span>
+              </HoverTooltip>
+            )}
 
             {/* Turns Badge (D49) */}
             {card.target_type !== "intel" && (card.turns ?? 0) > 0 && (

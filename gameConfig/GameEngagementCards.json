@@ -52,6 +52,9 @@
       "max_plays_per_phase": -1,
       "turns": 0,
       "effect_kind": "patience_reset",
+      "effect_label": "Calm",
+      "effect_icon": "ph:hourglass-simple-bold",
+      "effect_hint": "Fully resets one stakeholder's patience",
       "repeatable_target": true,
       "allowed_requirement_types": []
     },
@@ -67,6 +70,9 @@
       "max_plays_per_phase": 1,
       "turns": 0,
       "effect_kind": "pep_talk",
+      "effect_label": "Morale",
+      "effect_icon": "ph:smiley-bold",
+      "effect_hint": "Lifts the whole room's confidence and sense of control",
       "allowed_requirement_types": []
     },
     {
@@ -74,13 +80,16 @@
       "title": "Hand the Pen",
       "icon": "ph:pen-nib-bold",
       "token_cost": 4,
-      "description": "Let 1 stakeholder draft a change into your plan themselves. It is locked in at once and may replace one of yours. (1x per phase)",
+      "description": "Let 1 stakeholder draft a change into your plan, locked in at once. (1x per phase)",
       "stakeholder_selection_amount": 1,
       "target_type": "stakeholder",
       "response_snippet": "Handed the pen to a stakeholder.",
       "max_plays_per_phase": 1,
       "turns": 0,
       "effect_kind": "pen",
+      "effect_label": "Fix Pitch Slot",
+      "effect_icon": "ph:pen-nib-bold",
+      "effect_hint": "A stakeholder drafts one change into your plan, locked in at once",
       "allowed_requirement_types": []
     }
   ]
