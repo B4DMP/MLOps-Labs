@@ -1,238 +1,186 @@
-"""Hand the Pen (docs/plans/hand-over-the-pen.md): `draft_for_pen`'s trust-band logic and
-`merge_pen_into_card`'s sealed-state handling. Pure, no DB - run with `-m "not db"` before pushing."""
-
-from unittest.mock import patch
+"""Hand the Pen (docs/plans/hand-over-the-pen.md): what a stakeholder drafts by trust band, where the
+draft lands in the card, and the locked slot. Pure, no DB - run with `-m "not db"` before pushing."""
 
 from conftest import make_intel_item as _item
 from conftest import make_target as _target
 
 from mlops_serious_game.application.pitch_debate_service import pen
-from mlops_serious_game.application.pitch_debate_service.session import (
-    AtomicChange,
-    PenState,
-    PitchState,
-)
+from mlops_serious_game.application.pitch_debate_service.session import AtomicChange
 from mlops_serious_game.domain.emotion import PitchTuning
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.graph import GraphState
 
 TUNING = PitchTuning()
 ROOM = [("data_dave", "high", "high"), ("reliability_ruth", "low", "low")]
+ALLOWED = {"data.validation", "data.ingestion"}
 
 
 def _emotions(trust: float) -> dict:
-    return EmotionFactory.create_emotion_values({"trust": trust})
+    return {"data_dave": EmotionFactory.create_emotion_values({"trust": trust})}
+
+
+def _draft(real, intel, trust=0.5, card=(), allowed=ALLOWED, skip=(), seed="s"):
+    return pen.draft_for_pen(
+        "data_dave", real, GraphState.from_config(real), intel, ROOM, _emotions(trust), TUNING, card,
+        allowed_targets=allowed, skip_item_ids=skip, seed=seed,
+    )
+
+
+def _driver(id, target, level, axis="automation", who="data_dave"):
+    return _item(id, who, "driver", suggested=_target(target, level, axis=axis))
+
+
+def _trade_off(id, target, level, axis="automation", who="data_dave"):
+    return _item(id, who, "trade_off", branch_x={"target": target, "axis": axis, "level": level})
 
 
 # ---------- trust_band ----------
 
 def test_trust_band_buckets():
-    assert pen.trust_band(_emotions(0.1)) == "low"
-    assert pen.trust_band(_emotions(0.5)) == "medium"
-    assert pen.trust_band(_emotions(0.9)) == "high"
+    assert pen.trust_band(EmotionFactory.create_emotion_values({"trust": 0.1})) == "low"
+    assert pen.trust_band(EmotionFactory.create_emotion_values({"trust": 0.5})) == "medium"
+    assert pen.trust_band(EmotionFactory.create_emotion_values({"trust": 0.9})) == "high"
     assert pen.trust_band(None) == "medium"
 
 
-# ---------- can_hand_pen_to (eligibility) ----------
+# ---------- draft_for_pen: what they pick ----------
 
-def test_can_hand_pen_to_owner(real):
-    assert pen.can_hand_pen_to("data_dave", "data.validation", real, held_items=[]) is True
-
-
-def test_can_hand_pen_to_held_driver_note(real):
-    held = [_item("d1", "reliability_ruth", "driver", suggested=_target("data.validation", 2))]
-    assert pen.can_hand_pen_to("reliability_ruth", "data.validation", real, held) is True
-
-
-def test_can_hand_pen_to_held_trade_off_branch(real):
-    held = [_item(
-        "t1", "reliability_ruth", "trade_off",
-        branch_x={"target": "data.validation", "axis": "automation", "level": 2},
-    )]
-    assert pen.can_hand_pen_to("reliability_ruth", "data.validation", real, held) is True
+def test_medium_trust_drafts_their_driver_one_rung_at_a_time(real):
+    # An automation ask two rungs up must still be drafted as automation: the plain next-step
+    # candidates alone used to drop it, which skewed every draft towards the governance gate.
+    draft = _draft(real, [_driver("d1", "data.validation", 3)])
+    assert (draft.band, draft.item_id) == ("medium", "d1")
+    assert (draft.change.target, draft.change.axis, draft.change.value) == ("data.validation", "automation", 2)
 
 
-def test_can_hand_pen_to_held_boundary_note(real):
-    held = [_item(
-        "b1", "reliability_ruth", "boundary",
-        holds={"component": "data.validation", "axis": "automation", "op": "gte", "level": 2},
-    )]
-    assert pen.can_hand_pen_to("reliability_ruth", "data.validation", real, held) is True
-
-
-def test_can_hand_pen_to_neither(real):
-    assert pen.can_hand_pen_to("reliability_ruth", "data.validation", real, held_items=[]) is False
-
-
-# ---------- draft_for_pen: band logic ----------
-
-def test_draft_medium_trust_uses_own_ask(real):
-    state = GraphState.from_config(real)
-    all_intel = [_item("d1", "data_dave", "driver", suggested=_target("data.validation", 2, axis="automation"))]
-    draft = pen.draft_for_pen(
-        "data_dave", "data.validation", real, state, all_intel, ROOM, {"data_dave": _emotions(0.5)}, TUNING
-    )
-    assert draft is not None
-    assert draft.band == "medium"
-    assert draft.change.axis == "automation"
-    assert draft.change.value == 2
-    assert draft.item_id == "d1"
-
-
-def test_draft_medium_trust_no_ask_uses_next_step(real):
-    state = GraphState.from_config(real)
-    draft = pen.draft_for_pen(
-        "data_dave", "data.validation", real, state, [], ROOM, {"data_dave": _emotions(0.5)}, TUNING
-    )
-    assert draft is not None
-    assert draft.band == "medium"
-    assert draft.item_id is None
-    # Automation sorts before governance when nothing else picks between them.
-    assert draft.change.axis == "automation"
-    assert draft.change.value == 2
-
-
-def test_draft_high_trust_no_ask_extends_two_steps(real):
-    # data.validation: automation 1 (allowed up to 3). High trust lifts the plain next step (2)
-    # one further rung, the trust dividend (pen_trust_dividend_steps = 2 by default).
-    state = GraphState.from_config(real)
-    draft = pen.draft_for_pen(
-        "data_dave", "data.validation", real, state, [], ROOM, {"data_dave": _emotions(0.9)}, TUNING
-    )
+def test_high_trust_prefers_a_trade_off_and_gets_the_dividend(real):
+    intel = [_driver("d1", "data.ingestion", 3), _trade_off("t1", "data.validation", 2)]
+    draft = _draft(real, intel, trust=0.9)
     assert draft.band == "high"
-    assert draft.change.axis == "automation"
-    assert draft.change.value == 3
+    assert draft.item_id == "t1"
+    # The branch asks for level 2; a High-trust holder goes one rung further.
+    assert (draft.change.target, draft.change.value) == ("data.validation", 3)
 
 
-def test_draft_high_trust_respects_own_ask(real):
-    # data.ingestion is already implemented (MANUAL), so a governance ask is legal on its own.
-    state = GraphState.from_config(real)
-    all_intel = [_item("d1", "data_dave", "driver", suggested=_target("data.ingestion", 3, axis="governance"))]
-    draft = pen.draft_for_pen(
-        "data_dave", "data.ingestion", real, state, all_intel, ROOM, {"data_dave": _emotions(0.9)}, TUNING
-    )
-    assert draft.change.axis == "governance"
-    assert draft.change.value == 3
-    assert draft.item_id == "d1"
+def test_medium_trust_prefers_a_driver_over_a_trade_off(real):
+    intel = [_trade_off("t1", "data.validation", 2), _driver("d1", "data.ingestion", 3)]
+    assert _draft(real, intel).item_id == "d1"
 
 
-def test_draft_low_trust_picks_the_governance_gate_when_implemented(real):
-    # data.ingestion is already MANUAL: a Low-trust holder picks the governance sign-off gate.
-    state = GraphState.from_config(real)
-    draft = pen.draft_for_pen(
-        "data_dave", "data.ingestion", real, state, [], ROOM, {"data_dave": _emotions(0.1)}, TUNING
-    )
+def test_low_trust_only_drafts_a_driver_and_prefers_the_sign_off_gate(real):
+    # data.ingestion already works, so a sign-off gate on it is legal.
+    draft = _draft(real, [_driver("d1", "data.ingestion", 3)], trust=0.1)
     assert draft.band == "low"
-    assert draft.change.axis == "governance"
+    assert (draft.change.target, draft.change.axis) == ("data.ingestion", "governance")
+    assert _draft(real, [_trade_off("t1", "data.validation", 2)], trust=0.1).item_id is None
 
 
-def test_draft_low_trust_picks_highest_step_among_several_when_no_gate_applies(real):
-    # Not implemented, so no sign-off gate is on the table - among whatever is legal, Low trust
-    # picks the highest step (can overshoot other people's ceilings), not the gate special-case.
-    state = GraphState.from_config(real)
-    candidates = [
-        AtomicChange(target="data.validation", kind="raise_to", axis="automation", value=2),
-        AtomicChange(target="data.validation", kind="raise_to", axis="governance", value=3),
-    ]
-    with patch(
-        "mlops_serious_game.application.pitch_debate_service.pen._legal_changes_on_target",
-        return_value=candidates,
-    ):
-        draft = pen.draft_for_pen(
-            "data_dave", "data.validation", real, state, [], ROOM, {"data_dave": _emotions(0.1)}, TUNING
-        )
-    assert draft.band == "low"
-    assert draft.change.value == 3
+def test_low_trust_takes_the_plain_step_when_no_gate_is_legal(real):
+    # data.validation is not implemented yet, so there is no gate to take.
+    draft = _draft(real, [_driver("d1", "data.validation", 2)], trust=0.1)
+    assert (draft.change.axis, draft.change.value) == ("automation", 2)
 
 
-def test_draft_never_crosses_a_room_boundary(real):
-    # data.ingestion is already implemented, so both axes have a legal next step to choose from.
-    state = GraphState.from_config(real)
+def test_an_owner_with_nothing_unmet_drafts_a_component_they_own(real):
+    draft = _draft(real, [])
+    assert draft is not None and draft.item_id is None
+    assert real.owner_of(draft.change.target) == "data_dave"
+
+
+def test_nothing_to_draft_returns_none(real):
+    assert _draft(real, [], allowed=set()) is None
+
+
+def test_a_skipped_item_is_never_the_source(real):
+    # An edge item on a first playthrough: the pen must not reveal it.
+    draft = _draft(real, [_driver("d1", "data.ingestion", 3)], skip={"d1"})
+    assert draft is None or draft.item_id is None
+
+
+def test_another_stakeholders_item_is_not_drafted(real):
+    draft = _draft(real, [_driver("d1", "data.ingestion", 3, who="reliability_ruth")], allowed={"data.ingestion"})
+    assert draft is None or draft.item_id is None
+
+
+def test_a_draft_never_newly_crosses_a_room_boundary(real):
     boundary = _item(
         "b1", "reliability_ruth", "boundary",
         holds={"component": "data.ingestion", "axis": "automation", "op": "lt", "level": 3, "on": "nominal"},
     )
-    draft = pen.draft_for_pen(
-        "data_dave", "data.ingestion", real, state, [boundary], ROOM, {"data_dave": _emotions(0.5)}, TUNING
+    draft = _draft(real, [_driver("d1", "data.ingestion", 3), boundary], allowed={"data.ingestion"})
+    assert draft is None or (draft.change.axis, draft.change.value) != ("automation", 3)
+
+
+def test_the_same_inputs_give_the_same_draft(real):
+    intel = [_driver("d1", "data.validation", 2), _driver("d2", "data.ingestion", 3)]
+    assert _draft(real, intel, seed="x") == _draft(real, intel, seed="x")
+
+
+def test_a_draft_identical_to_a_change_on_the_card_is_not_repeated(real):
+    on_card = [AtomicChange(target="data.validation", kind="raise_to", axis="automation", value=2)]
+    draft = _draft(real, [_driver("d1", "data.validation", 2)], card=on_card)
+    assert draft is None or draft.item_id != "d1"
+
+
+# ---------- place_draft: where it lands ----------
+
+def _d(target="data.validation", axis="automation", value=2) -> pen.PenDraft:
+    return pen.PenDraft(
+        stakeholder_id="data_dave", target=target, band="medium",
+        change=AtomicChange(target=target, kind="raise_to", axis=axis, value=value),
     )
-    assert draft is not None
-    # The automation candidate (2 -> 3) would violate the boundary; only governance remains legal.
-    assert draft.change.axis == "governance"
 
 
-def test_draft_returns_none_when_every_legal_change_violates_a_boundary(real):
-    state = GraphState.from_config(real)
-    boundaries = [
-        _item(
-            "b1", "reliability_ruth", "boundary",
-            holds={"component": "data.ingestion", "axis": "automation", "op": "lt", "level": 3, "on": "nominal"},
-        ),
-        _item(
-            "b2", "reliability_ruth", "boundary",
-            holds={"component": "data.ingestion", "axis": "governance", "op": "lt", "level": 3, "on": "nominal"},
-        ),
-    ]
-    draft = pen.draft_for_pen(
-        "data_dave", "data.ingestion", real, state, boundaries, ROOM, {"data_dave": _emotions(0.5)}, TUNING
-    )
-    assert draft is None
+def _c(target, axis="automation", value=2, delegated_to=None) -> AtomicChange:
+    return AtomicChange(target=target, kind="raise_to", axis=axis, value=value, delegated_to=delegated_to)
 
 
-def test_draft_single_legal_option_every_band_picks_it(real):
-    state = GraphState.from_config(real)
-    only_change = AtomicChange(target="data.validation", kind="raise_to", axis="automation", value=2)
-    with patch(
-        "mlops_serious_game.application.pitch_debate_service.pen.card_search.candidate_changes",
-        return_value=[only_change],
-    ):
-        for trust, band in ((0.1, "low"), (0.5, "medium"), (0.9, "high")):
-            draft = pen.draft_for_pen(
-                "data_dave", "data.validation", real, state, [], ROOM, {"data_dave": _emotions(trust)}, TUNING
-            )
-            assert draft.band == band
-            assert draft.change.axis == "automation"
-            assert draft.change.value >= 2
+def test_a_draft_takes_a_free_slot_and_is_locked():
+    card, replaced = pen.place_draft([_c("data.ingestion")], _d())
+    assert replaced is None
+    assert [c.target for c in card] == ["data.ingestion", "data.validation"]
+    assert card[-1].delegated_to == "data_dave"
 
 
-def test_draft_is_deterministic(real):
-    state = GraphState.from_config(real)
-    draft_1 = pen.draft_for_pen(
-        "data_dave", "data.validation", real, state, [], ROOM, {"data_dave": _emotions(0.9)}, TUNING
-    )
-    draft_2 = pen.draft_for_pen(
-        "data_dave", "data.validation", real, state, [], ROOM, {"data_dave": _emotions(0.9)}, TUNING
-    )
-    assert draft_1 == draft_2
+def test_a_draft_takes_over_the_players_change_on_the_same_target_and_axis():
+    mine = _c("data.validation", value=3)
+    card, replaced = pen.place_draft([_c("data.ingestion"), mine], _d())
+    assert replaced == mine
+    assert [c.delegated_to for c in card] == [None, "data_dave"]
+    assert card[1].value == 2
 
 
-# ---------- merge_pen_into_card (sealed state) ----------
+def test_a_change_on_another_axis_of_the_same_target_stays():
+    other_axis = _c("data.validation", axis="governance", value=3)
+    card, replaced = pen.place_draft([other_axis], _d())
+    assert replaced is None and len(card) == 2
 
-def test_merge_pen_into_card_seals_and_reveals_once():
-    change = AtomicChange(target="data.validation", kind="raise_to", axis="automation", value=2)
-    state = PitchState(pen=PenState(stakeholder_id="data_dave", target="data.validation", change=change, band="medium"))
 
-    error = pen.merge_pen_into_card(state)
+def test_a_draft_needs_a_slot_left_free_unless_it_takes_one_over():
+    full = [_c("a"), _c("b"), _c("c")]
+    assert pen.place_draft(full, _d(), leave=1) is None
+    taken = [*full, _c("data.validation", value=3)]
+    card, replaced = pen.place_draft(taken, _d(), leave=1)
+    assert replaced is not None and len(card) == 4
+
+
+# ---------- lock_card: the drafted slot stays ----------
+
+def test_a_submission_cannot_drop_the_drafted_slot():
+    stored = [_c("data.validation", delegated_to="data_dave")]
+    _, error = pen.lock_card(stored, [_c("data.ingestion")])
+    assert error == pen.LOCKED_ERROR
+
+
+def test_a_submission_cannot_rewrite_or_forge_a_drafted_slot():
+    stored = [_c("data.validation", value=2, delegated_to="data_dave")]
+    merged, error = pen.lock_card(stored, [_c("data.validation", value=3), _c("data.ingestion", delegated_to="x")])
     assert error is None
-    assert state.pen.revealed is True
-    assert any(c.delegated_to == "data_dave" and c.target == "data.validation" for c in state.atomic_changes)
-
-    # A second merge (e.g. a re-pitch) just re-validates, it doesn't duplicate the sealed change.
-    error_again = pen.merge_pen_into_card(state)
-    assert error_again is None
-    assert len(state.atomic_changes) == 1
+    assert (merged[0].value, merged[0].delegated_to) == (2, "data_dave")
+    assert merged[1].delegated_to is None
 
 
-def test_merge_pen_into_card_rejects_a_dropped_delegated_change():
-    change = AtomicChange(target="data.validation", kind="raise_to", axis="automation", value=2)
-    state = PitchState(
-        pen=PenState(stakeholder_id="data_dave", target="data.validation", change=change, band="medium", revealed=True)
-    )
-    # Already revealed, but the resubmitted card doesn't carry the delegated change.
-    error = pen.merge_pen_into_card(state)
-    assert error is not None
-
-
-def test_merge_pen_into_card_is_a_no_op_without_a_pen():
-    state = PitchState()
-    assert pen.merge_pen_into_card(state) is None
-    assert state.atomic_changes == []
+def test_without_a_drafted_slot_the_submission_is_unchanged():
+    submitted = [_c("data.ingestion")]
+    merged, error = pen.lock_card([_c("data.ingestion")], submitted)
+    assert error is None and merged == submitted

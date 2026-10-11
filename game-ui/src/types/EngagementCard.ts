@@ -12,7 +12,7 @@ export interface EngagementCard {
   turns?: number;
   allowed_requirement_types?: string[];
   repeatable_target?: boolean;
-  effect_kind?: "gather" | "patience_reset" | "pep_talk";
+  effect_kind?: "gather" | "patience_reset" | "pep_talk" | "pen";
 }
 
 export interface PlayedEngagementCardState {

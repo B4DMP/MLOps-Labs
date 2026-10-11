@@ -33,8 +33,6 @@ export interface StageNodeState {
   capped: boolean;
   /** Runs at nothing, but only because something upstream is broken. */
   starved: boolean;
-  /** Hand the Pen: someone else is drafting this one. Overrides every other state. */
-  sealed?: boolean;
 }
 
 export interface StageNodeProps {

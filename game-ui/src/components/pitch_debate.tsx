@@ -162,9 +162,8 @@ interface PitchStatePayload {
   escalation_points?: number;
   /** True while the intro (demo) phase is running. */
   is_demo?: boolean;
-  /** Hand the Pen (docs/plans/hand-over-the-pen.md): the currently sealed draft, if any. Never
-   *  carries the drafted change itself - only the reservation, so nothing leaks before reveal. */
-  pen?: { stakeholder_id: string; target: string; revealed: boolean } | null;
+  /** Hand the Pen (docs/plans/hand-over-the-pen.md): who has something to draft if handed the pen now. */
+  pen_can_draft?: string[];
 }
 
 export default function PitchDebate({
@@ -1352,6 +1351,32 @@ export default function PitchDebate({
     setPlayingCard(card);
   };
 
+  // Hand the Pen: the card, and what the composer's "Hand it over" shows for it. Not on offer in the intro.
+  const penCard = cards.find((c) => c.effect_kind === "pen") ?? null;
+  const penCanDraft = pitchState?.pen_can_draft ?? [];
+  const penBlocked = !penCard
+    ? null
+    : playedIds.includes(penCard.id)
+    ? "You have already handed over the pen this phase."
+    : tokens < penCard.token_cost
+    ? "You do not have enough attention tokens."
+    : pitchState?.stage === "DONE"
+    ? "This challenge is already decided."
+    : penCanDraft.length === 0
+    ? "Nobody in the room has anything to draft right now."
+    : null;
+  const penAction =
+    penCard && !pitchState?.is_demo
+      ? { cost: penCard.token_cost, tokens, blocked: penBlocked, onPlay: () => handleSelectEngagementCard(penCard) }
+      : null;
+  // Each stakeholder's Trust reading, in the dossier's own words, for the picker.
+  const trustByStakeholder = Object.fromEntries(
+    Object.entries(stakeholders as Record<string, any>).flatMap(([id, st]) => {
+      const bucket = (st?.emotion_dimensions_full || []).find((d: any) => d.metric === "trust")?.bucket;
+      return bucket ? [[id, bucket]] : [];
+    })
+  ) as Record<string, "low" | "medium" | "high">;
+
   const handleDropEngagementCard = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDraggingCard(false);
@@ -1368,13 +1393,29 @@ export default function PitchDebate({
     if (!playingCard) return;
     const nextTokens = tokens - playingCard.token_cost;
     setTokens(nextTokens);
+    const isPen = playingCard.effect_kind === "pen";
     emit("gather:open", {
       phase_id: currentPhase,
       challenge_id: currentChallenge,
       card_id: playingCard.id,
       stakeholder_ids: stakeholderIds,
       attention_tokens: nextTokens,
+      // Hand the Pen drafts into the card as it stands now, replacing a change of yours on the same step.
+      ...(isPen ? { atomic_changes: atomicChanges } : {}),
     });
+    // Show the draft in the composer, where the player plans the other slots around it. The first
+    // time, say what just happened (once per browser; a failed storage read just repeats the tip).
+    if (isPen) {
+      setIsPitchModalOpen(true);
+      try {
+        if (!window.localStorage.getItem("seenPenTip")) {
+          window.localStorage.setItem("seenPenTip", "1");
+          flashInfoTag("They drafted first", "Plan your other slots around their change. It is locked in.");
+        }
+      } catch {
+        /* storage unavailable: no tip */
+      }
+    }
     setTalkedIds((prev) => [...prev, ...stakeholderIds]);
     if (playingCard.max_plays_per_phase === 1 || playingCard.stakeholder_selection_amount === -1) {
       setPlayedIds((prev) => [...prev, playingCard.id]);
@@ -1458,13 +1499,6 @@ export default function PitchDebate({
     setEvaluatingPitchConvId(nextPitchConvId);
 
     emit("pitch:evaluate", { ...base, atomic_changes: newAtomicChanges });
-  };
-
-  // Hand the Pen (docs/plans/hand-over-the-pen.md): seals a component to a stakeholder to draft
-  // themselves. Irreversible once sent - the composer's own confirm step is the last chance to
-  // back out.
-  const handleDelegate = (stakeholderId: string, target: string) => {
-    emit("pitch:delegate", { ...base, stakeholder_id: stakeholderId, target, atomic_changes: atomicChanges });
   };
 
   const handlePitchCommit = () => {
@@ -1909,8 +1943,7 @@ export default function PitchDebate({
                       lastPitchedChanges={pitchState?.last_pitched_changes}
                       initialSelectedTargetId={composerFocusTargetId}
                       onConfirmProposal={handleConfirmMergeProposal}
-                      pen={pitchState?.pen}
-                      onDelegate={handleDelegate}
+                      penAction={penAction}
                       onOpenCheatSheet={() => setIsCheatSheetOpen(true)}
                       onOpenBoard={() => setBoardRequest((n) => n + 1)}
                       guidePaused={coach.blocked || Boolean(coach.tip) || isCheatSheetOpen}
@@ -2624,7 +2657,15 @@ export default function PitchDebate({
           availableStakeholderList={activeStakeholders as any}
           isStakeholderActive={() => true}
           cardTargetedStakeholdersMap={cardTargetedMap}
-          eligibleStakeholderIds={playingCard?.effect_kind === "patience_reset" ? impatientStakeholderIds : undefined}
+          eligibleStakeholderIds={
+            playingCard?.effect_kind === "patience_reset"
+              ? impatientStakeholderIds
+              : playingCard?.effect_kind === "pen"
+              ? penCanDraft
+              : undefined
+          }
+          ineligibleReason={playingCard?.effect_kind === "pen" ? "Has nothing to draft right now" : undefined}
+          trustByStakeholder={playingCard?.effect_kind === "pen" ? trustByStakeholder : undefined}
           intelItems={unconfirmedNotes}
           graphState={graphState}
           onConfirmStakeholders={handleConfirmPlayCardStakeholders}

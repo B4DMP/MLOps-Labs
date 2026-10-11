@@ -22,7 +22,8 @@ from mlops_serious_game.application.intel_handler import (
     retrieve_dossier_data,
     store_intel_item,
 )
-from mlops_serious_game.application.pitch_debate_service import card_effects, gather
+from mlops_serious_game.application.pitch_debate_service import card_effects, gather, pen
+from mlops_serious_game.application.pitch_debate_service import session as pitch
 from mlops_serious_game.application.pitch_debate_service import gather_store
 from mlops_serious_game.application.pitch_debate_service import store as pitch_store
 from mlops_serious_game.application.pitch_debate_service.chains import (
@@ -192,6 +193,146 @@ def _target_room_ids(card, requested: list[str], room_ids: list[str]) -> list[st
     return [st_id for st_id in requested if st_id in room_ids]
 
 
+def _plan_pen(user_id: int, phase_id: int, challenge_id: int, card, holder_id: str, payload: dict):
+    """Hand the Pen, decided before any token is spent: `(plan, None)` or `(None, why not)`.
+
+    The holder drafts from their own items (`pen.draft_for_pen`); the draft goes into the card the
+    player is building, replacing their change on the same target and axis, or taking a free slot.
+    """
+    from mlops_serious_game.infrastructure.websocket.handlers.pitch_handler import (
+        PitchContext,
+        _load_or_start,
+        get_allowed_targets,
+    )
+
+    tuning = EmotionFactory.get_pitch_tuning()
+    if not tuning.pen_enabled or phase_id in PhaseFactory.demo_phase_ids():
+        return None, "Hand the Pen isn't available right now."
+    with get_session() as db:
+        row = db.scalars(
+            select(GameChallenge)
+            .where(
+                GameChallenge.user_id == user_id,
+                GameChallenge.phase_index == phase_id,
+                GameChallenge.challenge_index == challenge_id,
+            )
+            .order_by(GameChallenge.id.desc())
+        ).first()
+        played = (row.action_card or {}).get("played_engagement_card_ids", []) if row else []
+    if card.id in played:
+        return None, "The pen has already been handed over in this phase."
+    ctx = PitchContext(user_id, phase_id, challenge_id)
+    state = _load_or_start(ctx)
+    if state.stage == "DONE":
+        return None, "This challenge is already decided."
+
+    allowed = set(get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel)))
+    current = list(state.atomic_changes)
+    if "atomic_changes" in payload:
+        current = [
+            pitch.AtomicChange(
+                target=c.get("target"), kind=c.get("kind", "raise_to"), axis=c.get("axis"),
+                value=c.get("value"), trigger=c.get("trigger"), attr=c.get("attr"),
+            )
+            for c in (payload.get("atomic_changes") or [])[: pitch.MAX_ATOMIC_CHANGES]
+            if isinstance(c, dict) and c.get("target") and (c["target"] in allowed or ctx.graph.is_target(c["target"]))
+        ]
+
+    with get_session() as db:
+        run = current_run_index(db, user_id)
+    # `ctx.all_intel` already leaves out edge items on a first playthrough, so the pen cannot reveal them.
+    draft = pen.draft_for_pen(
+        holder_id, ctx.graph, ctx.state, list(ctx.all_intel), ctx.room, ctx.emotions, tuning, current,
+        allowed_targets=allowed,
+        seed=f"{user_id}:{run}:{ctx.challenge_id}:pen:{holder_id}",
+    )
+    if draft is None:
+        return None, f"{ctx.names.get(holder_id, holder_id)} has nothing to draft right now."
+    placed = pen.place_draft(current, draft, tuning.pen_leave_player_slots)
+    if placed is None:
+        return None, "There is no free slot for a draft. Remove a change first."
+    new_card, replaced = placed
+    return {"ctx": ctx, "state": state, "draft": draft, "card": new_card, "replaced": replaced}, None
+
+
+async def _play_pen(websocket: WebSocket, user_id: int, phase_id: int, challenge_id: int, challenge, plan: dict):
+    """Hand the Pen, played: the draft becomes a locked slot, the holder warms to being trusted and
+    the room notices who got the pen. Returns `(events, revealed note dicts, component name)`."""
+    from mlops_serious_game.infrastructure.websocket.handlers.pitch_handler import PitchContext, _send
+
+    ctx, state, draft = plan["ctx"], plan["state"], plan["draft"]
+    tuning = EmotionFactory.get_pitch_tuning()
+    holder_id = draft.stakeholder_id
+    holder_name = ctx.names.get(holder_id, holder_id)
+    target_name = ctx.graph.component(draft.target).name if ctx.graph.is_component(draft.target) else draft.target
+
+    state.atomic_changes = plan["card"]
+    state.stage = "PREPARE"
+    pitch_store.save_pitch(user_id, phase_id, challenge_id, state)
+
+    # The holder's trust and control, more the lower their trust was, and a little fairness lost by
+    # everyone for not being given the same treatment (the holder for doing the PM's work).
+    deltas: dict[str, dict[str, float]] = {}
+    for st_id, power, interest in ctx.room:
+        mu = calculate_reactivity(power, interest)
+        cost = tuning.pen_holder_fairness_cost if st_id == holder_id else tuning.pen_room_fairness_cost
+        delta = {"fairness": -cost * mu}
+        if st_id == holder_id:
+            delta["trust"] = tuning.pen_trust_gain.get(draft.band, 0.0) * mu
+            delta["sense_of_control"] = tuning.pen_control_gain.get(draft.band, 0.0) * mu
+        deltas[st_id] = delta
+    with get_session() as db:
+        row = db.scalars(
+            select(GameChallenge)
+            .where(
+                GameChallenge.user_id == user_id,
+                GameChallenge.phase_index == phase_id,
+                GameChallenge.challenge_index == challenge_id,
+            )
+            .order_by(GameChallenge.id.desc())
+        ).first()
+        if row:
+            ev_map = dict(row.emotion_values or {})
+            for st_id, delta in deltas.items():
+                current = ev_map.get(st_id) or EmotionFactory.create_default_emotion_values()
+                ev_map[st_id] = EmotionFactory.apply_delta(current, delta)
+            row.emotion_values = ev_map
+            flag_modified(row, "emotion_values")
+            db.commit()
+
+    def event(cause: str, st_id: str, direction: str, kind: str = "emotion", **params) -> GameEvent:
+        return GameEvent(
+            step="gather", kind=kind, subject_id=st_id, direction=direction, magnitude="slight",
+            cause=cause, params={"st": ctx.names.get(st_id, st_id), **params},
+        )
+
+    events = [
+        event("pen.handed", holder_id, "none", kind="card", target=target_name),
+        event("emotion.pen_trust", holder_id, "up"),
+        event("emotion.pen_holder_resentment", holder_id, "down"),
+        *[event("emotion.pen_favouritism", st_id, "down", holder=holder_name) for st_id in ctx.room_ids if st_id != holder_id],
+    ]
+    if plan["replaced"] is not None:
+        events.append(event("pen.takeover", holder_id, "none", kind="card", target=target_name))
+
+    # What they drafted came from one of their own items: the player now has that note, verified.
+    revealed: list[dict] = []
+    req = RequirementFactory.get_requirement(draft.item_id) if draft.item_id else None
+    if req is not None:
+        note = StakeholderIntelItem.from_requirement(
+            req, intel_type=ConfidenceType.VERIFIED, categorized_type=req.type,
+            description=req.description, source=IntelSource.INTERVIEW,
+        )
+        await store_intel_item(challenge, websocket, note)
+        item_dict = note.model_dump(mode="json")
+        item_dict["stakeholder_name"] = holder_name
+        revealed.append(item_dict)
+
+    fresh = PitchContext(user_id, phase_id, challenge_id)
+    await _send(websocket, fresh, state, fresh.view(state))
+    return events, revealed, target_name
+
+
 async def _apply_card_effect(
     websocket: WebSocket,
     user_id: int,
@@ -200,12 +341,15 @@ async def _apply_card_effect(
     card,
     targets: list[str],
     room_ids: list[str],
+    pen_plan: Optional[dict] = None,
 ) -> None:
-    """Patience-Reset / Pep-Talk: no Gather turns, one immediate effect plus one reaction line per
-    affected stakeholder, shown through the same closed-conversation chat tab every other card
-    uses (no new UI)."""
+    """Patience-Reset / Pep-Talk / Hand the Pen: no Gather turns, one immediate effect plus one
+    reaction line per affected stakeholder, shown through the same closed-conversation chat tab
+    every other card uses (no new UI)."""
     challenge, _ = _challenge_and_room(phase_id, challenge_id)
     affected = room_ids if card.effect_kind == "pep_talk" else targets
+    pen_revealed: list[dict] = []
+    pen_target_name = ""
     # One shared conversation/chat tab per play, same as Team Sync-Up's single "all" conversation -
     # every affected stakeholder's reaction lands in it, not one tab apiece.
     target_key = targets[0] if targets else "all"
@@ -232,6 +376,24 @@ async def _apply_card_effect(
             pitch_state, event = card_effects.resolve_patience_reset(pitch_state, st_id, _stakeholder_name(st_id))
             events.append(event)
         pitch_store.save_pitch(user_id, phase_id, challenge_id, pitch_state)
+
+    elif card.effect_kind == "pen":
+        pen_events, pen_revealed, pen_target_name = await _play_pen(
+            websocket, user_id, phase_id, challenge_id, challenge, pen_plan
+        )
+        events.extend(pen_events)
+        with get_session() as db:
+            row = db.scalars(
+                select(GameChallenge)
+                .where(
+                    GameChallenge.user_id == user_id,
+                    GameChallenge.phase_index == phase_id,
+                    GameChallenge.challenge_index == challenge_id,
+                )
+                .order_by(GameChallenge.id.desc())
+            ).first()
+            if row:
+                emotion_values_map = dict(row.emotion_values or {})
 
     elif card.effect_kind == "pep_talk":
         tuning = EmotionFactory.get_pitch_tuning()
@@ -276,6 +438,10 @@ async def _apply_card_effect(
         if card.effect_kind == "patience_reset"
         else "Good to hear it, let's keep moving."
     )
+    if card.effect_kind == "pen":
+        default_msg = f"I went ahead and drafted {pen_target_name} myself."
+        if pen_plan and pen_plan["replaced"] is not None:
+            default_msg += " It replaces what you had there."
     revealed_db_entries = []
     for st_id in affected:
         st_obj = _stakeholder_obj(st_id)
@@ -291,6 +457,7 @@ async def _apply_card_effect(
             priorities=st_obj.priorities if st_obj else "",
             emotion=emotion_str,
             option_type=option_type,
+            component_name=pen_target_name,
             is_revealed=False,
             default_response=default_msg,
         )
@@ -300,7 +467,7 @@ async def _apply_card_effect(
             "stakeholder_name": st_name,
             "message": spoken_response,
             "conversation_id": conversation_id,
-            "revealed_intel_items": [],
+            "revealed_intel_items": pen_revealed,
             "emotional_state": emotional_state,
             "facial_expression": facial_expression,
             "emotion_values": ev_dict,
@@ -313,7 +480,7 @@ async def _apply_card_effect(
             "message": spoken_response,
             "conversation_id": conversation_id,
             "ac_id": -1,
-            "revealed_intel": [],
+            "revealed_intel": pen_revealed,
             "emotional_state": emotional_state,
             "facial_expression": facial_expression,
             "emotion_values": ev_dict,
@@ -378,6 +545,13 @@ async def handle_gather_open(websocket: WebSocket, user_id: int, payload: dict) 
             )
             return
 
+    pen_plan = None
+    if card.effect_kind == "pen":
+        pen_plan, why_not = _plan_pen(user_id, phase_id, challenge_id, card, targets[0], payload)
+        if pen_plan is None:
+            await manager.send_event(websocket=websocket, event="system:error", payload={"message": why_not})
+            return
+
     existing_messages = []
     with get_session() as db:
         row = db.scalars(
@@ -437,7 +611,7 @@ async def handle_gather_open(websocket: WebSocket, user_id: int, payload: dict) 
             db.commit()
 
     if card.effect_kind != "gather":
-        await _apply_card_effect(websocket, user_id, phase_id, challenge_id, card, targets, room_ids)
+        await _apply_card_effect(websocket, user_id, phase_id, challenge_id, card, targets, room_ids, pen_plan)
         return
 
     prefix = f"eng_{card_id}_"

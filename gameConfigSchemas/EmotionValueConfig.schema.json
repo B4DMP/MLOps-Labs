@@ -104,12 +104,11 @@
         "ally_lift": { "type": "number", "title": "Case board: trust and fairness lift for a confirmed ally, once per pitch", "default": 0.05 },
         "pep_talk_confidence_gain": { "type": "number", "title": "Pep-Talk: confidence gain per stakeholder, scaled by reactivity", "default": 0.08 },
         "pep_talk_control_gain": { "type": "number", "title": "Pep-Talk: sense-of-control gain per stakeholder, scaled by reactivity", "default": 0.05 },
-        "pen_enabled": { "type": "boolean", "title": "Hand the Pen: whether the composer offers it at all", "default": true },
-        "pen_max_per_challenge": { "type": "integer", "title": "Hand the Pen: most times it can be used in one challenge", "default": 1 },
-        "pen_leave_player_slots": { "type": "integer", "title": "Hand the Pen: other slots that must stay free before it can be used", "default": 1 },
+        "pen_enabled": { "type": "boolean", "title": "Hand the Pen: whether the card can be played", "default": true },
+        "pen_leave_player_slots": { "type": "integer", "title": "Hand the Pen: slots that must still be free after a draft is added", "default": 1 },
         "pen_trust_gain": {
           "type": "object",
-          "title": "Hand the Pen: trust gain to the holder at the next evaluate, per trust band",
+          "title": "Hand the Pen: trust gain to the holder when the card is played, per trust band",
           "properties": {
             "low": { "type": "number", "default": 0.12 },
             "medium": { "type": "number", "default": 0.07 },
@@ -119,7 +118,7 @@
         },
         "pen_control_gain": {
           "type": "object",
-          "title": "Hand the Pen: sense-of-control gain to the holder at the next evaluate, per trust band",
+          "title": "Hand the Pen: sense-of-control gain to the holder when the card is played, per trust band",
           "properties": {
             "low": { "type": "number", "default": 0.12 },
             "medium": { "type": "number", "default": 0.07 },

@@ -109,7 +109,7 @@ server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch e
      scrolls vertically, never sideways, and follows the newest line. Plan:
      `docs/plans/conversation-history.md`.
    - Cards (`GameEngagementCards.json`): Verify Intel (`intel:verify_item`), Investigate Component,
-     Team Sync-Up, Patience-Reset, Pep-Talk (`gather:open/ask/close`). attention tokens per challenge (`attention_tokens` in `GameProgression.json`: 20 in the practice round, 15 in phases 1-2, 12 in phases 3-5).
+     Team Sync-Up, Patience-Reset, Pep-Talk, Hand the Pen (`gather:open/ask/close`). attention tokens per challenge (`attention_tokens` in `GameProgression.json`: 20 in the practice round, 15 in phases 1-2, 12 in phases 3-5).
      Investigate Component merges the old 1-to-1 Meeting and Probe Requirements into one card that
      is one round of dialogue (the stakeholder's top requirement, or one of 3 component questions);
      unlike every other stakeholder-targeted card it is `repeatable_target`, so playing it again on
@@ -135,19 +135,22 @@ server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch e
      inspector share the composer's pieces (`components/graph/StageNode`, `YarnLine`, `GraphLegend`, `boardSurface`, and the
      sidebar parts), read-only; a component with technical debt carries an amber flag. Its panel, header, phase rail and
      metric gauges keep their light look. Plan: `docs/plans/dashboard-restyle.md`.
-   - **Hand the Pen** (`docs/plans/hand-over-the-pen.md`): a component's owner (first-time players
-     meet this here, where the owner avatar already shows) can draft that component's next change
-     themselves instead of the player picking it - the sidebar's "Hand it over" button below the
-     rung ladders, confirmed once (irreversible). The component's slot card and its node on the
-     board show "{Name} drafts this one" (sealed, purple node tint); the draft itself stays hidden
-     from every payload until the next pitch reveals it, at which point it becomes an ordinary
-     locked slot (no Remove) and the holder speaks a short line about what they did. How good the
-     draft is for the player depends on the holder's Trust reading (Low/Medium/High, the same
-     dossier emotion band) - handing it to someone who distrusts the player costs more but repairs
-     the relationship more. Nobody likes it entirely: the holder is a little put out at doing your
-     drafting, and everyone else in the room a little put out that they were not given the pen
-     (a small fairness drop, `pen_holder_fairness_cost` / `pen_room_fairness_cost`). At most one per challenge by default (`pen_max_per_challenge`).
-   - Stages `PREPARE -> PITCHED -> DONE`. Events: `pitch:state`, `pitch:delegate` (Hand the Pen),
+   - **Hand the Pen** (`docs/plans/hand-over-the-pen.md`): an engagement card (`eng_7`, `effect_kind: "pen"`,
+     4 tokens, once per phase, not in the practice round). The player picks one person; that person
+     decides what to change and drafts it into the card at once. The card is played from the shelf, or
+     from the composer's "Hand it over" button at the foot of its sidebar (next to the slot tickets, with
+     the cost; the composer covers the shelf). Both open the stakeholder picker, which shows each
+     person's Trust reading and disables anyone with nothing to draft (`pen_can_draft` in `pitch:state`),
+     and the play goes through `gather:open` like Patience-Reset, so tokens and the chat line work the
+     same way. The holder drafts from their own unmet items, by trust band (High: a Trade-off first,
+     then a Driver, and may go two steps in one slot; Medium: a Driver first; Low: a Driver, or a sign-off
+     gate on a working component). With nothing unmet they take the next step on a component they own.
+     The draft is locked at once (`delegated_to`, no Remove), replaces the player's change on the same
+     step and axis if there is one (the chat line says so), and adds the item it came from to the
+     dossier as verified. The holder gains trust and control (more the lower their trust was); the
+     holder is a little put out at doing the drafting and the rest of the room at not getting the pen
+     (`pen_holder_fairness_cost` / `pen_room_fairness_cost`). Balance: `tests/sim_pen.py`.
+   - Stages `PREPARE -> PITCHED -> DONE`. Events: `pitch:state`,
      `pitch:evaluate` (stakeholders react, no commit), `pitch:commit`, `pitch:veto_breaker`.
 6. **Outcome** (`scoring.py`): VETO if a high-power stakeholder has a violated boundary or low
    buy-in; SOFT_PASS if only a low-power one objects; else PASS. VETO opens `VetoDialog.tsx`

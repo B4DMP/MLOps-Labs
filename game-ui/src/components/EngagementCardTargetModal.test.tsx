@@ -72,6 +72,31 @@ describe("EngagementCardTargetModal", () => {
     expect(screen.getByText(/not currently impatient/i)).toBeTruthy();
   });
 
+  it("shows each person's Trust and why someone with nothing to draft is disabled for Hand the Pen", () => {
+    const penCard: EngagementCard = {
+      id: "eng_7",
+      title: "Hand the Pen",
+      icon: "ph:pen-nib-bold",
+      token_cost: 4,
+      description: "",
+      stakeholder_selection_amount: 1,
+      target_type: "stakeholder",
+      effect_kind: "pen",
+    };
+    render(
+      <EngagementCardTargetModal
+        {...baseProps}
+        card={penCard}
+        cardTargetedStakeholdersMap={{}}
+        eligibleStakeholderIds={["dave"]}
+        ineligibleReason="Has nothing to draft right now"
+        trustByStakeholder={{ dave: "high", monica: "low" }}
+      />
+    );
+    expect(screen.getByText(/Trust: High/)).toBeTruthy();
+    expect(screen.getByText(/has nothing to draft right now/i)).toBeTruthy();
+  });
+
   it("still locks an already-targeted stakeholder for a non-repeatable card", () => {
     const nonRepeatableCard: EngagementCard = { ...investigateComponentCard, id: "eng_3", repeatable_target: false };
     render(

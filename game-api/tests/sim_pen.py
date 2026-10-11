@@ -1,23 +1,20 @@
-"""Hand the Pen balance sim (docs/plans/hand-over-the-pen.md, step 2). No database.
+"""Hand the Pen balance sim (docs/plans/hand-over-the-pen.md). No database.
 
-For every non-demo challenge, every component's owner (the plan's own open question defers edges:
-"start with components only"), and each of the three trust bands (forced by setting the holder's
-own Trust dimension), this locks `pen.draft_for_pen`'s draft into one slot and searches the
-remaining slots with `card_search` at its usual budget, same as sim_incident.py.
-Reports, against the same room with no pen:
-  - the best outcome reached and how many sampled cards reach it,
-  - the share of the challenge's damage won back (`card_search._health_after`),
-  - a per-stakeholder tally, so a single always-best recipient would show up.
+For every non-demo challenge, every stakeholder in the room and each trust band (forced by setting
+the holder's Trust), this takes `pen.draft_for_pen`'s draft and reports, against the same room with
+no pen:
+  - the axis mix of the drafts per band (automation versus governance), so a skew shows up,
+  - whether a veto-free card still exists with the draft locked in a slot,
+  - what a takeover does to the best card found without a pen (outcome, and whether it removed
+    the change that restores the challenge's incident),
+  - a per-recipient tally, so a single always-best person would show up.
 
     docker compose exec -T -e PYTHONPATH=/app api python tests/sim_pen.py
     docker compose exec -T -e PYTHONPATH=/app api python tests/sim_pen.py 116 119
     docker compose exec -T -e PYTHONPATH=/app -e SIM_BUDGET=1500 api python tests/sim_pen.py
 
 Neutral emotions throughout except the holder's forced Trust, as in sim_incident.py: a room with
-worn-down emotions can only do worse, so this reads as the ceiling case. Owner-only and
-components-only keeps this tractable (a "held note" can make almost anyone eligible for almost
-anything, which multiplies the search space without changing what the trust-band logic itself
-does - that part is already covered input-by-input in test_pen.py).
+worn-down emotions can only do worse, so this reads as the ceiling case.
 """
 import itertools
 import os
@@ -37,6 +34,7 @@ BUDGET = int(os.environ.get("SIM_BUDGET", "1500"))
 RANK = {"PASS": 2, "SOFT_PASS": 1, "VETO": 0}
 # Representative Trust values inside each of EmotionFactory's buckets (<=0.34 low, >=0.66 high).
 BAND_TRUST = {"low": 0.15, "medium": 0.5, "high": 0.85}
+TIE_TOLERANCE = 0.02
 
 only = {int(a) for a in sys.argv[1:]}
 challenges = [
@@ -45,147 +43,138 @@ challenges = [
 ]
 
 
-def _health_and_outcome(world, card):
+def _outcome_and_health(world, card):
     view = pitch.card_view(
         graph=world["graph"], state=world["state"], all_intel=world["all_intel"], changes=card,
         room=world["room"], emotion_values=world["emotions"],
     )
     health = auto_card._health_after(
-        world["graph"], world["state"], card, view.reads, world["phase"], world["before_health"], world["par_health"],
+        world["graph"], world["state"], card, view.reads, world["phase"], world["before_health"], world["ceiling"],
     )
     return view.outcome, health
 
 
-def _best_card_with_lock(world, locked, others, rng):
-    """Best (outcome, health) among cards that keep `locked` in its slot and fill the rest from
-    `others`, same combination strategy as sim_incident.py's restoring-chain search."""
-    room_left = pitch.MAX_ATOMIC_CHANGES - 1
+def _best_with_lock(world, locked, others, rng):
+    """Best (outcome, health) among cards that keep `locked` and fill the rest from `others`."""
     combos = [[]]
-    for k in range(1, room_left + 1):
+    for k in range(1, pitch.MAX_ATOMIC_CHANGES):
         if len(others) < 14:
             picks = list(itertools.combinations(range(len(others)), k))
         else:
             picks = {tuple(sorted(rng.sample(range(len(others)), min(k, len(others))))) for _ in range(BUDGET // 4)}
         combos += [[others[i] for i in combo] for combo in picks]
-
-    best_outcome, best_health = "VETO", 0.0
-    pool = 0
+    best = ("VETO", 0.0)
     for extra in combos[:BUDGET]:
-        outcome, health = _health_and_outcome(world, [locked] + extra)
-        rank = RANK.get(outcome, 0)
-        if rank > RANK.get(best_outcome, 0) or (rank == RANK.get(best_outcome, 0) and health > best_health):
-            best_outcome, best_health = outcome, health
-        if rank == RANK.get(best_outcome, 0):
-            pool += 1
-    return best_outcome, best_health, pool
+        outcome, health = _outcome_and_health(world, [locked] + extra)
+        if (RANK[outcome], health) > (RANK[best[0]], best[1]):
+            best = (outcome, health)
+    return best
 
 
-# A "tie": within this much health of the best, at the same outcome rank. Distinguishes "one
-# recipient uniquely best" from "many recipients reach the same ceiling, one just sorts first".
-TIE_TOLERANCE = 0.02
+axis_mix = {band: {"automation": 0, "governance": 0} for band in BAND_TRUST}
+item_mix = {band: {"from an item": 0, "owned fallback": 0} for band in BAND_TRUST}
+no_draft = 0
+low_without_veto_free: list[tuple] = []
+takeovers = {"replaced": 0, "outcome dropped": 0, "incident repair lost": 0, "became veto": 0}
+tied_by_recipient: dict[str, int] = {}
+seen_by_recipient: dict[str, int] = {}
 
-print(f"{'id':>4} {'no-pen':<8} {'best w/ pen':<12} {'band':<7} {'holder':<20} {'target':<28} "
-      f"{'won back':>8}  {'tied-recipients':>15}  verdict")
-per_recipient_best: dict[str, int] = {}
-per_recipient_tied: dict[str, int] = {}
-challenges_seen = 0
-never_veto_free_low = []
-
+print(f"{'id':>4} {'no-pen':<8} per band best card with the draft locked (outcome, won back), for the best recipient")
 for ch in challenges:
     world = _world(ch.id, entered=True)
     graph, state = world["graph"], world["state"]
     world["phase"] = ch.phase_id
     world["before_health"] = auto_card._stage_health_now(graph, state, ch.phase_id)
-    world["par_health"] = round(world["before_health"] * 100)
+    world["ceiling"] = round(auto_card._stage_health_now(_world(ch.id)["graph"], _world(ch.id)["state"], ch.phase_id) * 100)
     rng = random.Random(ch.id)
-
+    allowed = set(world["allowed"])
+    incident = (ch.on_enter_ops or [{}])[0].get("target")
     cand = auto_card.candidate_changes(graph, state, world["allowed"], world["all_intel"])
-    no_pen_result = auto_card.search_card(
+    base = auto_card.search_card(
         graph=graph, state=state, all_intel=world["all_intel"], room=world["room"], emotions=world["emotions"],
         allowed=world["allowed"], seed=f"pen-sim-{ch.id}", budget=BUDGET, prefer="best",
     )
-    no_pen_outcome = no_pen_result.outcome if no_pen_result else "VETO"
-    challenges_seen += 1
+    base_card = list(base.changes) if base else []
+    base_outcome = base.outcome if base else "VETO"
 
-    room_ids = {st_id for st_id, _, _ in world["room"]}
-    owned_targets = [
-        (graph.owner_of(c.id), c.id) for c in graph.components if graph.owner_of(c.id) in room_ids
-    ]
-
-    # Every (stakeholder, target, band) result this challenge, not just the first-encountered
-    # winner - `graph.components` lists one stage's targets first, so picking only the first
-    # match at a tie silently favours whoever that stage's owner is.
-    results = []
-    for stakeholder_id, target in owned_targets:
+    rows = {band: [] for band in BAND_TRUST}
+    for st_id, _power, _interest in world["room"]:
+        seen_by_recipient[st_id] = seen_by_recipient.get(st_id, 0) + 1
         for band, trust in BAND_TRUST.items():
             emotions = dict(world["emotions"])
-            emotions[stakeholder_id] = EmotionFactory.apply_delta(
-                emotions.get(stakeholder_id, EmotionFactory.create_default_emotion_values()),
-                {"trust": trust - 0.5},
+            emotions[st_id] = EmotionFactory.apply_delta(
+                emotions.get(st_id, EmotionFactory.create_default_emotion_values()), {"trust": trust - 0.5}
             )
             draft = pen.draft_for_pen(
-                stakeholder_id, target, graph, state, world["all_intel"], world["room"], emotions,
-                EmotionFactory.get_pitch_tuning(),
+                st_id, graph, state, world["all_intel"], world["room"], emotions, EmotionFactory.get_pitch_tuning(),
+                [], allowed_targets=allowed, seed=f"sim:{ch.id}:{st_id}",
             )
             if draft is None:
+                no_draft += 1
                 continue
-            locked = draft.change.model_copy(update={"delegated_to": stakeholder_id})
-            others = [c for c in cand if c.target != target]
-            outcome, health, pool = _best_card_with_lock(world, locked, others, rng)
+            axis_mix[band][draft.change.axis] += 1
+            item_mix[band]["from an item" if draft.item_id else "owned fallback"] += 1
 
-            if band == "low" and RANK.get(outcome, 0) == 0:
-                never_veto_free_low.append((ch.id, stakeholder_id, target))
+            locked = draft.change.model_copy(update={"delegated_to": st_id})
+            outcome, health = _best_with_lock(world, locked, [c for c in cand if c.target != draft.target], rng)
+            rows[band].append((RANK[outcome], health, outcome, st_id))
+            if band == "low" and outcome == "VETO":
+                low_without_veto_free.append((ch.id, st_id, draft.target))
 
-            results.append((RANK.get(outcome, 0), health, outcome, band, stakeholder_id, target))
+            placed = pen.place_draft(base_card, draft)
+            if placed is not None and placed[1] is not None:
+                takeovers["replaced"] += 1
+                new_outcome, _ = _outcome_and_health(world, placed[0])
+                if RANK[new_outcome] < RANK[base_outcome]:
+                    takeovers["outcome dropped"] += 1
+                if new_outcome == "VETO" and base_outcome != "VETO":
+                    takeovers["became veto"] += 1
+                touched = lambda card: any(c.target == incident for c in card)  # noqa: E731
+                if touched(base_card) and not touched(placed[0]):
+                    takeovers["incident repair lost"] += 1
 
-    if results:
-        top_rank = max(r[0] for r in results)
-        top_health = max(r[1] for r in results if r[0] == top_rank)
-        tied = [r for r in results if r[0] == top_rank and r[1] >= top_health - TIE_TOLERANCE]
-        tied_recipients = sorted({r[4] for r in tied})
-        # Pick one representative row to print (first found, same as before) but report the
-        # whole tied set's size and recipients, so a wide tie reads as a wide tie.
-        rank0, health0, outcome0, band0, holder0, target0 = tied[0]
-        per_recipient_best[holder0] = per_recipient_best.get(holder0, 0) + 1
-        for st_id in tied_recipients:
-            per_recipient_tied[st_id] = per_recipient_tied.get(st_id, 0) + 1
-        print(f"{ch.id:>4} {no_pen_outcome:<8} {outcome0:<12} {band0:<7} {holder0:<20} "
-              f"{target0:<28} {health0:>8.2f}  {len(tied_recipients):>7} of {len(owned_targets):<5}")
-    else:
-        print(f"{ch.id:>4} {no_pen_outcome:<8} {'(no draft)':<12}")
-
-print()
-print("best-recipient tally, FIRST-FOUND ONLY (what a naive 'pick one winner' report would show):")
-for st_id, n in sorted(per_recipient_best.items(), key=lambda kv: -kv[1]):
-    print(f"  {st_id:<20} best in {n}/{challenges_seen} challenges")
-
-print()
-print(f"recipients within {TIE_TOLERANCE} health of the top rank (a real red flag is one name here")
-print("near 100% while everyone else is near 0%; most names near 100% just means the room has")
-print("enough slack that almost any target recovers once the other 3 slots are free to help):")
-for st_id, n in sorted(per_recipient_tied.items(), key=lambda kv: -kv[1]):
-    print(f"  {st_id:<20} tied for best in {n}/{challenges_seen} challenges")
-
-print()
-print("the same tally, normalised by how many of those challenges the stakeholder was even")
-print("eligible for (owns a component and is in the room) - this is the number that actually")
-print("answers 'is this recipient's draft better than peers', not just 'who's in the room most'):")
-eligible_counts: dict[str, int] = {}
-for ch in challenges:
-    world = _world(ch.id, entered=True)
-    room_ids = {st_id for st_id, _, _ in world["room"]}
-    owners = {world["graph"].owner_of(c.id) for c in world["graph"].components}
-    for st_id in room_ids & owners:
-        eligible_counts[st_id] = eligible_counts.get(st_id, 0) + 1
-for st_id in sorted(eligible_counts, key=lambda s: -per_recipient_tied.get(s, 0) / eligible_counts[s]):
-    tied_n = per_recipient_tied.get(st_id, 0)
-    elig_n = eligible_counts[st_id]
-    print(f"  {st_id:<20} tied for best in {tied_n}/{elig_n} challenges they were eligible for ({100*tied_n/elig_n:.0f}%)")
+    cells = []
+    best_overall = []
+    for band, rs in rows.items():
+        if not rs:
+            cells.append(f"{band}: (none)")
+            continue
+        top = max(rs, key=lambda r: (r[0], r[1]))
+        cells.append(f"{band}: {top[2]} {top[1]:.2f}")
+        best_overall += rs
+    if best_overall:
+        top_rank = max(r[0] for r in best_overall)
+        top_health = max(r[1] for r in best_overall if r[0] == top_rank)
+        for st in {r[3] for r in best_overall if r[0] == top_rank and r[1] >= top_health - TIE_TOLERANCE}:
+            tied_by_recipient[st] = tied_by_recipient.get(st, 0) + 1
+    print(f"{ch.id:>4} {base_outcome:<8} " + "   ".join(cells))
 
 print()
-if never_veto_free_low:
-    print(f"Low-trust drafts that left NO veto-free card ({len(never_veto_free_low)}):")
-    for ch_id, st_id, target in never_veto_free_low[:20]:
+print("axis of the draft, per band (a governance share well above half where the holder has an")
+print("unmet automation item is the skew this rework was meant to remove):")
+for band, mix in axis_mix.items():
+    total = sum(mix.values()) or 1
+    print(f"  {band:<7} automation {mix['automation']:>3}  governance {mix['governance']:>3}  "
+          f"({100 * mix['governance'] / total:.0f}% governance)   "
+          f"from an item {item_mix[band]['from an item']:>3}, owned fallback {item_mix[band]['owned fallback']:>3}")
+print(f"  no draft possible: {no_draft}")
+
+print()
+print("takeover, against the best card found without a pen:")
+for name, n in takeovers.items():
+    print(f"  {name:<22} {n}")
+
+print()
+print(f"recipients within {TIE_TOLERANCE} health of the top rank, per challenges they were in the room for")
+print("(one name near 100% while the rest sit near 0% is the dominant-recipient red flag):")
+for st_id in sorted(seen_by_recipient, key=lambda s: -tied_by_recipient.get(s, 0) / seen_by_recipient[s]):
+    n, of = tied_by_recipient.get(st_id, 0), seen_by_recipient[st_id]
+    print(f"  {st_id:<20} {n}/{of} ({100 * n / of:.0f}%)")
+
+print()
+if low_without_veto_free:
+    print(f"Low-trust drafts that left NO veto-free card ({len(low_without_veto_free)}):")
+    for ch_id, st_id, target in low_without_veto_free[:20]:
         print(f"  challenge {ch_id}: {st_id} on {target}")
 else:
     print("No Low-trust draft left every searched card a veto (within this budget/sample).")
