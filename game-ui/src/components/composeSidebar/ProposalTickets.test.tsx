@@ -21,26 +21,7 @@ describe("ProposalTickets", () => {
     expect(screen.getByLabelText("Remove change")).toBeTruthy();
   });
 
-  it("shows a sealed Hand the Pen slot with no Remove button, occupying a slot", () => {
-    render(
-      <ProposalTickets
-        entries={[]}
-        max={4}
-        reserved={{ displayName: "Data Validation", holderName: "Data Dave" }}
-        onOpen={vi.fn()}
-        onRemove={vi.fn()}
-        bindTip={bindTip}
-      />
-    );
-    expect(screen.getByText(/Data Dave drafts this one/)).toBeTruthy();
-    expect(screen.queryByLabelText("Remove change")).toBeNull();
-    // 4 slots total, 1 reserved, 3 empty dashes left.
-    expect(screen.getByText("Slot 2")).toBeTruthy();
-    expect(screen.getByText("Slot 4")).toBeTruthy();
-    expect(screen.queryByText("Slot 5")).toBeNull();
-  });
-
-  it("shows a revealed delegated change (already in entries) with no Remove button", () => {
+  it("shows a drafted slot in full, with who drafted it and no Remove button", () => {
     render(
       <ProposalTickets
         entries={[{ ...entry, delegatedToName: "Data Dave" }]}
@@ -50,7 +31,24 @@ describe("ProposalTickets", () => {
         bindTip={bindTip}
       />
     );
-    expect(screen.getByText(/Data Dave drafts this one/)).toBeTruthy();
+    expect(screen.getByText(/Data Dave's draft/)).toBeTruthy();
+    expect(screen.getByText(/Implement It Manually/)).toBeTruthy();
     expect(screen.queryByLabelText("Remove change")).toBeNull();
+    expect(screen.getByLabelText("Locked in by Data Dave")).toBeTruthy();
+  });
+
+  it("counts a drafted slot against the four slots", () => {
+    render(
+      <ProposalTickets
+        entries={[{ ...entry, delegatedToName: "Data Dave" }]}
+        max={4}
+        onOpen={vi.fn()}
+        onRemove={vi.fn()}
+        bindTip={bindTip}
+      />
+    );
+    expect(screen.getByText("Slot 2")).toBeTruthy();
+    expect(screen.getByText("Slot 4")).toBeTruthy();
+    expect(screen.queryByText("Slot 5")).toBeNull();
   });
 });

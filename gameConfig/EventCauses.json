@@ -18,7 +18,7 @@
   "emotion.pep_talk": { "text": "lifted: {st} feels a little steadier", "group": "emotion" },
 
   "pen.handed": { "text": "{st} takes the pen on {target}", "group": "card" },
-  "pen.revealed": { "text": "{st} drafted {target} themselves", "group": "card" },
+  "pen.takeover": { "text": "{st} took over your change on {target}", "group": "card" },
   "emotion.pen_trust": { "text": "warmer: {st} appreciates being trusted with the pen", "group": "emotion" },
   "emotion.pen_holder_resentment": { "text": "put out: {st} did your drafting for you", "group": "emotion" },
   "emotion.pen_favouritism": { "text": "put out: {st} noticed {holder} got the pen", "group": "emotion" },

@@ -50,6 +50,18 @@
   text-shadow: 0 1px 1px color-mix(in srgb, var(--bar) 40%, black);
 }
 
+.bandWarn {
+  flex-shrink: 0;
+  display: inline-flex;
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+.bandWarn > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 /* Who owns it: a badge, not a thumbnail. Faces toward the title (the avatar is flipped). */
 .owner {
   --size: clamp(46px, 5.6vh, 58px);
@@ -772,6 +784,65 @@ button.chipWarn:hover {
 .removeBtn > svg,
 .helpMark,
 .ticketAxis,
+/* A slot a stakeholder drafted: locked, so a lock where Remove would be. */
+.ticketLock {
+  flex-shrink: 0;
+  display: inline-flex;
+  padding: 2px;
+  color: var(--ink-muted, #6e5f4d);
+}
+
+.ticketLock > svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+
+/* Hand it over: one line above the tickets, the card's name on the left and its cost on the right. */
+.penAction {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-2);
+}
+
+.penActionBtn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-3);
+  border: 1px dashed #b8a98c;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.4);
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+
+.penActionBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.penActionBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.penActionBtn svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+
+.penActionCost {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-sm);
+  color: var(--ink);
+}
+
 .ticketRemove > svg {
   width: var(--icon);
   height: var(--icon);
@@ -1259,26 +1330,6 @@ button.chipWarn:hover {
   display: block;
   width: var(--icon);
   height: var(--icon);
-}
-
-/* Hand the Pen: the confirm panel that replaces the "Hand it over" button once clicked. */
-.handOverPanel {
-  margin-top: var(--sp-3);
-  padding: var(--sp-3);
-  border: 1px dashed #b8a98c;
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.4);
-}
-
-.handOverPanel p {
-  margin: 0 0 var(--sp-2);
-  font-size: var(--fs-sm);
-  color: var(--ink);
-}
-
-.handOverActions {
-  display: flex;
-  gap: var(--sp-2);
 }
 
 /* The chip in the notes header: how many threads you tied on the board touch this target. */

@@ -344,22 +344,27 @@ def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView,
         "last_pitched_changes": [c.model_dump() for c in state.last_pitched_changes],
         "escalation_points": pitch_store.escalation_points(ctx.user_id),
         "is_demo": ctx.phase_id in PhaseFactory.demo_phase_ids(),
-        # Hand the Pen: the reservation only - never the sealed change, which stays out of every
-        # payload (including this one) until `merge_pen_into_card` reveals it into atomic_changes.
-        "pen": (
-            {
-                "stakeholder_id": state.pen.stakeholder_id,
-                "target": state.pen.target,
-                "revealed": state.pen.revealed,
-            }
-            if state.pen is not None else None
-        ),
-        "pen_available": EmotionFactory.get_pitch_tuning().pen_enabled and not state.pen_used,
+        "pen_can_draft": _pen_holders(ctx, state),
     }
     if state.stage == "DONE" and state.outcome == "VETO" and view.reads:
         payload["veto_info"] = _veto_info(ctx, state, view, state.veto_message)
     payload.update(extra)
     return payload
+
+
+def _pen_holders(ctx: PitchContext, state: "pitch.PitchState") -> list[str]:
+    """Who has something to draft if handed the pen now (Hand the Pen's picker disables the rest)."""
+    tuning = EmotionFactory.get_pitch_tuning()
+    if not tuning.pen_enabled or ctx.phase_id in PhaseFactory.demo_phase_ids():
+        return []
+    allowed = set(get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel)))
+    return [
+        st_id for st_id in ctx.room_ids
+        if pen.draft_for_pen(
+            st_id, ctx.graph, ctx.state, list(ctx.all_intel), ctx.room, ctx.emotions, tuning,
+            state.atomic_changes, allowed_targets=allowed,
+        ) is not None
+    ]
 
 
 async def _send(websocket: WebSocket, ctx: PitchContext, state, view, **extra) -> None:
@@ -400,93 +405,15 @@ async def handle_pitch_set_card(websocket: WebSocket, user_id: int, payload: dic
         attr = c.get("attr") if isinstance(c, dict) else getattr(c, "attr", None)
         valid_changes.append(pitch.AtomicChange(target=target, kind=kind, axis=axis, value=val, trigger=trigger, attr=attr))
 
+    valid_changes, pen_error = pen.lock_card(state.atomic_changes, valid_changes)
+    if pen_error:
+        await _send(websocket, ctx, state, ctx.view(state), error=pen_error)
+        return
     state.atomic_changes = valid_changes
     state.stage = "PREPARE"
     pitch_store.save_pitch(user_id, ctx.phase_id, ctx.challenge_id, state)
     await _send(websocket, ctx, state, ctx.view(state))
 
-
-async def handle_pitch_delegate(websocket: WebSocket, user_id: int, payload: dict) -> None:
-    """Hand the Pen (docs/plans/hand-over-the-pen.md): hands one component to a stakeholder in
-    the room, who drafts its next change themselves. Seals the draft into `state.pen`; it stays
-    out of every payload (this one included) until the next `pitch:evaluate` reveals it."""
-    ctx = PitchContext(user_id, payload.get("phase_id", 0), payload.get("challenge_id", 0))
-    state = _load_or_start(ctx)
-    tuning = EmotionFactory.get_pitch_tuning()
-
-    if not tuning.pen_enabled:
-        await _send(websocket, ctx, state, ctx.view(state), error="disabled")
-        return
-    if ctx.phase_id in PhaseFactory.demo_phase_ids():
-        await _send(websocket, ctx, state, ctx.view(state), error="demo")
-        return
-    if state.stage == "DONE":
-        await _send(websocket, ctx, state, ctx.view(state), error="stage_done")
-        return
-    if len(state.pen_used) >= tuning.pen_max_per_challenge or (state.pen is not None and not state.pen.revealed):
-        await _send(websocket, ctx, state, ctx.view(state), error="pen_limit")
-        return
-
-    stakeholder_id = payload.get("stakeholder_id")
-    target = payload.get("target")
-    if not stakeholder_id or not target or stakeholder_id not in ctx.room_ids:
-        await _send(websocket, ctx, state, ctx.view(state), error="not_eligible")
-        return
-
-    held = ctx.held_items()
-    if not pen.can_hand_pen_to(stakeholder_id, target, ctx.graph, held):
-        await _send(websocket, ctx, state, ctx.view(state), error="not_eligible")
-        return
-
-    raw_changes = payload.get("atomic_changes", [])
-    allowed = set(get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel)))
-    other_changes: list[pitch.AtomicChange] = []
-    for c in raw_changes:
-        c_target = c.get("target") if isinstance(c, dict) else getattr(c, "target", None)
-        if not c_target or c_target == target:
-            continue
-        if c_target not in allowed and not ctx.graph.is_target(c_target):
-            continue
-        other_changes.append(pitch.AtomicChange(
-            target=c_target,
-            kind=c.get("kind", "raise_to") if isinstance(c, dict) else getattr(c, "kind", "raise_to"),
-            axis=c.get("axis") if isinstance(c, dict) else getattr(c, "axis", None),
-            value=c.get("value") if isinstance(c, dict) else getattr(c, "value", None),
-            trigger=c.get("trigger") if isinstance(c, dict) else getattr(c, "trigger", None),
-        ))
-
-    if len(other_changes) > pitch.MAX_ATOMIC_CHANGES - 1 - tuning.pen_leave_player_slots:
-        await _send(websocket, ctx, state, ctx.view(state), error="no_free_slot")
-        return
-
-    draft = pen.draft_for_pen(
-        stakeholder_id, target, ctx.graph, ctx.state, ctx.all_intel, ctx.room, ctx.emotions, tuning,
-    )
-    if draft is None:
-        await _send(websocket, ctx, state, ctx.view(state), error="target_taken")
-        return
-
-    state.atomic_changes = other_changes
-    state.pen = pitch.PenState(
-        stakeholder_id=draft.stakeholder_id,
-        target=draft.target,
-        change=draft.change,
-        band=draft.band,
-        item_id=draft.item_id,
-    )
-    state.pen_used = state.pen_used + [stakeholder_id]
-    state.stage = "PREPARE"
-    pitch_store.save_pitch(user_id, ctx.phase_id, ctx.challenge_id, state)
-
-    target_name = ctx.graph.component(target).name if ctx.graph.is_component(target) else target
-    await send_events(websocket, user_id, [
-        GameEvent(
-            step="object", kind="card", subject_id=stakeholder_id, direction="none", magnitude="clear",
-            cause="pen.handed",
-            params={"st": ctx.names.get(stakeholder_id, stakeholder_id), "target": target_name},
-        ).stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id)
-    ])
-    await _send(websocket, ctx, state, ctx.view(state))
 
 
 async def handle_pitch_evaluate(websocket: WebSocket, user_id: int, payload: dict) -> None:
@@ -497,7 +424,7 @@ async def handle_pitch_evaluate(websocket: WebSocket, user_id: int, payload: dic
     if "atomic_changes" in payload:
         raw_changes = payload.get("atomic_changes", [])
         allowed = set(get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel)))
-        state.atomic_changes = [
+        submitted = [
             pitch.AtomicChange(
                 target=c.get("target") if isinstance(c, dict) else getattr(c, "target", None),
                 kind=c.get("kind", "raise_to") if isinstance(c, dict) else getattr(c, "kind", "raise_to"),
@@ -513,10 +440,11 @@ async def handle_pitch_evaluate(websocket: WebSocket, user_id: int, payload: dic
             )
         ]
 
-    pen_error = pen.merge_pen_into_card(state)
-    if pen_error:
-        await _send(websocket, ctx, state, ctx.view(state), error=pen_error)
-        return
+        # A slot a stakeholder drafted stays as they wrote it, and cannot be dropped.
+        state.atomic_changes, pen_error = pen.lock_card(state.atomic_changes, submitted)
+        if pen_error:
+            await _send(websocket, ctx, state, ctx.view(state), error=pen_error)
+            return
 
     if not state.atomic_changes:
         await _send(websocket, ctx, state, ctx.view(state), error="Configure at least one atomic graph change first")
@@ -576,60 +504,6 @@ async def handle_pitch_evaluate(websocket: WebSocket, user_id: int, payload: dic
             for st_id, backers in new_state.ally_lifts.items()
         ])
 
-    # Hand the Pen: `state.pen` was just revealed this call (by `merge_pen_into_card`, above) and
-    # hasn't paid its trust bonus yet - this is the one evaluate where the holder's reveal beat and
-    # the `emotion.pen_trust` bump land.
-    if state.pen is not None and state.pen.revealed and not state.pen.bonus_paid:
-        holder_id = state.pen.stakeholder_id
-        holder_name = ctx.names.get(holder_id, holder_id)
-        target_name = (
-            ctx.graph.component(state.pen.target).name
-            if ctx.graph.is_component(state.pen.target)
-            else state.pen.target
-        )
-        await send_events(websocket, user_id, [
-            GameEvent(
-                step="object", kind="emotion", subject_id=holder_id, direction="up", magnitude="slight",
-                cause="emotion.pen_trust", params={"st": holder_name},
-            ).stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id),
-            GameEvent(
-                step="object", kind="emotion", subject_id=holder_id, direction="down", magnitude="slight",
-                cause="emotion.pen_holder_resentment", params={"st": holder_name},
-            ).stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id),
-            *[
-                GameEvent(
-                    step="object", kind="emotion", subject_id=st_id, direction="down", magnitude="slight",
-                    cause="emotion.pen_favouritism",
-                    params={"st": ctx.names.get(st_id, st_id), "holder": holder_name},
-                ).stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id)
-                for st_id in ctx.room_ids if st_id != holder_id
-            ],
-        ])
-        holder_st = StakeholderFactory.get_stakeholder(holder_id)
-        reveal_msg = await generate_stakeholder_response(
-            stakeholder_name=holder_name,
-            stakeholder_role=holder_st.role_description if holder_st else "",
-            challenge=f"{ctx.challenge.name}: {ctx.challenge.description}" if ctx.challenge else "",
-            responsibilities=holder_st.responsibilities if holder_st else "",
-            priorities=holder_st.priorities if holder_st else "",
-            emotion="Neutral",
-            option_type="pen_reveal",
-            component_name=target_name,
-            is_revealed=False,
-            default_response=f"I went ahead and drafted {target_name} myself.",
-        )
-        await manager.send_event(
-            websocket=websocket,
-            event="intel:message_received",
-            payload={
-                "type": "stakeholder_message",
-                "stakeholder_id": holder_id,
-                "stakeholder_name": holder_name,
-                "message": reveal_msg,
-                "conversation_id": pitch_conv_id,
-                "revealed_intel_items": [],
-            },
-        )
 
     if items_to_correct:
         await _verify_heard(websocket, ctx, items_to_correct)
@@ -870,7 +744,7 @@ async def handle_pitch_commit(websocket: WebSocket, user_id: int, payload: dict)
     if "atomic_changes" in payload:
         raw_changes = payload.get("atomic_changes", [])
         allowed = set(get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel)))
-        state.atomic_changes = [
+        submitted = [
             pitch.AtomicChange(
                 target=c.get("target") if isinstance(c, dict) else getattr(c, "target", None),
                 kind=c.get("kind", "raise_to") if isinstance(c, dict) else getattr(c, "kind", "raise_to"),
@@ -886,10 +760,11 @@ async def handle_pitch_commit(websocket: WebSocket, user_id: int, payload: dict)
             )
         ]
 
-    pen_error = pen.merge_pen_into_card(state)
-    if pen_error:
-        await _send(websocket, ctx, state, ctx.view(state), error=pen_error)
-        return
+        # A slot a stakeholder drafted stays as they wrote it, and cannot be dropped.
+        state.atomic_changes, pen_error = pen.lock_card(state.atomic_changes, submitted)
+        if pen_error:
+            await _send(websocket, ctx, state, ctx.view(state), error=pen_error)
+            return
 
     if not state.atomic_changes:
         await _send(websocket, ctx, state, ctx.view(state), error="Configure at least one atomic graph change first")
@@ -1141,7 +1016,6 @@ __all__ = [
     "PitchContext",
     "handle_pitch_state",
     "handle_pitch_set_card",
-    "handle_pitch_delegate",
     "handle_pitch_evaluate",
     "handle_pitch_commit",
     "handle_pitch_veto_breaker",

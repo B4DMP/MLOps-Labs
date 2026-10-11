@@ -94,7 +94,8 @@
             "enum": [
               "gather",
               "patience_reset",
-              "pep_talk"
+              "pep_talk",
+              "pen"
             ],
             "default": "gather"
           }

@@ -19,8 +19,6 @@ export const CARD = {
   proposed: "#1d7f94",
   /** "This component carries technical debt" (the dashboard's flag). */
   debt: "#b7791f",
-  /** Hand the Pen: reserved for someone else to draft, sealed until the pitch reveals it. */
-  sealed: "#6b21a8",
 } as const;
 
 /** Height of a node's title bar: two lines of title, centred. */
@@ -36,11 +34,8 @@ export function nodeBar(s: {
   uncertain: boolean;
   capped: boolean;
   starved?: boolean;
-  sealed?: boolean;
 }): { fill: string; ink: string } {
-  const fill = s.sealed
-    ? CARD.sealed
-    : s.otherPhase
+  const fill = s.otherPhase
     ? CARD.viewOnly
     : s.broken
     ? CARD.broken

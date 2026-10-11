@@ -148,9 +148,9 @@ def test_websocket_lets_loads_through_and_refuses_actions(client, target_player)
         blocked = ws.receive_json()
         assert blocked["event"] == "system:read_only" and blocked["payload"] == {"event": "board:pencil"}
 
-        ws.send_json({"event": "pitch:delegate", "payload": {"phase_id": 0, "challenge_id": 0, "stakeholder_id": "x", "target": "y"}})
+        ws.send_json({"event": "gather:open", "payload": {"phase_id": 0, "challenge_id": 0, "card_id": "eng_7", "stakeholder_ids": ["x"]}})
         blocked = ws.receive_json()
-        assert blocked["event"] == "system:read_only" and blocked["payload"] == {"event": "pitch:delegate"}
+        assert blocked["event"] == "system:read_only" and blocked["payload"] == {"event": "gather:open"}
 
         ws.send_json({"event": "board:get", "payload": {"phase_id": 0, "challenge_id": 0}})
         assert ws.receive_json()["event"] == "board:state"

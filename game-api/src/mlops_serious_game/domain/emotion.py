@@ -464,16 +464,15 @@ class PitchTuning(BaseModel):
 
     # Hand the Pen (docs/plans/hand-over-the-pen.md): a stakeholder drafts a component's next
     # change themselves, instead of the player picking it.
-    pen_enabled: bool = Field(default=True, description="Hand the Pen: whether the composer offers it at all")
-    pen_max_per_challenge: int = Field(default=1, description="Hand the Pen: most times it can be used in one challenge")
-    pen_leave_player_slots: int = Field(default=1, description="Hand the Pen: other slots that must stay free before it can be used")
+    pen_enabled: bool = Field(default=True, description="Hand the Pen: whether the card can be played")
+    pen_leave_player_slots: int = Field(default=1, description="Hand the Pen: slots that must still be free after a draft is added")
     pen_trust_gain: dict[str, float] = Field(
         default_factory=lambda: {"low": 0.12, "medium": 0.07, "high": 0.03},
-        description="Hand the Pen: trust gain to the holder at the next evaluate, per trust band (more the lower their trust was)",
+        description="Hand the Pen: trust gain to the holder when the card is played, per trust band (more the lower their trust was)",
     )
     pen_control_gain: dict[str, float] = Field(
         default_factory=lambda: {"low": 0.12, "medium": 0.07, "high": 0.03},
-        description="Hand the Pen: sense-of-control gain to the holder at the next evaluate, per trust band",
+        description="Hand the Pen: sense-of-control gain to the holder when the card is played, per trust band",
     )
     pen_trust_dividend_steps: int = Field(default=2, description="Hand the Pen: most rungs a High-trust draft can move in one slot")
     pen_holder_fairness_cost: float = Field(default=0.04, description="Hand the Pen: fairness the holder loses for doing the PM's work, scaled by reactivity")

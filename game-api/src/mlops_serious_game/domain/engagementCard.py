@@ -63,7 +63,7 @@ class EngagementCard(BaseModel):
         default=False,
         description="Allow re-targeting a stakeholder this card already targeted this challenge",
     )
-    effect_kind: Literal["gather", "patience_reset", "pep_talk"] = Field(
+    effect_kind: Literal["gather", "patience_reset", "pep_talk", "pen"] = Field(
         default="gather",
         description="'gather' opens a dialogue conversation; any other value applies a direct effect",
     )

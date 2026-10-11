@@ -57,8 +57,8 @@ class AtomicChange(BaseModel):
     axis: Optional[Axis] = None
     value: Optional[Any] = None
     trigger: Optional[str] = None
-    #: Hand the Pen (docs/plans/hand-over-the-pen.md): the stakeholder who drafted this change,
-    #: once revealed. Never set on a change the player picked themselves.
+    #: Hand the Pen (docs/plans/hand-over-the-pen.md): the stakeholder who drafted this change.
+    #: Set only by the server, never on a change the player picked themselves.
     delegated_to: Optional[str] = None
 
 
@@ -133,21 +133,6 @@ class PitchFeedbackMessage(BaseModel):
     kind: str = "feedback"  # "feedback", "refutation", "approval"
 
 
-class PenState(BaseModel):
-    """Hand the Pen (docs/plans/hand-over-the-pen.md): one sealed draft, pending the pitch's
-    reveal. Excluded from every client-facing view (`card_view`, `pitch:state`) until revealed -
-    see `pen.py` and `pitch_handler.py` for the sealed-state plumbing."""
-
-    stakeholder_id: str
-    target: str
-    change: AtomicChange
-    band: str  # "low" | "medium" | "high"
-    item_id: Optional[str] = None
-    revealed: bool = False
-    #: Whether the holder's trust/control bonus (the next evaluate after reveal) has been paid.
-    bonus_paid: bool = False
-
-
 class PitchState(BaseModel):
     """State of the streamlined pitch negotiation."""
 
@@ -176,10 +161,6 @@ class PitchState(BaseModel):
     repeat_context: dict[str, str] = Field(default_factory=dict)
     # Case board allies: who was lifted this pitch, and the confirmed ally who backed them.
     ally_lifts: dict[str, list[str]] = Field(default_factory=dict)
-    # Hand the Pen: the currently sealed draft (if any), and who has already drafted one this
-    # challenge (for `pen_max_per_challenge`).
-    pen: Optional[PenState] = None
-    pen_used: list[str] = Field(default_factory=list)
 
     def open_objections(self) -> list[Objection]:
         return self.objections
@@ -921,10 +902,6 @@ def evaluate_pitch(
     tuning = EmotionFactory.get_pitch_tuning()
     prior = previous if previous is not None and previous.reaction_signatures else None
     prior_objecting = {o.stakeholder_id for o in prior.objections} if prior else set()
-    # Hand the Pen: the holder's trust/control bonus is paid once, on the evaluate right after
-    # `merge_pen_into_card` reveals the draft (not every evaluate from then on).
-    pen_state = previous.pen if previous else None
-    pen_bonus_due = pen_state is not None and pen_state.revealed and not pen_state.bonus_paid
 
     ops = atomic_changes_to_ops(graph, state, changes)
     # Judge alignment on what the card actually delivers, not what it asks for: a raise_to op is
@@ -1106,13 +1083,6 @@ def evaluate_pitch(
         for dim, m_val in st_misclass_malus.items():
             deltas[dim] = round(deltas.get(dim, 0.0) + m_val, 4)
 
-        # Hand the Pen: the holder's one-time trust/control bonus, more the lower their trust was.
-        if pen_bonus_due and st_id == pen_state.stakeholder_id:
-            deltas["trust"] = round(deltas.get("trust", 0.0) + tuning.pen_trust_gain.get(pen_state.band, 0.0) * react, 4)
-            deltas["sense_of_control"] = round(
-                deltas.get("sense_of_control", 0.0) + tuning.pen_control_gain.get(pen_state.band, 0.0) * react, 4
-            )
-
         reaction_signatures[st_id] = dict(deltas)
 
         if prior and st_id in prior.reaction_signatures:
@@ -1153,16 +1123,6 @@ def evaluate_pitch(
                 for dim in ("trust", "fairness"):
                     boosted[dim] = round(boosted.get(dim, 0.0) + lift, 4)
                 accumulated_deltas[other] = boosted
-
-    # Hand the Pen: the holder resents doing the PM's work and the rest of the room resents not
-    # getting the same treatment. After the signatures, so re-pitch "quiet" logic is untouched.
-    if pen_bonus_due:
-        for st_id in room_ids:
-            cost = tuning.pen_holder_fairness_cost if st_id == pen_state.stakeholder_id else tuning.pen_room_fairness_cost
-            reactivity = reactivity_by_st.get(st_id, 1.0)
-            boosted = dict(accumulated_deltas.get(st_id, {}))
-            boosted["fairness"] = round(boosted.get("fairness", 0.0) - cost * reactivity, 4)
-            accumulated_deltas[st_id] = boosted
 
     # Update emotions with deltas
     updated_emotions: dict[str, dict[str, float]] = {}
@@ -1214,8 +1174,6 @@ def evaluate_pitch(
         repeat_context=repeat_context,
         free_repeat_used=bool(previous and previous.free_repeat_used) or free_repeat,
         ally_lifts=ally_lifts,
-        pen=(pen_state.model_copy(update={"bonus_paid": True}) if pen_bonus_due else pen_state),
-        pen_used=list(previous.pen_used) if previous else [],
     )
     return new_pitch_state, view, items_to_correct
 

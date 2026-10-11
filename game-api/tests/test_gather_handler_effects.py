@@ -186,3 +186,69 @@ async def test_pep_talk_writes_only_confidence_and_control():
         assert values["sense_of_control"] > 0.5
         assert values["trust"] == 0.5
         assert values["fairness"] == 0.5
+
+
+_HANDLER = "mlops_serious_game.infrastructure.websocket.handlers.gather_handler"
+
+
+@pytest.mark.anyio
+async def test_hand_the_pen_with_nothing_to_draft_spends_no_tokens():
+    ws = AsyncMock()
+    with patch(f"{_HANDLER}._plan_pen", return_value=(None, "Bruce has nothing to draft right now.")), \
+         patch(f"{_HANDLER}.get_session") as mock_get_session, \
+         patch(f"{_HANDLER}._apply_card_effect", new_callable=AsyncMock) as effect, \
+         patch(f"{_HANDLER}.manager.send_event", new_callable=AsyncMock) as mock_send:
+        await handle_gather_open(
+            ws, 1, {"phase_id": 0, "challenge_id": 0, "card_id": "eng_7", "stakeholder_ids": ["bear_bruce"], "attention_tokens": 16}
+        )
+
+    # Refused before the card was recorded or any token written.
+    mock_get_session.assert_not_called()
+    effect.assert_not_awaited()
+    assert mock_send.call_args.kwargs["event"] == "system:error"
+    assert "nothing to draft" in mock_send.call_args.kwargs["payload"]["message"]
+
+
+@pytest.mark.anyio
+async def test_hand_the_pen_records_the_play_once_and_hands_the_plan_to_the_effect():
+    ws = AsyncMock()
+    mock_db = MagicMock()
+    row = _mock_row()
+    mock_db.scalars.return_value.first.return_value = row
+    plan = {"draft": object(), "card": [], "replaced": None}
+
+    with patch(f"{_HANDLER}._plan_pen", return_value=(plan, None)), \
+         patch(f"{_HANDLER}.get_session") as mock_get_session, \
+         patch(f"{_HANDLER}._apply_card_effect", new_callable=AsyncMock) as effect, \
+         patch(f"{_HANDLER}.flag_modified"):
+        mock_get_session.return_value.__enter__.return_value = mock_db
+        await handle_gather_open(
+            ws, 1, {"phase_id": 0, "challenge_id": 0, "card_id": "eng_7", "stakeholder_ids": ["bear_bruce"], "attention_tokens": 16}
+        )
+
+    assert row.attention_tokens == 16
+    assert row.action_card["played_engagement_card_ids"] == ["eng_7"]
+    assert effect.await_args.args[-1] is plan
+
+
+def test_plan_pen_refuses_a_second_play_and_the_demo_phase():
+    from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
+
+    card = EngagementCardFactory.get_card("eng_7")
+    row = _mock_row()
+    row.action_card = {"played_engagement_card_ids": ["eng_7"]}
+    mock_db = MagicMock()
+    mock_db.scalars.return_value.first.return_value = row
+    with patch(f"{_HANDLER}.get_session") as mock_get_session, \
+         patch(f"{_HANDLER}.PhaseFactory.demo_phase_ids", return_value=[99]):
+        mock_get_session.return_value.__enter__.return_value = mock_db
+        plan, why = _handler()._plan_pen(1, 0, 0, card, "bear_bruce", {})
+        assert plan is None and "already been handed over" in why
+        plan, why = _handler()._plan_pen(1, 99, 0, card, "bear_bruce", {})
+        assert plan is None and "isn't available" in why
+
+
+def _handler():
+    from mlops_serious_game.infrastructure.websocket.handlers import gather_handler
+
+    return gather_handler

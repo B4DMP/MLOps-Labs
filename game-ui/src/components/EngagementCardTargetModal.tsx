@@ -38,6 +38,10 @@ export interface EngagementCardTargetModalProps {
    * only accepts a currently-impatient stakeholder). Every other stakeholder is disabled with its
    * own reason, independent of the "already targeted" lock. */
   eligibleStakeholderIds?: string[];
+  /** Why a stakeholder outside `eligibleStakeholderIds` is disabled (default: not impatient). */
+  ineligibleReason?: string;
+  /** Hand the Pen: each stakeholder's Trust reading, shown on their row (the dossier's own words). */
+  trustByStakeholder?: Record<string, "low" | "medium" | "high">;
   intelItems?: IntelItem[];
   graphState?: any;
   onConfirmStakeholders: (stakeholderIds: string[]) => void;
@@ -45,6 +49,8 @@ export interface EngagementCardTargetModalProps {
   getStakeholderColor: (st: any) => string;
   getTagBadgeColor?: (type: string) => string;
 }
+
+const TRUST_LABEL = { low: "Low", medium: "Medium", high: "High" } as const;
 
 export default function EngagementCardTargetModal({
   isOpen,
@@ -56,6 +62,8 @@ export default function EngagementCardTargetModal({
   isStakeholderActive,
   cardTargetedStakeholdersMap,
   eligibleStakeholderIds,
+  ineligibleReason,
+  trustByStakeholder,
   intelItems = [],
   onConfirmStakeholders,
   onConfirmIntel,
@@ -282,12 +290,16 @@ export default function EngagementCardTargetModal({
                     <strong>
                       {isIntelCard
                         ? "Direct Verification:"
+                        : card.effect_kind === "pen"
+                        ? "Their Draft:"
                         : "Dialogue & Intel:"}
                     </strong>{" "}
                     <span>
                       {isIntelCard
                         ? "Elevates finding certainty to Verified in the Stakeholder Dossier."
-                        : card.turns !== undefined && card.turns > 0
+                        : card.effect_kind === "pen"
+                          ? "They decide what to change and draft it into your plan at once. It is locked in, and it replaces your change on the same step if you have one."
+                          : card.turns !== undefined && card.turns > 0
                           ? `Buys ${card.turns} turn${card.turns > 1 ? "s" : ""} per target: unconfirmed notes you hold are checked first, then new ones come up. Results land in your dossier.`
                           : "Triggers targeted dialogue responses & steers engagement dynamics."}
                     </span>
@@ -303,6 +315,8 @@ export default function EngagementCardTargetModal({
                         ? "Already verified intel items cannot be verified again."
                         : card.repeatable_target
                           ? "Can be played on the same stakeholder again, but never asks the same question twice."
+                          : card.effect_kind === "pen"
+                          ? "The pen can be handed over once per phase."
                           : "Stakeholders already targeted by this card in this challenge are locked."}
                     </span>
                   </div>
@@ -585,7 +599,7 @@ export default function EngagementCardTargetModal({
                                 </span>
                               ) : isIneligible ? (
                                 <span className={styles.lockedBadge}>
-                                  <Icon icon="ph:lock-key-fill" /> Not currently impatient
+                                  <Icon icon="ph:lock-key-fill" /> {ineligibleReason ?? "Not currently impatient"}
                                 </span>
                               ) : (
                                 <div className={styles.tagRow}>
@@ -597,6 +611,11 @@ export default function EngagementCardTargetModal({
                                   {st.interest && (
                                     <span className={styles.miniBadge}>
                                       <Icon icon="ph:eye-bold" /> {st.interest} Interest
+                                    </span>
+                                  )}
+                                  {trustByStakeholder?.[st.id] && (
+                                    <span className={styles.miniBadge}>
+                                      <Icon icon="ph:handshake-bold" /> Trust: {TRUST_LABEL[trustByStakeholder[st.id]]}
                                     </span>
                                   )}
                                 </div>

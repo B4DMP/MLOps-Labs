@@ -230,6 +230,20 @@ const CaseBoard: React.FC<CaseBoardProps> = ({ board, outcome, portraits, render
     chooserRef.current?.querySelector("button")?.focus();
   }, [chooser]);
 
+  // A press anywhere else drops the open menu and the half-made pick; portraits manage their own.
+  const pending = chooser !== null || source !== null;
+  useEffect(() => {
+    if (!pending) return;
+    const dismiss = (e: PointerEvent) => {
+      const target = e.target as Element | null;
+      if (target?.closest?.("[data-keeps-pick]") || chooserRef.current?.contains(target)) return;
+      setChooser(null);
+      setSource(null);
+    };
+    document.addEventListener("pointerdown", dismiss);
+    return () => document.removeEventListener("pointerdown", dismiss);
+  }, [pending]);
+
   const threads = useMemo(() => {
     const seen: Record<string, number> = {};
     return board.found.filter((t) => places[t.a] && places[t.b]).map((t) => {
@@ -247,7 +261,7 @@ const CaseBoard: React.FC<CaseBoardProps> = ({ board, outcome, portraits, render
   const count = (kind: ThreadKind) => board.found.filter((t) => t.kind === kind).length;
   const sourcePlace: Place | undefined = source ? places[source] : undefined;
   const dragPlace: Place | undefined = drag.current?.moved ? places[drag.current.from] : undefined;
-  const helpText = "Click one person, then another, to tie them (dragging works too). Double-click a person to open their page.";
+  const helpText = "Left-click one person, then another, to tie them (dragging works too). Double-click a person to open their page.";
 
   return (
     <div className={styles.board} onKeyDown={onKeyDown}>
@@ -332,13 +346,14 @@ const CaseBoard: React.FC<CaseBoardProps> = ({ board, outcome, portraits, render
                     type="button"
                     key={p.id}
                     data-testid={`portrait-${p.id}`}
+                    data-keeps-pick
                     className={`${styles.polaroid} ${isSource ? styles.src : ""} ${activeId === p.id ? styles.lit : ""}`}
                     style={{ left: pctX(place.x), top: pctY(place.y), ["--rot" as string]: `${place.rot}deg`, ["--c" as string]: p.color }}
                     aria-pressed={isSource}
                     aria-label={
                       source && !isSource
                         ? `Tie ${name(source)} to ${p.name}`
-                        : `${p.name}: click to pick them for tying to another person. Double-click to open their page.`
+                        : `${p.name}: left-click, or press Space or Enter, to pick them for tying to another person. Double-click to open their page.`
                     }
                     onPointerDown={onPointerDown(p.id)}
                     onDragStart={(e) => e.preventDefault()}
@@ -410,7 +425,7 @@ const CaseBoard: React.FC<CaseBoardProps> = ({ board, outcome, portraits, render
               ))}
 
               {sourcePlace && !chooser && (
-                <span className={styles.sourceHint}>Now pick the second person</span>
+                <span className={styles.sourceHint}>Now left-click the second person</span>
               )}
               <div className={`${styles.toast} ${toast ? styles.show : ""}`} role="status" aria-live="polite">
                 {toast}
