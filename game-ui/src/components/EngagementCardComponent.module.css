@@ -27,6 +27,22 @@
   border-color: var(--primary-bg);
 }
 
+/* Patience-Reset / Pep-Talk: resolve instantly against the room, unlike "gather" cards
+   that open a dialogue - reuse the Attention Token amber so they read as a direct action. */
+.actionCard.playable {
+  border-color: var(--token-color);
+}
+
+.actionCard .typeRibbon {
+  background: rgba(255, 193, 7, 0.16);
+}
+
+.actionCard .artIconBadge {
+  background: rgba(255, 193, 7, 0.92);
+  border-color: rgba(255, 193, 7, 0.92);
+  color: #1a1300;
+}
+
 .playingCard:not(.disabled):not(.previewMode):hover {
   transform: translateY(-4px);
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.5);
@@ -282,6 +298,12 @@
   background: rgba(56, 189, 248, 0.15);
   color: #38bdf8;
   border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.actionBadge {
+  background: rgba(255, 193, 7, 0.18);
+  color: var(--token-color);
+  border: 1px solid rgba(255, 193, 7, 0.45);
 }
 
 /* Description / Rules Box */

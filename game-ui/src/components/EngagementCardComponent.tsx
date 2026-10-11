@@ -42,6 +42,10 @@ export default function EngagementCardComponent({
 
   const isPlayable = isEnabled && canAfford && !isSingleUseExhausted && !isPreview;
 
+  // Patience-Reset / Pep-Talk resolve instantly against the room (no dialogue), unlike
+  // "gather" cards that open a conversation - call that out with a distinct accent.
+  const isActionCard = card.effect_kind === "patience_reset" || card.effect_kind === "pep_talk";
+
   const cardTooltip = isPreview
     ? undefined
     : !isEnabled
@@ -66,6 +70,7 @@ export default function EngagementCardComponent({
         ${!isPlayable && !isPreview ? styles.disabled : ""}
         ${isPreview ? styles.previewMode : ""}
         ${isDragging ? styles.dragging : ""}
+        ${isActionCard ? styles.actionCard : ""}
         ${className}
       `}
     >
@@ -109,7 +114,7 @@ export default function EngagementCardComponent({
             {/* Target Type Pill */}
             <div className={styles.artIconBadge}>
               <Icon icon={card.icon || "ph:cards-bold"} />
-              <span>{card.target_type === "intel" ? "Intel" : "Dialogue"}</span>
+              <span>{card.target_type === "intel" ? "Intel" : isActionCard ? "Action" : "Dialogue"}</span>
             </div>
 
 
@@ -133,17 +138,17 @@ export default function EngagementCardComponent({
                 <span>Intel</span>
               </span>
             ) : card.stakeholder_selection_amount === -1 ? (
-              <span className={`${styles.metaBadge} ${styles.targetBadge}`}>
+              <span className={`${styles.metaBadge} ${isActionCard ? styles.actionBadge : styles.targetBadge}`}>
                 <Icon icon="ph:users-three-bold" />
                 <span>All Team</span>
               </span>
             ) : card.stakeholder_selection_amount === 1 ? (
-              <span className={`${styles.metaBadge} ${styles.targetBadge}`}>
+              <span className={`${styles.metaBadge} ${isActionCard ? styles.actionBadge : styles.targetBadge}`}>
                 <Icon icon="ph:user-bold" />
                 <span>1 Target</span>
               </span>
             ) : card.stakeholder_selection_amount > 1 ? (
-              <span className={`${styles.metaBadge} ${styles.targetBadge}`}>
+              <span className={`${styles.metaBadge} ${isActionCard ? styles.actionBadge : styles.targetBadge}`}>
                 <Icon icon="ph:users-bold" />
                 <span>{card.stakeholder_selection_amount} Targets</span>
               </span>
