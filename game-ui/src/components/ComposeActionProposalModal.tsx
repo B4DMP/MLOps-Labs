@@ -1130,22 +1130,24 @@ export default function ComposeActionProposalModal({
         hoverToSuspicious={false}
       />
     );
+    const ownerColor = stakeholders[ownerId]?.stakeholder_color;
+    const ownerBg = ownerColor ? { background: ownerColor } : undefined;
     return (
       <HoverTooltip
         description={
           <ComposeTagDetail
-            label={`Owner: ${ownerName(ownerId)}`}
+            label={`Owner:${ownerName(ownerId)}`}
             lines={onOpenStakeholder ? ["Open their dossier page"] : undefined}
           />
         }
         ariaText={`Owner: ${ownerName(ownerId)}`}
       >
         {onOpenStakeholder ? (
-          <button type="button" className={sb.owner} onClick={() => onOpenStakeholder(ownerId)} aria-label={`Owner: ${ownerName(ownerId)}. Open their dossier page.`}>
+          <button type="button" className={sb.owner} style={ownerBg} onClick={() => onOpenStakeholder(ownerId)} aria-label={`Owner: ${ownerName(ownerId)}. Open their dossier page.`}>
             {avatar}
           </button>
         ) : (
-          <span className={`${sb.owner} ${sb.ownerStatic}`}>{avatar}</span>
+          <span className={`${sb.owner} ${sb.ownerStatic}`} style={ownerBg}>{avatar}</span>
         )}
       </HoverTooltip>
     );
