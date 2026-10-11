@@ -29,6 +29,10 @@ interface PowerInterestMatrixProps {
   /** Fires whenever an introduction bubble opens or closes, so the parent can tell when the
    * stakeholders have finished talking. */
   onIntroActiveChange?: (isActive: boolean) => void;
+  /** Where the phase dynamics (joined / left / shifted) render: the dialog's radar header, as a subtitle. */
+  dynamicsTarget?: HTMLElement | null;
+  /** Where the "Replay intros" button renders: the dialog's radar header, beside the guide button. */
+  actionsTarget?: HTMLElement | null;
 }
 
 type QuadrantKey = "high-low" | "high-high" | "low-low" | "low-high";
@@ -36,9 +40,9 @@ type QuadrantKey = "high-low" | "high-high" | "low-low" | "low-high";
 interface QuadrantConfig {
   key: QuadrantKey;
   title: string;
-  cardStyle: string;
   icon: string;
-  iconColor: string;
+  /** Colour of the quadrant's icon badge. */
+  accent: string;
   consequence: string;
 }
 
@@ -46,40 +50,36 @@ const QUADRANTS: QuadrantConfig[] = [
   {
     key: "high-low",
     title: "Keep Satisfied",
-    cardStyle: styles.sectorTopLeft,
     icon: "ph:warning-circle-bold",
-    iconColor: "#f97316",
+    accent: "#c2570c",
     consequence: "Can veto, but is moved gently. Do not cross their lines.",
   },
   {
     key: "high-high",
     title: "Manage Closely",
-    cardStyle: styles.sectorTopRight,
     icon: "ph:star-bold",
-    iconColor: "#ef4444",
+    accent: "#b3202f",
     consequence: "Can veto, and reacts strongly to everything you say and propose.",
   },
   {
     key: "low-low",
     title: "Monitor",
-    cardStyle: styles.sectorBottomLeft,
     icon: "ph:eye-bold",
-    iconColor: "#94a3b8",
+    accent: "#5b6b7d",
     consequence: "Cannot stop you. At worst a soft pass, and they barely react.",
   },
   {
     key: "low-high",
     title: "Keep Informed",
-    cardStyle: styles.sectorBottomRight,
     icon: "ph:info-bold",
-    iconColor: "#38bdf8",
+    accent: "#0f6e7e",
     consequence: "Cannot stop you. At worst a soft pass, but they react strongly.",
   },
 ];
 
 /**
  * Stable pseudo-random animation delay per stakeholder, so the NEW / SHIFTED
- * badges pulse out of step with each other instead of beating in unison.
+ * stamps land one after another instead of all at once.
  */
 function badgePulseDelay(id: string): string {
   let hash = 0;
@@ -103,6 +103,8 @@ export default function PowerInterestMatrix({
   bubblePortalTarget = null,
   autoPlayIntroductions = true,
   onIntroActiveChange,
+  dynamicsTarget = null,
+  actionsTarget = null,
 }: PowerInterestMatrixProps) {
   const { stakeholders } = useContext(StakeholderContext);
   const { speak: speakTts, cancel: cancelTts } = useSpeech();
@@ -464,21 +466,205 @@ export default function PowerInterestMatrix({
 
   return (
     <div className={styles.matrixContainer}>
-      {/* Dynamics Telemetry Strip */}
-      <div className={styles.summaryBanner}>
-        <div className={styles.summaryLabel}>
-          <Icon icon="ph:arrows-clockwise-bold" className={styles.summaryBannerIcon} />
-          <span>Phase Dynamics:</span>
+      <div className={styles.board}>
+        <div className={styles.radarGrid}>
+          {QUADRANTS.map((quad) => {
+            const items = categorizedNodes[quad.key] || [];
+
+            return (
+              <div
+                key={quad.key}
+                className={styles.sector}
+                style={{ "--q": quad.accent } as CSSProperties}
+                {...(quad.key === "high-high" && {
+                  "data-intro-group": "intro2",
+                  "data-title": "Manage Closely",
+                  "data-intro":
+                    "High power and high interest land in <em>'Manage Closely'</em>: they can veto your plan and react strongly to everything you say. Track them down first once you start gathering intel. The others still matter, they just won't sink your pitch if you get to them second.",
+                  "data-step": "5",
+                })}
+              >
+                <div className={styles.sectorLabel}>
+                  <div className={styles.sectorHeader}>
+                    <span className={styles.sectorTitle}>
+                      <Icon icon={quad.icon} className={styles.sectorIcon} />
+                      {quad.title}
+                    </span>
+                  </div>
+                  <p className={styles.sectorConsequence}>{quad.consequence}</p>
+                </div>
+
+                <div className={styles.stakeholderList}>
+                  {items.length === 0 ? (
+                    <div className={styles.emptySector}>No active stakeholders in sector</div>
+                  ) : (
+                    items.map((item) => {
+                      const st = item.st;
+                      const stName = st?.name || item.stakeholderId;
+                      const stColor = st?.stakeholder_color || "#3b82f6";
+                      const roleDesc = st?.role_description || "Project Stakeholder";
+
+                      const isHighPower = (item.currPower || "").toLowerCase() === "high";
+                      const isHighInterest = (item.currInterest || "").toLowerCase() === "high";
+                      const keyPlayerHint = [
+                        isHighPower ? "⚡ High power: strong authority" : null,
+                        isHighInterest ? "👁 High interest: closely engaged" : null,
+                      ]
+                        .filter(Boolean)
+                        .join("\n");
+
+                      let shiftText = "";
+                      if (item.isShifted) {
+                        const prevP = item.prevPower?.toUpperCase();
+                        const currP = item.currPower.toUpperCase();
+                        const prevI = item.prevInterest?.toUpperCase();
+                        const currI = item.currInterest.toUpperCase();
+                        const parts: string[] = [];
+                        if (prevP !== currP) parts.push(`Power: ${prevP} ➔ ${currP}`);
+                        if (prevI !== currI) parts.push(`Interest: ${prevI} ➔ ${currI}`);
+                        shiftText = parts.join(", ");
+                      }
+
+                      return (
+                        <HoverTooltip
+                          key={item.stakeholderId}
+                          portalTarget={bubblePortalTarget}
+                          description={[
+                            `${stName}`,
+                            roleDesc,
+                            shiftText ? `↕ ${shiftText}` : null,
+                            keyPlayerHint || null,
+                          ]
+                            .filter(Boolean)
+                            .join("\n\n")}
+                        >
+                          <div
+                            ref={(el) => {
+                              if (el) itemRefs.current.set(item.stakeholderId, el);
+                              else itemRefs.current.delete(item.stakeholderId);
+                            }}
+                            className={`${styles.stakeholderItem} ${
+                              introsById.has(item.stakeholderId)
+                                ? styles.stakeholderItemReplayable
+                                : ""
+                            } ${
+                              activeIntro?.stakeholderId === item.stakeholderId
+                                ? styles.stakeholderItemSpeaking
+                                : ""
+                            }`}
+                            style={
+                              {
+                                "--stakeholder-color": stColor,
+                              } as React.CSSProperties
+                            }
+                            role={introsById.has(item.stakeholderId) ? "button" : undefined}
+                            tabIndex={introsById.has(item.stakeholderId) ? 0 : undefined}
+                            onClick={() => playIntroFor(item.stakeholderId)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                playIntroFor(item.stakeholderId);
+                              }
+                            }}
+                          >
+                            <span className={styles.tape} aria-hidden="true" />
+                            <div
+                              className={`${styles.photo} ${
+                                activeIntro?.stakeholderId === item.stakeholderId
+                                  ? styles.photoSpeaking
+                                  : ""
+                              }`}
+                            >
+                              {st?.avatar ? (
+                                <StakeholderAvatarComponent
+                                  avatar={st.avatar}
+                                  stakeholderColor={stColor}
+                                  stakeholderId={item.stakeholderId}
+                                  isFramed={false}
+                                  isSpeaking={activeIntro?.stakeholderId === item.stakeholderId}
+                                  play_blink_animation={
+                                    activeIntro?.stakeholderId === item.stakeholderId
+                                  }
+                                  size="100%"
+                                  thumb
+                                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                />
+                              ) : (
+                                <Icon icon="ph:user-bold" style={{ color: stColor }} />
+                              )}
+                            </div>
+                            <div className={styles.stakeholderMeta}>
+                              <span className={styles.stakeholderName}>{stName}</span>
+                              <span className={styles.stakeholderDescription}>{roleDesc}</span>
+                            </div>
+
+                            <div className={styles.badgeContainer}>
+                              {item.isNew && (
+                                <span
+                                  className={styles.badgeNew}
+                                  style={{ animationDelay: badgePulseDelay(item.stakeholderId) }}
+                                >
+                                  <Icon icon="ph:plus-bold" /> NEW
+                                </span>
+                              )}
+                              {item.isShifted && (
+                                <span
+                                  className={styles.badgeShifted}
+                                  style={{
+                                    animationDelay: badgePulseDelay(`${item.stakeholderId}-shift`),
+                                  }}
+                                >
+                                  <Icon icon="ph:trend-up-bold" /> SHIFTED
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </HoverTooltip>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
-        <div className={styles.dynamicsList}>
-          {dynamicsItems.map((item) => (
-            <div key={item.id} className={styles.dynamicChip}>
-              <Icon icon={item.icon} className={styles.dynamicChipIcon} />
-              <span>{item.text}</span>
-            </div>
-          ))}
-        </div>
-        {introQueue.length > 0 && (
+      </div>
+
+      {/* Axes sit outside the board, as plain chart labels */}
+      <div className={styles.axisY}>
+        <Icon icon="ph:arrow-up-bold" className={styles.axisArrow} />
+        <span>High</span>
+        <span className={styles.axisLine} />
+        <span className={styles.axisName}>Power</span>
+        <span className={styles.axisLine} />
+        <span>Low</span>
+      </div>
+      <div className={styles.axisX}>
+        <span>Low</span>
+        <span className={styles.axisLine} />
+        <span className={styles.axisName}>Interest</span>
+        <span className={styles.axisLine} />
+        <span>High</span>
+        <Icon icon="ph:arrow-right-bold" className={styles.axisArrow} />
+      </div>
+
+      {/* What changed since the last phase: the dialog header's subtitle */}
+      {dynamicsTarget &&
+        createPortal(
+          <>
+            {dynamicsItems.map((item) => (
+              <span key={item.id} className={styles.dynamicChip}>
+                <Icon icon={item.icon} className={styles.dynamicChipIcon} />
+                {item.text}
+              </span>
+            ))}
+          </>,
+          dynamicsTarget
+        )}
+
+      {actionsTarget &&
+        introQueue.length > 0 &&
+        createPortal(
           <HoverTooltip
             description={
               activeIntro
@@ -495,223 +681,12 @@ export default function PowerInterestMatrix({
               onClick={replayIntros}
               disabled={Boolean(activeIntro)}
             >
-              <Icon icon="ph:chat-teardrop-text-bold" className={styles.dynamicChipIcon} />
+              <Icon icon="ph:chat-teardrop-text-bold" />
               <span>{activeIntro ? "Introducing..." : "Replay intros"}</span>
             </button>
-          </HoverTooltip>
+          </HoverTooltip>,
+          actionsTarget
         )}
-      </div>
-
-      {/* Matrix Coordinate Wrapper with Vertical Power Axis & Horizontal Interest Axis */}
-      <div className={styles.matrixWrapper}>
-        {/* Left Vertical Axis: Power */}
-        <div className={styles.yAxis}>
-          <div className={styles.axisLineY}>
-            <Icon icon="ph:arrow-up-bold" className={styles.axisArrowIcon} />
-            <span className={styles.axisLabelTextY}>Power</span>
-          </div>
-        </div>
-
-        {/* Main Content: Unified 2x2 Radar Grid + Bottom Horizontal Axis: Interest */}
-        <div className={styles.matrixMain}>
-          {/* Unified 2x2 Radar Grid */}
-          <div className={styles.radarGrid}>
-            {QUADRANTS.map((quad) => {
-              const items = categorizedNodes[quad.key] || [];
-
-              return (
-                <div
-                  key={quad.key}
-                  className={`${styles.sectorQuadrant} ${quad.cardStyle}`}
-                  {...(quad.key === "high-high" && {
-                    "data-intro-group": "intro2",
-                    "data-title": "Manage Closely",
-                    "data-intro":
-                      "High power and high interest land in <em>'Manage Closely'</em>: they can veto your plan and react strongly to everything you say. Track them down first once you start gathering intel. The others still matter, they just won't sink your pitch if you get to them second.",
-                    "data-step": "5",
-                  })}
-                >
-                  <div className={styles.sectorHeader}>
-                    <span className={styles.sectorTitle}>
-                      <Icon icon={quad.icon} className={styles.sectorIcon} style={{ color: quad.iconColor }} />
-                      {quad.title}
-                    </span>
-                    <span className={styles.sectorAxisBadge}>
-                      <Icon
-                        icon="ph:lightning-fill"
-                        className={styles.axisBadgeIcon}
-                        style={{ color: quad.key.startsWith("high") ? "#f87171" : "#60a5fa" }}
-                      />
-                      <span>{quad.key.startsWith("high") ? "High" : "Low"} Power</span>
-                      <Icon
-                        icon="ph:eye-fill"
-                        className={`${styles.axisBadgeIcon} ${styles.axisBadgeIconSecond}`}
-                        style={{ color: quad.key.endsWith("high") ? "#f87171" : "#60a5fa" }}
-                      />
-                      <span>{quad.key.endsWith("high") ? "High" : "Low"} Interest</span>
-                    </span>
-                  </div>
-
-                  <p className={styles.sectorConsequence}>{quad.consequence}</p>
-
-                  <div className={styles.stakeholderList}>
-                    {items.length === 0 ? (
-                      <div className={styles.emptySector}>No active stakeholders in sector</div>
-                    ) : (
-                      items.map((item) => {
-                        const st = item.st;
-                        const stName = st?.name || item.stakeholderId;
-                        const stColor = st?.stakeholder_color || "#3b82f6";
-                        const roleDesc = st?.role_description || "Project Stakeholder";
-
-                        const isHighPower = (item.currPower || "").toLowerCase() === "high";
-                        const isHighInterest = (item.currInterest || "").toLowerCase() === "high";
-                        const keyPlayerHint = [
-                          isHighPower ? "⚡ High power: strong authority" : null,
-                          isHighInterest ? "👁 High interest: closely engaged" : null,
-                        ]
-                          .filter(Boolean)
-                          .join("\n");
-
-                        let shiftText = "";
-                        if (item.isShifted) {
-                          const prevP = item.prevPower?.toUpperCase();
-                          const currP = item.currPower.toUpperCase();
-                          const prevI = item.prevInterest?.toUpperCase();
-                          const currI = item.currInterest.toUpperCase();
-                          const parts: string[] = [];
-                          if (prevP !== currP) parts.push(`Power: ${prevP} ➔ ${currP}`);
-                          if (prevI !== currI) parts.push(`Interest: ${prevI} ➔ ${currI}`);
-                          shiftText = parts.join(", ");
-                        }
-
-                        return (
-                          <HoverTooltip
-                            key={item.stakeholderId}
-                            portalTarget={bubblePortalTarget}
-                            description={[
-                              `${stName}`,
-                              roleDesc,
-                              shiftText ? `↕ ${shiftText}` : null,
-                              keyPlayerHint || null,
-                            ]
-                              .filter(Boolean)
-                              .join("\n\n")}
-                          >
-                            <div
-                              ref={(el) => {
-                                if (el) itemRefs.current.set(item.stakeholderId, el);
-                                else itemRefs.current.delete(item.stakeholderId);
-                              }}
-                              className={`${styles.stakeholderItem} ${
-                                introsById.has(item.stakeholderId)
-                                  ? styles.stakeholderItemReplayable
-                                  : ""
-                              } ${
-                                activeIntro?.stakeholderId === item.stakeholderId
-                                  ? styles.stakeholderItemSpeaking
-                                  : ""
-                              }`}
-                              style={
-                                {
-                                  "--stakeholder-color": stColor,
-                                } as React.CSSProperties
-                              }
-                              role={introsById.has(item.stakeholderId) ? "button" : undefined}
-                              tabIndex={introsById.has(item.stakeholderId) ? 0 : undefined}
-                              onClick={() => playIntroFor(item.stakeholderId)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                  e.preventDefault();
-                                  playIntroFor(item.stakeholderId);
-                                }
-                              }}
-                            >
-                              <div className={styles.stakeholderLeft}>
-                                <div
-                                  className={`${styles.avatarWrapper} ${
-                                    activeIntro?.stakeholderId === item.stakeholderId
-                                      ? styles.avatarWrapperSpeaking
-                                      : ""
-                                  }`}
-                                  style={{ borderColor: stColor }}
-                                >
-                                  {st?.avatar ? (
-                                    <StakeholderAvatarComponent
-                                      avatar={st.avatar}
-                                      stakeholderColor={stColor}
-                                      stakeholderId={item.stakeholderId}
-                                      isFramed={false}
-                                      isSpeaking={activeIntro?.stakeholderId === item.stakeholderId}
-                                      play_blink_animation={
-                                        activeIntro?.stakeholderId === item.stakeholderId
-                                      }
-                                      size="100%"
-                                    />
-                                  ) : (
-                                    <Icon icon="ph:user-bold" style={{ color: stColor }} />
-                                  )}
-                                </div>
-                                <div className={styles.stakeholderMeta}>
-                                  <span className={styles.stakeholderNameRow}>
-                                    <span className={styles.stakeholderName}>{stName}</span>
-                                    {isHighPower && (
-                                      <span className={styles.keyFlag}>
-                                        <Icon icon="ph:lightning-fill" />
-                                      </span>
-                                    )}
-                                    {isHighInterest && (
-                                      <span className={styles.keyFlag}>
-                                        <Icon icon="ph:eye-fill" />
-                                      </span>
-                                    )}
-                                  </span>
-                                  {roleDesc && (
-                                    <span className={styles.stakeholderDescription}>{roleDesc}</span>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className={styles.badgeContainer}>
-                                {item.isNew && (
-                                  <span
-                                    className={styles.badgeNew}
-                                    style={{ animationDelay: badgePulseDelay(item.stakeholderId) }}
-                                  >
-                                    <Icon icon="ph:plus-bold" /> NEW
-                                  </span>
-                                )}
-                                {item.isShifted && (
-                                  <span
-                                    className={styles.badgeShifted}
-                                    style={{
-                                      animationDelay: badgePulseDelay(`${item.stakeholderId}-shift`),
-                                    }}
-                                  >
-                                    <Icon icon="ph:trend-up-bold" /> SHIFTED
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </HoverTooltip>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Bottom Horizontal Axis: Interest */}
-          <div className={styles.xAxis}>
-            <div className={styles.axisLineX}>
-              <span className={styles.axisLabelTextX}>Interest</span>
-              <Icon icon="ph:arrow-right-bold" className={styles.axisArrowIcon} />
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Self-introduction speech bubble, anchored to the speaking stakeholder's chip */}
       {activeIntro && bubbleAnchor && createPortal(

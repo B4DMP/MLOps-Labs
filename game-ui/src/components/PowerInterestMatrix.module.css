@@ -1,167 +1,109 @@
 /* ==========================================================================
-   AUTHENTIC RADAR COORDINATE GRID
-   Single coordinate plane with razor-sharp 1px crosshair dividers.
-   Strict 50/50 two-column layout with min-width: 0 protection.
-   Zero glow effects.
+   POWER / INTEREST BOARD
+   The case board's wood frame, holding four cork panels. The frame shows
+   between the panels as the cross-bars, and each quadrant's title is a paper
+   tab that grows out of the bars. Only stakeholders and tabs are paper.
+   Text is never rotated or scaled by hover, so it stays crisp.
    ========================================================================== */
 
 .matrixContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
+  --gap: 12px;
+  --ink: #26211e;
+  --ink-soft: #5b4a3a;
+  --manila: #f4e7c5;
+  --wood: #5a3c24;
+  --axis: #64748b;
+
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) 20px;
+  gap: 4px 6px;
   width: 100%;
   max-width: 100%;
   height: 100%;
   flex: 1;
   min-height: 0;
-  overflow: hidden;
-  background: #090e17;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 0.65rem;
-  padding: 0.55rem;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-  background-image:
-    radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.04) 0%, transparent 65%),
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 100% 100%, 22px 22px, 22px 22px;
 }
 
-/* Dynamics Telemetry Strip */
-.summaryBanner {
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  padding: 0.35rem 0.65rem;
-  border-radius: 0.45rem;
+/* ---------- Axes: plain chart labels outside the board ---------- */
+
+.axisY,
+.axisX {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  width: 100%;
-  box-sizing: border-box;
-  flex-shrink: 0;
-  animation: bannerFade 0.25s ease-out 0.1s both;
-}
-
-.summaryLabel {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: #38bdf8;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.summaryBannerIcon {
-  font-size: 1.15rem;
-  color: #38bdf8;
-  flex-shrink: 0;
-}
-
-.dynamicsList {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  flex: 1;
+  gap: 0.45rem;
   min-width: 0;
-}
-
-.dynamicChip {
-  background: rgba(30, 41, 59, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.76rem;
-  color: #e2e8f0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  line-height: 1.3;
-}
-
-.dynamicChipIcon {
-  font-size: 0.85rem;
-  color: #38bdf8;
-  flex-shrink: 0;
-}
-
-/* Matrix Coordinate Wrapper */
-.matrixWrapper {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  gap: 0.35rem;
-  width: 100%;
-  height: 100%;
-  flex: 1;
   min-height: 0;
-  box-sizing: border-box;
-  min-width: 0;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--axis);
 }
 
-/* Vertical Power Axis */
-.yAxis {
-  display: flex;
+.axisY {
+  grid-area: 1 / 1;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  flex-shrink: 0;
-  position: relative;
 }
 
-.axisLineY {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  height: 100%;
-  color: #94a3b8;
+.axisX {
+  grid-area: 2 / 2;
 }
 
-.axisLabelTextY {
+.axisY > span:not(.axisLine) {
   writing-mode: vertical-lr;
   transform: rotate(180deg);
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: #94a3b8;
 }
 
-/* Main Content Area */
-.matrixMain {
-  display: flex;
-  flex-direction: column;
+.axisLine {
   flex: 1;
-  height: 100%;
-  min-height: 0;
-  min-width: 0;
-  gap: 0.25rem;
-  overflow: hidden;
+  background: currentColor;
+  border-radius: 1px;
+  opacity: 0.35;
 }
 
-/* 2x2 Radar Grid with 1px Crosshair Dividers (50% width and 50% height rows) */
+.axisY .axisLine {
+  width: 2px;
+  min-height: 8px;
+}
+
+.axisX .axisLine {
+  height: 2px;
+  min-width: 8px;
+}
+
+.axisName {
+  color: var(--text-primary, #1e293b);
+}
+
+.axisArrow {
+  flex-shrink: 0;
+  font-size: 0.95rem;
+}
+
+/* ---------- Board: wood frame, wood cross-bars, four cork panels ---------- */
+
+.board {
+  grid-area: 1 / 2;
+  min-width: 0;
+  min-height: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: var(--wood);
+  border: 6px solid var(--wood);
+  border-radius: 6px;
+  box-shadow: 0 10px 24px rgba(20, 10, 0, 0.5), 0 2px 5px rgba(20, 10, 0, 0.4);
+}
+
 .radarGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  background: rgba(255, 255, 255, 0.14); /* 1px crosshair line color */
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 0.5rem;
+  gap: 2px;
   width: 100%;
   height: 100%;
-  flex: 1;
-  min-height: 0;
-  box-sizing: border-box;
-  position: relative;
-  overflow: hidden;
+  /* Close to the cork's own shadow colour, so the seams between the panels stay quiet */
+  background: #7d5a35;
 }
 
 @media (max-width: 640px) {
@@ -171,332 +113,166 @@
   }
 }
 
-/* Sector Quadrants */
-.sectorQuadrant {
+.sector {
+  /* The panel's height is the unit the cards scale from (see --u on .stakeholderList) */
+  container-type: size;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  padding: 0.55rem 0.7rem;
-  box-sizing: border-box;
-  min-height: 0;
-  height: 100%;
   min-width: 0;
+  min-height: 0;
   overflow: hidden;
+  box-shadow: inset 0 0 14px rgba(60, 30, 8, 0.3);
+  background:
+    /* Same two-lattice dot trick as the case board: the light dot sits a pixel off the dark one */
+    radial-gradient(rgba(80, 48, 20, 0.38) 1px, transparent 1.6px) 0 0 / 8px 8px,
+    radial-gradient(rgba(255, 226, 180, 0.28) 1px, transparent 1.6px) 1px 1px / 8px 8px,
+    linear-gradient(135deg, #cfa26c, #a87a4a);
 }
 
-/* Quadrant Sector Visual Identifiers */
-.sectorTopLeft {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, #0f1826 45%);
+/* Quadrant strip: runs the full width of the panel, flush with the bars on its top and sides, so it
+   reads as part of the frame. */
+.sectorLabel {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 0.75rem;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  /* Fits one line or two, so all four strips are the same height and the cards line up */
+  min-height: 2.4rem;
+  padding: 0.25rem 0.75rem;
+  /* A recessed band of darker cork, not a bright label: it should frame the cards, not compete with them */
+  background: rgba(40, 20, 6, 0.68);
+  box-shadow: inset 0 -1px 0 rgba(255, 226, 180, 0.18), 0 3px 6px rgba(30, 15, 3, 0.35);
 }
 
-.sectorTopRight {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, #0f1826 45%);
-}
-
-.sectorBottomLeft {
-  background: #0f1826;
-}
-
-.sectorBottomRight {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, #0f1826 45%);
-}
-
-/* Sector Header */
 .sectorHeader {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 0.25rem;
-  margin-bottom: 0.15rem;
-  gap: 0.35rem;
+  flex-shrink: 0;
   min-width: 0;
 }
 
 .sectorTitle {
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: #f8fafc;
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  gap: 0.45rem;
   min-width: 0;
-  flex: 1;
-}
-
-.sectorIcon {
-  font-size: 1.05rem;
-  flex-shrink: 0;
-}
-
-.sectorAxisBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: #94a3b8;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 1px 5px;
-  border-radius: 3px;
+  overflow: hidden;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
   white-space: nowrap;
-  flex-shrink: 0;
+  color: #f6e8cc;
 }
 
-/* Stakeholder List */
+/* The quadrant's colour lives here: a small enamel badge, the one coloured thing in the strip */
+.sectorIcon {
+  flex-shrink: 0;
+  box-sizing: content-box;
+  padding: 3px;
+  font-size: 0.8rem;
+  color: #fff;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--q) 70%, #fff), var(--q) 65%);
+  border-radius: 50%;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+}
+
+.sectorConsequence {
+  margin: 0;
+  flex: 1 1 14rem;
+  min-width: 0;
+  font-size: 0.62rem;
+  line-height: 1.3;
+  color: #efdfc0;
+}
+
+/* ---------- Stakeholders: taped to the middle of the panel ---------- */
+
 .stakeholderList {
+  /* One unit scales the whole card with its panel: 8px at the full-size design, down to 5px when the
+     panel gets short (a zoomed or small window), so the cards shrink instead of clipping and scrolling. */
+  --u: clamp(5px, 3cqh, 8px);
+
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: calc(var(--u) * 2);
   flex: 1;
   min-width: 0;
   min-height: 0;
+  /* Room for the tape above the first card */
+  padding: calc(var(--u) * 2.2) var(--gap) calc(var(--u) * 1.5);
   overflow-y: auto;
+  scrollbar-width: thin;
 }
 
-/* Critical: Force HoverTooltip span to stretch full width and not exceed column */
+/* Centres the cards, but still scrolls from the top when there are too many (justify-content would clip it) */
+.stakeholderList > :first-child { margin-top: auto; }
+.stakeholderList > :last-child { margin-bottom: auto; }
+
+/* Stacked single column: rows size to their content, which size containment would collapse to nothing */
+@media (max-width: 640px) {
+  .sector {
+    container-type: normal;
+  }
+
+  .stakeholderList {
+    --u: 8px;
+  }
+}
+
+/* HoverTooltip wraps each card in a span that has to stretch to the column */
 .stakeholderList > span {
   display: block !important;
   width: 100% !important;
+  max-width: 26rem;
   min-width: 0 !important;
-  overflow: hidden;
+  margin-inline: auto;
 }
 
-/* Empty Sector State */
 .emptySector {
   display: flex;
   align-items: center;
   justify-content: center;
   flex: 1;
   min-height: 50px;
-  font-size: 0.74rem;
-  color: #64748b;
+  font-size: 0.78rem;
   font-style: italic;
+  font-weight: 600;
+  color: #4a2f17;
+  border: 2px dashed rgba(70, 38, 12, 0.4);
+  border-radius: 6px;
 }
 
-/* Stakeholder Telemetry Chip */
+/* A manila index card */
 .stakeholderItem {
-  background: rgba(22, 34, 52, 0.8) !important;
-  /* Always present so the speaking state changes only its color, never the box */
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 22px 0.5rem 0.5rem 22px;
-  padding: 0 0.55rem 0 0;
-  min-height: 44px;
+  position: relative;
   display: flex !important;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.45rem;
+  gap: calc(var(--u) * 1.4);
   width: 100% !important;
-  box-sizing: border-box;
-  overflow: hidden;
   min-width: 0;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  padding: calc(var(--u) * 0.8) calc(var(--u) * 1.3) calc(var(--u) * 0.8) calc(var(--u) * 0.8);
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #f8edd0, var(--manila)) !important;
+  border: 1px solid rgba(120, 84, 40, 0.35);
+  border-radius: 3px;
+  box-shadow: 0 6px 14px rgba(30, 15, 3, 0.55), 0 2px 3px rgba(30, 15, 3, 0.4);
   cursor: help;
+  transition: translate 0.15s ease, box-shadow 0.15s ease;
 }
 
+/* Hover lifts the card straight up. The tooltip's own scale would blur the text, so it is switched off. */
 .stakeholderItem:hover {
-  background: rgba(41, 60, 89, 0.98) !important;
+  translate: 0 -2px;
+  box-shadow: 0 12px 22px rgba(30, 15, 3, 0.55), 0 3px 5px rgba(30, 15, 3, 0.4);
 }
 
-.stakeholderLeft {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-}
-
-/* Colored Avatar Ring, sized to fill the chip from top to bottom */
-.avatarWrapper {
-  width: 42px;
-  height: 42px;
-  /* Width here rather than inline so the speaking state can thicken it. With
-     border-box sizing the ring grows inward and the 42px circle is unchanged. */
-  border: 2px solid transparent;
-  border-radius: 50%;
-  overflow: hidden;
-  background: #fff;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-}
-
-.stakeholderMeta {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-}
-
-.stakeholderNameRow {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  min-width: 0;
-}
-
-/* High power / high interest markers, mirroring the dossier tab flags */
-.keyFlag {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  font-size: 0.78rem;
-  color: #ef4444;
-  line-height: 1;
-}
-
-.stakeholderName {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #ffffff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.25;
-}
-
-.stakeholderDescription {
-  font-size: 0.72rem;
-  color: #94a3b8;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.25;
-}
-
-.badgeContainer {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  flex-shrink: 0;
-}
-
-.badgeNew {
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 3px;
-  background: rgba(22, 101, 52, 0.5);
-  border: 1px solid rgba(74, 222, 128, 0.5);
-  color: #4ade80;
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  white-space: nowrap;
-  transform-origin: center;
-  animation: badgePulse 2s ease-in-out infinite;
-}
-
-.badgeShifted {
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 3px;
-  background: rgba(180, 83, 9, 0.5);
-  border: 1px solid rgba(251, 191, 36, 0.5);
-  color: #fbbf24;
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  white-space: nowrap;
-  transform-origin: center;
-  animation: badgePulse 2s ease-in-out infinite;
-}
-
-/* Matches the NEW tag on ChallengeDescriptionCard so both read as the same signal */
-@keyframes badgePulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.12);
-  }
-}
-
-/* Horizontal Interest Axis */
-.xAxis {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding-top: 0.1rem;
-}
-
-.axisLineX {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  color: #94a3b8;
-}
-
-.axisLabelTextX {
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: #94a3b8;
-}
-
-.axisArrowIcon {
-  font-size: 0.95rem;
-  color: #94a3b8;
-  flex-shrink: 0;
-}
-
-/* Animations */
-@keyframes bannerFade {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ==========================================================================
-   STAKEHOLDER SELF-INTRODUCTIONS
-   Sequential speech bubbles played when the phase briefing opens. Positioned
-   fixed against the viewport so the radar's own overflow clipping cannot cut
-   the bubble off in any of the four quadrants.
-   ========================================================================== */
-
-.introReplayBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  flex-shrink: 0;
-  background: rgba(30, 41, 59, 0.85);
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  color: #e2e8f0;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.74rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
-}
-
-.introReplayBtn:hover:not(:disabled) {
-  background: rgba(56, 189, 248, 0.18);
-  border-color: rgba(56, 189, 248, 0.6);
-}
-
-.introReplayBtn:disabled {
-  cursor: default;
-  opacity: 0.6;
+.stakeholderList > span > .stakeholderItem,
+.stakeholderList > span:hover > .stakeholderItem {
+  transform: none;
 }
 
 /* Chips with an introduction can be clicked to replay that stakeholder's bubble */
@@ -504,39 +280,208 @@
   cursor: pointer;
 }
 
-/* Speaking stakeholder chip gets a subtle pulse so the bubble's owner is obvious */
-/*
- * The chip border and the avatar ring are separate rings that only meet at the
- * top and bottom tangent points, so colouring both reads as one broken ring.
- * The speaking colour goes on the avatar and the chip's fill instead, leaving
- * the chip border at its resting grey.
- */
+/* Speaking: the card is lifted and ringed in the stakeholder's colour */
 .stakeholderItemSpeaking {
-  background: color-mix(
-    in srgb,
-    var(--stakeholder-color, #38bdf8) 20%,
-    rgba(24, 37, 57, 0.98)
-  ) !important;
-  animation: introChipPulse 1.4s ease-in-out infinite;
+  translate: 0 -3px;
+  box-shadow: 0 0 0 3px var(--stakeholder-color, #e9c46a), 0 12px 22px rgba(30, 15, 3, 0.55);
 }
 
-.avatarWrapperSpeaking {
-  border-width: 3px;
+/* Same masking tape as the case board's portraits */
+.tape {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  z-index: 2;
+  width: 64px;
+  height: 20px;
+  translate: -50% 0;
+  rotate: -5deg;
+  pointer-events: none;
+  background: rgba(245, 230, 180, 0.78);
+  border: 1px solid rgba(210, 190, 140, 0.5);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
-/*
- * Brightness rather than an outer box-shadow: a spread shadow is painted outside
- * the chip and was showing up as a square corner against the quadrant behind it.
- * A filter is clipped to the element's own rounded shape, so it cannot bleed.
- */
-@keyframes introChipPulse {
-  0%, 100% {
-    filter: brightness(1);
+/* The portrait is a small photo, tinted with the stakeholder's colour */
+.photo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: max(44px, calc(var(--u) * 9));
+  height: max(44px, calc(var(--u) * 9));
+  box-sizing: border-box;
+  overflow: hidden;
+  background: linear-gradient(165deg, color-mix(in srgb, var(--stakeholder-color, #3b82f6) 47%, transparent), color-mix(in srgb, var(--stakeholder-color, #3b82f6) 15%, transparent));
+  border: 2px solid #fff;
+  border-radius: 3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.photoSpeaking {
+  border-color: var(--stakeholder-color, #3b82f6);
+}
+
+.stakeholderMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.stakeholderName {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: max(13px, calc(var(--u) * 2.3));
+  font-weight: 800;
+  line-height: 1.15;
+  color: #1a120b;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.stakeholderDescription {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: max(10px, calc(var(--u) * 1.6));
+  line-height: 1.3;
+  color: var(--ink-soft);
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* ---------- NEW / SHIFTED: rubber stamps, same ink as the dossier's confidence stamps ---------- */
+
+.badgeContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.badgeNew,
+.badgeShifted {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  font-family: "Courier New", ui-monospace, monospace;
+  font-size: max(9px, calc(var(--u) * 1.3));
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-radius: 2px;
+  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2);
+  text-shadow: 0.25px 0 0 currentColor, -0.25px 0 0 currentColor;
+  user-select: none;
+  /* Presses down once when the briefing opens; `scale` leaves the stamp's tilt alone */
+  animation: stampPress 0.4s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+/* Speckled ink grain, as on the dossier stamps */
+.badgeNew::before,
+.badgeShifted::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image:
+    radial-gradient(circle at 12% 25%, currentColor 0.5px, transparent 0.5px),
+    radial-gradient(circle at 68% 12%, currentColor 0.5px, transparent 0.5px),
+    radial-gradient(circle at 38% 62%, currentColor 0.6px, transparent 0.6px),
+    radial-gradient(circle at 84% 68%, currentColor 0.5px, transparent 0.5px),
+    radial-gradient(circle at 22% 85%, currentColor 0.5px, transparent 0.5px),
+    radial-gradient(circle at 58% 42%, currentColor 0.4px, transparent 0.4px);
+  background-size: 6px 6px, 7px 7px, 5px 5px, 8px 8px, 6px 6px, 9px 9px;
+  opacity: 0.22;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.badgeNew {
+  color: #15803d;
+  background: rgba(220, 252, 231, 0.92);
+  border: 1.5px dashed #15803d;
+  rotate: -3deg;
+  clip-path: polygon(1% 8%, 6% 0%, 94% 3%, 100% 10%, 98% 90%, 100% 100%, 4% 97%, 0% 88%);
+}
+
+.badgeShifted {
+  color: #b45309;
+  background: rgba(254, 243, 199, 0.92);
+  border: 1.5px solid #b45309;
+  rotate: 2deg;
+  clip-path: polygon(0% 5%, 5% 1%, 96% 0%, 100% 8%, 97% 95%, 100% 100%, 3% 99%, 0% 92%);
+}
+
+@keyframes stampPress {
+  0% { scale: 1.5; opacity: 0; }
+  60% { scale: 0.96; opacity: 1; }
+  100% { scale: 1; opacity: 0.92; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badgeNew,
+  .badgeShifted {
+    animation: none;
   }
-  50% {
-    filter: brightness(1.28);
+
+  .stakeholderItem {
+    transition: none;
   }
 }
+
+/* ---------- Header pieces, portaled into the dialog's radar header ---------- */
+
+.dynamicChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.dynamicChipIcon {
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  color: var(--primary-bg);
+}
+
+/* Same look as the Radar Guide button it sits beside */
+.introReplayBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 2px 8px;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--primary-bg);
+  cursor: pointer;
+  background: rgba(38, 102, 130, 0.08);
+  border: 1px solid rgba(38, 102, 130, 0.25);
+  border-radius: 4px;
+  transition: background var(--transition);
+}
+
+.introReplayBtn:hover:not(:disabled) {
+  background: rgba(38, 102, 130, 0.18);
+}
+
+.introReplayBtn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* ==========================================================================
+   STAKEHOLDER SELF-INTRODUCTIONS
+   Sequential speech bubbles played when the phase briefing opens. Positioned
+   fixed against the viewport so the board's own overflow clipping cannot cut
+   the bubble off in any of the four quadrants. A sticky note, like the dossier's.
+   ========================================================================== */
 
 .introBubble {
   position: fixed;
@@ -544,12 +489,13 @@
   z-index: 10005;
   pointer-events: auto;
   box-sizing: border-box;
-  background: #f8fafc;
-  color: #0f172a;
-  border: 2px solid var(--intro-color, #38bdf8);
-  border-radius: 0.6rem;
-  padding: 0.5rem 0.65rem 0.55rem;
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55);
+  --bubble-bg: color-mix(in srgb, var(--intro-color, #b9722f) 14%, #fbf5df);
+  background: var(--bubble-bg);
+  color: #1a120b;
+  /* A sticky note: a stripe in the speaker's colour, and the corner lifting off the page */
+  border-radius: 2px 2px 26px 2px / 2px 2px 6px 2px;
+  padding: 0.6rem 0.8rem 0.65rem;
+  box-shadow: inset 0 4px 0 var(--intro-color, #b9722f), 3px 12px 24px rgba(20, 10, 0, 0.5);
   cursor: pointer;
   animation: introBubbleIn 0.22s ease-out both;
 }
@@ -558,38 +504,22 @@
   animation: introBubbleOut 0.4s ease-in both;
 }
 
-/* Tail: an outer border triangle with an inner fill triangle stacked on top */
-.introBubble::before,
+/* Tail pointing at the speaker, in the note's own colour */
 .introBubble::after {
   content: "";
   position: absolute;
+  top: 100%;
   left: var(--intro-arrow-x, 50%);
   transform: translateX(-50%);
   border: 9px solid transparent;
-}
-
-.introBubble::before {
-  top: 100%;
-  border-top-color: var(--intro-color, #38bdf8);
-}
-
-.introBubble::after {
-  top: calc(100% - 3px);
-  border-top-color: #f8fafc;
-}
-
-.introBubbleBelow::before {
-  top: auto;
-  bottom: 100%;
-  border-top-color: transparent;
-  border-bottom-color: var(--intro-color, #38bdf8);
+  border-top-color: var(--bubble-bg);
 }
 
 .introBubbleBelow::after {
   top: auto;
-  bottom: calc(100% - 3px);
+  bottom: 100%;
   border-top-color: transparent;
-  border-bottom-color: #f8fafc;
+  border-bottom-color: var(--intro-color, #b9722f);
 }
 
 .introBubbleHeader {
@@ -601,20 +531,20 @@
 
 .introBubbleName {
   min-width: 0;
+  overflow: hidden;
   font-size: 0.78rem;
   font-weight: 800;
-  /* Darkened so light stakeholder colors stay readable on the light bubble */
-  color: color-mix(in srgb, var(--intro-color, #38bdf8) 65%, #0f172a);
-  white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+  /* Darkened so light stakeholder colors stay readable on the light bubble */
+  color: color-mix(in srgb, var(--intro-color, #b9722f) 65%, #1a120b);
 }
 
 .introBubbleCounter {
-  font-size: 0.68rem;
-  color: #64748b;
-  margin-left: auto;
   flex-shrink: 0;
+  margin-left: auto;
+  font-size: 0.68rem;
+  color: #6b5d4e;
 }
 
 /* Without the counter beside it the skip button has to claim the free space */
@@ -626,20 +556,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(15, 23, 42, 0.06);
-  border: 1px solid rgba(15, 23, 42, 0.18);
-  border-radius: 4px;
-  color: #334155;
+  flex-shrink: 0;
+  padding: 2px 4px;
   font-size: 0.8rem;
   line-height: 1;
-  padding: 2px 4px;
+  color: #3b2f22;
   cursor: pointer;
-  flex-shrink: 0;
+  background: rgba(90, 60, 36, 0.06);
+  border: 1px solid rgba(90, 60, 36, 0.25);
+  border-radius: 4px;
   transition: background 0.15s ease;
 }
 
 .introSkipBtn:hover {
-  background: rgba(15, 23, 42, 0.14);
+  background: rgba(90, 60, 36, 0.16);
 }
 
 /* Dismisses the whole round, not just the current bubble */
@@ -647,78 +577,37 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: 1px solid rgba(15, 23, 42, 0.18);
-  border-radius: 4px;
-  color: #64748b;
+  flex-shrink: 0;
+  padding: 2px 4px;
   font-size: 0.8rem;
   line-height: 1;
-  padding: 2px 4px;
+  color: #6b5d4e;
   cursor: pointer;
-  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid rgba(90, 60, 36, 0.25);
+  border-radius: 4px;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .introCloseBtn:hover {
+  color: #b91c1c;
   background: rgba(220, 38, 38, 0.12);
   border-color: rgba(220, 38, 38, 0.45);
-  color: #b91c1c;
 }
 
 .introBubbleText {
   margin: 0;
   font-size: 0.8rem;
   line-height: 1.4;
-  color: #1e293b;
+  color: #26211e;
 }
 
 @keyframes introBubbleIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(6px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes introBubbleOut {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.97);
-  }
-}
-
-/* Icons in the quadrant's "High Power - Low Interest" caption */
-.axisBadgeIcon {
-  font-size: 0.85rem;
-  flex-shrink: 0;
-}
-
-/* Sets the interest half apart from the power half, in place of a separator */
-.axisBadgeIconSecond {
-  margin-left: 6px;
-}
-
-/*
- * HoverTooltip scales whatever it wraps by 1.05 on hover, which smears the
- * chip's 1px border and shifts it out of alignment against its neighbours.
- * These chips opt out of the transform entirely and signal hover with color.
- */
-.stakeholderList > span > .stakeholderItem,
-.stakeholderList > span:hover > .stakeholderItem {
-  transform: none;
-  box-shadow: none;
-}
-
-.sectorConsequence {
-  margin: 0 0 0.35rem;
-  font-size: 0.68rem;
-  line-height: 1.3;
-  color: #94a3b8;
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-4px) scale(0.97); }
 }

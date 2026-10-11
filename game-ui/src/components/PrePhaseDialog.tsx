@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { FADE_TRANSITION } from "../utils/transitions";
 import PowerInterestMatrix from "./PowerInterestMatrix";
 import PhaseOverview from "./PhaseOverview";
-import HoverTooltip from "./HoverToolTip";
+import HoverTooltip, { HoverTooltipTheme } from "./HoverToolTip";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
 import CheatSheetModal from "./CheatSheetModal";
 import SpokenText from "./SpokenText";
@@ -67,6 +67,9 @@ export default function PrePhaseDialog({
   // clips its own overflow and the matrix column keeps a transform from its
   // entrance animation, so neither can host a fixed-position bubble.
   const [bubbleLayer, setBubbleLayer] = useState<HTMLDivElement | null>(null);
+  // Slots in the radar header the matrix portals its phase dynamics and replay button into.
+  const [dynamicsSlot, setDynamicsSlot] = useState<HTMLSpanElement | null>(null);
+  const [actionsSlot, setActionsSlot] = useState<HTMLSpanElement | null>(null);
   const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
   const wasReviewRef = useRef(false);
   const introTourStartedRef = useRef(false);
@@ -371,7 +374,7 @@ export default function PrePhaseDialog({
                 <div className={styles.directiveStepItem}>
                   <span className={styles.stepBadge}>1</span>
                   <div className={styles.directiveStepContent}>
-                    <strong>Deliver Objectives:</strong> Align your technical choices with the phase deliverables defined above.
+                    <strong>Deliver the Phase:</strong> Align your technical choices with what the phase briefing above asks for.
                   </div>
                 </div>
                 <div className={styles.directiveStepItem}>
@@ -395,8 +398,8 @@ export default function PrePhaseDialog({
                 <div
                   className={`${styles.missionCard} ${isReadingPhaseDescription ? styles.missionCardSpeaking : ""}`}
                   data-intro-group="intro2"
-                  data-title="Phase Objectives"
-                  data-intro="This is the phase description: what this phase is about, and the objectives you're expected to deliver on before moving to the next one. Keep them in mind while you dig through intel and pitch - they're what your proposal actually gets judged against; being well-liked is a nice bonus, not a substitute."
+                  data-title="Phase Briefing"
+                  data-intro="This is the phase briefing: what this phase is about, and what you're expected to deliver before moving to the next one. Keep it in mind while you dig through intel and pitch - it's what your proposal actually gets judged against; being well-liked is a nice bonus, not a substitute."
                   data-step="2"
                 >
                   <div className={styles.missionCardHeader}>
@@ -452,21 +455,6 @@ export default function PrePhaseDialog({
                         />
                       </p>
                     )}
-                    <div className={styles.objectivesBox}>
-                      <span className={styles.objectivesLabel}>
-                        <Icon icon="ph:flag-checkered-bold" />
-                        Phase Objectives
-                      </span>
-                      <GlossaryText
-                        as="p"
-                        className={styles.objectivesText}
-                        text={
-                          currentPhaseData?.phase_desc ||
-                          "Enter this phase to address new project requirements and align with key stakeholders."
-                        }
-                        surface="challenge_briefing"
-                      />
-                    </div>
                   </div>
                 </div>
 
@@ -501,34 +489,45 @@ export default function PrePhaseDialog({
                 data-intro="This is the power/interest radar, and it is worth two minutes. <br /> <br /> <mark>Power</mark> means: can this person stop you? High power can veto your whole plan, low power can only grumble. <br /> <mark>Interest</mark> means: how much do they care? <br /> <br /> Together with power it sets how strongly your proposal moves their mood."
                 data-step="4"
               >
-                <div className={styles.sectionHeader}>
-                  <h6 className={styles.sectionTitle}>
-                    <Icon icon="ph:users-three-bold" className={styles.sectionIcon} />
-                    <span>Stakeholder Power & Interest Radar</span>
-                  </h6>
-                  <HoverTooltip
-                    portalTarget={bubbleLayer}
-                    description="Radar Guide: Power is whether this person can stop you. High power can veto the whole plan, low power can only grumble. Interest is how much they care; together with power it sets how strongly your words and your proposal move their mood. Focus on 'Manage Closely' stakeholders first, but don't disregard the others."
-                  >
-                    <span className={styles.radarHelpBtn}>
-                      <Icon icon="ph:info-bold" />
-                      <span>Radar Guide</span>
-                    </span>
-                  </HoverTooltip>
-                </div>
-                <PowerInterestMatrix
-                  currentStakeholders={currentStakeholders}
-                  previousStakeholders={previousStakeholders}
-                  isFirstPhase={isFirstPhase}
-                  bubblePortalTarget={bubbleLayer}
-                  onIntroActiveChange={setIsStakeholderIntroActive}
-                  // wasReviewRef, not the live isReview prop: the reopened-from-dossier overlay
-                  // never unmounts on close (it just toggles a CSS class), and the parent flips
-                  // isReview back to false the instant it closes - reading it live here would
-                  // restart the whole introduction round on close, since the effect that seeds
-                  // introState depends on this prop.
-                  autoPlayIntroductions={!wasReviewRef.current && !settings.auto_skip_conversations && introsUnlocked}
-                />
+                <HoverTooltipTheme variant="parchment">
+                  <div className={styles.sectionHeader}>
+                    <div className={styles.sectionHeadline}>
+                      <h6 className={styles.sectionTitle}>
+                        <Icon icon="ph:users-three-bold" className={styles.sectionIcon} />
+                        <span>Power & Interest Radar</span>
+                      </h6>
+                      {/* The matrix renders what changed since the last phase in here */}
+                      <span ref={setDynamicsSlot} className={styles.radarSubtitle} />
+                    </div>
+                    <div className={styles.radarActions}>
+                      <span ref={setActionsSlot} className={styles.radarActionsSlot} />
+                      <HoverTooltip
+                        portalTarget={bubbleLayer}
+                        description="Radar Guide: Power is whether this person can stop you. High power can veto the whole plan, low power can only grumble. Interest is how much they care; together with power it sets how strongly your words and your proposal move their mood. Focus on 'Manage Closely' stakeholders first, but don't disregard the others."
+                      >
+                        <span className={styles.radarHelpBtn}>
+                          <Icon icon="ph:info-bold" />
+                          <span>Radar Guide</span>
+                        </span>
+                      </HoverTooltip>
+                    </div>
+                  </div>
+                  <PowerInterestMatrix
+                    currentStakeholders={currentStakeholders}
+                    previousStakeholders={previousStakeholders}
+                    isFirstPhase={isFirstPhase}
+                    bubblePortalTarget={bubbleLayer}
+                    dynamicsTarget={dynamicsSlot}
+                    actionsTarget={actionsSlot}
+                    onIntroActiveChange={setIsStakeholderIntroActive}
+                    // wasReviewRef, not the live isReview prop: the reopened-from-dossier overlay
+                    // never unmounts on close (it just toggles a CSS class), and the parent flips
+                    // isReview back to false the instant it closes - reading it live here would
+                    // restart the whole introduction round on close, since the effect that seeds
+                    // introState depends on this prop.
+                    autoPlayIntroductions={!wasReviewRef.current && !settings.auto_skip_conversations && introsUnlocked}
+                  />
+                </HoverTooltipTheme>
               </div>
             </div>
 

@@ -340,34 +340,6 @@
   margin: 0;
 }
 
-.objectivesBox {
-  background: var(--bg-subtle);
-  border-left: 4px solid var(--primary-bg);
-  padding: 0.75rem 0.85rem;
-  border-radius: 0 0.5rem 0.5rem 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.objectivesLabel {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--primary-bg);
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.objectivesText {
-  font-size: 0.92rem;
-  color: var(--text-primary);
-  line-height: 1.45;
-  margin: 0;
-}
-
 /* One-time banner: the demo (phase 0) just ended, the real project starts with this briefing */
 .bootstrapAlert {
   background: #fffbeb;
@@ -522,8 +494,43 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
   margin-bottom: 0.4rem;
   flex-shrink: 0;
+}
+
+/* Title with the phase dynamics as a subtitle on the same line */
+.sectionHeadline {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.sectionHeadline .sectionTitle {
+  flex-shrink: 0;
+}
+
+.radarSubtitle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.9rem;
+  min-width: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.radarActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+/* The slot only exists to hold the portaled button, so it must not add a box of its own */
+.radarActionsSlot {
+  display: contents;
 }
 
 .sectionTitle {
