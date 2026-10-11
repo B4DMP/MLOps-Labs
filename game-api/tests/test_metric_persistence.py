@@ -198,9 +198,8 @@ async def test_a_challenge_with_no_recorded_deltas_advances_unchanged(migrated_d
 
 
 @pytest.mark.anyio
-async def test_an_explicit_payload_value_still_wins_over_the_persisted_one(migrated_db):
-    """Nothing in the real client sends this today, but a future or test caller that does should
-    not be silently overridden by what the simulation recorded."""
+async def test_a_client_sent_metric_change_is_ignored_for_the_persisted_one(migrated_db):
+    """A crafted payload must not be able to move the score: only what the simulation recorded counts."""
     from mlops_serious_game.application.pitch_debate_service.store import set_metric_changes
 
     user_id = _seed_user()
@@ -210,7 +209,7 @@ async def test_an_explicit_payload_value_still_wins_over_the_persisted_one(migra
     await _advance(action_card={"metric_changes": {"model": 99}})
 
     model_index = MetricFactory.get_available_metrics().index("model")
-    assert _final_metric_values(user_id)[model_index] == 109  # 10 + 99, not 10 + 6
+    assert _final_metric_values(user_id)[model_index] == 16  # 10 + 6, not 10 + 99
 
 
 # ── End to end: handle_simulation_run actually records what it computed ─────

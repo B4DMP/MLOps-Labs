@@ -74,7 +74,8 @@ def decode_token(token: str | None) -> dict | None:
 
 def verify_admin_token(token: str) -> bool:
     payload = decode_token(token)
-    return payload is not None and payload.get("sub") == settings.ADMIN_USER
+    # Admin tokens carry no role; a teacher/player/impersonation token must never pass as one.
+    return payload is not None and payload.get("sub") == settings.ADMIN_USER and payload.get("role") is None
 
 
 def _teacher_row_exists(teacher_id: int) -> bool:

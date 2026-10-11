@@ -31,6 +31,35 @@ from .case_board_handler import push_team_sync_hint
 from .log_handler import send_events
 
 
+VERIFY_CARD_ID = "eng_0"
+
+
+async def _item_in_reach(curr_challenge, websocket: WebSocket, item_id) -> bool:
+    """An item the player may act on: one of this challenge's own notes, or one already in their dossier."""
+    if not item_id:
+        return False
+    if any(r.id == item_id for r in RequirementFactory.get_requirements_for_challenge(curr_challenge.id)):
+        return True
+    return any(item.id == item_id for item in await retrieve_intel_items(curr_challenge, websocket))
+
+
+def _challenge_row(db_session, user_id: int, phase_id: int, challenge_id: int):
+    return db_session.scalars(
+        select(GameChallenge).where(
+            GameChallenge.user_id == user_id,
+            GameChallenge.phase_index == phase_id,
+            GameChallenge.challenge_index == challenge_id,
+        ).order_by(GameChallenge.id.desc())
+    ).first()
+
+
+def can_afford(user_id: int, phase_id: int, challenge_id: int, cost: int) -> bool:
+    """Tokens are server-side state: a card is refused when the stored balance cannot cover it."""
+    with get_session() as db_session:
+        row = _challenge_row(db_session, user_id, phase_id, challenge_id)
+        return row is None or row.attention_tokens is None or row.attention_tokens >= cost
+
+
 async def handle_get_offline_artifacts(websocket: WebSocket, user_id: int, payload: dict) -> None:
     """Handles fetching/generating offline intel artifacts for the current challenge."""
     phase_id = payload.get("phase_id", 0)
@@ -105,6 +134,11 @@ async def handle_tag_item(websocket: WebSocket, user_id: int, payload: dict) -> 
         curr_challenge = phases[0].challenges[0]
 
     if intel_id and categorized_type:
+        if not await _item_in_reach(curr_challenge, websocket, intel_id):
+            await manager.send_event(
+                websocket=websocket, event="system:error", payload={"message": "That note is not part of this challenge."}
+            )
+            return
         if categorized_type not in {t.value for t in STANCE_TAGS}:
             await manager.send_event(
                 websocket=websocket,
@@ -204,8 +238,22 @@ async def handle_verify_item(websocket: WebSocket, user_id: int, payload: dict) 
         phases = PhaseFactory.get_phases()
         curr_challenge = phases[0].challenges[0]
 
+    verify_card = EngagementCardFactory.get_card(VERIFY_CARD_ID)
+    verify_cost = verify_card.token_cost if verify_card else 0
+    if not await _item_in_reach(curr_challenge, websocket, intel_item_id):
+        await manager.send_event(
+            websocket=websocket, event="system:error", payload={"message": "That note is not part of this challenge."}
+        )
+        return
+    if not can_afford(user_id, phase_id, challenge_id, verify_cost):
+        await manager.send_event(
+            websocket=websocket, event="system:error", payload={"message": "Not enough attention tokens."}
+        )
+        return
+
     result = await handle_intel_verification(curr_challenge, websocket, intel_item_id)
     print(f"[WS Handler] handle_intel_verification result: {result}")
+    spent = verify_cost if result.get("status") == "success" else 0
 
     played_engagement_card_ids = []
     engagement_card_targets = {}
@@ -228,11 +276,11 @@ async def handle_verify_item(websocket: WebSocket, user_id: int, payload: dict) 
                     metric_values=[],
                     time_stamp=datetime.datetime.utcnow(),
                     messages=[],
-                    attention_tokens=payload.get("attention_tokens", curr_challenge.attention_tokens if curr_challenge else 20),
+                    attention_tokens=max(0, (curr_challenge.attention_tokens if curr_challenge else 20) - spent),
                 )
                 db_session.add(existing)
-            elif payload.get("attention_tokens") is not None:
-                existing.attention_tokens = payload.get("attention_tokens")
+            elif existing.attention_tokens is not None:
+                existing.attention_tokens = max(0, existing.attention_tokens - spent)
 
             if isinstance(existing.action_card, dict):
                 played_engagement_card_ids = existing.action_card.get("played_engagement_card_ids", [])
@@ -320,10 +368,8 @@ async def handle_play_engagement_card(websocket: WebSocket, user_id: int, payloa
     challenge_id = payload.get("challenge_id", 0)
     card_id = payload.get("card_id")
     stakeholder_ids = payload.get("stakeholder_ids", [])
-    if payload.get("session_id"):
-        session_id = payload["session_id"]
-    else:
-        session_id = f"Online_Intel_{user_id}"
+    # Never from the client: the thread id names a checkpoint, and another player's is guessable.
+    session_id = f"Online_Intel_{user_id}"
 
     curr_challenge = PhaseFactory.translate_challenge_index(
         challenge_index=challenge_id,
@@ -349,6 +395,11 @@ async def handle_play_engagement_card(websocket: WebSocket, user_id: int, payloa
         return
     played_cards = []
     engagement_card_targets = {}
+    if card and not can_afford(user_id, phase_id, challenge_id, card.token_cost):
+        await manager.send_event(
+            websocket=websocket, event="system:error", payload={"message": "Not enough attention tokens."}
+        )
+        return
     if card:
         try:
             with get_session() as db_session:
@@ -359,8 +410,8 @@ async def handle_play_engagement_card(websocket: WebSocket, user_id: int, payloa
                 ).order_by(GameChallenge.id.desc())
                 existing = db_session.scalars(stmt).first()
                 if existing:
-                    if payload.get("attention_tokens") is not None:
-                        existing.attention_tokens = payload.get("attention_tokens")
+                    if existing.attention_tokens is not None:
+                        existing.attention_tokens = max(0, existing.attention_tokens - card.token_cost)
                     current_ac = dict(existing.action_card or {})
                     played_cards = list(current_ac.get("played_engagement_card_ids", []))
                     if card.max_plays_per_phase == 1 or card.stakeholder_selection_amount == -1:

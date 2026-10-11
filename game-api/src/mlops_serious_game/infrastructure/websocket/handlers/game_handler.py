@@ -962,6 +962,36 @@ def select_next_challenge(user_id: int, phase_id: int, challenge_id: int) -> Cha
         return _first_non_retired_challenge(phase_id)
 
 
+# Keys the server writes onto the challenge row itself; a client card never sets them.
+_SERVER_OWNED_CARD_KEYS = ("pitch", "metric_changes", "played_engagement_card_ids", "engagement_card_targets")
+
+
+def stage_advance_error(user_id: int, payload: dict) -> str | None:
+    """Why a client's request to move on is refused, or None."""
+    with get_session() as db_session:
+        row = db_session.scalars(
+            select(GameChallenge).where(GameChallenge.user_id == user_id).order_by(GameChallenge.id.desc())
+        ).first()
+        if row is None:
+            return None
+        stored = row.challenge_loop_index or 0
+        pitch = row.action_card.get("pitch") if isinstance(row.action_card, dict) else None
+    return stage_refusal(payload.get("challenge_loop_index", 0), stored, pitch)
+
+
+def stage_refusal(claimed: int, stored: int, pitch: dict | None) -> str | None:
+    """Moves must follow the stored stage in order, and leaving the pitch needs a finished one."""
+    if claimed == 0 and stored == 0:
+        return None
+    if claimed in (1, 2) and stored in (1, 2):
+        if isinstance(pitch, dict) and pitch.get("stage") == "DONE" and pitch.get("outcome") != "VETO":
+            return None
+        return "The pitch is not finished."
+    if claimed == 3 and stored == 3:
+        return None
+    return "That stage is not next."
+
+
 async def handle_state_update_request(
     websocket: WebSocket,
     user_id: int,
@@ -990,17 +1020,29 @@ async def handle_state_update_request(
                 .where(GameChallenge.user_id == user_id)
                 .order_by(GameChallenge.id.desc())
             ).first()
+            # Metrics and tokens are what the server stored, never the client's claim.
+            stored_metrics = None
+            stored_tokens = None
             if latest_challenge is not None:
                 phase_id = latest_challenge.phase_index
                 challenge_id = latest_challenge.challenge_index
+                if isinstance(latest_challenge.metric_values, list) and latest_challenge.metric_values:
+                    stored_metrics = list(latest_challenge.metric_values)
+                stored_tokens = latest_challenge.attention_tokens
             else:
                 phase_id = payload.get("phase_id", 0)
                 challenge_id = payload.get("challenge_id", 0)
         challenge_loop_index = payload.get("challenge_loop_index", 0)
-        metric_values = payload.get("metric_values", [])
+        metric_values = stored_metrics or [
+            MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()
+        ]
         action_card = payload.get("action_card", {})
+        if isinstance(action_card, dict):
+            action_card = {k: v for k, v in action_card.items() if k not in _SERVER_OWNED_CARD_KEYS}
+        else:
+            action_card = {}
         messages = payload.get("messages", [])
-        attention_tokens = payload.get("attention_tokens")
+        attention_tokens = stored_tokens
         
         #challenge loop index 0 - offline intel gathering
         #challenge loop index 1 - online intel gathering
@@ -1113,12 +1155,9 @@ async def handle_state_update_request(
                 # `action_card` here is the client's own request payload, which - for the
                 # "proceed to next milestone" call this branch handles - never actually carries
                 # a "metric_changes" key (see `ac_simulation.tsx`'s handleAcSimulationContinue).
-                # `persisted_metric_changes`, written by the simulation step itself, is the real
-                # source; the payload's own value (if a caller ever does send one) still wins.
-                ac_changes = {
-                    **persisted_metric_changes,
-                    **(action_card.get("metric_changes", {}) if isinstance(action_card, dict) else {}),
-                }
+                # `persisted_metric_changes`, written by the simulation step itself, is the only
+                # source: a client-sent value is stripped above.
+                ac_changes = dict(persisted_metric_changes)
 
                 # Leaving a demo phase: metrics restart too, so none of the demo's score carries over.
                 leaving_demo = _demo_finished(

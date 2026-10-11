@@ -24,6 +24,7 @@ from .handlers.game_handler import (
     handle_progress_update,
     handle_state_update_request,
     reset_thread,
+    stage_advance_error,
 )
 from .handlers.intel_handler import (
     handle_get_offline_artifacts,
@@ -181,6 +182,10 @@ async def unified_websocket_endpoint(websocket: WebSocket):
                     if event_name == "game:init":
                         last_gamestate_id, emotion_values_dict = await handle_game_init(websocket, user_id, payload)
                     elif event_name == "game:state_update_request":
+                        refusal = stage_advance_error(user_id, payload)
+                        if refusal:
+                            await manager.send_event(websocket, "system:error", {"message": refusal})
+                            continue
                         await reset_thread(session_id)
                         last_gamestate_id = list(await handle_state_update_request(websocket, user_id, payload))
                     elif event_name == "chat:send_message":

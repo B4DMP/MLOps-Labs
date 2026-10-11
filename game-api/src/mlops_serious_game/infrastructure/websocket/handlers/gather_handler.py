@@ -48,6 +48,7 @@ from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.infrastructure.database.run_scope import current_run_index
 from mlops_serious_game.infrastructure.database import GameChallenge, get_session
+from mlops_serious_game.infrastructure.websocket.handlers.intel_handler import can_afford
 from mlops_serious_game.infrastructure.websocket.handlers.log_handler import send_events
 from mlops_serious_game.infrastructure.websocket.manager import manager
 
@@ -552,6 +553,12 @@ async def handle_gather_open(websocket: WebSocket, user_id: int, payload: dict) 
             await manager.send_event(websocket=websocket, event="system:error", payload={"message": why_not})
             return
 
+    if not can_afford(user_id, phase_id, challenge_id, card.token_cost):
+        await manager.send_event(
+            websocket=websocket, event="system:error", payload={"message": "Not enough attention tokens."}
+        )
+        return
+
     existing_messages = []
     with get_session() as db:
         row = db.scalars(
@@ -580,14 +587,12 @@ async def handle_gather_open(websocket: WebSocket, user_id: int, payload: dict) 
             current_ac["engagement_card_targets"] = card_targets
             row.action_card = current_ac
             flag_modified(row, "action_card")
-            if payload.get("attention_tokens") is not None:
-                row.attention_tokens = payload.get("attention_tokens")
-            elif row.attention_tokens is not None and card is not None:
+            if row.attention_tokens is not None and card is not None:
                 row.attention_tokens = max(0, row.attention_tokens - card.token_cost)
             db.commit()
         else:
-            curr_tokens = payload.get("attention_tokens")
-            if curr_tokens is None and challenge:
+            curr_tokens = None
+            if challenge:
                 curr_tokens = max(0, challenge.attention_tokens - (card.token_cost if card else 0))
             current_ac = {
                 "played_engagement_card_ids": [card_id],

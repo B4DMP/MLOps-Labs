@@ -45,11 +45,11 @@ async def test_gather_open_updates_attention_tokens_in_session():
             "challenge_id": 0,
             "card_id": "eng_1",
             "stakeholder_ids": ["bear_bruce"],
-            "attention_tokens": 16,
+            "attention_tokens": 999,  # a client claim, ignored: the server deducts the card's cost
         }
         await handle_gather_open(ws, user_id, payload)
 
-        assert mock_row.attention_tokens == 16
+        assert mock_row.attention_tokens == 20 - 3
         assert mock_db.commit.called
 
 
