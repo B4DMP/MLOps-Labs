@@ -193,6 +193,8 @@ export interface StakeholderDossierProps {
   cheatSheetActiveSection?: "Briefing" | "Digging for Intel" | "Pitch & Debate" | "Simulate";
   /** Bump to open the Case board tab from outside (it only has an effect when the room has a board). */
   openBoardRequest?: number;
+  /** Bump to show `activeStakeholderId`'s page even if it is already the active one (leaves the Case board). */
+  showStakeholderRequest?: number;
 }
 
 /** One authored item's answer key: true tag, graph target and the artifact it is read off. */
@@ -563,6 +565,7 @@ export default function StakeholderDossier({
   onOpenArtifact,
   cheatSheetActiveSection,
   openBoardRequest = 0,
+  showStakeholderRequest = 0,
 }: StakeholderDossierProps) {
   const { emit, subscribe } = useGameWebSocket();
   const { stakeholders, emotionColors: contextEmotionColors } = useContext(StakeholderContext) || {
@@ -988,14 +991,27 @@ export default function StakeholderDossier({
 
     if (activeStakeholderId && (justOpened || activeStChanged)) {
       const stIdx = findStakeholderIndex(activeStakeholderId);
-      if (stIdx !== -1 && stIdx !== currentPageIndex) {
-        setCurrentPageIndex(stIdx);
+      if (stIdx !== -1) {
+        // The board is a tab of its own, so leave it or the new page stays hidden behind it.
+        setBoardOpen(false);
+        if (stIdx !== currentPageIndex) setCurrentPageIndex(stIdx);
       }
     }
 
     prevIsOpenRef.current = isOpen;
     prevActiveStIdRef.current = activeStakeholderId;
   }, [isOpen, activeStakeholderId, highlightedIntelId, effectiveDossierData]);
+
+  const lastShowRequest = useRef(showStakeholderRequest);
+  useEffect(() => {
+    if (showStakeholderRequest === lastShowRequest.current) return;
+    lastShowRequest.current = showStakeholderRequest;
+    const stIdx = findStakeholderIndex(activeStakeholderId);
+    if (stIdx === -1) return;
+    setBoardOpen(false);
+    setCurrentPageIndex(stIdx);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showStakeholderRequest]);
 
   // Auto-scroll to highlighted intel sticky note
   useEffect(() => {

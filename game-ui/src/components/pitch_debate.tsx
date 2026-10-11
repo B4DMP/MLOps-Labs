@@ -228,6 +228,7 @@ export default function PitchDebate({
   const [boardLitIds, setBoardLitIds] = useState<ReadonlyMap<string, string>>(new Map());
   const [composerLitIds, setComposerLitIds] = useState<ReadonlyMap<string, string>>(new Map());
   const [boardRequest, setBoardRequest] = useState(0);
+  const [showStakeholderRequest, setShowStakeholderRequest] = useState(0);
   const [eventsOpen, setEventsOpen] = useState(false);
   const [events, setEvents] = useState<GameEventPayload[]>([]);
   const [singleArtifactForReview, setSingleArtifactForReview] = useState<IntelArtifact | null>(null);
@@ -1579,7 +1580,10 @@ export default function PitchDebate({
         data-coach-seat={st.id}
         className={`${styles.seatedStakeholder} ${isSelected ? styles.seatedSelected : ""} ${isSpeaking ? styles.seatedSpeaking : ""}`}
         style={{ ["--st-color" as string]: stakeholderColor }}
-        onClick={() => setSelectedStakeholderId(st.id)}
+        onClick={() => {
+          setSelectedStakeholderId(st.id);
+          setShowStakeholderRequest((n) => n + 1);
+        }}
       >
         {/* Active Speech Bubble */}
         {isSpeaking && activeSpeakingState && (
@@ -1900,6 +1904,7 @@ export default function PitchDebate({
                   buyInInfoMap={buyInInfoMap}
                   cheatSheetActiveSection="Pitch & Debate"
                   openBoardRequest={boardRequest}
+                  showStakeholderRequest={showStakeholderRequest}
                   onClose={() => {}}
                   onPerformanceToggle={onPerformanceToggle ? onPerformanceToggle : () => setShowDashboard(!showDashboard)}
                   isPerformanceOpen={isPerformanceOpen || showDashboard}
