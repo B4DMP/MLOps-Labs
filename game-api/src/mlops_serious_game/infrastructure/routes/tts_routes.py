@@ -1,14 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from mlops_serious_game.application.services import tts_service, user_settings_service
+from mlops_serious_game.application.services.auth_service import resolve_player
 from mlops_serious_game.application.services.tts_service import VoiceSlot
 from mlops_serious_game.config import settings
 
-from .auth_routes import get_current_player
-
 router = APIRouter(prefix="/api/tts", tags=["TTS"])
+
+
+def get_narration_player(request: Request) -> int:
+    """Like `get_current_player`, but also accepts an impersonated session: narration is
+    read-only, so an admin/teacher viewing as a player should still hear the real voices."""
+    resolved = resolve_player(request.cookies)
+    if resolved is None:
+        raise HTTPException(status_code=401, detail="Not authenticated.")
+    return resolved[0]
 
 
 class TTSRequest(BaseModel):
@@ -18,7 +26,7 @@ class TTSRequest(BaseModel):
 
 
 @router.post("")
-async def synthesize_speech(req: TTSRequest, user_id: int = Depends(get_current_player)):
+async def synthesize_speech(req: TTSRequest, user_id: int = Depends(get_narration_player)):
     """Server-side narration (docs/plans/player-settings-and-tts.md). POST, not GET, because
     intel artifacts can be long and this avoids URL-encoding a whole document.
 
