@@ -776,8 +776,6 @@ button.chipWarn:hover {
    the file on purpose: they override the sizes above. */
 .chip > svg,
 .chip > span > svg,
-.noteKind > svg,
-.noteMark > svg,
 .noteGo,
 .locked > svg,
 .addBtn > svg,
@@ -795,6 +793,14 @@ button.chipWarn:hover {
 .ticketLock > svg {
   width: var(--icon);
   height: var(--icon);
+}
+
+/* Note kind and marks take their colour from the wrapper (kind, confirmed, on record), so no colour here. */
+.noteKind > svg,
+.noteMark > svg {
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+  flex-shrink: 0;
 }
 
 /* Hand it over: one line above the tickets, the card's name on the left and its cost on the right. */
