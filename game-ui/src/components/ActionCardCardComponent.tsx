@@ -166,7 +166,7 @@ export default function ActionCardCardComponent({
             // progress pill or footer - so a 4th slot makes this list a bit taller or (on short
             // screens) a bit wider, instead of growing the whole card past the boardroom table's
             // available height and pushing the Commit/Revise buttons below it out of reach.
-            <div className={styles.changeRowsList}>
+            <div className={`${styles.changeRowsList} ${atomicChanges.length >= 3 ? styles.changeRowsDense : ""}`}>
               {atomicChanges.map((ac, idx) => {
                 const name =
                   card.target_names?.[ac.target] ||

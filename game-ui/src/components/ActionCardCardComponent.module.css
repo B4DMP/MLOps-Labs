@@ -139,9 +139,10 @@
    The boardroom table sizes itself around this card, and a 4th change row (added when the
    composer grew from 3 to 4 slots) made the single-column list tall enough to push the
    Commit/Revise buttons below the table off the visible area on shorter screens. Laying the
-   same rows out 2-up keeps the card at roughly its old (3-row) height instead. */
+   same rows out 2-up keeps the card at roughly its old (3-row) height instead. Only from 3 rows
+   up (.changeRowsDense): with 1-2 rows a half-width column just squeezed the name to "k...". */
 @media (max-height: 820px), (max-width: 480px) {
-  .changeRowsList {
+  .changeRowsDense {
     display: grid;
     /* minmax(0, 1fr), not plain 1fr: a bare 1fr track won't shrink below its row's
        min-content width, and a nowrap badge + name forced that past the column's share of
@@ -152,15 +153,15 @@
     max-height: 32vh;
   }
 
-  .changeRow {
+  .changeRowsDense .changeRow {
     border-top: 1px solid #e2e8f0;
   }
 
-  .changeRow:nth-child(odd) {
+  .changeRowsDense .changeRow:nth-child(odd) {
     border-right: 1px solid #e2e8f0;
   }
 
-  .changeRow:nth-child(-n + 2) {
+  .changeRowsDense .changeRow:nth-child(-n + 2) {
     border-top: none;
   }
 
