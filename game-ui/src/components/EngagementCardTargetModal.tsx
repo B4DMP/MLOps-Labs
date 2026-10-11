@@ -224,336 +224,244 @@ export default function EngagementCardTargetModal({
     }
   }
 
+  const rules = [
+    {
+      label: "Target Scope",
+      text: isIntelCard
+        ? "Select 1 unverified dossier finding to upgrade."
+        : isAllStakeholdersCard
+        ? `All ${requiredAmount} active team stakeholders are included in this sync.`
+        : `Select exactly ${requiredAmount} active stakeholder${requiredAmount > 1 ? "s" : ""}.`,
+    },
+    {
+      label: isIntelCard ? "Direct Verification" : card.effect_kind === "pen" ? "Their Draft" : "Dialogue & Intel",
+      text: isIntelCard
+        ? "Elevates finding certainty to Verified in the Stakeholder Dossier."
+        : card.effect_kind === "pen"
+        ? "They decide what to change and draft it into your plan at once. It is locked in, and it replaces your change on the same step if you have one."
+        : card.turns !== undefined && card.turns > 0
+        ? `Buys ${card.turns} turn${card.turns > 1 ? "s" : ""} per target: unconfirmed notes you hold are checked first, then new ones come up. Results land in your dossier.`
+        : "Triggers targeted dialogue responses & steers engagement dynamics.",
+    },
+    {
+      label: "Challenge Limit",
+      text: isIntelCard
+        ? "Already verified intel items cannot be verified again."
+        : card.repeatable_target
+        ? "Can be played on the same stakeholder again, but never asks the same question twice."
+        : card.effect_kind === "pen"
+        ? "The pen can be handed over once per phase."
+        : "Stakeholders already targeted by this card in this challenge are locked.",
+    },
+  ];
+
+  const showIntelFilter = isIntelCard && stakeholderOptions.length > 0;
+
   return (
     <Dialog open={isOpen} onClose={handleRequestClose} className="position-relative z-50">
       <DialogBackdrop className={`${styles.backdrop} ${isClosing ? styles.backdropClosing : ""}`} />
 
       <div className={styles.dialogWrapper}>
         <DialogPanel className={`${styles.panel} ${isClosing ? styles.panelClosing : ""}`}>
-          {/* Header */}
-          <div className={styles.header}>
-            <div>
-              <DialogTitle className={styles.headerTitle}>
-                <Icon icon={card.icon || "ph:cards-bold"} className={styles.headerIcon} />
-                <span>Target Selection • {card.title}</span>
-              </DialogTitle>
-              <p className={styles.headerSubtitle}>
-                {subtitle}
-              </p>
+          <header className={styles.header}>
+            <span className={styles.headerIconTile}>
+              <Icon icon={card.icon || "ph:cards-bold"} />
+            </span>
+            <div className={styles.headerText}>
+              <p className={styles.eyebrow}>{isIntelCard ? "Verify intel" : "Choose a target"}</p>
+              <DialogTitle className={styles.headerTitle}>{card.title}</DialogTitle>
+              <p className={styles.headerSubtitle}>{subtitle}</p>
             </div>
-
-            <div className={styles.headerBadges}>
+            <div className={styles.headerActions}>
               <HoverTooltip description={`${card.token_cost} Attention Tokens required`} portalTarget={tooltipLayer}>
                 <div className={styles.costBadge}>
-                  <Icon icon="ph:coin-fill" style={{ color: "var(--token-color)" }} />
+                  <Icon icon="ph:coin-fill" />
                   <span>{card.token_cost} Cost</span>
                 </div>
               </HoverTooltip>
-              <button
-                type="button"
-                className={styles.closeBtn}
-                onClick={handleRequestClose}
-                aria-label="Close dialog"
-              >
+              <button type="button" className={styles.closeBtn} onClick={handleRequestClose} aria-label="Close dialog">
                 <Icon icon="ph:x-bold" />
               </button>
             </div>
-          </div>
+          </header>
 
-          {/* Modal Body: 2-Column Dossier Layout */}
-          <div className={styles.modalBody}>
-            {/* Horizontal Directive Banner: full width across top of modal body */}
-            <div className={styles.directiveBanner}>
-              <div className={styles.directiveBannerHeader}>
-                <Icon icon="ph:list-checks-bold" className={styles.directiveIcon} />
-                <span>Card Directive & Rules</span>
+          <div className={styles.body}>
+            <aside className={styles.cardRail}>
+              <div className={styles.cardPreview}>
+                <EngagementCardComponent card={card} isPreview={true} attentionTokens={attentionTokens} />
               </div>
+            </aside>
 
-              <div className={styles.directiveStepsGrid}>
-                <div className={styles.directiveStepItem}>
-                  <span className={styles.stepBadge}>1</span>
-                  <div className={styles.directiveStepContent}>
-                    <strong>Target Scope:</strong>{" "}
-                    <span>
-                      {isIntelCard
-                        ? "Select 1 unverified dossier finding to upgrade."
-                        : isAllStakeholdersCard
-                        ? `All ${requiredAmount} active team stakeholders are included in this sync.`
-                        : `Select exactly ${requiredAmount} active stakeholder${requiredAmount > 1 ? "s" : ""}.`}
-                    </span>
-                  </div>
-                </div>
+            <section className={styles.choices}>
+              <div className={styles.choicesHead}>
+                <h2 className={styles.sectionTitle}>
+                  <Icon icon={isIntelCard ? "ph:files-bold" : "ph:users-three-bold"} className={styles.sectionIcon} />
+                  <span>{isIntelCard ? "Select Intel Item to Verify" : "Available Stakeholders"}</span>
+                </h2>
 
-                <div className={styles.directiveStepItem}>
-                  <span className={styles.stepBadge}>2</span>
-                  <div className={styles.directiveStepContent}>
-                    <strong>
-                      {isIntelCard
-                        ? "Direct Verification:"
-                        : card.effect_kind === "pen"
-                        ? "Their Draft:"
-                        : "Dialogue & Intel:"}
-                    </strong>{" "}
-                    <span>
-                      {isIntelCard
-                        ? "Elevates finding certainty to Verified in the Stakeholder Dossier."
-                        : card.effect_kind === "pen"
-                          ? "They decide what to change and draft it into your plan at once. It is locked in, and it replaces your change on the same step if you have one."
-                          : card.turns !== undefined && card.turns > 0
-                          ? `Buys ${card.turns} turn${card.turns > 1 ? "s" : ""} per target: unconfirmed notes you hold are checked first, then new ones come up. Results land in your dossier.`
-                          : "Triggers targeted dialogue responses & steers engagement dynamics."}
-                    </span>
-                  </div>
-                </div>
-
-                <div className={styles.directiveStepItem}>
-                  <span className={styles.stepBadge}>3</span>
-                  <div className={styles.directiveStepContent}>
-                    <strong>Challenge Limit:</strong>{" "}
-                    <span>
-                      {isIntelCard
-                        ? "Already verified intel items cannot be verified again."
-                        : card.repeatable_target
-                          ? "Can be played on the same stakeholder again, but never asks the same question twice."
-                          : card.effect_kind === "pen"
-                          ? "The pen can be handed over once per phase."
-                          : "Stakeholders already targeted by this card in this challenge are locked."}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.dossierGrid}>
-              {/* Left Column: Full Card Preview */}
-              <div className={styles.cardColumn}>
-                <div className={styles.cardPreviewWrapper}>
-                  <EngagementCardComponent
-                    card={card}
-                    isPreview={true}
-                    attentionTokens={attentionTokens}
-                  />
-                </div>
-              </div>
-
-              {/* Right Column: Stakeholder/Intel Selection Screen */}
-              <div className={styles.selectionColumn}>
-                <div className={styles.selectionHeader}>
-                  <div className="d-flex align-items-center gap-2">
-                    <h6 className={styles.sectionTitle}>
-                      <Icon
-                        icon={isIntelCard ? "ph:files-bold" : "ph:users-three-bold"}
-                        className={styles.sectionIcon}
-                      />
-                      <span>
-                        {isIntelCard
-                          ? "Select Intel Item to Verify"
-                          : "Available Stakeholders"}
-                      </span>
-                    </h6>
-                    {isIntelCard && stakeholderOptions.length > 0 && (
-                      <span className="badge bg-secondary" style={{ fontSize: "0.72rem" }}>
-                        {filteredIntelItems.length} of {intelItems.length}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="d-flex align-items-center gap-2">
-                    {isIntelCard && stakeholderOptions.length > 0 && (
-                      <div className="d-flex align-items-center gap-1">
-                        <label htmlFor="target-stakeholder-filter" className={styles.filterLabel}>
-                          <Icon icon="ph:funnel-bold" className="me-1" />
-                          Stakeholder:
-                        </label>
-                        <select
-                          id="target-stakeholder-filter"
-                          className={`form-select form-select-sm ${styles.stakeholderFilterSelect}`}
-                          value={selectedStakeholderFilter}
-                          onChange={(e) => setSelectedStakeholderFilter(e.target.value)}
-                        >
-                          <option value="ALL">All Stakeholders ({intelItems.length})</option>
-                          {stakeholderOptions.map((opt) => (
-                            <option key={opt.id} value={opt.id}>
-                              {opt.name} ({opt.count})
-                            </option>
-                          ))}
-                          {unassignedCount > 0 && (
-                            <option value="UNASSIGNED">General / Unassigned ({unassignedCount})</option>
-                          )}
-                        </select>
-                        {selectedStakeholderFilter !== "ALL" && (
-                          <HoverTooltip description="Reset filter to show all stakeholders" portalTarget={tooltipLayer}>
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-outline-secondary py-1 px-2"
-                              style={{ fontSize: "0.72rem" }}
-                              onClick={() => setSelectedStakeholderFilter("ALL")}
-                            >
-                              Clear
-                            </button>
-                          </HoverTooltip>
-                        )}
-                      </div>
-                    )}
-
-                    {isAllStakeholdersCard && selectedStakeholderIds.length < requiredAmount && (
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-info py-0 px-2"
-                        style={{ fontSize: "0.75rem", borderRadius: "4px" }}
-                        onClick={() => setSelectedStakeholderIds(selectableStakeholders.map((st: any) => st.id))}
+                <div className={styles.headTools}>
+                  {showIntelFilter && (
+                    <>
+                      <label htmlFor="target-stakeholder-filter" className={styles.filterLabel}>
+                        <Icon icon="ph:funnel-bold" />
+                        Stakeholder:
+                      </label>
+                      <select
+                        id="target-stakeholder-filter"
+                        className={styles.select}
+                        value={selectedStakeholderFilter}
+                        onChange={(e) => setSelectedStakeholderFilter(e.target.value)}
                       >
-                        Select All
-                      </button>
-                    )}
-                    <span
-                      className={`${styles.selectionCountBadge} ${
-                        isSelectionValid ? styles.selectionCountValid : styles.selectionCountPending
-                      }`}
+                        <option value="ALL">All Stakeholders ({intelItems.length})</option>
+                        {stakeholderOptions.map((opt) => (
+                          <option key={opt.id} value={opt.id}>
+                            {opt.name} ({opt.count})
+                          </option>
+                        ))}
+                        {unassignedCount > 0 && (
+                          <option value="UNASSIGNED">General / Unassigned ({unassignedCount})</option>
+                        )}
+                      </select>
+                      {selectedStakeholderFilter !== "ALL" && (
+                        <HoverTooltip description="Reset filter to show all stakeholders" portalTarget={tooltipLayer}>
+                          <button type="button" className={styles.ghostBtn} onClick={() => setSelectedStakeholderFilter("ALL")}>
+                            Clear
+                          </button>
+                        </HoverTooltip>
+                      )}
+                    </>
+                  )}
+
+                  {isAllStakeholdersCard && selectedStakeholderIds.length < requiredAmount && (
+                    <button
+                      type="button"
+                      className={styles.ghostBtn}
+                      onClick={() => setSelectedStakeholderIds(selectableStakeholders.map((st: any) => st.id))}
                     >
-                      <Icon
-                        icon={isSelectionValid ? "ph:check-circle-fill" : "ph:circle-dashed"}
-                        style={{ fontSize: "1rem" }}
-                      />
-                      <span>
-                        {isIntelCard
-                          ? selectedIntelId
-                            ? "1 / 1 Selected"
-                            : "0 / 1 Selected"
-                          : isAllStakeholdersCard
-                          ? `${selectedStakeholderIds.length} / ${requiredAmount} Selected (All Team)`
-                          : `${selectedStakeholderIds.length} / ${requiredAmount} Selected`}
-                      </span>
+                      Select All
+                    </button>
+                  )}
+                  <span className={`${styles.countBadge} ${isSelectionValid ? styles.countValid : styles.countPending}`}>
+                    <Icon icon={isSelectionValid ? "ph:check-circle-fill" : "ph:circle-dashed"} />
+                    <span>
+                      {isIntelCard
+                        ? `${selectedIntelId ? 1 : 0} / 1 Selected`
+                        : isAllStakeholdersCard
+                        ? `${selectedStakeholderIds.length} / ${requiredAmount} Selected (All Team)`
+                        : `${selectedStakeholderIds.length} / ${requiredAmount} Selected`}
                     </span>
-                  </div>
+                  </span>
                 </div>
+              </div>
 
-                {/* Selection Cards Grid */}
-                <div className={styles.cardsScrollContainer}>
-                  {isIntelCard ? (
-                    intelItems.length === 0 ? (
-                      <div className={styles.emptyState}>
-                        <Icon icon="ph:magnifying-glass-bold" className={styles.emptyStateIcon} />
-                        <h6 className={styles.emptyStateTitle}>No Intel Items Discovered Yet</h6>
-                        <p className={styles.emptyStateSubtitle}>
-                          Play research engagement cards to uncover stakeholder stances first.
-                        </p>
-                      </div>
-                    ) : filteredIntelItems.length === 0 ? (
-                      <div className={styles.emptyState}>
-                        <Icon icon="ph:user-circle-bold" className={styles.emptyStateIcon} />
-                        <h6 className={styles.emptyStateTitle}>No Intel for this Stakeholder</h6>
-                        <p className={styles.emptyStateSubtitle}>
-                          No discovered intel items match the selected stakeholder filter.
-                        </p>
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-info mt-2"
-                          onClick={() => setSelectedStakeholderFilter("ALL")}
-                        >
-                          Show All Intel Items
-                        </button>
-                      </div>
-                    ) : (
-                      /* Intel Items Grid */
-                      <div className={styles.intelGrid}>
-                        {filteredIntelItems.map((item) => {
-                          const isConfirmed = isIntelConfirmed(item);
-                          const isSelected = selectedIntelId === item.id;
-                          const isSelectable = !isConfirmed;
-                          const catType = item.categorized_type || "driver";
-                          const catDetails = getCategoryDetails(catType);
-
-                          return (
-                            <div
-                              key={item.id}
-                              className={`${styles.intelCard} ${isSelected ? styles.intelSelected : ""} ${!isSelectable ? styles.intelDisabled : ""
-                                }`}
-                              onClick={() => isSelectable && handleToggleIntel(item)}
-                            >
-                              <div>
-                                <div className={styles.intelHeader}>
-                                  <div className={styles.intelBadges}>
-                                    <span className={`${styles.categoryTag} ${catDetails.className}`}>
-                                      <Icon icon={catDetails.icon} />
-                                      <span>{catDetails.label}</span>
-                                    </span>
-
-                                    <span
-                                      className={`${styles.confirmationPill} ${
-                                        isConfirmed ? styles.confirmationPillVerified : styles.confirmationPillUnconfirmed
-                                      }`}
-                                    >
-                                      <Icon
-                                        icon={isConfirmed ? "ph:certificate-duotone" : "ph:question-fill"}
-                                        style={{ fontSize: "0.85rem" }}
-                                      />
-                                      <span>{isConfirmed ? "Confirmed" : "Unconfirmed"}</span>
-                                    </span>
-                                  </div>
-                                </div>
-
-                                <p className={styles.intelDescription} style={{ marginTop: "0.6rem" }}>
-                                  {item.description}
-                                </p>
-                              </div>
-
-                              <div className="d-flex justify-content-between align-items-center mt-2">
-                                {item.stakeholder_name ? (
-                                  <p className={styles.intelSource}>
-                                    <Icon icon="ph:user-circle" />
-                                    <span>Source: {item.stakeholder_name}</span>
-                                  </p>
-                                ) : (
-                                  <span />
-                                )}
-
-                                {!isSelectable ? (
-                                  <span className={styles.lockedBadge}>
-                                    <Icon icon="ph:certificate-duotone" /> Already Verified
-                                  </span>
-                                ) : isSelected ? (
-                                  <Icon icon="ph:check-circle-fill" className={styles.checkedIcon} />
-                                ) : (
-                                  <span className={styles.uncheckCircle} />
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )
+              <div className={styles.choiceScroll}>
+                {isIntelCard ? (
+                  intelItems.length === 0 ? (
+                    <div className={styles.emptyState}>
+                      <Icon icon="ph:magnifying-glass-bold" className={styles.emptyStateIcon} />
+                      <h3 className={styles.emptyStateTitle}>No Intel Items Discovered Yet</h3>
+                      <p className={styles.emptyStateSubtitle}>
+                        Play research engagement cards to uncover stakeholder stances first.
+                      </p>
+                    </div>
+                  ) : filteredIntelItems.length === 0 ? (
+                    <div className={styles.emptyState}>
+                      <Icon icon="ph:user-circle-bold" className={styles.emptyStateIcon} />
+                      <h3 className={styles.emptyStateTitle}>No Intel for this Stakeholder</h3>
+                      <p className={styles.emptyStateSubtitle}>
+                        No discovered intel items match the selected stakeholder filter.
+                      </p>
+                      <button type="button" className={styles.ghostBtn} onClick={() => setSelectedStakeholderFilter("ALL")}>
+                        Show All Intel Items
+                      </button>
+                    </div>
                   ) : (
-                    /* Stakeholder Cards Grid with prominent Avatars */
-                    <div className={styles.stakeholderGrid}>
-                      {activeStakeholders.map((st) => {
-                        const isSelected = selectedStakeholderIds.includes(st.id);
-                        const isAlreadyTargeted = targetedStakeholderIds.includes(st.id);
-                        const isIneligible = Boolean(eligibleSet) && !eligibleSet!.has(st.id);
-                        const isSelectable = !isAlreadyTargeted && !isIneligible;
-                        const stColor = getStakeholderColor(st);
-                        const stAvatar = stakeholders[st.id]?.avatar || st.avatar;
+                    <div className={styles.intelGrid}>
+                      {filteredIntelItems.map((item) => {
+                        const isConfirmed = isIntelConfirmed(item);
+                        const isSelected = selectedIntelId === item.id;
+                        const catDetails = getCategoryDetails(item.categorized_type || "driver");
 
                         return (
-                          <HoverTooltip
-                            key={st.id}
-                            block
-                            portalTarget={tooltipLayer}
-                            description={!isSelectable ? undefined : `Click to ${isSelected ? "deselect" : "select"} ${st.name}`}
+                          <button
+                            type="button"
+                            key={item.id}
+                            aria-pressed={isSelected}
+                            aria-disabled={isConfirmed}
+                            className={`${styles.tile} ${styles.tileIntel} ${isSelected ? styles.tileSelected : ""} ${
+                              isConfirmed ? styles.tileDisabled : ""
+                            }`}
+                            onClick={() => handleToggleIntel(item)}
                           >
-                          <div
-                            className={`${styles.stakeholderCard} ${isSelected ? styles.stakeholderSelected : ""
-                              } ${!isSelectable ? styles.stakeholderDisabled : ""}`}
+                            <span className={styles.intelTop}>
+                              <span className={`${styles.categoryTag} ${catDetails.className}`}>
+                                <Icon icon={catDetails.icon} />
+                                <span>{catDetails.label}</span>
+                              </span>
+                              <span
+                                className={`${styles.statusPill} ${
+                                  isConfirmed ? styles.statusVerified : styles.statusUnconfirmed
+                                }`}
+                              >
+                                <Icon icon={isConfirmed ? "ph:certificate-duotone" : "ph:question-fill"} />
+                                <span>{isConfirmed ? "Confirmed" : "Unconfirmed"}</span>
+                              </span>
+                            </span>
+
+                            <span className={styles.intelDescription}>{item.description}</span>
+
+                            <span className={styles.tileFoot}>
+                              {item.stakeholder_name ? (
+                                <span className={styles.intelSource}>
+                                  <Icon icon="ph:user-circle" />
+                                  <span>Source: {item.stakeholder_name}</span>
+                                </span>
+                              ) : (
+                                <span />
+                              )}
+                              {isConfirmed ? (
+                                <span className={styles.lockedBadge}>
+                                  <Icon icon="ph:certificate-duotone" /> Already Verified
+                                </span>
+                              ) : (
+                                <span className={`${styles.indicator} ${isSelected ? styles.indicatorOn : ""}`}>
+                                  {isSelected && <Icon icon="ph:check-bold" />}
+                                </span>
+                              )}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )
+                ) : (
+                  <div className={styles.stakeholderGrid}>
+                    {activeStakeholders.map((st) => {
+                      const isSelected = selectedStakeholderIds.includes(st.id);
+                      const isAlreadyTargeted = targetedStakeholderIds.includes(st.id);
+                      const isIneligible = Boolean(eligibleSet) && !eligibleSet!.has(st.id);
+                      const isSelectable = !isAlreadyTargeted && !isIneligible;
+                      const stColor = getStakeholderColor(st);
+                      const stAvatar = stakeholders[st.id]?.avatar || st.avatar;
+
+                      return (
+                        <HoverTooltip
+                          key={st.id}
+                          block
+                          portalTarget={tooltipLayer}
+                          description={!isSelectable ? undefined : `Click to ${isSelected ? "deselect" : "select"} ${st.name}`}
+                        >
+                          <button
+                            type="button"
+                            aria-pressed={isSelected}
+                            aria-disabled={!isSelectable}
+                            className={`${styles.tile} ${isSelected ? styles.tileSelected : ""} ${
+                              !isSelectable ? styles.tileDisabled : ""
+                            }`}
+                            style={{ "--st-color": isSelectable ? stColor : "#94a3b8" } as React.CSSProperties}
                             onClick={() => isSelectable && handleToggleStakeholder(st.id)}
                           >
-                            {/* Prominent Stakeholder Avatar Frame */}
-                            <div
-                              className={styles.avatarWrapper}
-                              style={{
-                                borderColor: isSelectable ? stColor : "#94a3b8",
-                                backgroundColor: isSelectable ? stColor : "#94a3b8",
-                              }}
-                            >
+                            <span className={styles.avatar}>
                               <StakeholderAvatarComponent
                                 avatar={stAvatar}
                                 stakeholderColor={stColor}
@@ -564,35 +472,10 @@ export default function EngagementCardTargetModal({
                                 size="100%"
                                 title={st.name}
                               />
-                            </div>
+                            </span>
 
-                            {/* Stakeholder Details */}
-                            <div className={styles.stakeholderMeta}>
-                              <div className={styles.stakeholderHeaderRow}>
-                                <h6 className={styles.stakeholderName}>
-                                  {st.name}
-                                </h6>
-                                <div className={styles.statusIndicator}>
-                                  {isSelected && (
-                                    <Icon
-                                      icon="ph:check-circle-fill"
-                                      className={styles.checkedIcon}
-                                    />
-                                  )}
-                                  {(isAlreadyTargeted || isIneligible) && (
-                                    <span style={{ display: "inline-flex" }}>
-                                      <Icon
-                                        icon="ph:lock-key-fill"
-                                        className={styles.lockedIcon}
-                                      />
-                                    </span>
-                                  )}
-                                  {!isSelected && !isAlreadyTargeted && !isIneligible && (
-                                    <span className={styles.uncheckCircle} />
-                                  )}
-                                </div>
-                              </div>
-
+                            <span className={styles.tileMeta}>
+                              <span className={styles.name}>{st.name}</span>
                               {isAlreadyTargeted ? (
                                 <span className={styles.lockedBadge}>
                                   <Icon icon="ph:lock-key-fill" /> This stakeholder was already targeted by this card in this challenge
@@ -602,68 +485,78 @@ export default function EngagementCardTargetModal({
                                   <Icon icon="ph:lock-key-fill" /> {ineligibleReason ?? "Not currently impatient"}
                                 </span>
                               ) : (
-                                <div className={styles.tagRow}>
+                                <span className={styles.tagRow}>
                                   {st.power && (
-                                    <span className={styles.miniBadge}>
+                                    <span className={styles.chip}>
                                       <Icon icon="ph:lightning-bold" /> {st.power} Power
                                     </span>
                                   )}
                                   {st.interest && (
-                                    <span className={styles.miniBadge}>
+                                    <span className={styles.chip}>
                                       <Icon icon="ph:eye-bold" /> {st.interest} Interest
                                     </span>
                                   )}
                                   {trustByStakeholder?.[st.id] && (
-                                    <span className={styles.miniBadge}>
+                                    <span className={styles.chip}>
                                       <Icon icon="ph:handshake-bold" /> Trust: {TRUST_LABEL[trustByStakeholder[st.id]]}
                                     </span>
                                   )}
-                                </div>
+                                </span>
                               )}
-                            </div>
-                          </div>
-                          </HoverTooltip>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+                            </span>
 
-            {/* Footer with game guidance and actions */}
-            <div className={styles.footer}>
-              <div className={styles.footerHint}>
-                <Icon icon="ph:info-bold" className={styles.footerHintIcon} />
-                <span>{footerHint}</span>
+                            {isSelectable ? (
+                              <span className={`${styles.indicator} ${isSelected ? styles.indicatorOn : ""}`}>
+                                {isSelected && <Icon icon="ph:check-bold" />}
+                              </span>
+                            ) : (
+                              <span className={`${styles.indicator} ${styles.indicatorLocked}`}>
+                                <Icon icon="ph:lock-key-fill" />
+                              </span>
+                            )}
+                          </button>
+                        </HoverTooltip>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
-              <div className={styles.actions}>
-                <button
-                  type="button"
-                  className={styles.cancelButton}
-                  onClick={handleRequestClose}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className={styles.actionButton}
-                  disabled={!isSelectionValid}
-                  onClick={handleConfirm}
-                >
-                  <Icon icon="ph:lightning-fill" />
-                  <span>
-                    Confirm & Play Card ({card.token_cost} Tokens)
-                  </span>
-                </button>
-              </div>
-            </div>
+              <ul className={styles.rules} aria-label="Card rules">
+                {rules.map((rule, i) => (
+                  <li key={rule.label} className={styles.rule}>
+                    <span className={styles.stepBadge}>{i + 1}</span>
+                    <span>
+                      <strong>{rule.label}</strong>
+                      {rule.text}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
           </div>
+
+          <footer className={styles.footer}>
+            <div className={`${styles.footerHint} ${isSelectionValid ? styles.footerHintReady : ""}`}>
+              <Icon icon={isSelectionValid ? "ph:check-circle-fill" : "ph:info-bold"} className={styles.footerHintIcon} />
+              <span>{footerHint}</span>
+            </div>
+
+            <div className={styles.actions}>
+              <button type="button" className={styles.cancelButton} onClick={handleRequestClose}>
+                Cancel
+              </button>
+              <button type="button" className={styles.actionButton} disabled={!isSelectionValid} onClick={handleConfirm}>
+                <Icon icon="ph:lightning-fill" />
+                <span>Confirm & Play Card ({card.token_cost} Tokens)</span>
+              </button>
+            </div>
+          </footer>
         </DialogPanel>
         {/* Click-through layer for tooltips; the panel's transform would otherwise trap fixed children. */}
         <div ref={setTooltipLayer} className={styles.tooltipLayer} />
       </div>
     </Dialog>
   );
+
 }
