@@ -296,9 +296,16 @@ function CrossStageArcs({
 
 /** Hand-off between two stage buttons: a small filled triangle, centred on the strip, so it reads
  *  as a direction of travel without spending width on a long arrow. Dark blue while things flow,
- *  red when the hand-off is stalled, pale when there is nothing to hand off yet. */
-function StageConnector({ flow }: { flow?: FlowData; toId: string }) {
-  const color = !flow ? "#cbd5e1" : flow.level === 0 ? statusColor("broken") : "var(--primary-bg, #266682)";
+ *  red when the hand-off is stalled, pale when there is nothing to hand off yet, and light blue
+ *  between two stages that are both still ahead of you. */
+function StageConnector({ flow, ahead }: { flow?: FlowData; toId: string; ahead?: boolean }) {
+  const color = ahead
+    ? "color-mix(in srgb, var(--primary-bg, #266682) 35%, #ffffff)"
+    : !flow
+      ? "#cbd5e1"
+      : flow.level === 0
+        ? statusColor("broken")
+        : "var(--primary-bg, #266682)";
 
   return (
     <div className={styles.connector}>
@@ -1018,7 +1025,7 @@ export default function PerformanceDashboard({
                               ref={(el) => { stageRefs.current[stage.id] = el; }}
                             >
                               {i > 0 && (
-                                <StageConnector flow={flow} toId={stage.id} />
+                                <StageConnector flow={flow} toId={stage.id} ahead={stage.locked && pipelineStages[i - 1]?.locked} />
                               )}
                               <HoverTooltip description={stage.locked ? `${stage.name} is ahead of you - preview what it will contain` : `Click to inspect ${stage.name}`}>
                               <button
