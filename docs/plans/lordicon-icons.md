@@ -43,6 +43,7 @@ Reference for the animated (Lordicon) icons used across the UI, and how to add m
 | `offline_intel_gathering.tsx` | "New intel just came in" intro banner (first taggable artifact) | `eye` |
 | `offline_intel_gathering.tsx` | "Said this in the open" on-record banner | `microphone` |
 | `VetoDialog.tsx` | Header, every veto | `road-barrier` |
+| `PrePhaseDialog.tsx` (via `ChallengeDescriptionCard`'s `heroIcon`) | Challenge card header in the phase briefing | `alarm` |
 | `IntelVerificationDialog.tsx` | Stance verification result | `puzzle-square` (correct), `warning-triangle` (corrected/incorrect) |
 | `ac_simulation.tsx` (Rollout Debrief) | Executive Directive Banner hero, one random icon per outcome tone, re-rolled every time the debrief is shown (`OUTCOME_HERO_ICONS`) | `firework`/`shooting-stars`/`confetti`/`disco-ball` (PASS), `wrench`/`warning-triangle`/`alarm` (SOFT_PASS), `ball-bowling`/`no-entry`/`stop` (VETO_BROKEN), `trash-bin`/`road-barrier`/`truck`/`person-protesting` (STALEMATE) |
 | `ComposeActionProposalModal.tsx` (sidebar inspector header) | Selected node is broken (`nominal_automation === 0`) | `warning-triangle` |

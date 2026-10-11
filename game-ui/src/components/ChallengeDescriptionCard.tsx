@@ -5,6 +5,7 @@ import { PhasesContext } from "./PhaseProvider";
 import styles from "./ChallengeDescriptionCard.module.css";
 import GlossaryText from "./glossary/GlossaryText";
 import SpokenText from "./SpokenText";
+import OnceIcon from "./Results/OnceIcon";
 import { splitSentences } from "../utils/speech";
 
 export function parseChallengeDescription(description?: string) {
@@ -76,6 +77,10 @@ export interface ChallengeDescriptionCardProps {
    *  being read (nothing here yet), then 0-based across the title and intro once it's their turn.
    *  Null whenever nothing is being narrated at all (muted, finished, review reopen). */
   activeSentenceIndex?: number | null;
+  /** Lordicon shown before the title (plays once, replays on hover). */
+  heroIcon?: object;
+  /** Left-aligned header and body, with the body scrolling inside a card that fills its parent. */
+  roomy?: boolean;
 }
 
 export default function ChallengeDescriptionCard({
@@ -88,6 +93,8 @@ export default function ChallengeDescriptionCard({
   is_minimized = true,
   isNew = false,
   activeSentenceIndex = null,
+  heroIcon,
+  roomy = false,
 }: ChallengeDescriptionCardProps) {
   const { stakeholders } = useContext(StakeholderContext);
   const { phases, currentPhase } = useContext(PhasesContext);
@@ -180,7 +187,9 @@ export default function ChallengeDescriptionCard({
 
   return (
     <div
-      className={`card shadow-sm w-100 rounded-2 position-relative ${styles.challengeCard}`}
+      className={`card shadow-sm w-100 rounded-2 position-relative ${styles.challengeCard} ${
+        roomy ? styles.challengeCardRoomy : ""
+      }`}
     >
       {isNew && (
         <span className={`badge position-absolute ${styles.newBadge}`}>
@@ -188,8 +197,11 @@ export default function ChallengeDescriptionCard({
         </span>
       )}
       <div
-        className={`card-header py-1 px-3 d-flex align-items-center justify-content-center gap-2 ${styles.cardHeader}`}
+        className={`card-header py-1 px-3 d-flex align-items-center gap-2 ${
+          roomy ? styles.cardHeaderRoomy : "justify-content-center"
+        } ${styles.cardHeader}`}
       >
+        {heroIcon && <OnceIcon icon={heroIcon} className={styles.heroIcon} />}
         <span className={`fw-bold ${styles.cardTitle}`}>
           {challengeTitle}
           {isTitleActive && <span className={styles.titleCaret} aria-hidden="true" />}
@@ -198,10 +210,12 @@ export default function ChallengeDescriptionCard({
           Challenge {displayChallengeNumber}/{totalChallengeCount}
         </span>
       </div>
-      <div className="card-body bg-white text-dark py-2 px-3">
+      <div
+        className={`card-body bg-white text-dark py-2 px-3 ${roomy ? styles.cardBodyRoomy : ""}`}
+      >
         {challengeIntro && (
           <p
-            className={`card-text text-center ${styles.introText} ${
+            className={`card-text ${roomy ? styles.introRoomy : "text-center"} ${styles.introText} ${
               is_minimized
                 ? `text-dark mb-0 ${styles.introMinimized}`
                 : `text-secondary mb-1 ${styles.introExpanded}`

@@ -90,6 +90,52 @@
   font-style: italic;
 }
 
+.heroIcon {
+  display: inline-flex;
+  width: 1.7rem;
+  height: 1.7rem;
+  flex-shrink: 0;
+}
+
+.heroIcon > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Shrinks with its parent and scrolls its body, so a long story never pushes the page */
+.challengeCardRoomy {
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 auto;
+  min-height: 0;
+}
+
+.cardHeaderRoomy {
+  justify-content: flex-start;
+  padding-top: 0.45rem !important;
+  padding-bottom: 0.45rem !important;
+}
+
+.cardHeaderRoomy .counterBadge {
+  margin-left: auto;
+}
+
+.cardBodyRoomy {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border-radius: 0 0 0.375rem 0.375rem;
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+}
+
+.introRoomy {
+  text-align: left;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
 .descriptionText {
   font-size: 0.8rem;
   line-height: 1.3;

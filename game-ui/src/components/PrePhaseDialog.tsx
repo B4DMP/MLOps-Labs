@@ -16,6 +16,7 @@ import SpokenText from "./SpokenText";
 import GlossaryText from "./glossary/GlossaryText";
 import { startTour } from "../utils/tour";
 import { useNarratorGate } from "./useNarratorGate";
+import ALARM_ICON from "./Results/icons/alarm.json";
 
 interface PrePhaseDialogProps {
   isOpen: boolean;
@@ -71,11 +72,16 @@ export default function PrePhaseDialog({
   const [dynamicsSlot, setDynamicsSlot] = useState<HTMLSpanElement | null>(null);
   const [actionsSlot, setActionsSlot] = useState<HTMLSpanElement | null>(null);
   const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
+  // Open on a fresh briefing, folded away on a review reopen (already seen).
+  const [isPlanOpen, setIsPlanOpen] = useState(!isReview);
   const wasReviewRef = useRef(false);
   const introTourStartedRef = useRef(false);
   if (isOpen) {
     wasReviewRef.current = isReview;
   }
+  useEffect(() => {
+    if (isOpen) setIsPlanOpen(!isReview);
+  }, [isOpen, isReview]);
 
   // Narrator reads the phase introduction and this round's challenge before the stakeholders
   // introduce themselves, only on a genuine phase entry (a review reopen never auto-plays
@@ -249,6 +255,15 @@ export default function PrePhaseDialog({
     setHasBriefingAudioStarted(false);
   };
 
+  // Same tour driver as the other guides; its steps live on the radar's axes and Manage Closely tab.
+  const startRadarGuide = () => {
+    stopBriefingNarration();
+    startTour("introRadar", {
+      beforeStart: () => gate.request(),
+      narrate: (text) => speakTts(text, { slot: "narrator", seed: TOUR_GUIDE_SEED }),
+    });
+  };
+
   const handleClose = () => {
     // A stakeholder introduction can still be mid-sentence when the player moves on (they don't
     // have to wait for it), and the round behind this dialog starts immediately on close - so
@@ -279,7 +294,6 @@ export default function PrePhaseDialog({
   const previousStakeholders = previousPhaseData?.stakeholder_power_interest || [];
 
   const displayPhaseNumber = hasIntroPhase ? Math.max(1, currentPhase) : currentPhase + 1;
-  const totalPlayablePhases = hasIntroPhase ? Math.max(1, phases.length - 1) : phases.length;
 
   const panelContent = (
       <div className={wasReviewRef.current ? styles.dashboardPanel : styles.panel}>
@@ -290,9 +304,6 @@ export default function PrePhaseDialog({
                 <Icon icon="ph:projector-screen-chart-bold" className={styles.headerIcon} />
                 <span>Phase Briefing</span>
               </h1>
-              <p className={styles.headerSubtitle}>
-                Project Milestone Overview
-              </p>
             </div>
             {/* Same lifecycle breadcrumb as the Performance Dashboard header, so "where am I
                 in the project" looks identical wherever the player reads it. */}
@@ -307,11 +318,6 @@ export default function PrePhaseDialog({
               <PhaseOverview />
             </div>
             <div className="d-flex align-items-center gap-2">
-              {phases && phases.length > 0 && (
-                <span className={styles.phaseBadge}>
-                  Phase {displayPhaseNumber} of {totalPlayablePhases}
-                </span>
-              )}
               {/* Hidden on a review reopen: the dossier behind this already has its own
                   Settings and Cheat Sheet buttons, so a second pair here would be redundant. */}
               {!isReview && (
@@ -364,34 +370,6 @@ export default function PrePhaseDialog({
                 </div>
               </div>
             )}
-            {/* Horizontal Directive Banner: full width across top of modal body */}
-            <div className={styles.directiveBanner}>
-              <div className={styles.directiveBannerHeader}>
-                <Icon icon="ph:list-checks-bold" className={styles.directiveIcon} />
-                <span>Player Action Plan</span>
-              </div>
-              <div className={styles.directiveStepsGrid}>
-                <div className={styles.directiveStepItem}>
-                  <span className={styles.stepBadge}>1</span>
-                  <div className={styles.directiveStepContent}>
-                    <strong>Deliver the Phase:</strong> Align your technical choices with what the phase briefing above asks for.
-                  </div>
-                </div>
-                <div className={styles.directiveStepItem}>
-                  <span className={styles.stepBadge}>2</span>
-                  <div className={styles.directiveStepContent}>
-                    <strong>Involve Others:</strong> Prioritize <span className={styles.highlightManage}>Manage Closely</span> stakeholders (high power can veto, high interest reacts strongly), but make sure to involve the others as well.
-                  </div>
-                </div>
-                <div className={styles.directiveStepItem}>
-                  <span className={styles.stepBadge}>3</span>
-                  <div className={styles.directiveStepContent}>
-                    <strong>Navigate Trade-offs:</strong> Check newcomer and shifted badges on the radar to anticipate which stakeholder priorities may clash during round dilemmas.
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <div className={styles.dossierGrid}>
               {/* Left Column: Mission Directive & Objectives */}
               <div className={styles.missionColumn}>
@@ -461,7 +439,7 @@ export default function PrePhaseDialog({
                 {/* Minimized Challenge Briefing: the current challenge's story, excluding the stakeholder-specific breakdown */}
                 {challengeTitle && (
                   <div
-                    className={isReadingChallenge ? styles.challengeSpeaking : undefined}
+                    className={`${styles.challengeSlot} ${isReadingChallenge ? styles.challengeSpeaking : ""}`}
                     data-intro-group="intro2"
                     data-title="This Round's Challenge"
                     data-intro="This is the challenge description: the specific situation you're dropped into this round, and why the stakeholders don't agree about it. Whatever you pitch later has to actually resolve that disagreement, not just please one side of it - reread it if you have to, nobody's timing you."
@@ -476,6 +454,8 @@ export default function PrePhaseDialog({
                       is_minimized={true}
                       isNew={isNewChallenge}
                       activeSentenceIndex={isNarratingBriefing ? challengeSentenceIndex : null}
+                      heroIcon={ALARM_ICON}
+                      roomy
                     />
                   </div>
                 )}
@@ -503,12 +483,17 @@ export default function PrePhaseDialog({
                       <span ref={setActionsSlot} className={styles.radarActionsSlot} />
                       <HoverTooltip
                         portalTarget={bubbleLayer}
-                        description="Radar Guide: Power is whether this person can stop you. High power can veto the whole plan, low power can only grumble. Interest is how much they care; together with power it sets how strongly your words and your proposal move their mood. Focus on 'Manage Closely' stakeholders first, but don't disregard the others."
+                        description="Walk through how to read the radar"
                       >
-                        <span className={styles.radarHelpBtn}>
+                        <button
+                          type="button"
+                          className={styles.radarHelpBtn}
+                          onClick={startRadarGuide}
+                          disabled={isStakeholderIntroActive}
+                        >
                           <Icon icon="ph:info-bold" />
                           <span>Radar Guide</span>
-                        </span>
+                        </button>
                       </HoverTooltip>
                     </div>
                   </div>
@@ -531,15 +516,48 @@ export default function PrePhaseDialog({
               </div>
             </div>
 
-            {/* Footer with hint and action button */}
+            {/* Sits below the briefing and radar it refers to; collapsible so a review reopen,
+                which has already seen it, can fold it away. */}
+            <div className={styles.directiveBanner}>
+              <button
+                type="button"
+                className={styles.directiveBannerHeader}
+                onClick={() => setIsPlanOpen((open) => !open)}
+                aria-expanded={isPlanOpen}
+              >
+                <Icon icon="ph:list-checks-bold" className={styles.directiveIcon} />
+                <span>Player Action Plan</span>
+                <Icon
+                  icon="ph:caret-down-bold"
+                  className={`${styles.directiveChevron} ${isPlanOpen ? styles.directiveChevronOpen : ""}`}
+                />
+              </button>
+              {isPlanOpen && (
+                <div className={styles.directiveStepsGrid}>
+                  <div className={styles.directiveStepItem}>
+                    <span className={styles.stepBadge}>1</span>
+                    <div className={styles.directiveStepContent}>
+                      <strong>Deliver the Phase:</strong> Align your technical choices with what the phase briefing above asks for.
+                    </div>
+                  </div>
+                  <div className={styles.directiveStepItem}>
+                    <span className={styles.stepBadge}>2</span>
+                    <div className={styles.directiveStepContent}>
+                      <strong>Involve Others:</strong> Prioritize <span className={styles.highlightManage}>Manage Closely</span> stakeholders (high power can veto, high interest reacts strongly), but make sure to involve the others as well.
+                    </div>
+                  </div>
+                  <div className={styles.directiveStepItem}>
+                    <span className={styles.stepBadge}>3</span>
+                    <div className={styles.directiveStepContent}>
+                      <strong>Navigate Trade-offs:</strong> Check newcomer and shifted badges on the radar to anticipate which stakeholder priorities may clash during round dilemmas.
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer: the start button stays in view while the page above scrolls */}
             <div className={styles.footer}>
-              <div className={styles.footerHint}>
-                <Icon icon="ph:info-bold" className={styles.footerHintIcon} />
-                <span>
-                  You can review this stakeholder matrix anytime. Each phase feeds the next, and
-                  the last one feeds the next iteration: MLOps is a spiral, not a checklist.
-                </span>
-              </div>
               <div className={styles.actions}>
                 <button
                   className={`${styles.actionButton} ${shouldNudgeStart ? styles.actionButtonNudge : ""}`}

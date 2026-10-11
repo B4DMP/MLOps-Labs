@@ -12,11 +12,11 @@
   --ink-soft: #5b4a3a;
   --manila: #f4e7c5;
   --wood: #5a3c24;
-  --axis: #64748b;
+  --axis: #475569;
 
   display: grid;
-  grid-template-columns: 20px minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) 20px;
+  grid-template-columns: 26px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) 26px;
   gap: 4px 6px;
   width: 100%;
   max-width: 100%;
@@ -34,7 +34,7 @@
   gap: 0.45rem;
   min-width: 0;
   min-height: 0;
-  font-size: 0.64rem;
+  font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -78,7 +78,7 @@
 
 .axisArrow {
   flex-shrink: 0;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
 }
 
 /* ---------- Board: wood frame, wood cross-bars, four cork panels ---------- */

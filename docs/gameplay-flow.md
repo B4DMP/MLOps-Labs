@@ -44,7 +44,10 @@ server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch e
    (radar) with each newcomer's self-introduction. Phase 0 order: `intro2` tour, then narration of
    phase and challenge, then introductions, then the Enter button is nudged. Closing it reveals
    the already-mounted offline intel screen. Review reopen (from the dossier) is a modal with no
-   narration. This is where Power and Interest are first explained.
+   narration. This is where Power and Interest are first explained. Layout: phase card and
+   challenge card on the left, radar on the right, then the collapsible Player Action Plan (folded
+   on a review reopen) and the Enter button. The Radar Guide button replays the `introRadar` tour
+   (Power axis, Interest axis, Manage Closely).
 4. **Offline intel** (`offline_intel_gathering.tsx`, dossier left, `IntelArtifactViewer.tsx`):
    deck = on-record cards first (1 challenge Fact + the conflict stakeholders' positions,
    normally 3), then up to 3 stance artifacts to tag as driver / boundary / trade-off

@@ -484,7 +484,17 @@ export default function PowerInterestMatrix({
                   "data-step": "5",
                 })}
               >
-                <div className={styles.sectorLabel}>
+                <div
+                  className={styles.sectorLabel}
+                  {...(quad.key === "high-high" && {
+                    "data-intro-group": "introRadar",
+                    "data-title": "Manage Closely",
+                    "data-intro":
+                      "Start with the top right: they can veto and they react strongly to everything you say. Look for the <em>NEW</em> and <em>SHIFTED</em> badges on the cards, they flag who just joined or moved since the last phase. The other quadrants still matter, so don't leave anyone out.",
+                    "data-step": "3",
+                    "data-position": "bottom",
+                  })}
+                >
                   <div className={styles.sectorHeader}>
                     <span className={styles.sectorTitle}>
                       <Icon icon={quad.icon} className={styles.sectorIcon} />
@@ -631,7 +641,14 @@ export default function PowerInterestMatrix({
       </div>
 
       {/* Axes sit outside the board, as plain chart labels */}
-      <div className={styles.axisY}>
+      <div
+        className={styles.axisY}
+        data-intro-group="introRadar"
+        data-title="Power"
+        data-intro="<mark>Power</mark> is whether this person can stop you. High power can veto your whole plan, low power can only grumble. The higher a stakeholder sits on the board, the more it costs you to ignore them."
+        data-step="1"
+        data-position="right"
+      >
         <Icon icon="ph:arrow-up-bold" className={styles.axisArrow} />
         <span>High</span>
         <span className={styles.axisLine} />
@@ -639,7 +656,14 @@ export default function PowerInterestMatrix({
         <span className={styles.axisLine} />
         <span>Low</span>
       </div>
-      <div className={styles.axisX}>
+      <div
+        className={styles.axisX}
+        data-intro-group="introRadar"
+        data-title="Interest"
+        data-intro="<mark>Interest</mark> is how much they care about this project. Together with power it sets how strongly your words and your proposal move their mood. The further right, the stronger the reaction."
+        data-step="2"
+        data-position="top"
+      >
         <span>Low</span>
         <span className={styles.axisLine} />
         <span className={styles.axisName}>Interest</span>
