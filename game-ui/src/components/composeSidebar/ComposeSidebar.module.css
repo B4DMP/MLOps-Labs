@@ -209,7 +209,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  height: calc(var(--row-h) * 0.8);
+  height: calc(var(--row-h) * 0.9);
   padding: 0 var(--sp-3);
   border: 1px solid var(--paper-line);
   border-radius: 9999px;
@@ -555,7 +555,7 @@ button.chipWarn:hover {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  height: calc(var(--row-h) - 8px);
+  height: calc(var(--row-h) - 4px);
   padding: 0 var(--sp-3);
   border-radius: 6px;
   font-size: var(--fs-xs);
@@ -771,36 +771,52 @@ button.chipWarn:hover {
   }
 }
 
-/* ── Icon legibility ───────────────────────────────────────────────────── */
-/* Icons were sized in em of 10 to 12px text, which is too small to read as a shape. These sit later in
-   the file on purpose: they override the sizes above. */
-.chip > svg,
-.chip > span > svg,
-.noteGo,
-.locked > svg,
-.addBtn > svg,
-.removeBtn > svg,
-.helpMark,
-.ticketAxis,
-/* A slot a stakeholder drafted: locked, so a lock where Remove would be. */
-.ticketLock {
-  flex-shrink: 0;
-  display: inline-flex;
-  padding: 2px;
-  color: var(--ink-muted, #6e5f4d);
+/* ── Icon sizes ────────────────────────────────────────────────────────── */
+/* Every icon is sized here, in one place, from the --icon tokens (em of 10 to 12px text is too small to read as
+   a shape). No colour: each icon inherits its wrapper's, so states (ok, warn, confirmed, add) show through. */
+.chip svg,
+.chip > span > svg {
+  width: calc(var(--row-h) * 0.62);
+  height: calc(var(--row-h) * 0.62);
 }
 
-.ticketLock > svg {
+.addBtn > svg,
+.removeBtn > svg,
+.ticketRemove > svg,
+.ticketLock > svg,
+.ticketEmpty > svg,
+.penActionBtn svg,
+.locked > svg,
+.helpMark,
+.ticketAxis,
+.noteGo {
   width: var(--icon);
   height: var(--icon);
 }
 
-/* Note kind and marks take their colour from the wrapper (kind, confirmed, on record), so no colour here. */
 .noteKind > svg,
-.noteMark > svg {
+.noteMark > svg,
+.sectionHead > svg,
+.bandClose > svg {
   width: var(--icon-lg);
   height: var(--icon-lg);
+}
+
+.chip svg,
+.addBtn > svg,
+.removeBtn > svg,
+.locked > svg,
+.helpMark,
+.ticketAxis,
+.noteGo,
+.noteKind > svg,
+.noteMark > svg {
   flex-shrink: 0;
+}
+
+.ticketLock,
+.helpMark {
+  color: var(--ink-mute);
 }
 
 /* Hand it over: one line above the tickets, the card's name on the left and its cost on the right. */
@@ -845,8 +861,19 @@ button.chipWarn:hover {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: var(--fs-sm);
-  color: var(--ink);
+  padding: 2px var(--sp-3) 2px var(--sp-2);
+  border-radius: 9999px;
+  /* The amber coin vanishes on cream paper, so it sits on a dark brass-edged chip, like the desk. */
+  background: var(--desk);
+  box-shadow: inset 0 0 0 1px var(--brass-dim);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--desk-ink);
+}
+
+.penActionCost > svg {
+  width: var(--icon-lg);
+  height: var(--icon-lg);
 }
 
 .ticketRemove > svg {

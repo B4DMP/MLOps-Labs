@@ -12,8 +12,8 @@
   --sp-4: clamp(8px, 1.2vh, 14px);
 
   --row-h: clamp(24px, 2.7vh, 30px);
-  --icon: clamp(15px, 1.7vh, 19px);
-  --icon-lg: clamp(17px, 1.95vh, 22px);
+  --icon: clamp(17px, 1.9vh, 21px);
+  --icon-lg: clamp(19px, 2.2vh, 25px);
 
   --radius-sm: 0.35rem;
   --radius-md: 0.5rem;

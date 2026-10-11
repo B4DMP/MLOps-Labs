@@ -29,8 +29,8 @@
   /* one text row everywhere the sidebar lists things */
   --row-h: clamp(24px, 2.7vh, 30px);
   /* icon sizes in the sidebar: a glyph needs more pixels than a letter to stay recognisable */
-  --icon: clamp(15px, 1.7vh, 19px);
-  --icon-lg: clamp(17px, 1.95vh, 22px);
+  --icon: clamp(17px, 1.9vh, 21px);
+  --icon-lg: clamp(19px, 2.2vh, 25px);
 
   --radius-sm: 0.35rem;
   --radius-md: 0.5rem;
