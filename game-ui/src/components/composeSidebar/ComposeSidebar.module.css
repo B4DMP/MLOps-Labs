@@ -50,6 +50,18 @@
   text-shadow: 0 1px 1px color-mix(in srgb, var(--bar) 40%, black);
 }
 
+.bandWarn {
+  flex-shrink: 0;
+  display: inline-flex;
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+.bandWarn > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 /* Who owns it: a badge, not a thumbnail. Faces toward the title (the avatar is flipped). */
 .owner {
   --size: clamp(46px, 5.6vh, 58px);

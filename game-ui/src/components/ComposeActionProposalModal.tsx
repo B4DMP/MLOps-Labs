@@ -43,6 +43,8 @@ import { COACH_TIPS, COMPOSE_GUIDE, PITCH_GUIDE } from "../content/helpCopy";
 import type { Stakeholder } from "./StakeholderProvider";
 import type { StakeholderDossierEntry } from "./StakeholderDossier";
 import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
+import OnceIcon from "./Results/OnceIcon";
+import warningTriangle from "./Results/icons/warning-triangle.json";
 import { useGlossaryHighlighter } from "./glossary/GlossaryText";
 import {
 
@@ -1842,6 +1844,9 @@ export default function ComposeActionProposalModal({
                   <h4 className={sb.bandTitle} {...tagProps(selectedCompData.name)}>
                     {highlight(selectedCompData.name)}
                   </h4>
+                  {(selectedCompData.nominal_automation ?? 1) === 0 && (
+                    <OnceIcon icon={warningTriangle} className={sb.bandWarn} />
+                  )}
                   {renderOwner(selectedCompData.owner_id)}
                   {closeInspectorButton(() => setSelectedCompId(null))}
                 </div>
