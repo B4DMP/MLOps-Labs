@@ -68,9 +68,9 @@ function renderPanel(opts: {
   );
 }
 
-async function openSection(name: string) {
+async function openSection(name?: string) {
   const user = userEvent.setup();
-  await user.click(screen.getByRole("button", { name }));
+  if (name) await user.click(screen.getByRole("button", { name }));
   return user;
 }
 
@@ -79,47 +79,40 @@ describe("SettingsPanel accordion", () => {
     mockedLoadVoices.mockReset();
   });
 
-  it("starts with every section collapsed", async () => {
+  it("shows who is signed in and the main settings without opening anything", async () => {
     mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
     renderPanel({ canResetAccount: true });
 
-    expect(screen.queryByText("Signed in as alice@example.test")).not.toBeInTheDocument();
-    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
-    expect(screen.queryByText("Reset my account")).not.toBeInTheDocument();
-  });
-
-  it("opens exactly one section at a time", async () => {
-    mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
-    renderPanel({ settings: { tts_backend: "webspeech" } });
-
-    const user = await openSection("Conversations");
+    expect(screen.getByText("alice@example.test")).toBeInTheDocument();
     expect(screen.getByText("Auto-skip conversations")).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "Voice" }));
-    expect(screen.queryByText("Auto-skip conversations")).not.toBeInTheDocument();
-    await screen.findAllByRole("combobox");
+    expect(screen.getByText("Mute narration")).toBeInTheDocument();
+    expect(screen.getByText("Reset my account")).toBeInTheDocument();
   });
 
-  it("has no account section when canResetAccount is false", async () => {
+  it("keeps the password and email forms collapsed until opened", async () => {
+    mockedLoadVoices.mockResolvedValue([]);
+    renderPanel();
+
+    expect(screen.queryByPlaceholderText("Current password")).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("New email address")).not.toBeInTheDocument();
+
+    await openSection("Change password");
+    expect(screen.getByPlaceholderText("Current password")).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("New email address")).not.toBeInTheDocument();
+  });
+
+  it("has no danger zone when canResetAccount is false", async () => {
     mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
     renderPanel({ canResetAccount: false });
 
-    expect(screen.queryByRole("button", { name: "Account" })).not.toBeInTheDocument();
-  });
-
-  it("shows the account section's contents once opened", async () => {
-    mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
-    renderPanel({ canResetAccount: true });
-
-    await openSection("Account");
-    expect(await screen.findByText("Reset my account")).toBeInTheDocument();
+    expect(screen.queryByText("Reset my account")).not.toBeInTheDocument();
   });
 
   it("keeps the final reset button disabled until the email is typed", async () => {
     mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
     renderPanel({ canResetAccount: true, email: "alice@example.test" });
 
-    const user = await openSection("Account");
+    const user = await openSection();
     await user.click(screen.getByText("Reset my account"));
 
     const confirmButton = screen.getByRole("button", { name: "Permanently reset my account" });
@@ -138,7 +131,7 @@ describe("SettingsPanel accordion", () => {
     mockedLoadVoices.mockResolvedValue([]);
     renderPanel({ settings: { tts_backend: "webspeech" } });
 
-    await openSection("Voice");
+    await openSection();
     expect(await screen.findByText(/no speech voices|speech-dispatcher/i)).toBeInTheDocument();
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
@@ -147,7 +140,7 @@ describe("SettingsPanel accordion", () => {
     mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop"), fakeVoice("Microsoft Zira Desktop")]);
     renderPanel({ settings: { tts_backend: "webspeech" } });
 
-    await openSection("Voice");
+    await openSection();
     expect(await screen.findAllByRole("combobox")).toHaveLength(4);
   });
 
@@ -155,7 +148,7 @@ describe("SettingsPanel accordion", () => {
     mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
     renderPanel({ settings: { tts_backend: "auto" } });
 
-    await openSection("Voice");
+    await openSection();
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Preview the/ })).not.toBeInTheDocument();
     expect(screen.queryByText(/no speech voices|speech-dispatcher/i)).not.toBeInTheDocument();
@@ -165,7 +158,7 @@ describe("SettingsPanel accordion", () => {
     mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
     renderPanel({ settings: { tts_backend: "auto" } });
 
-    await openSection("Voice");
+    await openSection();
     expect(screen.getByRole("checkbox", { name: "Server voices (recommended)" })).toBeChecked();
   });
 
@@ -189,7 +182,6 @@ describe("SettingsPanel accordion", () => {
       </WebSocketContext.Provider>,
     );
 
-    await user.click(screen.getByRole("button", { name: "Voice" }));
     await user.click(screen.getByRole("checkbox", { name: "Server voices (recommended)" }));
 
     expect(updateSettings).toHaveBeenCalledWith({ tts_backend: "webspeech" });
@@ -199,7 +191,7 @@ describe("SettingsPanel accordion", () => {
     mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
     renderPanel({ settings: { player_voice_gender: "male" } });
 
-    await openSection("Voice");
+    await openSection();
     const group = screen.getByRole("group", { name: "Your voice" });
     expect(within(group).getByRole("button", { name: "Male" })).toHaveAttribute(
       "aria-pressed",
@@ -231,7 +223,6 @@ describe("SettingsPanel accordion", () => {
       </WebSocketContext.Provider>,
     );
 
-    await user.click(screen.getByRole("button", { name: "Voice" }));
     const group = screen.getByRole("group", { name: "Your voice" });
     await user.click(within(group).getByRole("button", { name: "Female" }));
 
@@ -242,7 +233,7 @@ describe("SettingsPanel accordion", () => {
     mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
     renderPanel({ settings: { speech_rate: 1.25 } });
 
-    await openSection("Voice");
+    await openSection();
     expect(screen.getByRole("slider", { name: "Narration speed" })).toHaveValue("1.25");
     expect(screen.getByText("1.25x")).toBeInTheDocument();
   });
@@ -267,7 +258,6 @@ describe("SettingsPanel accordion", () => {
     );
 
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "Voice" }));
     const slider = screen.getByRole("slider", { name: "Narration speed" });
     fireEvent.change(slider, { target: { value: "1.4" } });
 
@@ -281,8 +271,8 @@ describe("SettingsPanel accordion", () => {
     // on, since they'd have no effect - switch to webspeech so the button under test exists.
     renderPanel({ settings: { player_voice_gender: "female", tts_backend: "webspeech" } });
 
-    await openSection("Voice");
-    await userEvent.setup().click(screen.getByRole("button", { name: "Preview the You voice" }));
+    await openSection();
+    await userEvent.setup().click(await screen.findByRole("button", { name: "Preview the You voice" }));
 
     expect(mockedSpeak).toHaveBeenCalledWith(
       expect.any(String),
@@ -295,8 +285,8 @@ describe("SettingsPanel accordion", () => {
     mockedSpeak.mockClear();
     renderPanel({ settings: { player_voice_gender: "female", tts_backend: "webspeech" } });
 
-    await openSection("Voice");
-    await userEvent.setup().click(screen.getByRole("button", { name: "Preview the Male stakeholders voice" }));
+    await openSection();
+    await userEvent.setup().click(await screen.findByRole("button", { name: "Preview the Male stakeholders voice" }));
 
     expect(mockedSpeak).toHaveBeenCalledWith(
       expect.any(String),
@@ -317,7 +307,7 @@ describe("SettingsPanel profile section", () => {
     const onLogout = vi.fn();
     renderPanel({ onLogout });
 
-    const user = await openSection("Profile");
+    const user = await openSection("Change email");
     await user.click(screen.getByRole("button", { name: "Log out" }));
     expect(onLogout).toHaveBeenCalledTimes(1);
   });
@@ -329,7 +319,7 @@ describe("SettingsPanel profile section", () => {
     const setEmail = vi.fn();
     renderPanel({ setEmail, email: "alice@example.test" });
 
-    const user = await openSection("Profile");
+    const user = await openSection("Change email");
     await user.type(screen.getByPlaceholderText("New email address"), "bob@example.test");
     await user.click(screen.getByRole("button", { name: "Send confirmation code" }));
     await user.type(await screen.findByPlaceholderText("6-digit code"), "123456");
@@ -346,7 +336,7 @@ describe("SettingsPanel profile section", () => {
     const setEmail = vi.fn();
     renderPanel({ setEmail });
 
-    const user = await openSection("Profile");
+    const user = await openSection("Change email");
     await user.type(screen.getByPlaceholderText("New email address"), "bob@example.test");
     await user.click(screen.getByRole("button", { name: "Send confirmation code" }));
     await user.type(await screen.findByPlaceholderText("6-digit code"), "123456");

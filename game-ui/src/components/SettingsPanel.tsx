@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
 import { Icon } from "@iconify/react";
 import HoverTooltip from "./HoverToolTip";
 import HeaderModal from "./HeaderModal";
-import { Accordion, AccordionSection } from "./Accordion";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import { useSettings, type PlayerSettings } from "./SettingsProvider";
 import { cancelSpeech, loadVoices, speak, type VoiceSlot } from "../utils/speech";
@@ -67,16 +66,59 @@ function englishVoicesSorted(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoi
     });
 }
 
+interface CardProps {
+  title: string;
+  icon: string;
+  tone?: "danger";
+  children: ReactNode;
+}
+
+/** An always-visible settings group; the cards animate in one after another (see the CSS). */
+function Card({ title, icon, tone, children }: CardProps) {
+  return (
+    <section className={`${styles.card} ${tone === "danger" ? styles.cardDanger : ""}`}>
+      <h3 className={styles.cardTitle}>
+        <Icon icon={icon} aria-hidden /> {title}
+      </h3>
+      {children}
+    </section>
+  );
+}
+
+/** Collapsed-by-default block for rarely used actions, so they don't crowd the card. */
+function Disclosure({ title, icon, children }: Omit<CardProps, "tone">) {
+  const [open, setOpen] = useState(false);
+  const bodyId = useId();
+  return (
+    <div className={styles.disclosure}>
+      <button
+        type="button"
+        className={styles.disclosureHeader}
+        aria-expanded={open}
+        aria-controls={bodyId}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <Icon icon={icon} aria-hidden />
+        <span className={styles.disclosureTitle}>{title}</span>
+        <Icon icon="ph:caret-down-bold" className={`${styles.caret} ${open ? styles.caretOpen : ""}`} aria-hidden />
+      </button>
+      {open && (
+        <div id={bodyId} className={styles.disclosureBody}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface ProfileSectionProps {
-  email: string;
-  onLogout: () => void;
   onEmailChanged: (newEmail: string) => void;
 }
 
-/** Change password/email plus Logout (docs/plans/session-persistence-and-url-routing.md,
- * D-profile-ui). Each form manages its own pending/error/success state independently - there is
- * no shared "profile is loading" flag, since submitting one shouldn't disable the others. */
-function ProfileSection({ email, onLogout, onEmailChanged }: ProfileSectionProps) {
+/** Change password/email (docs/plans/session-persistence-and-url-routing.md, D-profile-ui). Each
+ * form manages its own pending/error/success state independently - there is no shared "profile is
+ * loading" flag, since submitting one shouldn't disable the others. */
+function ProfileSection({ onEmailChanged }: ProfileSectionProps) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
@@ -139,17 +181,12 @@ function ProfileSection({ email, onLogout, onEmailChanged }: ProfileSectionProps
     }
   };
 
+  const passwordsMismatch = newPasswordConfirm !== "" && newPassword !== newPasswordConfirm;
+
   return (
     <div className={styles.profileGroup}>
-      <div className={styles.profileRow}>
-        <span className={styles.toggleLabel}>Signed in as {email}</span>
-        <button type="button" className={styles.cancelButton} onClick={onLogout}>
-          Log out
-        </button>
-      </div>
-
+      <Disclosure title="Change password" icon="ph:lock-key-bold">
       <form className={styles.profileForm} onSubmit={handleChangePassword}>
-        <h4 className={styles.profileFormTitle}>Change password</h4>
         <input
           type="password"
           className="form-control form-control-sm"
@@ -177,19 +214,28 @@ function ProfileSection({ email, onLogout, onEmailChanged }: ProfileSectionProps
           onChange={(e) => setNewPasswordConfirm(e.target.value)}
           required
         />
+        {passwordsMismatch && <p className={styles.errorText}>The two new passwords don't match.</p>}
         {passwordStatus && (
-          <p className={passwordStatus.kind === "error" ? styles.errorText : styles.successText}>
+          <p
+            className={passwordStatus.kind === "error" ? styles.errorText : styles.successText}
+            role={passwordStatus.kind === "error" ? "alert" : "status"}
+          >
             {passwordStatus.text}
           </p>
         )}
-        <button type="submit" className={styles.submitButton} disabled={isChangingPassword}>
-          Change password
+        <button
+          type="submit"
+          className={styles.submitButton}
+          disabled={isChangingPassword || passwordsMismatch || !currentPassword || !newPassword || !newPasswordConfirm}
+        >
+          {isChangingPassword ? "Changing..." : "Update password"}
         </button>
       </form>
+      </Disclosure>
 
+      <Disclosure title={isAwaitingEmailCode ? "Confirm new email" : "Change email"} icon="ph:envelope-simple-bold">
       {!isAwaitingEmailCode ? (
         <form className={styles.profileForm} onSubmit={handleRequestEmailChange}>
-          <h4 className={styles.profileFormTitle}>Change email</h4>
           <input
             type="email"
             className="form-control form-control-sm"
@@ -200,26 +246,39 @@ function ProfileSection({ email, onLogout, onEmailChanged }: ProfileSectionProps
             required
           />
           {emailStatus && (
-            <p className={emailStatus.kind === "error" ? styles.errorText : styles.successText}>{emailStatus.text}</p>
+            <p
+              className={emailStatus.kind === "error" ? styles.errorText : styles.successText}
+              role={emailStatus.kind === "error" ? "alert" : "status"}
+            >
+              {emailStatus.text}
+            </p>
           )}
-          <button type="submit" className={styles.submitButton} disabled={isChangingEmail}>
-            Send confirmation code
+          <button type="submit" className={styles.submitButton} disabled={isChangingEmail || !newEmail}>
+            {isChangingEmail ? "Sending..." : "Send confirmation code"}
           </button>
         </form>
       ) : (
         <form className={styles.profileForm} onSubmit={handleConfirmEmailChange}>
-          <h4 className={styles.profileFormTitle}>Confirm new email</h4>
+          <p className={styles.formHint}>
+            Enter the 6-digit code sent to <strong>{newEmail}</strong>.
+          </p>
           <input
             type="text"
             inputMode="numeric"
-            className="form-control form-control-sm"
+            autoComplete="one-time-code"
+            className={`form-control form-control-sm ${styles.codeInput}`}
             placeholder="6-digit code"
             value={emailCode}
             onChange={(e) => setEmailCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
             required
           />
           {emailStatus && (
-            <p className={emailStatus.kind === "error" ? styles.errorText : styles.successText}>{emailStatus.text}</p>
+            <p
+              className={emailStatus.kind === "error" ? styles.errorText : styles.successText}
+              role={emailStatus.kind === "error" ? "alert" : "status"}
+            >
+              {emailStatus.text}
+            </p>
           )}
           <div className={styles.confirmActions}>
             <button
@@ -232,12 +291,13 @@ function ProfileSection({ email, onLogout, onEmailChanged }: ProfileSectionProps
             >
               Cancel
             </button>
-            <button type="submit" className={styles.submitButton} disabled={isChangingEmail}>
-              Confirm
+            <button type="submit" className={styles.submitButton} disabled={isChangingEmail || emailCode.length < 6}>
+              {isChangingEmail ? "Confirming..." : "Confirm"}
             </button>
           </div>
         </form>
       )}
+      </Disclosure>
     </div>
   );
 }
@@ -297,46 +357,48 @@ export default function SettingsPanel({ isVisible, onClose, onLogout }: Settings
   };
 
   return (
-    <HeaderModal isVisible={isVisible} onClose={onClose} closeLabel="settings" width="min(480px, 94vw)">
+    <HeaderModal isVisible={isVisible} onClose={onClose} closeLabel="settings" width="min(960px, 96vw)">
       <div className={styles.panel}>
-        <h2 className={styles.title}>Profile & Settings</h2>
+        <header className={styles.header}>
+          <div className={styles.headerText}>
+            <h2 className={styles.title}>Profile & Settings</h2>
+            <p className={styles.subtitle}>Voice and conversation settings are saved as soon as you change them.</p>
+          </div>
+          <div className={styles.identityCard}>
+            <span className={styles.avatar} aria-hidden>
+              {email.charAt(0).toUpperCase() || "?"}
+            </span>
+            <span className={styles.identityText}>
+              <span className={styles.identityCaption}>Signed in as</span>
+              <span className={styles.identityEmail} title={email}>
+                {email}
+              </span>
+            </span>
+            <button type="button" className={styles.cancelButton} onClick={onLogout}>
+              <Icon icon="ph:sign-out-bold" aria-hidden /> Log out
+            </button>
+          </div>
+        </header>
 
-        <Accordion defaultOpenId={null}>
-          <AccordionSection id="profile" title="Profile">
-            <ProfileSection email={email} onLogout={onLogout} onEmailChanged={setEmail} />
-          </AccordionSection>
-
-          <AccordionSection id="conversations" title="Conversations">
+        <div className={styles.columns}>
+        <div className={styles.column}>
+          <Card title="Voice" icon="ph:speaker-high-bold">
             <label className={styles.toggleRow}>
               <span className={styles.toggleText}>
-                <span className={styles.toggleLabel}>Auto-skip conversations</span>
+                <span className={styles.toggleLabel}>Mute narration</span>
                 <span className={styles.toggleHint}>
-                  Hides speech bubbles and their audio, including the stakeholder introductions.
-                  Nothing is lost - every line still lands in the chat transcript.
+                  Silences every voice. The options below are paused while this is on.
                 </span>
               </span>
               <input
                 type="checkbox"
-                className="form-check-input"
-                checked={settings.auto_skip_conversations}
-                onChange={(e) => updateSettings({ auto_skip_conversations: e.target.checked })}
-              />
-            </label>
-          </AccordionSection>
-
-          <AccordionSection id="voice" title="Voice">
-            <label className={styles.toggleRow}>
-              <span className={styles.toggleText}>
-                <span className={styles.toggleLabel}>Mute narration</span>
-              </span>
-              <input
-                type="checkbox"
-                className="form-check-input"
+                className={styles.switch}
                 checked={settings.mute_tts}
                 onChange={(e) => updateSettings({ mute_tts: e.target.checked })}
               />
             </label>
 
+            <div className={`${styles.voiceOptions} ${settings.mute_tts ? styles.voiceOptionsMuted : ""}`}>
             <div className={styles.speedRow}>
               <span className={styles.toggleText}>
                 <span className={styles.toggleLabel}>Narration speed</span>
@@ -345,6 +407,7 @@ export default function SettingsPanel({ isVisible, onClose, onLogout }: Settings
                 </span>
               </span>
               <div className={styles.speedControl}>
+                <span className={styles.speedEnd} aria-hidden>Slower</span>
                 <input
                   type="range"
                   min={0.75}
@@ -355,6 +418,7 @@ export default function SettingsPanel({ isVisible, onClose, onLogout }: Settings
                   aria-label="Narration speed"
                   onChange={(e) => updateSettings({ speech_rate: parseFloat(e.target.value) })}
                 />
+                <span className={styles.speedEnd} aria-hidden>Faster</span>
                 <span className={styles.speedValue}>{settings.speech_rate.toFixed(2)}x</span>
               </div>
             </div>
@@ -370,7 +434,7 @@ export default function SettingsPanel({ isVisible, onClose, onLogout }: Settings
               </span>
               <input
                 type="checkbox"
-                className="form-check-input"
+                className={styles.switch}
                 aria-label="Server voices (recommended)"
                 disabled={settings.mute_tts}
                 checked={settings.tts_backend === "auto"}
@@ -450,10 +514,39 @@ export default function SettingsPanel({ isVisible, onClose, onLogout }: Settings
                 </div>
               )
             )}
-          </AccordionSection>
+            </div>
+          </Card>
+        </div>
 
+        <div className={styles.column}>
+          <Card title="Conversations" icon="ph:chats-circle-bold">
+            <label className={styles.toggleRow}>
+              <span className={styles.toggleText}>
+                <span className={styles.toggleLabel}>Auto-skip conversations</span>
+                <span className={styles.toggleHint}>
+                  Hides speech bubbles and their audio, including the stakeholder introductions.
+                  Nothing is lost - every line still lands in the chat transcript.
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                className={styles.switch}
+                checked={settings.auto_skip_conversations}
+                onChange={(e) => updateSettings({ auto_skip_conversations: e.target.checked })}
+              />
+            </label>
+          </Card>
+
+          <Card title="Account security" icon="ph:shield-check-bold">
+            <ProfileSection onEmailChanged={setEmail} />
+          </Card>
+        </div>
+        </div>
+
+        {(canResetAccount || canPlaytest) && (
+        <div className={styles.fullWidth}>
           {canResetAccount && (
-            <AccordionSection id="account" title="Account">
+            <Card title="Danger zone" icon="ph:warning-bold" tone="danger">
               {!isConfirmingReset ? (
                 <button type="button" className={styles.dangerButton} onClick={() => setIsConfirmingReset(true)}>
                   Reset my account
@@ -500,11 +593,12 @@ export default function SettingsPanel({ isVisible, onClose, onLogout }: Settings
                   </div>
                 </div>
               )}
-            </AccordionSection>
+            </Card>
           )}
-        </Accordion>
 
-        {canPlaytest && <PlaytestSection onSkipped={onClose} />}
+          {canPlaytest && <PlaytestSection onSkipped={onClose} />}
+        </div>
+        )}
       </div>
     </HeaderModal>
   );
