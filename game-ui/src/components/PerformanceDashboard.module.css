@@ -125,18 +125,38 @@
   gap: clamp(3.2px, 0.6vh, 6.4px);
 }
 
-.sectionHeadRow {
+/* The pipeline as one panel: title and status, the stages, then the stage's neighbours. */
+.pipelinePanel {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0;
   flex-shrink: 0;
+  padding: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-bottom: 0;
+  /* The panel is the board's header: it runs straight into the cork, so no bottom edge or corners */
+  border-radius: 0.6rem 0.6rem 0 0;
+  /* Cancels the column gap so the cork starts right under the last row */
+  margin-bottom: calc(-1 * clamp(3.2px, 0.6vh, 6.4px));
+  box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.03);
 }
 
-.systemHealth {
-  font-size: 0.8rem;
-  font-weight: 700;
+/* Status on the left, the board's key on the right. */
+.headRight {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+}
+
+.pipelineHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  padding: 7px 12px 6px;
 }
 
 .sectionLabel {
@@ -145,94 +165,248 @@
   letter-spacing: 0.06em;
   color: var(--primary-bg);
   font-weight: 700;
-  margin-bottom: 0;
   display: flex;
   align-items: center;
   gap: 0.4rem;
+}
+
+/* System and stage state side by side, told apart by their icons and a hairline. */
+.statusGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0;
+}
+
+.statusItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0 0.7rem;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.statusGroup > span + span {
+  border-left: 1px solid #e2e8f0;
+}
+
+.statusGroup > span:last-child .statusItem {
+  padding-right: 0;
+}
+
+.statusItem svg {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.statusKey {
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+}
+
+.statusValue {
+  font-weight: 800;
 }
 
 /* Horizontal strip of pipeline stages, with room for the arcs drawn above it. */
 .stageStrip {
   overflow-x: auto;
   overflow-y: hidden;
-  padding-top: 10px;
-  padding-bottom: 2px;
   flex-shrink: 0;
 }
 
-/* Interactive Pipeline Stage Buttons */
+
+/* A stage is a tab in the panel, not a card of its own. No outline: the selected one is a solid
+   tab in the app's primary colour (like the phase rail's), the rest are quiet text, and a stage
+   ahead of you is a flat grey tile. The transparent border stays for the failing-stage flash. */
 .stageButton {
-  background: #ffffff;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 0.5rem;
-  padding: clamp(3.2px, 0.6vh, 6.4px) clamp(7.2px, 0.8vw, 12px);
+  background: transparent;
+  border: 1.5px solid transparent;
+  border-radius: 0;
+  padding: 6px clamp(6px, 0.7vw, 10px);
   cursor: pointer;
   color: var(--text-primary, #1e293b);
   flex: 1 1 0;
   min-width: 90px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-  transition: all var(--transition, 0.2s ease-in-out);
+  transition: background var(--transition, 0.2s ease-in-out), box-shadow var(--transition, 0.2s ease-in-out);
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
   font-size: clamp(12px, 1.1vh, 13.6px);
+  line-height: 1.25;
   z-index: 1;
 }
 
-.stageButton:hover:not(:disabled) {
-  border-color: var(--primary-bg);
-  transform: scale(1.02);
-  box-shadow: 0 3px 8px rgba(38, 102, 130, 0.15);
-  z-index: 2;
+/* Hover: a wash of the primary colour sweeps in from the left, the name lifts a hair, the dot pulses. */
+.stageButton {
+  isolation: isolate;
+  overflow: hidden;
 }
 
-.stageButtonActive {
-  border-color: var(--primary-bg) !important;
-  background: rgba(38, 102, 130, 0.06) !important;
-  box-shadow: 0 2px 6px rgba(38, 102, 130, 0.18) !important;
+.stageButton::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(38, 102, 130, 0.12);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stageButton:hover:not(:disabled)::before,
+.stageButton:focus-visible::before {
+  transform: scaleX(1);
+}
+
+.stageButtonActive::before {
+  display: none;
+}
+
+.stageName {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stageButton:hover .stageName {
+  transform: translateY(-1px);
+}
+
+.stageButton:hover .stateDot {
+  animation: stateDotPulse 0.9s ease-out;
+}
+
+/* A stage ahead of you: the padlock gives a little rattle, as if to say "not yet". */
+.stageButtonUpcoming:hover .stageLock {
+  animation: lockRattle 0.5s ease-in-out;
+}
+
+@keyframes stateDotPulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--state) 55%, transparent); }
+  100% { box-shadow: 0 0 0 7px transparent; }
+}
+
+@keyframes lockRattle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-14deg); }
+  60% { transform: rotate(10deg); }
+}
+
+/* The triangle sits flush between two stages and swells when the stage it points at is hovered. */
+.connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  flex-shrink: 0;
+  width: 10px;
+}
+
+.connector svg {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stageSlot:hover .connector svg {
+  transform: scaleY(1.3);
+}
+
+.statusItem:hover svg {
+  animation: statusPop 0.5s ease-out;
+}
+
+@keyframes statusPop {
+  40% { transform: scale(1.25) rotate(-6deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stageButton::before,
+  .stageName,
+  .connector svg {
+    transition: none;
+  }
+
+  .stageButton:hover .stateDot,
+  .stageButtonUpcoming:hover .stageLock,
+  .statusItem:hover svg {
+    animation: none;
+  }
+}
+
+.stageButtonActive,
+.stageButtonActive:hover:not(:disabled) {
+  background: var(--primary-bg) !important;
+  box-shadow: 0 2px 6px rgba(38, 102, 130, 0.35);
   z-index: 10 !important;
 }
 
-.stageButtonActive::after {
-  content: "SELECTED";
-  position: absolute;
-  top: -8px;
-  right: 4px;
-  background: var(--primary-bg);
+.stageButtonActive .stageName,
+.stageButtonActive .stageState {
   color: #ffffff;
-  font-size: 0.55rem;
-  font-weight: 700;
-  padding: 1px 4px;
-  border-radius: 3px;
-  letter-spacing: 0.04em;
-  z-index: 20;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-  pointer-events: none;
 }
 
-/* Stages the project has not reached yet: dimmed, but open for inspection. */
+/* Stages the project has not reached yet: flat and muted, but open for inspection. */
 .stageButtonUpcoming {
-  background: #f8fafc;
-  border-style: dashed;
-  border-color: #cbd5e1;
-  opacity: 0.75;
+  background: #f1f5f9;
 }
 
-.stageButtonUpcoming:hover {
-  opacity: 1;
+.stageButtonUpcoming .stageName {
+  color: #64748b;
 }
 
-.stageClickHint {
-  font-size: 0.6rem;
-  color: var(--primary-bg);
-  margin-top: 1px;
-  display: flex;
+.stageButtonUpcoming:hover:not(:disabled) {
+  background: #e8eef5;
+}
+
+.stageName {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.stageState {
+  display: inline-flex;
   align-items: center;
-  gap: 2px;
-  opacity: 0.85;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+}
+
+/* The state's colour lives on the dot, so it survives on the selected tab's dark ground. */
+.stateDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--state);
+  flex-shrink: 0;
+}
+
+.stageButtonActive .stateDot {
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.9);
+}
+
+.stageViewing {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.62rem;
+}
+
+.stageViewing::before {
+  content: "· ";
+}
+
+.patternDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
 }
 
 /* Two-column layout: stage strip + architecture on the left, inspector on the right,
@@ -274,6 +448,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Square where the panel above runs into it */
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
 }
 
 /* The cross-stage connections note under the board: a paper slip, like the inspector, not a Bootstrap box. */
@@ -331,81 +508,129 @@
 /* A note with no document behind it (an interview, a line from the debate) is shown, but
    there is nothing to open. */
 
-
-
-
-/* Canvas plus the two rails that stand in for the neighbouring stages. */
+/* The board's own row; the neighbouring stages are chips above it, not rails beside it. */
 .canvasRow {
   flex: 1;
   min-height: 0;
   display: flex;
   align-items: stretch;
-  gap: 4px;
 }
 
-/* Deliberately quiet: a reminder that the stage on screen is a slice of a pipeline,
-   not another control competing with the diagram. */
-.neighbourRail {
-  flex: 0 0 24px;
+/* Under the stage strip: what feeds this stage on the left, what it feeds on the right. */
+.neighbourRow {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  padding: 0.3rem 0;
-  border: 1px dashed #b8a98c;
-  border-radius: 0.5rem;
-  background: repeating-linear-gradient(
-    135deg,
-    rgba(120, 92, 48, 0.08) 0 6px,
-    transparent 6px 12px
-  );
-  color: #6b5239;
-  font-size: 0.62rem;
-  letter-spacing: 0.04em;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  padding: 5px 12px;
+}
+
+.neighbourInSlot,
+.neighbourOutSlot {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* A quiet blue link, not a control competing with the stages above it. A thin line leads in from
+   the edge (or runs out to the arrow) and stretches on hover, with the arrow riding its end. */
+.neighbourChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: color-mix(in srgb, var(--primary-bg, #266682) 65%, #ffffff);
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  overflow: hidden;
-  transition: all var(--transition, 0.2s ease-in-out);
+  transition: color var(--transition, 0.2s ease-in-out);
 }
 
-.neighbourRail:hover:not(:disabled) {
-  border-color: var(--primary-bg);
-  color: var(--primary-bg);
-  background: rgba(38, 102, 130, 0.06);
+.neighbourLine {
+  flex: 1 1 auto;
+  min-width: 16px;
+  height: 1px;
+  opacity: 0.55;
+  transition: opacity 0.25s ease;
 }
 
-.neighbourRail:disabled {
+/* Strongest at the link, gone by the middle of the row */
+.neighbourLineIn {
+  background: linear-gradient(to right, currentColor, transparent);
+}
+
+.neighbourLineOut {
+  background: linear-gradient(to left, currentColor, transparent);
+}
+
+.neighbourChip:hover:not(:disabled) {
+  color: var(--primary-bg, #266682);
+}
+
+.neighbourChip:hover:not(:disabled) .neighbourLine {
+  opacity: 1;
+}
+
+.neighbourChip .neighbourIcon {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.neighbourChip:hover:not(:disabled) .neighbourIcon {
+  transform: translateX(2px);
+}
+
+.neighbourChip:disabled {
   cursor: default;
 }
 
-/* Start and end of the lifecycle: no arrow, a flag, and no hover affordance. */
+/* Start and end of the lifecycle: italic and no hover affordance. */
 .neighbourTerminal {
-  border-style: dotted;
+  font-style: italic;
   opacity: 0.8;
 }
 
 .neighbourIcon {
   flex-shrink: 0;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .neighbourLabel {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-height: 100%;
-  font-weight: 600;
 }
 
-.neighbourIn .neighbourLabel {
-  transform: rotate(180deg);
+/* A stage ahead of you: a padlock before its name, and quieter than the stages you can work on. */
+.stageLock {
+  display: inline-block;
+  margin-right: 0.3rem;
+  font-size: 0.85em;
+  vertical-align: -0.1em;
 }
 
 /* HoverTooltip wraps these in a span that forces inline-block; keep their own display and flex sizing. */
 span > .stageButton,
-span > .neighbourRail { display: flex; }
+span > .neighbourChip { display: flex; }
+span > .neighbourChip { display: inline-flex; }
 .stageSlot > span { flex: 1 1 0; min-width: 0; display: flex; }
-.canvasRow > span { flex: 0 0 24px; display: flex; }
-.canvasRow > span > .neighbourRail { flex: 1 1 auto; }
+.neighbourInSlot > span,
+.neighbourOutSlot > span { flex: 1 1 auto; min-width: 0; display: flex; }
+span > .neighbourChip { width: 100%; }
+
+
+
+
+
+/* The stage's active patterns, as the panel's last row */
+.patternRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0 12px 5px;
+}

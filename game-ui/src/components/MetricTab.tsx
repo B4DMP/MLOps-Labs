@@ -16,7 +16,7 @@ const SEGMENTS = 10;
  * an accent - icon badge, fill, tinted ground - instead of flooding a card.
  */
 function MetricTab({ current_phase }: MetricTabProps) {
-  const { metrics } = useContext(MetricsContext);
+  const { metrics, shifts } = useContext(MetricsContext);
 
   return (
     <div
@@ -31,6 +31,7 @@ function MetricTab({ current_phase }: MetricTabProps) {
         const max = item.max_value ?? 50;
         const ratio = Math.min(Math.max(max > 0 ? value / max : 0, 0), 1);
         const filled = Math.round(ratio * SEGMENTS);
+        const shift = shifts?.[item.id] ?? 0;
 
         return (
           <div
@@ -38,7 +39,7 @@ function MetricTab({ current_phase }: MetricTabProps) {
             className={styles.gauge}
             style={{ ["--metric" as string]: item.metric_color }}
             tabIndex={0}
-            aria-label={`${item.name}: ${value} of ${max}`}
+            aria-label={`${item.name}: ${value} of ${max}${shift ? `, ${shift > 0 ? "up" : "down"} ${Math.abs(shift)} since the last rollout` : ""}`}
           >
             <span className={styles.badge} aria-hidden>
               <Icon icon={item.metric_icon} />
@@ -48,6 +49,15 @@ function MetricTab({ current_phase }: MetricTabProps) {
               <div className={styles.topline}>
                 <span className={styles.name}>{item.name}</span>
                 <span className={styles.value}>
+                  {shift !== 0 && (
+                    <span
+                      className={`${styles.shift} ${shift > 0 ? styles.shiftUp : styles.shiftDown}`}
+                      aria-hidden
+                    >
+                      <Icon icon={shift > 0 ? "ph:trend-up-bold" : "ph:trend-down-bold"} />
+                      {shift > 0 ? `+${shift}` : shift}
+                    </span>
+                  )}
                   <span className={styles.number} id={`metric-value-${item.id}`}>
                     {value}
                   </span>
@@ -70,6 +80,11 @@ function MetricTab({ current_phase }: MetricTabProps) {
               <span className={styles.tipBody}>
                 {item.description ?? "DESCRIPTION PLACEHOLDER"}
               </span>
+              {shift !== 0 && (
+                <span className={styles.tipShift}>
+                  {shift > 0 ? "Up" : "Down"} {Math.abs(shift)} since the last rollout.
+                </span>
+              )}
             </span>
           </div>
         );

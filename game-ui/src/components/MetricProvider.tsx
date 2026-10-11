@@ -16,6 +16,8 @@ type MetricsContextType = {
     }
   >;
   setMetrics: React.Dispatch<React.SetStateAction<any>>;
+  /** How each metric moved the last time the numbers changed. Never set by the introduction phase. */
+  shifts?: Record<string, number>;
 };
 
 export const MetricsContext = createContext<MetricsContextType>({

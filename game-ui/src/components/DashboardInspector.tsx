@@ -33,7 +33,21 @@ interface Props {
   /** Jump to a component that may sit on another stage. */
   onJumpToComponent: (id: string) => void;
   nameOf: (id: string) => string;
+  /** The component under the pointer on the board (or in the list): its row and card light up together. */
+  hoveredId?: string | null;
+  onHoverComponent?: (id: string | null) => void;
 }
+
+/** Worst first, so the list opens on what needs the player. */
+type Condition = "broken" | "starved" | "held" | "running" | "uncovered";
+const CONDITION_ORDER: Condition[] = ["broken", "starved", "held", "running", "uncovered"];
+const CONDITION_WORD: Record<Condition, string> = {
+  broken: "broken",
+  starved: "starved",
+  held: "held back",
+  running: "running",
+  uncovered: "not uncovered yet",
+};
 
 const NO_LIT: ReadonlyMap<string, string> = new Map();
 const noMarks = () => [];
@@ -54,9 +68,21 @@ export default function DashboardInspector({
   onClearSelection,
   onJumpToComponent,
   nameOf,
+  hoveredId = null,
+  onHoverComponent,
 }: Props) {
   const locked = stage.locked;
   const isBroken = (c: ComponentData) => !locked && (c.nominal_automation ?? 1) === 0;
+  const conditionOf = (c: ComponentData): Condition =>
+    c.nominal_automation === undefined
+      ? "uncovered"
+      : isBroken(c)
+      ? "broken"
+      : (c.effective_automation ?? 1) === 0
+      ? "starved"
+      : c.capped_by
+      ? "held"
+      : "running";
   const barFor = (c: ComponentData) =>
     nodeBar({
       otherPhase: locked,
@@ -270,19 +296,60 @@ export default function DashboardInspector({
         <h4 className={sb.bandTitle}>{stage.name} components</h4>
       </div>
     );
+    // A stage ahead of you has no state to rank, so it keeps the board's own order.
+    const ranked = locked
+      ? technical.components.map((c, i) => ({ c, i, condition: "uncovered" as Condition }))
+      : technical.components
+          .map((c, i) => ({ c, i, condition: conditionOf(c) }))
+          .sort((a, b) => CONDITION_ORDER.indexOf(a.condition) - CONDITION_ORDER.indexOf(b.condition) || a.i - b.i);
+    const counts = CONDITION_ORDER.map((k) => ({ k, n: ranked.filter((r) => r.condition === k).length })).filter((x) => x.n > 0);
     body = (
       <div className={sb.body}>
         <p className={sb.caption}>
           {locked
             ? "This stage is ahead of you. You can see what it will contain, not how any of it is doing."
-            : "Click a card on the board, or a row below, to read how that component is doing."}
+            : "Click a card or a row to read how it's doing."}
         </p>
+        {!locked && counts.length > 0 && (
+          <div className={styles.summary}>
+            <div className={styles.summaryPills}>
+              {counts.map(({ k, n }) => {
+                const pill = nodeBar({
+                  otherPhase: false,
+                  broken: k === "broken",
+                  uncertain: false,
+                  capped: k === "held",
+                  starved: k === "starved",
+                });
+                const neutral = k === "uncovered";
+                return (
+                  <span
+                    key={k}
+                    className={styles.summaryPill}
+                    style={neutral ? undefined : { background: pill.fill, color: pill.ink, borderColor: "transparent" }}
+                  >
+                    {n} {CONDITION_WORD[k]}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <div className={styles.list}>
-          {technical.components.map((c) => {
+          {ranked.map(({ c }) => {
             const t = c as unknown as OptionTarget;
             const own = barFor(c);
             return (
-              <button key={c.id} type="button" className={styles.listRow} onClick={() => onSelectComponent(c.id)}>
+              <button
+                key={c.id}
+                type="button"
+                className={`${styles.listRow} ${hoveredId === c.id ? styles.listRowLit : ""}`}
+                onClick={() => onSelectComponent(c.id)}
+                onMouseEnter={() => onHoverComponent?.(c.id)}
+                onMouseLeave={() => onHoverComponent?.(null)}
+                onFocus={() => onHoverComponent?.(c.id)}
+                onBlur={() => onHoverComponent?.(null)}
+              >
                 <span className={styles.disc} style={{ background: own.fill, color: own.ink }}>
                   <Icon icon={c.icon || "ph:cube-bold"} aria-hidden />
                 </span>

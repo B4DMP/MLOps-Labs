@@ -138,10 +138,11 @@ server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch e
      inspector share the composer's pieces (`components/graph/StageNode`, `YarnLine`, `GraphLegend`, `boardSurface`, and the
      sidebar parts), read-only; a component with technical debt carries an amber flag. Its panel, header, phase rail and
      metric gauges keep their light look. Plan: `docs/plans/dashboard-restyle.md`.
-     Dashboard reading aids: the inspector list is sorted worst first with counts and a "Start with" shortcut (nothing is
-     auto-selected), list rows and board cards light each other on hover, the stage the board shows is flanked by a row of
-     neighbour chips under the strip, and each gauge shows how the last rollout moved it (`MetricsContext.shifts`, set in
-     `Game.tsx`'s `game:state_update` handler, never from the demo phase or the reset that ends it).
+     Dashboard reading aids: the inspector list is sorted worst first with counts (nothing is auto-selected), list rows and
+     board cards light each other on hover, one panel above the board holds the system and stage state, the Legend, the
+     stage tabs and links to the neighbouring stages, and each gauge shows how the last rollout moved it
+     (`MetricsContext.shifts`, set in `Game.tsx`'s `game:state_update` handler, never from the demo phase or the reset that
+     ends it).
    - **Hand the Pen** (`docs/plans/hand-over-the-pen.md`): an engagement card (`eng_7`, `effect_kind: "pen"`,
      4 tokens, once per phase, not in the practice round). The player picks one person; that person
      decides what to change and drafts it into the card at once. The card is played from the shelf, or

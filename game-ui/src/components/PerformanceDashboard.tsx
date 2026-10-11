@@ -294,49 +294,23 @@ function CrossStageArcs({
   );
 }
 
-/** Connector between two stage buttons: a dashed pipe with an arrowhead, so the strip
- *  reads as a direction of travel rather than a row of ties. */
-function StageConnector({ flow, toId }: { flow?: FlowData; toId: string }) {
-  const W = 34;
-  const H = 14;
-  const markerId = `conn-${toId}`.replace(/\./g, "_");
-  const color = !flow
-    ? "#cbd5e1"
-    : flow.level === 0
-      ? statusColor("broken")
-      : statusColor(flow.level >= 3 ? "healthy" : "degraded");
-  const animation = !flow
-    ? undefined
-    : flow.level === 0
-      ? "pipe-dead"
-      : flow.level >= 3
-        ? "pipe-flow"
-        : "pipe-flow-slow";
+/** Hand-off between two stage buttons: a small filled triangle, centred on the strip, so it reads
+ *  as a direction of travel without spending width on a long arrow. Dark blue while things flow,
+ *  red when the hand-off is stalled, pale when there is nothing to hand off yet. */
+function StageConnector({ flow }: { flow?: FlowData; toId: string }) {
+  const color = !flow ? "#cbd5e1" : flow.level === 0 ? statusColor("broken") : "var(--primary-bg, #266682)";
 
   return (
-    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ flexShrink: 0, overflow: "visible" }}>
-      <title>
-        {flow
-          ? `Flow between stages: ${formatAxisLevel("automation", flow.level)}`
-          : "No flow between these stages yet"}
-      </title>
-      <defs>
-        <marker id={markerId} markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
-          <path d="M0,0 L0,5 L5,2.5 z" fill={color} />
-        </marker>
-      </defs>
-      <line
-        x1={0}
-        y1={H / 2}
-        x2={W - 7}
-        y2={H / 2}
-        stroke={color}
-        strokeWidth={2.25}
-        strokeDasharray={animation ? undefined : "4 3"}
-        className={animation}
-        markerEnd={`url(#${markerId})`}
-      />
-    </svg>
+    <div className={styles.connector}>
+      <svg width={10} height={16} viewBox="0 0 10 16" style={{ display: "block" }}>
+        <title>
+          {flow
+            ? `Flow between stages: ${formatAxisLevel("automation", flow.level)}`
+            : "No flow between these stages yet"}
+        </title>
+        <path d="M0 0 L10 8 L0 16 Z" fill={color} />
+      </svg>
+    </div>
   );
 }
 
@@ -362,7 +336,11 @@ function StageSvg({
   onSelectCrossStub,
   stageLocked,
   nameOf,
+  hoveredComponentId = null,
+  onHoverComponent,
 }: {
+  hoveredComponentId?: string | null;
+  onHoverComponent?: (id: string | null) => void;
   technical: TechnicalStage;
   selectedComponentId: string | null;
   onSelectComponent: (id: string | null) => void;
@@ -485,10 +463,20 @@ function StageSvg({
               titleSize={10.5}
               captionLevel={c.effective_automation ?? c.nominal_automation ?? 0}
               selected={isSelected}
+              lit={hoveredComponentId === c.id}
               debt={Boolean(c.debt && c.debt.length > 0)}
               gProps={{
                 onClick: () => onSelectComponent(isSelected ? null : c.id),
                 ...nodeTip,
+                // The tooltip's own handlers still run; the list row lights up alongside them.
+                onMouseEnter: (e) => {
+                  nodeTip.onMouseEnter(e);
+                  onHoverComponent?.(c.id);
+                },
+                onMouseLeave: () => {
+                  nodeTip.onMouseLeave();
+                  onHoverComponent?.(null);
+                },
               }}
             />
           );
@@ -535,9 +523,9 @@ const PIPELINE_ANIM = `
 .pipe-stage-failing { animation: pipeFailing 1.8s ease-in-out infinite; }
 `;
 
-/** A stage's neighbour, drawn as a thin rail beside the canvas: the architecture view is a
+/** A stage's neighbour, as a chip in the row under the stage strip: the architecture view is a
  *  slice of a pipeline, and this is the reminder that the slice has edges. */
-function NeighbourRail({
+function NeighbourChip({
   side,
   info,
   onSelect,
@@ -547,18 +535,23 @@ function NeighbourRail({
   onSelect: (stageId: string) => void;
 }) {
   const isLink = Boolean(info.stageId);
+  const icon = <Icon icon={info.icon} className={styles.neighbourIcon} />;
   return (
     <HoverTooltip description={info.title}>
-    <button
-      type="button"
-      className={`${styles.neighbourRail} ${side === "in" ? styles.neighbourIn : styles.neighbourOut} ${isLink ? "" : styles.neighbourTerminal}`}
-      style={info.color ? { color: info.color } : undefined}
-      disabled={!isLink}
-      onClick={() => info.stageId && onSelect(info.stageId)}
-    >
-      <Icon icon={info.icon} className={styles.neighbourIcon} />
-      <span className={styles.neighbourLabel}>{info.label}</span>
-    </button>
+      <button
+        type="button"
+        className={`${styles.neighbourChip} ${isLink ? "" : styles.neighbourTerminal}`}
+        style={info.color ? { color: info.color } : undefined}
+        disabled={!isLink}
+        onClick={() => info.stageId && onSelect(info.stageId)}
+      >
+        {/* A thin line runs from the link toward the middle of the row, fading out as it goes */}
+        {side === "out" && <span className={`${styles.neighbourLine} ${styles.neighbourLineOut}`} aria-hidden />}
+        {side === "in" && icon}
+        <span className={styles.neighbourLabel}>{info.label}</span>
+        {side === "out" && icon}
+        {side === "in" && <span className={`${styles.neighbourLine} ${styles.neighbourLineIn}`} aria-hidden />}
+      </button>
     </HoverTooltip>
   );
 }
@@ -590,6 +583,8 @@ export default function PerformanceDashboard({
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
   const [selectedComp, setSelectedComp] = useState<string | null>(null);
   const [selectedCrossStub, setSelectedCrossStub] = useState<CrossPhaseStubInfo | null>(null);
+  // Board card and list row under the pointer, so each lights up the other.
+  const [hoveredComp, setHoveredComp] = useState<string | null>(null);
 
   const selectComponent = useCallback((id: string | null) => {
     setSelectedComp(id);
@@ -795,6 +790,9 @@ export default function PerformanceDashboard({
     ? graphState?.stages.find((s) => s.id === selectedStage)
     : null;
 
+  const systemBucket = graphState?.system_health !== undefined ? healthBucket(graphState.system_health) : null;
+  const systemColor = statusColor(systemBucket === "healthy" ? "healthy" : systemBucket === "strained" ? "degraded" : "broken");
+
   const activeTechnical = activeStage && graphState?.technical[activeStage.id]
     ? graphState.technical[activeStage.id]
     : null;
@@ -906,6 +904,7 @@ export default function PerformanceDashboard({
 
   const selectStage = useCallback((stageId: string) => {
     setSelectedStage(stageId);
+    setHoveredComp(null);
     selectComponent(null);
   }, [selectComponent]);
 
@@ -956,28 +955,46 @@ export default function PerformanceDashboard({
             {graphState ? (
               <div className={styles.graphGrid}>
                 <div className={styles.graphColumn}>
-                  <div className={styles.sectionHeadRow}>
+                  {/* One panel for the pipeline: what it is and how it is doing on top, the stages in
+                      the middle, what feeds the selected stage and what it feeds underneath. */}
+                  <div className={styles.pipelinePanel}>
+                  <div className={styles.pipelineHead}>
                     <span className={styles.sectionLabel}>
                       <Icon icon="ph:target-bold" style={{ fontSize: "1.05rem" }} /> MLOps Project Graph
                     </span>
-                    {graphState.system_health !== undefined && (
-                      <span
-                        className={styles.systemHealth}
-                        style={{
-                          color: statusColor(
-                            healthBucket(graphState.system_health) === "healthy" ? "healthy"
-                              : healthBucket(graphState.system_health) === "strained" ? "degraded"
-                              : "broken"
-                          ),
-                        }}
-                      >
-                        The system as a whole: {HEALTH_BUCKET_WORD[healthBucket(graphState.system_health)]}
-                      </span>
-                    )}
+                    <div className={styles.headRight}>
+                    <div className={styles.statusGroup}>
+                      {graphState.system_health !== undefined && (
+                        <HoverTooltip description="The system as a whole: every stage you have reached, taken together">
+                          <span className={styles.statusItem} style={{ color: systemColor }}>
+                            <Icon icon="ph:heartbeat-bold" aria-hidden />
+                            <span className={styles.statusKey}>System</span>
+                            <span className={styles.statusValue}>{HEALTH_BUCKET_WORD[healthBucket(graphState.system_health)]}</span>
+                          </span>
+                        </HoverTooltip>
+                      )}
+                      {activeStage && (
+                        <HoverTooltip description={`Just the stage on screen: ${activeStage.name}`}>
+                          <span
+                            className={styles.statusItem}
+                            style={{ color: activeStage.locked ? "#64748b" : statusColor(activeStage.status) }}
+                          >
+                            <Icon icon={activeStage.locked ? "ph:lock-simple-bold" : "ph:stack-bold"} aria-hidden />
+                            <span className={styles.statusKey}>{activeStage.name}</span>
+                            <span className={styles.statusValue}>
+                              {healthText(activeStage)}
+                              {!!activeStage.starved && ` · ${activeStage.starved} starved`}
+                            </span>
+                          </span>
+                        </HoverTooltip>
+                      )}
+                    </div>
+                    <GraphLegend groups={buildDashboardLegend((graphState.feedback_flows?.length ?? 0) > 0)} tone="light" />
+                    </div>
                   </div>
 
                   <div className={styles.stageStrip}>
-                    <div style={{ width: "100%", minWidth: "100%", padding: "2px 2px" }}>
+                    <div style={{ width: "100%", minWidth: "100%" }}>
                       <CrossStageArcs
                         pipelineStages={pipelineStages}
                         flows={graphState.feedback_flows ?? []}
@@ -986,8 +1003,8 @@ export default function PerformanceDashboard({
                       />
                       <div
                         ref={buttonsRowRef}
-                        className="d-flex align-items-center gap-2 w-100"
-                        style={{ position: "relative", zIndex: 5, marginTop: 4 }}
+                        className="d-flex align-items-stretch w-100"
+                        style={{ position: "relative", zIndex: 5, gap: 0 }}
                       >
                         {pipelineStages.map((stage, i) => {
                           const flow = graphState.flows.find((f) => f.from === pipelineStages[i - 1]?.id && f.to === stage.id);
@@ -996,7 +1013,7 @@ export default function PerformanceDashboard({
                           return (
                             <div
                               key={stage.id}
-                              className={`d-flex align-items-center gap-2 ${styles.stageSlot}`}
+                              className={`d-flex align-items-stretch ${styles.stageSlot}`}
                               style={{ flex: "1 1 0", minWidth: 0 }}
                               ref={(el) => { stageRefs.current[stage.id] = el; }}
                             >
@@ -1007,45 +1024,30 @@ export default function PerformanceDashboard({
                               <button
                                 type="button"
                                 onClick={() => selectStage(stage.id)}
+                                aria-current={isStageActive ? "true" : undefined}
                                 className={`${styles.stageButton} ${isStageActive ? styles.stageButtonActive : ""} ${stage.locked ? styles.stageButtonUpcoming : ""} ${!stage.locked && stage.status === "broken" ? "pipe-stage-failing" : ""}`}
                               >
-                                <div className="fw-bold" style={{ color: stage.locked ? "#64748b" : "var(--text-primary, #1e293b)" }}>
+                                <div className={styles.stageName}>
+                                  {stage.locked && <Icon icon="ph:lock-simple-bold" className={styles.stageLock} aria-hidden />}
                                   {stage.name}
                                 </div>
                                 <div
-                                  style={{
-                                    fontSize: "0.72rem",
-                                    fontWeight: 600,
-                                    color: stage.locked ? "#94a3b8" : statusColor(stage.status),
-                                  }}
+                                  className={styles.stageState}
+                                  style={{ ["--state" as string]: stage.locked ? "#94a3b8" : statusColor(stage.status) }}
                                 >
+                                  {!stage.locked && <span className={styles.stateDot} aria-hidden />}
                                   {healthText(stage)}
-                                </div>
-
-                                <div className={styles.stageClickHint}>
-                                  <Icon icon="ph:cursor-click-bold" />
-                                  <span>
-                                    {isStageActive ? "Viewing" : stage.locked ? "Click to preview" : "Click to view"}
-                                  </span>
-                                </div>
-
-                                {!stage.locked && stage.patterns && stage.patterns.length > 0 && (
-                                  <div className="d-flex justify-content-center gap-1 mt-1">
-                                    {stage.patterns.map((p) => (
+                                  {isStageActive && <span className={styles.stageViewing}>viewing</span>}
+                                  {!stage.locked &&
+                                    stage.patterns?.map((p) => (
                                       <HoverTooltip key={p.id} description={p.name}>
                                         <span
-                                          style={{
-                                            width: 6,
-                                            height: 6,
-                                            borderRadius: "50%",
-                                            background: p.kind === "anti" ? "#dc3545" : "#16a34a",
-                                            display: "inline-block",
-                                          }}
+                                          className={styles.patternDot}
+                                          style={{ background: p.kind === "anti" ? "#dc3545" : "#16a34a" }}
                                         />
                                       </HoverTooltip>
                                     ))}
-                                  </div>
-                                )}
+                                </div>
                               </button>
                               </HoverTooltip>
                             </div>
@@ -1055,52 +1057,43 @@ export default function PerformanceDashboard({
                     </div>
                   </div>
 
+                  {activeStage && activeTechnical && (neighbours.inbound || neighbours.outbound) && (
+                    <div className={styles.neighbourRow}>
+                      <div className={styles.neighbourInSlot}>
+                        {neighbours.inbound && (
+                          <NeighbourChip side="in" info={neighbours.inbound} onSelect={selectStage} />
+                        )}
+                      </div>
+                      <div className={styles.neighbourOutSlot}>
+                        {neighbours.outbound && (
+                          <NeighbourChip side="out" info={neighbours.outbound} onSelect={selectStage} />
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {activeStage && activeStage.patterns && activeStage.patterns.length > 0 && (
+                    <div className={styles.patternRow}>
+                      {activeStage.patterns.map((p) => (
+                        <HoverTooltip key={p.id} description={p.id}>
+                          <span
+                            className="badge"
+                            style={{ background: p.kind === "anti" ? "#dc3545" : "#16a34a", fontSize: "0.7rem" }}
+                          >
+                            {p.name}
+                          </span>
+                        </HoverTooltip>
+                      ))}
+                    </div>
+                  )}
+                  </div>
+
                   {activeStage && activeTechnical && (
                     <>
-                      {/* Subheader with Stage Info & Legend */}
-                      <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-1">
-                        <div className="d-flex align-items-center gap-2">
-                          <h6 className="mb-0 fw-bold" style={{ color: "var(--text-primary, #1e293b)", fontSize: "0.92rem" }}>
-                            {activeStage.name} Architecture
-                          </h6>
-                          <span
-                            className="badge text-white"
-                            style={{ background: activeStage.locked ? "#94a3b8" : statusColor(activeStage.status), fontSize: "0.72rem" }}
-                          >
-                            {healthText(activeStage)}
-                          </span>
-                          {!!activeStage.starved && (
-                            <span className="badge bg-secondary" style={{ fontSize: "0.7rem" }}>
-                              {activeStage.starved} starved
-                            </span>
-                          )}
-                        </div>
+                      {/* The stage's name is already on the selected tab and in the header, so the board
+                          needs no visible title row; this keeps it for screen readers. */}
+                      <h6 className="visually-hidden">{activeStage.name} Architecture</h6>
 
-                        {/* Legend: the key to the board, on demand */}
-                        <GraphLegend groups={buildDashboardLegend((graphState.feedback_flows?.length ?? 0) > 0)} tone="light" />
-                      </div>
-
-                      {/* Active Patterns */}
-                      {activeStage.patterns && activeStage.patterns.length > 0 && (
-                        <div className="d-flex gap-1 flex-wrap">
-                          {activeStage.patterns.map((p) => (
-                            <HoverTooltip key={p.id} description={p.id}>
-                              <span
-                                className="badge"
-                                style={{ background: p.kind === "anti" ? "#dc3545" : "#16a34a", fontSize: "0.7rem" }}
-                              >
-                                {p.name}
-                              </span>
-                            </HoverTooltip>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* SVG canvas, flanked by what comes before and after this stage */}
                       <div className={styles.canvasRow}>
-                        {neighbours.inbound && (
-                          <NeighbourRail side="in" info={neighbours.inbound} onSelect={selectStage} />
-                        )}
                         <div className={styles.graphCanvasBox}>
                           <StageSvg
                             technical={activeTechnical}
@@ -1111,11 +1104,10 @@ export default function PerformanceDashboard({
                             onSelectCrossStub={selectCrossStub}
                             stageLocked={activeStage.locked}
                             nameOf={(id) => allComponentsById.get(id)?.name ?? id}
+                            hoveredComponentId={hoveredComp}
+                            onHoverComponent={setHoveredComp}
                           />
                         </div>
-                        {neighbours.outbound && (
-                          <NeighbourRail side="out" info={neighbours.outbound} onSelect={selectStage} />
-                        )}
                       </div>
 
                       {/* Non-pipeline edges summary */}
@@ -1156,6 +1148,8 @@ export default function PerformanceDashboard({
                       }}
                       onJumpToComponent={jumpToComponent}
                       nameOf={(id) => allComponentsById.get(id)?.name ?? id}
+                      hoveredId={hoveredComp}
+                      onHoverComponent={setHoveredComp}
                     />
                   ) : (
                     <div className={styles.detailsEmpty}>Pick a stage above to inspect its components.</div>

@@ -82,6 +82,7 @@ function App({ onLogout }: AppProps) {
   const [currentChallenge, setCurrentChallenge] = useState(0);
   const [phases, setPhases] = useState<any[]>([]);
   const [metrics, setMetrics] = useState<Record<string, Metric>>({});
+  const [metricShifts, setMetricShifts] = useState<Record<string, number>>({});
   const [challengeAmount, setChallengeAmount] = useState(0);
   const [_challengeMetricChanges, setChallengeMetricChanges] = useState<
     Record<string, number>
@@ -182,6 +183,11 @@ function App({ onLogout }: AppProps) {
   useEffect(() => {
     metricsRef.current = metrics;
   }, [metrics]);
+
+  const phasesRef = useRef<any[]>([]);
+  useEffect(() => {
+    phasesRef.current = phases;
+  }, [phases]);
 
   useEffect(() => {
     currentPhaseRef.current = currentPhase;
@@ -345,6 +351,22 @@ function App({ onLogout }: AppProps) {
         setProgressionIndex(data.progressionIndex);
       }
       setIsLoadingSave(false);
+
+      // Not on the first load (nothing to compare with) or while the demo is involved: its numbers
+      // are thrown away when the real project starts, so neither its moves nor that reset count.
+      if (hasReceivedInitialStateRef.current && data.metric_values) {
+        const before = metricsRef.current;
+        const shifts: Record<string, number> = {};
+        let moved = false;
+        Object.keys(before).forEach((id, i) => {
+          const next = data.metric_values[i];
+          if (next === undefined) return;
+          shifts[id] = next - (before[id].value ?? before[id].start_value);
+          if (shifts[id] !== 0) moved = true;
+        });
+        const inDemo = hasIntroPhase(phasesRef.current) && (currentPhaseRef.current === 0 || data.phase_id === 0);
+        if (moved && !inDemo) setMetricShifts(shifts);
+      }
 
       setMetrics((prevMetrics) => {
         const updated = { ...prevMetrics };
@@ -911,7 +933,7 @@ function App({ onLogout }: AppProps) {
             <PhasesContext.Provider
               value={{ currentPhase, setCurrentPhase, phases, setPhases }}
             >
-              <MetricsContext.Provider value={{ metrics, setMetrics }}>
+              <MetricsContext.Provider value={{ metrics, setMetrics, shifts: metricShifts }}>
                 <StakeholderContext.Provider
                   value={{
                     stakeholders,

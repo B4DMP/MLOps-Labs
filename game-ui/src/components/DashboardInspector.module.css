@@ -121,18 +121,44 @@
 }
 
 .listRow:hover,
-.listRow:focus-visible {
+.listRow:focus-visible,
+.listRowLit {
   background-color: rgba(38, 102, 130, 0.12);
   outline: none;
 }
 
 .listRow:hover::before,
-.listRow:focus-visible::before {
+.listRow:focus-visible::before,
+.listRowLit::before {
   opacity: 1;
 }
 
-.list:hover .listRow:not(:hover):not(:focus-visible) {
+.list:hover .listRow:not(:hover):not(:focus-visible):not(.listRowLit) {
   opacity: 0.62;
+}
+
+/* Counts by state */
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-2);
+}
+
+.summaryPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.summaryPill {
+  padding: 1px var(--sp-3);
+  border: 1px solid #b8a98c;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.55);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--ink-soft);
 }
 
 .disc {
