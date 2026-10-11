@@ -45,8 +45,9 @@ Reference for the animated (Lordicon) icons used across the UI, and how to add m
 | `VetoDialog.tsx` | Header, every veto | `road-barrier` |
 | `IntelVerificationDialog.tsx` | Stance verification result | `puzzle-square` (correct), `warning-triangle` (corrected/incorrect) |
 | `ac_simulation.tsx` (Rollout Debrief) | Executive Directive Banner hero, one random icon per outcome tone, re-rolled every time the debrief is shown (`OUTCOME_HERO_ICONS`) | `firework`/`shooting-stars`/`confetti`/`disco-ball` (PASS), `wrench`/`warning-triangle`/`alarm` (SOFT_PASS), `ball-bowling`/`no-entry`/`stop` (VETO_BROKEN), `trash-bin`/`road-barrier`/`truck`/`person-protesting` (STALEMATE) |
+| `ComposeActionProposalModal.tsx` (sidebar inspector header) | Selected node is broken (`nominal_automation === 0`) | `warning-triangle` |
 | `BriefingPage.tsx` | Header hero icon, continuous ambient motion (not `OnceIcon`, self-looped via `onComplete`) - real briefing, the default | `truck` (`state="loop-cycle"`) |
-| `BriefingPage.tsx` | Header hero icon, one-shot (`OnceIcon`, no loop) - demo briefing only, passed via `heroIcon={{ icon, loop: false }}` | `honeycombs` |
+| `BriefingPage.tsx` | Header hero icon, one-shot (`OnceIcon`, no loop) - demo briefing only, passed via `heroIcon={{ icon, loop: false }}` | `honeycombs` |
 | `CoachTip.tsx` (intro guide hints, via `COACH_ICONS`) | Hero per guide step | `magnifier` (verify), `puzzle-square` (verified note held up), `warning-triangle` (verified note was corrected), `avatars-chatting` (talk to the one who can stop you), `eye` (read their page), `scale-retro` (build in the Pitch Deck), `hands-applause` (read the room) |
 | `CoachTip.tsx` (composer guide hints, via `COACH_ICONS`) | Hero per composer step | `layers` (meet the pipeline), `list-rules` (two dials, governance), `magnifier` (click the component), `puzzle-square` (pick the step), `eye` (what feeds on what), `scale-retro` (slots, then the room) |
 | `CoachTip.tsx` (mistake tips, amber heads-up) | Hero for card cost, used card, thin intel, likely veto | `warning-triangle` |
