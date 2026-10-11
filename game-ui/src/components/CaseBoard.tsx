@@ -247,7 +247,7 @@ const CaseBoard: React.FC<CaseBoardProps> = ({ board, outcome, portraits, render
   const count = (kind: ThreadKind) => board.found.filter((t) => t.kind === kind).length;
   const sourcePlace: Place | undefined = source ? places[source] : undefined;
   const dragPlace: Place | undefined = drag.current?.moved ? places[drag.current.from] : undefined;
-  const helpText = "Click one person, then another, to tie them (dragging works too). Double-click a person to open their page.";
+  const helpText = "Left-click one person, then another, to tie them (dragging works too). Double-click a person to open their page. With a keyboard: Tab to a person, press Space or Enter to pick them, then Tab to another and press it again.";
 
   return (
     <div className={styles.board} onKeyDown={onKeyDown}>
@@ -338,7 +338,7 @@ const CaseBoard: React.FC<CaseBoardProps> = ({ board, outcome, portraits, render
                     aria-label={
                       source && !isSource
                         ? `Tie ${name(source)} to ${p.name}`
-                        : `${p.name}: click to pick them for tying to another person. Double-click to open their page.`
+                        : `${p.name}: left-click, or press Space or Enter, to pick them for tying to another person. Double-click to open their page.`
                     }
                     onPointerDown={onPointerDown(p.id)}
                     onDragStart={(e) => e.preventDefault()}
@@ -410,7 +410,7 @@ const CaseBoard: React.FC<CaseBoardProps> = ({ board, outcome, portraits, render
               ))}
 
               {sourcePlace && !chooser && (
-                <span className={styles.sourceHint}>Now pick the second person</span>
+                <span className={styles.sourceHint}>Now left-click the second person</span>
               )}
               <div className={`${styles.toast} ${toast ? styles.show : ""}`} role="status" aria-live="polite">
                 {toast}
