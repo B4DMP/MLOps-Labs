@@ -309,7 +309,9 @@
 .tabButton:hover:not(.activeTab) {
   opacity: 0.9;
   filter: brightness(1.08);
-  transform: translateY(-2px);
+  /* Grow upward from the bottom edge: lifting the tab would pull it off the page. */
+  transform-origin: bottom;
+  transform: scaleY(1.07);
 }
 
 /* The mood word stays on every tab, but only the open one says it loudly. */
