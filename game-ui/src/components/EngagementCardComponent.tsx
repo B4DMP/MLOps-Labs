@@ -57,7 +57,11 @@ export default function EngagementCardComponent({
           : `Drag to Pitch Deck / Chat or click to play ${card.title}`;
 
   return (
-    <HoverTooltip description={isDragging ? undefined : cardTooltip}>
+    // Keep `description` stable across isDragging: HoverTooltip renders an unwrapped
+    // fragment when description is falsy, so toggling it here would remount this draggable
+    // div mid-drag, detaching it from the native drag session and losing the dragend event
+    // that resets isDragging - leaving the card stuck invisible if it isn't dropped on a target.
+    <HoverTooltip description={cardTooltip}>
     <div
       draggable={isPlayable}
       onDragStart={isPlayable ? onDragStart : undefined}
