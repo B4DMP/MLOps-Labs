@@ -18,16 +18,13 @@ CSRF_HEADER_NAME = "x-csrf-token"
 
 _MUTATING_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 
-# Endpoints reachable before any CSRF cookie exists yet (there's nothing to double-submit
-# against), plus /reset-memory, a pre-existing unauthenticated dev/testing utility with no cookie
-# session of its own to protect.
+# Endpoints reachable before any CSRF cookie exists yet (there's nothing to double-submit against).
 _EXEMPT_PATHS = {
     "/api/auth/login",
     "/api/auth/register",
     "/api/auth/verify-email",
     "/api/auth/forgot-password",
     "/api/auth/reset-password",
-    "/reset-memory",
 }
 
 

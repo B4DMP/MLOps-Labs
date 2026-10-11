@@ -3,7 +3,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from opik.integrations.langchain import OpikTracer
 
@@ -15,7 +15,7 @@ from .opik_utils import configure
 
 from mlops_serious_game.infrastructure.middleware.csrf import CSRFMiddleware
 from mlops_serious_game.infrastructure.routes.auth_routes import router as auth_router
-from mlops_serious_game.infrastructure.routes.admin_routes import router as admin_router
+from mlops_serious_game.infrastructure.routes.admin_routes import router as admin_router, check_admin_token
 from mlops_serious_game.infrastructure.routes.glossary_routes import router as glossary_router
 from mlops_serious_game.infrastructure.routes.teacher_routes import router as teacher_router
 from mlops_serious_game.infrastructure.routes.tts_routes import router as tts_router
@@ -87,9 +87,11 @@ async def health_check():
     return {"status": "ok"}
 
 
-@app.post("/reset-memory")
+@app.post("/reset-memory", dependencies=[Depends(check_admin_token)])
 async def reset_conversation():
-    """Resets the conversation state."""
+    """Wipes every player's checkpoints. Admin only, and only where playtest tools are enabled."""
+    if not settings.ENABLE_PLAYTEST_TOOLS:
+        raise HTTPException(status_code=404, detail="Not found")
     try:
         result = await reset_conversation_state()
         return result
