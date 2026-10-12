@@ -140,6 +140,12 @@ class Settings(BaseSettings):
     LLM_CACHE_MAXSIZE: int = Field(
         default=1000, gt=0, description="Maximum cached prompts per chain."
     )
+    LLM_REQUEST_TIMEOUT_SECONDS: float = Field(
+        default=60, gt=0, description="Per-request timeout, so a hanging provider fails over."
+    )
+    LLM_MAX_RETRIES: int = Field(
+        default=1, ge=0, description="Retries within one provider before falling back to the next."
+    )
     BUILD_VERSION: str = Field(
         default="dev",
         max_length=128,

@@ -35,6 +35,9 @@ from mlops_serious_game.domain.requirement import PLAUSIBLE_WRONG_TAG, Confidenc
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
 
+# Used when no LLM provider answers. Reveals nothing, so the debate carries on without leaking intel.
+STAKEHOLDER_FALLBACK_REPLY = "Let me think that over for a moment. Could you walk me through your proposal once more?"
+
 
 def _normalize_intel_items(intel_items: list) -> list[StakeholderIntelItem]:
     normalized = []
@@ -630,25 +633,29 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
         proposed_ac_title = action_card.get("title", "")
         proposed_ac_desc = action_card.get("description", "")
 
-    response = await conversation_chain.ainvoke(
-        {
-            "messages": input_messages,
-            "summary": summary,
-            "challenge": challenge_text,
-            "stakeholder_name": st.name,
-            "stakeholder_responsibilities": st.responsibilities,
-            "stakeholder_priorities": st.priorities,
-            "private_requirements": private_intel_context,
-            "owned_components": owned_components,
-            "card_targets": card_targets,
-            "proposed_action_card_title": proposed_ac_title,
-            "proposed_action_card_description": proposed_ac_desc,
-            "current_emotion": current_emotion,
-            "emotion_instruction": emotion_instruction,
-            "intel_instruction": intel_instruction,
-        },
-        config,
-    )
+    try:
+        response = await conversation_chain.ainvoke(
+            {
+                "messages": input_messages,
+                "summary": summary,
+                "challenge": challenge_text,
+                "stakeholder_name": st.name,
+                "stakeholder_responsibilities": st.responsibilities,
+                "stakeholder_priorities": st.priorities,
+                "private_requirements": private_intel_context,
+                "owned_components": owned_components,
+                "card_targets": card_targets,
+                "proposed_action_card_title": proposed_ac_title,
+                "proposed_action_card_description": proposed_ac_desc,
+                "current_emotion": current_emotion,
+                "emotion_instruction": emotion_instruction,
+                "intel_instruction": intel_instruction,
+            },
+            config,
+        )
+    except Exception as exc:
+        logger.warning(f"Stakeholder reply failed for {st.id}, using the scripted line: {exc}")
+        response = AIMessage(content=STAKEHOLDER_FALLBACK_REPLY)
 
     cleaned_content = (response.content).strip()
     cleaned_content = sanitize_dashes(cleaned_content)

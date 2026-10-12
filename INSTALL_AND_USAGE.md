@@ -40,6 +40,8 @@ The game requires access to these cloud services. The authentication to these se
 
 Note that WestAI is an OpenAI-compatible proxy hosted by the RWTH Aachen University. In theory, any OpenAI-compatible API can be used by modifying `WESTAI_API_BASE` or `MISTRAL_API_BASE` in config.py.
 
+If you set more than one of these keys, a provider that is rate limiting or down is skipped: the call moves to the next keyed provider (Mistral, then WestAI, then Groq), and the bug-report recipients get one email per provider per 15 minutes. If every provider fails, the game falls back to scripted text.
+
 When working locally, the infrastructure is set up using Docker. Thus, you can use the default values found in the [config.py](mlops_serious_game-api/src/mlops_serious_game/config.py) file for all the infrastructure-related environment variables.
 
 But, in case you want to deploy the code, you'll need to setup the following services with their corresponding environment variables:

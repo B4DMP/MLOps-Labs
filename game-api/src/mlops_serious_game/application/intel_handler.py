@@ -18,6 +18,7 @@ from typing import List, Dict, Any, Optional
 import random
 
 from fastapi import WebSocket
+from loguru import logger
 from sqlalchemy import select
 
 from mlops_serious_game.domain.Challenge import Challenge
@@ -866,7 +867,12 @@ async def handle_intel_item_categorization(curr_challenge: Challenge, ws: WebSoc
             elif wrong_desc:
                 intel_item.categorized_description = wrong_desc
             else:
-                intel_item.categorized_description = await create_wrong_intel_item_description(curr_challenge, intel_item)
+                try:
+                    intel_item.categorized_description = await create_wrong_intel_item_description(curr_challenge, intel_item)
+                except Exception as exc:
+                    # No provider answered: keep the item's own wording rather than failing the tag.
+                    logger.warning(f"Wrong-intel description failed for {intel_item.id}, using the true wording: {exc}")
+                    intel_item.categorized_description = intel_item.description
     await store_intel_item(curr_challenge, ws, intel_item)
 
 async def create_wrong_intel_item_description(curr_challenge: Challenge, intel_item: StakeholderIntelItem) -> str:
