@@ -105,7 +105,7 @@
         "pep_talk_confidence_gain": { "type": "number", "title": "Pep-Talk: confidence gain per stakeholder, scaled by reactivity", "default": 0.08 },
         "pep_talk_control_gain": { "type": "number", "title": "Pep-Talk: sense-of-control gain per stakeholder, scaled by reactivity", "default": 0.05 },
         "pen_enabled": { "type": "boolean", "title": "Hand the Pen: whether the card can be played", "default": true },
-        "pen_leave_player_slots": { "type": "integer", "title": "Hand the Pen: slots that must still be free after a draft is added", "default": 1 },
+        "pen_leave_player_slots": { "type": "integer", "title": "Hand the Pen: slots that must still be free after a draft is added", "default": 0 },
         "pen_trust_gain": {
           "type": "object",
           "title": "Hand the Pen: trust gain to the holder when the card is played, per trust band",

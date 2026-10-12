@@ -148,8 +148,8 @@ can cost tokens, a slot and buy-in but never makes the challenge unwinnable.
 If the draft's `(target, axis)` matches a change already on the card, the draft replaces it. A change
 on the same target but another axis stays.
 
-- The slot count does not grow. If there is no match, the draft needs a free slot, and at least one
-  slot must still be the player's own afterwards (`pen_leave_player_slots`, default 1), otherwise the
+- The slot count does not grow. If there is no match, the draft needs a free slot; it may take the
+  last one (`pen_leave_player_slots` is how many must stay free afterwards, default 0), otherwise the
   card cannot be played.
 - The holder's line and a log event say whose change it replaced: "{Name} took over your change on
   {component}". The loss is the point: it is the risk the player takes when they hand over the pen
@@ -164,7 +164,7 @@ on the same target but another axis stays.
 | at the same moment, holder | trust and sense of control rise, more the lower their trust was (`pen_trust_gain`, `pen_control_gain`), scaled by reactivity. This is the lever that can lift a distrustful owner over the 0.4 line |
 | at the same moment, cost | the holder loses a little fairness for doing the PM's work (`pen_holder_fairness_cost`), everyone else in the room a little for not getting the same treatment (`pen_room_fairness_cost`), both scaled by reactivity. Charged once, so an unchanged card keeps its signature and the re-pitch rules are untouched |
 | simulation | no change. The holder's higher buy-in does the work through `resolve_degradation` |
-| limits | `max_plays_per_phase` 1, `pen_leave_player_slots` 1, never in a demo phase, never after the pitch is committed |
+| limits | `max_plays_per_phase` 1, `pen_leave_player_slots` 0, never in a demo phase, never after the pitch is committed |
 
 The bonus and costs move from "at the next evaluate" to "when played". They are applied to the stored
 emotions by the handler, not through the pitch evaluation, so the evaluate path has no pen code left.

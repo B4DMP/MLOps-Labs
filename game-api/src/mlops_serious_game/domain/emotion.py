@@ -465,7 +465,7 @@ class PitchTuning(BaseModel):
     # Hand the Pen (docs/plans/hand-over-the-pen.md): a stakeholder drafts a component's next
     # change themselves, instead of the player picking it.
     pen_enabled: bool = Field(default=True, description="Hand the Pen: whether the card can be played")
-    pen_leave_player_slots: int = Field(default=1, description="Hand the Pen: slots that must still be free after a draft is added")
+    pen_leave_player_slots: int = Field(default=0, description="Hand the Pen: slots that must still be free after a draft is added")
     pen_trust_gain: dict[str, float] = Field(
         default_factory=lambda: {"low": 0.12, "medium": 0.07, "high": 0.03},
         description="Hand the Pen: trust gain to the holder when the card is played, per trust band (more the lower their trust was)",

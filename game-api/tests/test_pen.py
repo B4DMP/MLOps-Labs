@@ -180,12 +180,22 @@ def test_a_change_on_another_axis_of_the_same_target_stays():
     assert replaced is None and len(card) == 2
 
 
-def test_a_draft_needs_a_slot_left_free_unless_it_takes_one_over():
-    full = [_c("a"), _c("b"), _c("c")]
-    assert pen.place_draft(full, _d(), leave=1) is None
-    taken = [*full, _c("data.validation", value=3)]
-    card, replaced = pen.place_draft(taken, _d(), leave=1)
+def test_a_draft_may_take_the_last_free_slot():
+    three = [_c("a"), _c("b"), _c("c")]
+    card, replaced = pen.place_draft(three, _d())
+    assert replaced is None and len(card) == 4
+
+
+def test_a_draft_needs_a_free_slot_unless_it_takes_one_over():
+    full = [_c("a"), _c("b"), _c("c"), _c("d")]
+    assert pen.place_draft(full, _d()) is None
+    taken = [*full[:3], _c("data.validation", value=3)]
+    card, replaced = pen.place_draft(taken, _d())
     assert replaced is not None and len(card) == 4
+
+
+def test_leave_reserves_slots_for_the_player_when_asked():
+    assert pen.place_draft([_c("a"), _c("b"), _c("c")], _d(), leave=1) is None
 
 
 # ---------- lock_card: the drafted slot stays ----------

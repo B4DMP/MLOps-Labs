@@ -218,7 +218,7 @@ def draft_for_pen(
 
 
 def place_draft(
-    card: list[AtomicChange], draft: PenDraft, leave: int = 1
+    card: list[AtomicChange], draft: PenDraft, leave: int = 0
 ) -> Optional[tuple[list[AtomicChange], Optional[AtomicChange]]]:
     """The card with the draft in it, plus the player's change it replaced (or None).
 
