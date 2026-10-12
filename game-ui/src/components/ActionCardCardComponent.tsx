@@ -6,7 +6,7 @@ import type { ActionCard, AtomicChange, ItemPrediction } from "../types/ActionCa
 import { StakeholderContext, type Stakeholder } from "./StakeholderProvider";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import type { StakeholderAvatar } from "../types/StakeholderAvatar";
-import { AXIS_TITLES, axisMeta, formatAxisLevel, formatAxisLevelCap } from "../utils/stageCanvas";
+import { AXIS_TITLES, formatAxisLevel } from "../utils/stageCanvas";
 import { describeAtomicChange } from "../utils/graphOptions";
 import { dedupeAtomicChanges } from "./ComposeActionProposalModal";
 import HoverTooltip from "./HoverToolTip";
@@ -61,10 +61,6 @@ export interface ActionCardCardComponentProps {
   stakeholders?: Record<string, Stakeholder>;
   getStakeholderColor?: (st: any) => string;
   onClick?: () => void;
-  /** A single change row was clicked (its own graph target id) - lets the caller open the
-   *  composer already focused on that target's inspector, instead of just opening it. Row
-   *  clicks stop propagation, so this fires instead of `onClick`, not in addition to it. */
-  onSelectChange?: (target: string) => void;
   className?: string;
   isInteractive?: boolean;
   isMinimized?: boolean;
@@ -79,7 +75,6 @@ export default function ActionCardCardComponent({
   stakeholders: propStakeholders,
   getStakeholderColor: propGetColor,
   onClick,
-  onSelectChange,
   className = "",
   isInteractive = false,
   isMinimized = false,
@@ -161,64 +156,10 @@ export default function ActionCardCardComponent({
         </div>
 
         <div className={styles.minimizedBody}>
-          {atomicChanges.length > 0 ? (
-            // A dedicated grid/scroll container for just the change rows - not the header,
-            // progress pill or footer - so a 4th slot makes this list a bit taller or (on short
-            // screens) a bit wider, instead of growing the whole card past the boardroom table's
-            // available height and pushing the Commit/Revise buttons below it out of reach.
-            <div className={`${styles.changeRowsList} ${atomicChanges.length >= 3 ? styles.changeRowsDense : ""}`}>
-              {atomicChanges.map((ac, idx) => {
-                const name =
-                  card.target_names?.[ac.target] ||
-                  ac.target.split(".").pop()?.replace(/_/g, " ") ||
-                  ac.target;
-                const pred = predictionFor(card, ac);
-                // This row's own requested level, never the prediction's `predicted` - a target
-                // chained through several steps on one axis shares one prediction per (target,
-                // axis) across every row (predictions_for keys on that pair, not on which step
-                // asked), so `predicted` is always the chain's final settled level regardless of
-                // which row reads it. Using it here duplicated the last step's badge onto every
-                // earlier one instead of each row naming its own step.
-                const level = ac.value;
-                const meta = ac.axis && typeof level === "number" ? axisMeta(ac.axis, level) : undefined;
-                return (
-                  <div
-                    key={idx}
-                    className={`${styles.changeRow} ${idx % 2 === 1 ? styles.changeRowAlt : ""} ${
-                      onSelectChange ? styles.changeRowClickable : ""
-                    }`}
-                    style={meta ? ({ "--change-color": meta.color, "--change-ink": meta.ink } as React.CSSProperties) : undefined}
-                    onClick={
-                      onSelectChange
-                        ? (e) => {
-                            e.stopPropagation();
-                            onSelectChange(ac.target);
-                          }
-                        : undefined
-                    }
-                  >
-                    <span className={`${styles.changeName} text-truncate`}>
-                      <Icon icon="ph:lightning-fill" className={styles.changeNameIcon} />
-                      <span className="text-truncate">{name}</span>
-                    </span>
-                    {pred?.upstream_uncertain ? (
-                      <span className={`${styles.changeBadge} ${styles.changeBadgeWarning}`}>
-                        <Icon icon="ph:question-fill" /> Uncertain
-                      </span>
-                    ) : pred?.capped_by ? (
-                      <span className={`${styles.changeBadge} ${styles.changeBadgeCapped}`}>
-                        <Icon icon="ph:link-simple-bold" /> {formatAxisLevelCap(pred.axis ?? ac.axis ?? "automation", pred.predicted)}
-                      </span>
-                    ) : (
-                      <span className={styles.changeBadge}>
-                        {meta && <Icon icon={meta.icon} />} {formatAxisLevelCap(ac.axis ?? "automation", level)}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
+          {/* The changes themselves are listed only in the expanded card (click to expand
+              below) - at 4 slots the per-row list no longer fit this minimized card cleanly,
+              so here it's just the count pill in the header above. */}
+          {atomicChanges.length === 0 && (
             <HoverTooltip description={card.description}>
               <p className={styles.minimizedDescription}>{card.description}</p>
             </HoverTooltip>

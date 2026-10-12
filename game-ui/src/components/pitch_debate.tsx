@@ -2128,12 +2128,6 @@ export default function PitchDebate({
                                         setIsPitchModalOpen(true);
                                       }
                                     }}
-                                    onSelectChange={(target) => {
-                                      if ((!isCommittedLocked || pitchState?.outcome === "VETO") && !isPitchDebating) {
-                                        setComposerFocusTargetId(target);
-                                        setIsPitchModalOpen(true);
-                                      }
-                                    }}
                                   />
                                 ) : (
                                   <div

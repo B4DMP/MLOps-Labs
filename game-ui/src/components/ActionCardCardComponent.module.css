@@ -91,10 +91,6 @@
   animation-delay: 0.16s;
 }
 
-/* No padding: change rows run edge-to-edge and rely on .minimizedPanel's own overflow:hidden
-   to clip the first/last row to its rounded corners, instead of a border floating inside a
-   padded gutter. Anything that isn't a full-bleed row (description, addendums, footer) adds
-   its own horizontal padding back. */
 .minimizedBody {
   display: flex;
   flex-direction: column;
@@ -105,155 +101,6 @@
   margin-top: 6px;
   padding-left: 7px;
   padding-right: 7px;
-}
-
-/* Up to MAX_ATOMIC_CHANGES (4) rows. On a tall viewport they just stack (unchanged look); the
-   cap + scroll here is only a safety net for anything shorter than that - see the compact
-   grid below for the layout that actually keeps a 4-row proposal within the boardroom table's
-   available height on a short screen. */
-.changeRowsList {
-  display: flex;
-  flex-direction: column;
-  max-height: 45vh;
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
-.changeRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 8px;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--change-color, #cbd5e1) 7%, #f8fafc) 0%, #f8fafc 65%);
-  border-top: 1px solid #e2e8f0;
-  border-left: 3px solid var(--change-color, #cbd5e1);
-  transition: background 0.15s ease, border-left-width 0.15s ease, padding-left 0.15s ease, box-shadow 0.15s ease;
-  animation: rowSettleIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.changeRow:first-child {
-  border-top: none;
-}
-
-/* ── Compact mode: short/narrow screens ──
-   The boardroom table sizes itself around this card, and a 4th change row (added when the
-   composer grew from 3 to 4 slots) made the single-column list tall enough to push the
-   Commit/Revise buttons below the table off the visible area on shorter screens. Laying the
-   same rows out 2-up keeps the card at roughly its old (3-row) height instead. Only from 3 rows
-   up (.changeRowsDense): with 1-2 rows a half-width column just squeezed the name to "k...". */
-@media (max-height: 820px), (max-width: 480px) {
-  .changeRowsDense {
-    display: grid;
-    /* minmax(0, 1fr), not plain 1fr: a bare 1fr track won't shrink below its row's
-       min-content width, and a nowrap badge + name forced that past the column's share of
-       250px - the row then quietly pushed .changeRowsList wider than the card, and because
-       overflow-y: auto was set with no overflow-x, the computed value rules turned that into
-       an unwanted horizontal scrollbar instead of the ellipsis truncation below. */
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    max-height: 32vh;
-  }
-
-  .changeRowsDense .changeRow {
-    border-top: 1px solid #e2e8f0;
-  }
-
-  .changeRowsDense .changeRow:nth-child(odd) {
-    border-right: 1px solid #e2e8f0;
-  }
-
-  .changeRowsDense .changeRow:nth-child(-n + 2) {
-    border-top: none;
-  }
-
-  .changeName {
-    font-size: 0.66rem;
-  }
-
-  .changeBadge {
-    font-size: 0.56rem;
-    padding: 2px 5px;
-  }
-}
-/* Staggered by position rather than all landing at once - a proposal reads as separate
-   commitments, so they arrive one beat apart instead of as a single block. Capped at 4 because
-   that is MAX_ATOMIC_CHANGES; a 5th+ row (should not happen) just inherits the last delay. */
-.changeRow:nth-child(1) { animation-delay: 0.02s; }
-.changeRow:nth-child(2) { animation-delay: 0.08s; }
-.changeRow:nth-child(3) { animation-delay: 0.14s; }
-.changeRow:nth-child(4) { animation-delay: 0.2s; }
-
-.changeRowAlt {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--change-color, #cbd5e1) 7%, #eff3f7) 0%, #eff3f7 65%);
-}
-
-/* A row that opens straight to its own target in the composer's inspector, rather than just
-   opening the composer - its own cursor, distinct from the card's overall "open" cursor. */
-.changeRowClickable {
-  cursor: pointer;
-}
-
-/* Row-level hover feedback: even though the click target is the whole card, each row reads as
-   its own list item, so it should answer to the pointer on its own rather than only as a block.
-   One hover background for both zebra tones (rather than each darkening its own base) - a
-   pale "absent" grey mixed 20% into an already-pale alt row barely moved the needle. */
-.interactive .changeRow:hover,
-.interactive .changeRowAlt:hover {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--change-color, #cbd5e1) 32%, #ffffff) 0%, #ffffff 85%);
-  border-left-width: 5px;
-  padding-left: 6px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 4px rgba(15, 23, 42, 0.08);
-}
-
-.changeName {
-  flex: 1;
-  min-width: 0;
-  font-size: 0.71rem;
-  font-weight: 700;
-  color: #1e293b;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* The name text itself, nested one level inside .changeName (icon is the other flex item).
-   Needs its own min-width: 0 - a flex item's default min-width is its content's full nowrap
-   width, so without this the text-truncate ellipsis never actually gets a chance to clip it,
-   and the row (and the grid it sits in) silently grows to fit the untruncated name instead. */
-.changeName span {
-  min-width: 0;
-}
-
-.changeNameIcon {
-  flex-shrink: 0;
-  font-size: 0.78rem;
-  color: var(--change-color, #64748b);
-}
-
-.changeBadge {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 7px;
-  border-radius: 999px;
-  font-size: 0.6rem;
-  font-weight: 800;
-  white-space: nowrap;
-  background: color-mix(in srgb, var(--change-color, #64748b) 16%, white);
-  color: var(--change-ink, #334155);
-  border: 1px solid color-mix(in srgb, var(--change-color, #64748b) 45%, transparent);
-}
-
-.changeBadgeWarning {
-  background: rgba(217, 119, 6, 0.14);
-  color: #b45309;
-  border-color: rgba(217, 119, 6, 0.4);
-}
-
-.changeBadgeCapped {
-  background: rgba(100, 116, 139, 0.14);
-  color: #475569;
-  border-color: rgba(100, 116, 139, 0.4);
 }
 
 .minimizedFooter {
@@ -498,11 +345,6 @@
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@keyframes rowSettleIn {
-  from { opacity: 0; transform: translateX(-6px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
 @keyframes pillPop {
   0% { opacity: 0; transform: scale(0.5); }
   65% { transform: scale(1.1); }
@@ -511,12 +353,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .minimizedPanel,
-  .changeRow,
   .minimizedProgressPill {
     animation: none;
   }
   .cardContainer,
-  .changeRow,
   .minimizedFooter,
   .minimizedFooterIcon {
     transition: none;

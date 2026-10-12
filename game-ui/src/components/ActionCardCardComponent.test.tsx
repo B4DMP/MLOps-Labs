@@ -7,10 +7,11 @@ import type { ActionCard } from "../types/ActionCard";
  * Regression: a target chained through several steps on one axis ("Implement It Manually" then
  * "Automate It", one authored option/one slot each) shares a single backend prediction across
  * every row (predictions_for keys on (target, axis), not on which step asked) - so `predicted`
- * on it is always the chain's final settled level, never any one row's own step. The minimized
- * card must show each row's own requested level (`ac.value`), not that shared `predicted`.
+ * on it is always the chain's final settled level, never any one row's own step. The expanded
+ * card must show each row's own requested level (`ac.value`), not that shared `predicted`. (The
+ * minimized card no longer lists rows at all - just the proposal's change count.)
  */
-describe("ActionCardCardComponent minimized card", () => {
+describe("ActionCardCardComponent expanded card", () => {
   it("names each chained step by its own level, not the chain's final settled level", () => {
     const card: ActionCard = {
       id: "c1",
@@ -32,11 +33,11 @@ describe("ActionCardCardComponent minimized card", () => {
       target_names: { "req.kpi_definition": "KPI Definition", "req.data_contracts": "Data Contracts" },
     };
 
-    render(<ActionCardCardComponent card={card} isMinimized />);
+    render(<ActionCardCardComponent card={card} />);
 
-    // KPI Definition and data_contracts's own first step are both genuinely "Manual".
-    expect(screen.getAllByText("Manual")).toHaveLength(2);
-    // Exactly one "Automated" badge - data_contracts's second step, not duplicated onto its first.
-    expect(screen.getAllByText("Automated")).toHaveLength(1);
+    // KPI Definition and data_contracts's own first step are both genuinely "manual".
+    expect(screen.getAllByText(/Automation → manual/)).toHaveLength(2);
+    // Exactly one "automated" badge - data_contracts's second step, not duplicated onto its first.
+    expect(screen.getAllByText(/Automation → automated/)).toHaveLength(1);
   });
 });
