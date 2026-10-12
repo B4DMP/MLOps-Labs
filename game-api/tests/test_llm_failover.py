@@ -31,6 +31,7 @@ def _keys(monkeypatch, **keys):
 @pytest.fixture(autouse=True)
 def _no_override(monkeypatch):
     monkeypatch.setattr(llm_alerts, "_last_alert", {})
+    monkeypatch.setattr(llm_alerts, "_send_alert", _no_send)  # never email from a test
     llm.bind_llm_provider(None)
     yield
     llm.bind_llm_provider(None)
@@ -65,7 +66,6 @@ def test_a_campaign_override_stays_primary_and_the_rest_back_it_up(monkeypatch):
 def test_a_failing_primary_hands_the_call_to_the_next_provider(monkeypatch):
     _keys(monkeypatch, mistral="k", westai="k", groq="k")
     _fake_builders(monkeypatch, down=("mistral",))
-    monkeypatch.setattr(llm_alerts, "_send_alert", _no_send)
 
     assert llm.get_chat_model().invoke("hi").content == "answer from westai"
 
@@ -73,7 +73,6 @@ def test_a_failing_primary_hands_the_call_to_the_next_provider(monkeypatch):
 def test_every_provider_down_still_raises_so_callers_use_their_scripted_text(monkeypatch):
     _keys(monkeypatch, mistral="k", groq="k")
     _fake_builders(monkeypatch, down=("mistral", "groq"))
-    monkeypatch.setattr(llm_alerts, "_send_alert", _no_send)
 
     with pytest.raises(RuntimeError):
         llm.get_chat_model().invoke("hi")
@@ -95,7 +94,6 @@ async def _no_send(provider, campaign_key, fallbacks, error):
 
 def test_one_alert_per_provider_per_cooldown(monkeypatch):
     _sent.clear()
-    monkeypatch.setattr(llm_alerts, "_send_alert", _no_send)
 
     async def fail_three_times():
         handler = llm_alerts.ProviderFailureHandler("mistral", "camp", ["groq"])
@@ -112,7 +110,6 @@ def test_one_alert_per_provider_per_cooldown(monkeypatch):
 
 def test_cancellation_is_not_a_provider_failure(monkeypatch):
     _sent.clear()
-    monkeypatch.setattr(llm_alerts, "_send_alert", _no_send)
 
     asyncio.run(llm_alerts.ProviderFailureHandler("mistral", "", []).on_llm_error(asyncio.CancelledError()))
 
