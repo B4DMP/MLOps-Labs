@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { Fragment, useState, useMemo, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import styles from "./Admin.module.css";
 import {
@@ -118,6 +118,8 @@ interface AdminProps {
   setDebugFlag?: (playerName: string, flag: DebugFlag, enabled: boolean) => void;
   /** Refills the tokens of the player's current challenge; throws with the server's reason. */
   resetTokens?: (playerName: string) => Promise<void>;
+  /** Wipes the player back to a fresh account; the server re-checks `confirmName`. */
+  resetPlayer?: (playerName: string, confirmName: string) => Promise<void>;
   /** Opens the game as this player sees it, read-only. */
   viewAsPlayer?: (playerName: string) => void;
   removeAllPlayers?: () => void;
@@ -145,6 +147,7 @@ export function Admin({
   removePlayer,
   setDebugFlag,
   resetTokens,
+  resetPlayer,
   viewAsPlayer,
   removeAllPlayers,
   finished_players_amount,
@@ -427,6 +430,9 @@ export function Admin({
   const [confirmDeletePlayer, setConfirmDeletePlayer] = useState<string | null>(null);
   const [confirmResetTokens, setConfirmResetTokens] = useState<string | null>(null);
   const [resetNotice, setResetNotice] = useState("");
+  const [resetPlayerTarget, setResetPlayerTarget] = useState<string | null>(null);
+  const [resetPlayerTyped, setResetPlayerTyped] = useState("");
+  const [resetPlayerBusy, setResetPlayerBusy] = useState(false);
   const [showDeleteAllWarning, setShowDeleteAllWarning] = useState(false);
   const [showDeleteAllCampaignsWarning, setShowDeleteAllCampaignsWarning] = useState(false);
 
@@ -1568,7 +1574,8 @@ export function Admin({
                             p.gameProgression.toLowerCase().includes("done");
 
                           return (
-                            <tr key={p.name}>
+                            <Fragment key={p.name}>
+                            <tr>
                               <td>
                                 <div className="d-flex align-items-center gap-2">
                                   <Icon icon="ph:user-circle-bold" className="text-secondary fs-5" />
@@ -1680,6 +1687,21 @@ export function Admin({
                                     </button>
                                   )
                                 )}
+                                {resetPlayer && (
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-warning me-1"
+                                    style={{ fontSize: "0.8rem" }}
+                                    onClick={() => {
+                                      setResetPlayerTarget(p.name);
+                                      setResetPlayerTyped("");
+                                    }}
+                                    title="Wipe this player's progress back to a fresh account"
+                                  >
+                                    <Icon icon="ph:arrow-counter-clockwise-bold" />
+                                    <span className="ms-1">Reset player</span>
+                                  </button>
+                                )}
                                 {viewAsPlayer && (
                                   <button
                                     type="button"
@@ -1731,6 +1753,66 @@ export function Admin({
                                 )}
                               </td>
                             </tr>
+                            {resetPlayer && resetPlayerTarget === p.name && (
+                              <tr>
+                                <td colSpan={9} className="bg-warning-subtle">
+                                  <div className="d-flex flex-wrap align-items-center gap-2 py-1">
+                                    <span className="small">
+                                      This erases all progress of <strong>{p.name}</strong> and cannot be undone. Type their name to confirm:
+                                    </span>
+                                    <code className="user-select-all px-2">{p.name}</code>
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm btn-outline-secondary"
+                                      style={{ fontSize: "0.78rem" }}
+                                      onClick={() => navigator.clipboard?.writeText(p.name)}
+                                      title="Copy the name"
+                                    >
+                                      <Icon icon="ph:copy-bold" />
+                                      <span className="ms-1">Copy</span>
+                                    </button>
+                                    <input
+                                      type="text"
+                                      className="form-control form-control-sm w-auto"
+                                      style={{ minWidth: "16rem" }}
+                                      aria-label={`Type ${p.name} to confirm the reset`}
+                                      value={resetPlayerTyped}
+                                      onChange={(e) => setResetPlayerTyped(e.target.value)}
+                                      autoFocus
+                                    />
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm btn-warning"
+                                      style={{ fontSize: "0.78rem" }}
+                                      disabled={resetPlayerTyped !== p.name || resetPlayerBusy}
+                                      onClick={async () => {
+                                        setResetPlayerBusy(true);
+                                        try {
+                                          await resetPlayer(p.name, resetPlayerTyped);
+                                          setResetNotice(`${p.name} was reset to a fresh account.`);
+                                          setResetPlayerTarget(null);
+                                        } catch (err: any) {
+                                          setResetNotice(err.message || "Failed to reset the player.");
+                                        } finally {
+                                          setResetPlayerBusy(false);
+                                        }
+                                      }}
+                                    >
+                                      Reset player
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm btn-outline-secondary"
+                                      style={{ fontSize: "0.78rem" }}
+                                      onClick={() => setResetPlayerTarget(null)}
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                            </Fragment>
                           );
                         })
                       ) : (

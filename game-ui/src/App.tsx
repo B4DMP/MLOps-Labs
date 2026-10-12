@@ -35,6 +35,7 @@ import {
   removeAdminPlayer,
   setPlayerDebugFlag,
   resetAdminPlayerTokens,
+  resetAdminPlayer,
   startImpersonation,
   type DebugFlag,
   removeAllAdminPlayers,
@@ -736,6 +737,9 @@ function App() {
                   setDebugFlag={handleSetDebugFlag}
                   resetTokens={async (name) => {
                     await resetAdminPlayerTokens(name);
+                  }}
+                  resetPlayer={async (name, confirmName) => {
+                    updateAdminState(await resetAdminPlayer(name, confirmName));
                   }}
                   viewAsPlayer={handleViewAsPlayer}
                   removeAllPlayers={handleRemoveAllPlayers}

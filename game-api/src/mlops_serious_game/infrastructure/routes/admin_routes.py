@@ -20,6 +20,7 @@ from mlops_serious_game.application.services.admin_service import (
     remove_campaign,
     remove_all_campaigns,
     remove_player,
+    reset_player,
     remove_all_players,
     list_config_files,
     get_config_file,
@@ -291,6 +292,27 @@ async def reset_player_tokens(player_name: str, _: str = Depends(check_admin_tok
     if result is None:
         raise HTTPException(status_code=409, detail="This player is not in a challenge right now.")
     return result
+
+
+class ResetPlayerRequest(BaseModel):
+    confirm_name: str
+
+
+@router.post("/players/{player_name}/reset")
+async def reset_player_account(player_name: str, req: ResetPlayerRequest, _: str = Depends(check_admin_token)):
+    """Wipes the player's progress back to a fresh account; the typed name must match."""
+    if req.confirm_name != player_name:
+        raise HTTPException(status_code=400, detail="The typed name does not match the player.")
+    user_id = player_in_campaigns(player_name, None)
+    if user_id is None:
+        raise HTTPException(status_code=404, detail=f"Unknown player '{player_name}'")
+    reset_player(user_id)
+    logger.info(f"Admin reset the account of user {user_id}")
+    # Same push as the player's own reset: their open game reloads into the fresh account.
+    from mlops_serious_game.infrastructure.websocket.manager import manager
+
+    await manager.send_to_player(user_id, "settings:account_reset", {})
+    return {"type": "admin_data_update", **get_admin_dashboard_data()}
 
 
 @router.delete("/players/{player_name}")

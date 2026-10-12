@@ -253,6 +253,16 @@ export async function resetAdminPlayerTokens(playerName: string): Promise<{ atte
   return response.json();
 }
 
+/** Wipes the player's progress back to a fresh account. The server re-checks the typed name. */
+export function resetAdminPlayer(playerName: string, confirmName: string): Promise<AdminDashboardData> {
+  return adminMutate(
+    `/api/admin/players/${encodeURIComponent(playerName)}/reset`,
+    "POST",
+    "Failed to reset the player.",
+    { confirm_name: confirmName }
+  );
+}
+
 export async function removeAllAdminPlayers(): Promise<AdminDashboardData> {
   const response = await fetch(`${BASE_URL}/api/admin/players`, {
     method: "DELETE",
