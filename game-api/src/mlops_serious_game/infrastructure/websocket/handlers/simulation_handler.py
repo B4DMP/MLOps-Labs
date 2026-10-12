@@ -50,7 +50,15 @@ def _overridden(state: "pitch.PitchState") -> Optional[str]:
     return getattr(state, "overridden_stakeholder_id", None)
 
 
-def _story(report: Any, sim_deltas: Optional[dict] = None) -> dict[str, Any]:
+# A committed stakeholder whose own part came out capped or in debt must not read "flawlessly"
+# next to arrows that say otherwise.
+_COMMITTED_STORY = {
+    "capped_delivery": "Backed the proposal, but their part was held back by something upstream and fell short of what they expected.",
+    "technical_debt": "Backed the proposal, but the rollout left debt on their part of the system.",
+}
+
+
+def _story(report: Any, sim_deltas: Optional[dict] = None, sim_buckets: Optional[dict] = None) -> dict[str, Any]:
     """The report as the screen reads it, with persona names rendered."""
     data = report.model_dump(mode="json")
     for target in data.get("targets", []):
@@ -62,9 +70,11 @@ def _story(report: Any, sim_deltas: Optional[dict] = None) -> dict[str, Any]:
     for event in data.get("world_events", []):
         event["reason"] = personalize(event.get("reason") or "")
     for st in data.get("stakeholders", []):
+        st_id = st.get("stakeholder_id")
+        if st.get("status") == "committed" and (sim_buckets or {}).get(st_id) in _COMMITTED_STORY:
+            st["story"] = _COMMITTED_STORY[sim_buckets[st_id]]
         st["story"] = personalize(st.get("story") or "")
         st["name"] = personalize(st.get("name") or "")
-        st_id = st.get("stakeholder_id")
         if sim_deltas and st_id in sim_deltas:
             st["emotion_deltas"] = sim_deltas[st_id]
     return data
@@ -225,7 +235,7 @@ async def handle_simulation_run(websocket: WebSocket, user_id: int, payload: dic
         payload={
             "phase_id": ctx.phase_id,
             "challenge_id": ctx.challenge_id,
-            "report": _story(result.report, sim_deltas),
+            "report": _story(result.report, sim_deltas, sim_buckets),
             "pending_objections": [p.model_dump(mode="json") for p in result.pending_objections],
             "next_challenge": next_challenge,
         },
