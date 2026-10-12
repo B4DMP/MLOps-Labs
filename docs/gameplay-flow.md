@@ -205,6 +205,10 @@ the demo), say "in the real game". No em dashes.
 
 - Case board relations are derived at read time from the challenge's items, so rerun the coverage
   gate (`tests/test_relations.py`, 8 of 11 rooms with 2+ threads) after any content regeneration.
+- Challenge selection keeps two played sets: all runs (never repeat while something unseen is left) and
+  this run (the phase quota). Counting the quota over all runs made every phase look done on a replay,
+  so `select_first_challenge` found nothing and `game:init` crashed (`scheduler.next_challenge`).
+
 - The board key uses the challenge's `phase_id` and `id` (what the pitch uses), not the client's raw indices.
 - A broken component needs "Fix It" and then "Automate It" (two slots) to meet an automate driver; fixing it by hand alone leaves the driver unmet and a downstream step is capped by it.
 - `get_phases()` always includes phase 0, and the client ignores the campaign flag

@@ -32,16 +32,29 @@ def select_in_phase(phase: Phase, ctx: PredicateContext, played: set[str], seed:
 
 
 def next_challenge(
-    phases: list[Phase], current_phase_id: int, played: set[str], ctx: PredicateContext, seed: str
+    phases: list[Phase],
+    current_phase_id: int,
+    played: set[str],
+    ctx: PredicateContext,
+    seed: str,
+    run_played: Optional[set[str]] = None,
 ) -> Optional[Challenge]:
-    """Stays in the current phase until its quota is played, then moves on. None ends the game."""
+    """Stays in the current phase until its quota is played, then moves on. None ends the game.
+
+    `played` is everything the player has ever been dealt and keeps repeats away. `run_played` is
+    this run only: the quota counts it, so a replay is not "done" from the start, and a phase with
+    nothing unseen left deals again from it instead of ending the run.
+    """
+    in_run = played if run_played is None else run_played
     for phase in phases:
         if phase.id < current_phase_id:
             continue
-        played_here = sum(1 for c in phase.challenges if c.template_id in played)
+        played_here = sum(1 for c in phase.challenges if c.template_id in in_run)
         if played_here >= phase.challenge_quota:
             continue
         pick = select_in_phase(phase, ctx, played, seed)
+        if pick is None and in_run is not played:
+            pick = select_in_phase(phase, ctx, in_run, seed)
         if pick is not None:
             return pick
     return None

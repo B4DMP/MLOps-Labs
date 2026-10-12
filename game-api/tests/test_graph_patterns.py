@@ -181,6 +181,21 @@ def test_phase_quota_moves_play_to_the_next_phase_and_none_ends_the_game(real):
     assert next_challenge(phases, 1, {"ch_needs_versioning", "ch_always", "ch_fallback_2"}, ctx, "s") is None
 
 
+def test_a_replay_is_not_done_because_an_earlier_run_met_the_quota(real):
+    phases = _phases()
+    ctx = _ctx(real)
+    earlier = {"ch_needs_versioning", "ch_always", "ch_fallback_2"}
+    assert next_challenge(phases, 1, earlier, ctx, "s") is None
+    pick = next_challenge(phases, 1, earlier, ctx, "s", run_played=set())
+    assert pick is not None and pick.phase_id == 1
+
+
+def test_a_replay_prefers_what_the_player_has_not_seen(real):
+    phases = _phases()
+    pick = next_challenge(phases, 1, {"ch_needs_versioning"}, _ctx(real), "s", run_played=set())
+    assert pick.template_id == "ch_always"
+
+
 def test_ties_break_deterministically_by_seed(real):
     tied = [_challenge(10 + i, 1, f"ch_tie_{i}", priority=5) for i in range(4)]
     phase = Phase(id=1, name="p", description="", phase_introduction="",

@@ -857,7 +857,7 @@ def _first_non_retired_challenge(start_phase_id: int) -> Challenge | None:
     return None
 
 
-def played_templates(user_id: int) -> set[str]:
+def played_templates(user_id: int, this_run_only: bool = False) -> set[str]:
     """Every challenge template this player has ever been dealt, **across all runs**.
 
     Deliberately not run-scoped (docs/plans/results-screen.md, D1): a new game should deal
@@ -868,11 +868,10 @@ def played_templates(user_id: int) -> set[str]:
     across runs.
     """
     with get_session() as session:
-        played_ids = set(
-            session.scalars(
-                select(GameChallenge.challenge_index).where(GameChallenge.user_id == user_id)
-            ).all()
-        )
+        stmt = select(GameChallenge.challenge_index).where(GameChallenge.user_id == user_id)
+        if this_run_only:
+            stmt = stmt.where(GameChallenge.run_index == current_run_index(session, user_id))
+        played_ids = set(session.scalars(stmt).all())
     templates = set()
     for cid in played_ids:
         try:
@@ -905,7 +904,8 @@ def select_first_challenge(user_id: int, intro_phase_enabled: bool = False) -> C
             played=played_templates(user_id),
             ctx=ctx,
             seed=user_id,
-        )
+            run_played=played_templates(user_id, this_run_only=True),
+        ) or _first_non_retired_challenge(start_phase_id)
     except Exception as e:
         print(f"[Challenge selection error, falling back to sequential] {e}")
         return _first_non_retired_challenge(start_phase_id)
@@ -948,15 +948,17 @@ def select_next_challenge(user_id: int, phase_id: int, challenge_id: int) -> Cha
         graph = GraphFactory.get_graph()
         current = PhaseFactory.translate_challenge_index(challenge_index=challenge_id, phase_index=phase_id)
         played = played_templates(user_id)
+        run_played = played_templates(user_id, this_run_only=True)
         if current:
             played.add(current.template_id)
+            run_played.add(current.template_id)
         if _demo_finished(current, played):
             # Reset before reading the graph: the next pick must not see the demo's leftovers.
             graph_store.reset_graph(user_id, phase_index=current.phase_id, challenge_template=current.template_id)
         replayed = graph_store.load_state(user_id)
         ctx = evaluate_graph(graph, replayed.state).context(graph, replayed.state)
         current_phase = current.phase_id if current else phase_id
-        return next_challenge(PhaseFactory.get_phases(), current_phase, played, ctx, seed=user_id)
+        return next_challenge(PhaseFactory.get_phases(), current_phase, played, ctx, seed=user_id, run_played=run_played)
     except Exception as e:
         print(f"[Challenge selection error, falling back to sequential] {e}")
         return _first_non_retired_challenge(phase_id)
