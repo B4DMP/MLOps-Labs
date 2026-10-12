@@ -22,7 +22,7 @@ vi.mock("@lordicon/react", () => ({
   }),
 }));
 
-const fixture = (key: "S" | "C" | "E"): ResultsPayload =>
+const fixture = (key: "A" | "D" | "F"): ResultsPayload =>
   structuredClone((fixtures as unknown as Record<string, ResultsPayload>)[key]);
 
 const METRIC_INFO = {
@@ -33,16 +33,24 @@ const METRIC_INFO = {
 
 describe("ResultsHero", () => {
   it("shows the grade, its label and the overall percentage", () => {
-    render(<ResultsHero results={fixture("S")} />);
+    render(<ResultsHero results={fixture("A")} />);
 
     const card = screen.getByRole("region", { name: "Run summary" });
-    expect(card).toHaveAttribute("data-grade", "S");
+    expect(card).toHaveAttribute("data-grade", "A");
     expect(within(card).getByText("Exemplary")).toBeInTheDocument();
     expect(within(card).getByText("91% overall")).toBeInTheDocument();
   });
 
+  it("says what the next grade up asks for, and nothing more on the top grade", () => {
+    const { unmount } = render(<ResultsHero results={fixture("D")} />);
+    expect(screen.getAllByText("C starts at 58%").length).toBeGreaterThan(0);
+    unmount();
+    render(<ResultsHero results={fixture("A")} />);
+    expect(screen.getAllByText("Top grade").length).toBeGreaterThan(0);
+  });
+
   it("names the setting from the payload rather than hardcoding it", () => {
-    const results = fixture("C");
+    const results = fixture("D");
     results.setting = { company: "Acme Grocers", system: "Forecaster" };
     render(<ResultsHero results={results} />);
 
@@ -52,7 +60,7 @@ describe("ResultsHero", () => {
   });
 
   it("renders each pillar as an accessible meter with its value", () => {
-    render(<ResultsHero results={fixture("C")} />);
+    render(<ResultsHero results={fixture("D")} />);
 
     const meters = screen.getAllByRole("meter");
     expect(meters).toHaveLength(4);
@@ -63,7 +71,7 @@ describe("ResultsHero", () => {
   });
 
   it("shows the verdict and all four scoreboard lines", () => {
-    const results = fixture("C");
+    const results = fixture("D");
     render(<ResultsHero results={results} />);
 
     // The closing carries an authored line break between its two sentences (rendered via
@@ -76,39 +84,39 @@ describe("ResultsHero", () => {
   });
 
   it("says so when a pillar is scored against an inherited system", () => {
-    render(<ResultsHero results={fixture("E")} />);
+    render(<ResultsHero results={fixture("F")} />);
     expect(screen.getByText("gained on the system you inherited")).toBeInTheDocument();
   });
 
   it("labels a next-iteration run as one, and a first run as a plain run", () => {
-    const { unmount } = render(<ResultsHero results={fixture("E")} />);
+    const { unmount } = render(<ResultsHero results={fixture("F")} />);
     expect(screen.getByText("Iteration 2")).toBeInTheDocument();
     expect(screen.getByText("next iteration")).toBeInTheDocument();
     unmount();
 
-    render(<ResultsHero results={fixture("C")} />);
+    render(<ResultsHero results={fixture("D")} />);
     expect(screen.getByText("Run 1")).toBeInTheDocument();
     expect(screen.queryByText("next iteration")).not.toBeInTheDocument();
   });
 
   it("only shows the playtest ribbon when the account used the playtest tools", () => {
-    const { unmount } = render(<ResultsHero results={fixture("C")} />);
+    const { unmount } = render(<ResultsHero results={fixture("D")} />);
     expect(screen.queryByText("Playtest account")).not.toBeInTheDocument();
     unmount();
 
-    render(<ResultsHero results={fixture("C")} playtest />);
+    render(<ResultsHero results={fixture("D")} playtest />);
     expect(screen.getByText("Playtest account")).toBeInTheDocument();
   });
 
   it("never carries the grade in colour alone: the letter and label are always in the text", () => {
-    render(<ResultsHero results={fixture("E")} />);
-    expect(screen.getAllByText("E").length).toBeGreaterThan(0);
+    render(<ResultsHero results={fixture("F")} />);
+    expect(screen.getAllByText("F").length).toBeGreaterThan(0);
     expect(screen.getByText("Overwhelmed")).toBeInTheDocument();
-    expect(screen.getByText(/Grade E, Overwhelmed, 22 percent overall/)).toBeInTheDocument();
+    expect(screen.getByText(/Grade F, Overwhelmed, 22 percent overall/)).toBeInTheDocument();
   });
 
   it("counts the vetoes and the intel found in the headline strip", () => {
-    render(<ResultsHero results={fixture("E")} />);
+    render(<ResultsHero results={fixture("F")} />);
     // The E fixture has three vetoes and 7 of 30 notes found.
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("7 of 30")).toBeInTheDocument();
@@ -119,13 +127,13 @@ describe("ResultsHero", () => {
 
 describe("ResultsTabs", () => {
   it("opens on Intel and marks it selected", () => {
-    render(<ResultsTabs results={fixture("C")} metricInfo={METRIC_INFO} />);
+    render(<ResultsTabs results={fixture("D")} metricInfo={METRIC_INFO} />);
     expect(screen.getByRole("tab", { name: "Intel" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("tabpanel")).toHaveAccessibleName("Intel");
   });
 
   it("switches panels on click", async () => {
-    render(<ResultsTabs results={fixture("C")} metricInfo={METRIC_INFO} />);
+    render(<ResultsTabs results={fixture("D")} metricInfo={METRIC_INFO} />);
     await userEvent.click(screen.getByRole("tab", { name: "Decisions" }));
 
     expect(screen.getByRole("tab", { name: "Decisions" })).toHaveAttribute("aria-selected", "true");
@@ -133,7 +141,7 @@ describe("ResultsTabs", () => {
   });
 
   it("moves between tabs with the arrow keys, wrapping at the ends", async () => {
-    render(<ResultsTabs results={fixture("C")} metricInfo={METRIC_INFO} />);
+    render(<ResultsTabs results={fixture("D")} metricInfo={METRIC_INFO} />);
     screen.getByRole("tab", { name: "Intel" }).focus();
 
     await userEvent.keyboard("{ArrowRight}");
@@ -149,7 +157,7 @@ describe("ResultsTabs", () => {
   });
 
   it("leaves the Knowledge tab out when the player was never measured", () => {
-    const results = fixture("C");
+    const results = fixture("D");
     results.knowledge = {
       total_questions: 7,
       intro: { correct: null, percent: null },
@@ -164,12 +172,12 @@ describe("ResultsTabs", () => {
   });
 
   it("shows the Knowledge tab when there is a before and an after", () => {
-    render(<ResultsTabs results={fixture("C")} metricInfo={METRIC_INFO} />);
+    render(<ResultsTabs results={fixture("D")} metricInfo={METRIC_INFO} />);
     expect(screen.getByRole("tab", { name: "Knowledge" })).toBeInTheDocument();
   });
 
   it("falls back to the first tab if asked to open on one that is not there", () => {
-    const results = fixture("C");
+    const results = fixture("D");
     results.knowledge.intro = { correct: null, percent: null };
     render(<ResultsTabs results={results} metricInfo={METRIC_INFO} initialTab="knowledge" />);
     expect(screen.getByRole("tab", { name: "Intel" })).toHaveAttribute("aria-selected", "true");
@@ -178,7 +186,7 @@ describe("ResultsTabs", () => {
   it.each(["intel", "stakeholders", "decisions", "pipeline", "metrics", "knowledge", "timeline"] as const)(
     "renders the %s tab for a real-shaped payload without crashing",
     (tab) => {
-      render(<ResultsTabs results={fixture("C")} metricInfo={METRIC_INFO} initialTab={tab} />);
+      render(<ResultsTabs results={fixture("D")} metricInfo={METRIC_INFO} initialTab={tab} />);
       expect(screen.getByRole("tabpanel")).toBeInTheDocument();
     },
   );
@@ -186,7 +194,7 @@ describe("ResultsTabs", () => {
 
 describe("Intel tab (D7)", () => {
   it("shows counts and the confusion matrix, never a note's wording", () => {
-    const results = fixture("C");
+    const results = fixture("D");
     // A payload that (wrongly) smuggled wording through must still not have it rendered.
     (results.intel as unknown as Record<string, unknown>).leak = "SECRET WORDING";
     render(<ResultsTabs results={results} metricInfo={METRIC_INFO} />);
@@ -197,7 +205,7 @@ describe("Intel tab (D7)", () => {
   });
 
   it("shows a stakeholder the player found nothing on as an empty bar, not a missing row", () => {
-    const results = fixture("C");
+    const results = fixture("D");
     results.intel.per_stakeholder = [
       { id: "data_dave", gathered: 0, available: 4, correct: 0, wrong: 0 },
     ];
@@ -210,7 +218,7 @@ describe("Intel tab (D7)", () => {
 
 describe("Decisions tab", () => {
   it("shows an unfinished challenge as unfinished, never as a veto", () => {
-    render(<ResultsTabs results={fixture("E")} metricInfo={METRIC_INFO} initialTab="decisions" />);
+    render(<ResultsTabs results={fixture("F")} metricInfo={METRIC_INFO} initialTab="decisions" />);
     // The E fixture ends with two challenges that never reached a commit. Scoped to the list, since
     // "Vetoed" is also a summary tile label above it.
     const list = within(screen.getByText("Challenge by challenge").closest("section") as HTMLElement);
@@ -221,7 +229,7 @@ describe("Decisions tab", () => {
 
 describe("Metrics tab", () => {
   it("offers a table view for the chart, since some metric colours are low contrast", async () => {
-    render(<ResultsTabs results={fixture("C")} metricInfo={METRIC_INFO} initialTab="metrics" />);
+    render(<ResultsTabs results={fixture("D")} metricInfo={METRIC_INFO} initialTab="metrics" />);
     expect(screen.getByTestId("line-chart")).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: /view as table/i }));
@@ -230,20 +238,20 @@ describe("Metrics tab", () => {
   });
 
   it("says a spiral run's change is what it added, not the running total", () => {
-    const results = fixture("E");
+    const results = fixture("F");
     render(<ResultsTabs results={results} metricInfo={METRIC_INFO} initialTab="metrics" />);
     expect(screen.getByText(/what this iteration added/)).toBeInTheDocument();
   });
 
   it("falls back to a readable name when the HUD has none for a metric", () => {
-    render(<ResultsTabs results={fixture("C")} metricInfo={{}} initialTab="metrics" />);
+    render(<ResultsTabs results={fixture("D")} metricInfo={{}} initialTab="metrics" />);
     expect(screen.getByText("Automation")).toBeInTheDocument();
   });
 });
 
 describe("Pipeline tab", () => {
   it("marks a stage the project never reached", () => {
-    const results = fixture("C");
+    const results = fixture("D");
     results.pipeline.stages[4] = { ...results.pipeline.stages[4], locked: true };
     render(<ResultsTabs results={results} metricInfo={METRIC_INFO} initialTab="pipeline" />);
     expect(screen.getByText("Not reached")).toBeInTheDocument();
@@ -251,12 +259,12 @@ describe("Pipeline tab", () => {
 
   it("shows the inherited state only on a next-iteration run", () => {
     const { unmount } = render(
-      <ResultsTabs results={fixture("E")} metricInfo={METRIC_INFO} initialTab="pipeline" />,
+      <ResultsTabs results={fixture("F")} metricInfo={METRIC_INFO} initialTab="pipeline" />,
     );
     expect(screen.getByText("When you inherited it")).toBeInTheDocument();
     unmount();
 
-    render(<ResultsTabs results={fixture("C")} metricInfo={METRIC_INFO} initialTab="pipeline" />);
+    render(<ResultsTabs results={fixture("D")} metricInfo={METRIC_INFO} initialTab="pipeline" />);
     expect(screen.queryByText("When you inherited it")).not.toBeInTheDocument();
   });
 });
@@ -310,7 +318,7 @@ describe("ResultsScreen", () => {
     renderScreen(value);
     expect(screen.queryByRole("region", { name: "Run summary" })).not.toBeInTheDocument();
 
-    push("results:data", fixture("C"));
+    push("results:data", fixture("D"));
 
     expect(screen.getByRole("region", { name: "Run summary" })).toBeInTheDocument();
     expect(screen.getByRole("tablist", { name: "Run details" })).toBeInTheDocument();
@@ -319,7 +327,7 @@ describe("ResultsScreen", () => {
   it("keeps the duplicate-session notice for research campaigns", () => {
     const { value, push } = fakeSocket();
     renderScreen(value);
-    push("results:data", fixture("C"));
+    push("results:data", fixture("D"));
     expect(screen.getByText(/refrain from participating again/)).toBeInTheDocument();
   });
 
@@ -334,7 +342,7 @@ describe("ResultsScreen", () => {
 });
 
 describe("ResultsScreen: playing again", () => {
-  const replayable = () => ({ ...fixture("C"), replay_allowed: true });
+  const replayable = () => ({ ...fixture("D"), replay_allowed: true });
 
   it("offers both new-game modes when the campaign allows it, and no research notice", () => {
     const { value, push } = fakeSocket();
@@ -350,7 +358,7 @@ describe("ResultsScreen: playing again", () => {
   it("offers neither, and keeps the notice, when the campaign does not allow replay", () => {
     const { value, push } = fakeSocket();
     renderScreen(value);
-    push("results:data", { ...fixture("C"), replay_allowed: false });
+    push("results:data", { ...fixture("D"), replay_allowed: false });
 
     expect(screen.queryByRole("button", { name: /Next iteration/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Fresh start/ })).not.toBeInTheDocument();

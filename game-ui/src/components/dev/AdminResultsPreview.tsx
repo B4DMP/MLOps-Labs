@@ -21,7 +21,7 @@ const DASHBOARD: AdminResultsData = {
     fresh_runs: 9,
     spiral_runs: 3,
     overall: stats(0.58),
-    grades: { S: 0, A: 2, B: 5, C: 3, D: 1, E: 1 },
+    grades: { A: 0, B: 2, C: 5, D: 3, E: 1, F: 1 },
     pillars: {
       pipeline_health: stats(0.55),
       stakeholder_relations: stats(0.61),
@@ -77,9 +77,9 @@ const DASHBOARD: AdminResultsData = {
   },
   players: [
     { name: "alice", campaign_key: "spring-cohort", playtest_tainted: false, runs: [
-      { run_index: 1, grade: "B", overall: 0.61, is_spiral: false }, { run_index: 2, grade: "A", overall: 0.76, is_spiral: true } ] },
-    { name: "bruno", campaign_key: "spring-cohort", playtest_tainted: false, runs: [{ run_index: 1, grade: "C", overall: 0.49, is_spiral: false }] },
-    { name: "playtest-bot", campaign_key: "spring-cohort", playtest_tainted: true, runs: [{ run_index: 1, grade: "S", overall: 0.93, is_spiral: false }] },
+      { run_index: 1, grade: "C", overall: 0.61, is_spiral: false }, { run_index: 2, grade: "B", overall: 0.76, is_spiral: true } ] },
+    { name: "bruno", campaign_key: "spring-cohort", playtest_tainted: false, runs: [{ run_index: 1, grade: "D", overall: 0.49, is_spiral: false }] },
+    { name: "playtest-bot", campaign_key: "spring-cohort", playtest_tainted: true, runs: [{ run_index: 1, grade: "A", overall: 0.93, is_spiral: false }] },
   ],
   excluded_playtest_accounts: 1,
   unreadable_runs: 0,
@@ -91,7 +91,7 @@ window.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
   const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } });
   if (url.includes("/api/admin/results/player/")) {
     const run = Number(new URL(url).searchParams.get("run") ?? 1);
-    const grade = run === 2 ? "E" : "C";
+    const grade = run === 2 ? "F" : "D";
     return json({
       player: "alice", playtest_tainted: false, runs: [1, 2], run_index: run,
       results: (fixtures as unknown as Record<string, ResultsPayload>)[grade],

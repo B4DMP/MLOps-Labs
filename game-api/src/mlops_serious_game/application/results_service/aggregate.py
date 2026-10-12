@@ -16,7 +16,7 @@ from __future__ import annotations
 import statistics
 from typing import Any, Iterable, Optional
 
-GRADE_ORDER = ("S", "A", "B", "C", "D", "E")
+GRADE_ORDER = ("A", "B", "C", "D", "E", "F")
 OUTCOMES = ("PASS", "SOFT_PASS", "VETO", "STALEMATE")
 PILLAR_IDS = ("pipeline_health", "stakeholder_relations", "intel_accuracy", "decision_quality")
 

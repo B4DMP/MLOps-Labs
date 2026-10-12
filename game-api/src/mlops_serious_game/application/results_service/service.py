@@ -458,7 +458,11 @@ def load_cached(user_id: int, run_index: int) -> Optional[dict[str, Any]]:
                 GameResult.user_id == user_id, GameResult.run_index == run_index
             )
         )
-        return dict(row.payload) if row and row.payload else None
+        payload = dict(row.payload) if row and row.payload else None
+    # A payload cached before the A to F relabel has no `next_minimum`: its letters mean something else.
+    if payload is not None and "next_minimum" not in (payload.get("grade") or {}):
+        return None
+    return payload
 
 
 def store_results(user_id: int, run_index: int, payload: dict[str, Any]) -> None:

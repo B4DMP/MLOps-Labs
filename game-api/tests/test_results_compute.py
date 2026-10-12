@@ -309,7 +309,7 @@ def test_unknown_pillar_ids_carry_no_weight():
 
 @pytest.mark.parametrize(
     "overall, expected",
-    [(1.0, "S"), (0.85, "S"), (0.849, "A"), (0.72, "A"), (0.58, "B"), (0.44, "C"), (0.30, "D"), (0.0, "E")],
+    [(1.0, "A"), (0.85, "A"), (0.849, "B"), (0.72, "B"), (0.58, "C"), (0.44, "D"), (0.30, "E"), (0.0, "F")],
 )
 def test_grade_bands_at_their_edges(overall, expected):
     """Band edges are inclusive on the lower bound, so a score exactly on a threshold gets the
@@ -317,8 +317,16 @@ def test_grade_bands_at_their_edges(overall, expected):
     assert c.grade_for(overall).grade == expected
 
 
+def test_a_grade_names_the_next_one_up_and_what_it_takes():
+    g = c.grade_for(0.79)
+    assert (g.grade, g.next_grade, g.next_minimum) == ("B", "A", 0.85)
+    assert c.grade_for(0.2).next_grade == "E"
+    top = c.grade_for(0.9)
+    assert (top.next_grade, top.next_minimum) == (None, None)
+
+
 def test_the_lowest_band_always_answers():
-    assert c.grade_for(0.0).grade == "E"
+    assert c.grade_for(0.0).grade == "F"
     assert c.grade_for(-0.0).label == "Overwhelmed"
 
 
@@ -326,7 +334,7 @@ def test_the_curve_is_generous_enough_to_reward_a_partial_run():
     """A player who half-managed every pillar should not be told they failed: no run can
     realistically max the graph."""
     pillars = [_pillar(name, 0.6) for name in c.DEFAULT_PILLAR_WEIGHTS]
-    assert c.grade_for(c.overall_score(pillars)).grade == "B"
+    assert c.grade_for(c.overall_score(pillars)).grade == "C"
 
 
 # ── Metrics ──────────────────────────────────────────────────────────────────

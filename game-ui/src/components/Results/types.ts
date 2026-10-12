@@ -21,12 +21,15 @@ export interface Pillar {
   relative: boolean;
 }
 
-export type GradeLetter = "S" | "A" | "B" | "C" | "D" | "E";
+export type GradeLetter = "A" | "B" | "C" | "D" | "E" | "F";
 
 export interface Grade {
   overall: number;
   grade: GradeLetter;
   label: string;
+  /** The band above this one and the overall score it starts at; null on the top grade. */
+  next_grade?: GradeLetter | null;
+  next_minimum?: number | null;
 }
 
 export type ScoreboardKey = "availability" | "waste" | "residual_stock" | "override_rate";

@@ -7,7 +7,7 @@ import fixtures from "./resultsFixtures.json";
 /**
  * Harness for the results screen, at `?dev=results` in a dev build (see main.tsx).
  *
- * `?grade=S|C|E` picks a fixture (E is a next-iteration run) and `?width=NNN` sets the hero's
+ * `?grade=A|D|F` picks a fixture (F is a next-iteration run) and `?width=NNN` sets the hero's
  * container width, so the card can be judged at the sizes it will actually be screenshotted at.
  * `?tab=intel|stakeholders|decisions|pipeline|metrics|knowledge|timeline` opens on that tab.
  *
@@ -25,7 +25,7 @@ const METRIC_INFO: Record<string, MetricInfo> = {
 
 export default function ResultsPreview() {
   const params = new URLSearchParams(window.location.search);
-  const key = params.get("grade") ?? "C";
+  const key = params.get("grade") ?? "D";
   const width = Number(params.get("width")) || 1100;
   const results = (fixtures as unknown as Record<string, ResultsPayload>)[key] ?? fixtures.C;
 

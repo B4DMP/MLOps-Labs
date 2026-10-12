@@ -345,7 +345,7 @@ def test_build_results_produces_a_grade_for_a_played_run(migrated_db):
     assert results["is_spiral"] is False
     assert results["seeded_from_run"] is None
     assert 0.0 <= results["grade"]["overall"] <= 1.0
-    assert results["grade"]["grade"] in {"S", "A", "B", "C", "D", "E"}
+    assert results["grade"]["grade"] in {"A", "B", "C", "D", "E", "F"}
     assert {p["id"] for p in results["pillars"]} == {
         "pipeline_health", "stakeholder_relations", "intel_accuracy", "decision_quality"
     }

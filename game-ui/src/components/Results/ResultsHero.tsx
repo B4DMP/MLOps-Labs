@@ -108,7 +108,14 @@ export interface ResultsHeroProps {
 export default function ResultsHero({ results, playtest = false }: ResultsHeroProps) {
   const { grade, epilogue, pillars, setting } = results;
   const overall = percent(grade.overall);
-  const celebrate = grade.grade === "S" || grade.grade === "A";
+  const celebrate = grade.grade === "A" || grade.grade === "B";
+  // Grades run A (highest) to F; say what the next one up asks for. Nothing to say on an A.
+  const nextText =
+    grade.next_grade && grade.next_minimum != null
+      ? `${grade.next_grade} starts at ${percent(grade.next_minimum)}%`
+      : grade.next_grade === null
+      ? "Top grade"
+      : "";
 
   const gathered = results.intel.per_stakeholder.reduce((sum, row) => sum + row.gathered, 0);
   const available = results.intel.per_stakeholder.reduce((sum, row) => sum + row.available, 0);
@@ -148,8 +155,9 @@ export default function ResultsHero({ results, playtest = false }: ResultsHeroPr
           </div>
           <div className={styles.gradeLabel}>{grade.label}</div>
           <div className={styles.gradeSub}>{overall}% overall</div>
+          {nextText && <div className={styles.gradeSub}>{nextText}</div>}
           <span className="visually-hidden">
-            Grade {grade.grade}, {grade.label}, {overall} percent overall.
+            Grade {grade.grade}, {grade.label}, {overall} percent overall. {nextText}
           </span>
         </div>
 

@@ -45,7 +45,7 @@ function dashboard(overrides: Partial<AdminResultsData> = {}): AdminResultsData 
       fresh_runs: 3,
       spiral_runs: 1,
       overall: stats(0.62),
-      grades: { S: 0, A: 1, B: 2, C: 1, D: 0, E: 0 },
+      grades: { A: 0, B: 1, C: 2, D: 1, E: 0, F: 0 },
       pillars: {
         pipeline_health: stats(0.6),
         stakeholder_relations: stats(0.5),
@@ -105,7 +105,7 @@ const playerResults = (run = 1): AdminPlayerResults => ({
   playtest_tainted: false,
   runs: [1, 2],
   run_index: run,
-  results: structuredClone((fixtures as unknown as Record<string, ResultsPayload>).C),
+  results: structuredClone((fixtures as unknown as Record<string, ResultsPayload>).D),
 });
 
 const CAMPAIGNS = [{ name: "Camp One", key: "camp-1" }];

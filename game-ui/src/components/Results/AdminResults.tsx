@@ -19,7 +19,7 @@ import HoverTooltip from "../HoverToolTip";
 import tabStyles from "./tabs.module.css";
 import styles from "./AdminResults.module.css";
 
-const GRADES: GradeLetter[] = ["S", "A", "B", "C", "D", "E"];
+const GRADES: GradeLetter[] = ["A", "B", "C", "D", "E", "F"];
 const PILLARS: PillarId[] = ["pipeline_health", "stakeholder_relations", "intel_accuracy", "decision_quality"];
 
 /** A share, or "n/a" when nothing was measured: absent is not zero. */

@@ -1,5 +1,5 @@
 {
- "S": {
+ "A": {
   "run_index": 1,
   "setting": {
    "company": "Lindenmarkt",
@@ -9,8 +9,10 @@
   "is_spiral": false,
   "grade": {
    "overall": 0.91,
-   "grade": "S",
-   "label": "Exemplary"
+   "grade": "A",
+   "label": "Exemplary",
+   "next_grade": null,
+   "next_minimum": null
   },
   "epilogue": {
    "closing": "A year on, nobody at Lindenmarkt calls it \"the Shelfcast project\" any more.\nThey just call it the forecast, and they plan around it.",
@@ -479,7 +481,7 @@
    }
   ]
  },
- "C": {
+ "D": {
   "run_index": 1,
   "setting": {
    "company": "Lindenmarkt",
@@ -489,8 +491,10 @@
   "is_spiral": false,
   "grade": {
    "overall": 0.5,
-   "grade": "C",
-   "label": "Mixed"
+   "grade": "D",
+   "label": "Mixed",
+   "next_grade": "C",
+   "next_minimum": 0.58
   },
   "epilogue": {
    "closing": "Shelfcast forecasts every night and the stores work around it.\nThe platform is real; the trust that was supposed to come with it is not, yet.",
@@ -951,7 +955,7 @@
    }
   ]
  },
- "E": {
+ "F": {
   "run_index": 2,
   "setting": {
    "company": "Lindenmarkt",
@@ -961,8 +965,10 @@
   "is_spiral": true,
   "grade": {
    "overall": 0.22,
-   "grade": "E",
-   "label": "Overwhelmed"
+   "grade": "F",
+   "label": "Overwhelmed",
+   "next_grade": "E",
+   "next_minimum": 0.3
   },
   "epilogue": {
    "closing": "This cycle ends with the platform trusted less than when it started, which is the one outcome the team was told to avoid.",

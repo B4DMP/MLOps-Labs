@@ -37,12 +37,12 @@ DEFAULT_PILLAR_WEIGHTS: dict[str, float] = {
 
 # (minimum overall, grade, label). Ordered best first; the first band the score clears wins.
 DEFAULT_GRADE_BANDS: tuple[tuple[float, str, str], ...] = (
-    (0.85, "S", "Exemplary"),
-    (0.72, "A", "Strong"),
-    (0.58, "B", "Solid"),
-    (0.44, "C", "Mixed"),
-    (0.30, "D", "Struggling"),
-    (0.00, "E", "Overwhelmed"),
+    (0.85, "A", "Exemplary"),
+    (0.72, "B", "Strong"),
+    (0.58, "C", "Solid"),
+    (0.44, "D", "Mixed"),
+    (0.30, "E", "Struggling"),
+    (0.00, "F", "Overwhelmed"),
 )
 
 # What one fired grudge costs the relations pillar, and the floor that penalty can drive it to.
@@ -471,6 +471,10 @@ class Grade(BaseModel):
     overall: float = Field(ge=0.0, le=1.0)
     grade: str
     label: str
+    #: The next band up and the score it starts at, so the screen can say what is still missing.
+    #: Both None on the top grade. Also marks a payload as written on the A to F scale.
+    next_grade: Optional[str] = None
+    next_minimum: Optional[float] = None
 
 
 def overall_score(pillars: Iterable[Pillar], weights: Optional[dict[str, float]] = None) -> float:
@@ -495,11 +499,16 @@ def grade_for(
 ) -> Grade:
     """The first band the score clears, best first. The lowest band's threshold must be 0.0, so
     there is always an answer."""
-    for minimum, grade, label in bands or DEFAULT_GRADE_BANDS:
+    bands = bands or DEFAULT_GRADE_BANDS
+    for i, (minimum, grade, label) in enumerate(bands):
         if overall >= minimum:
-            return Grade(overall=round(overall, 4), grade=grade, label=label)
+            above = bands[i - 1] if i > 0 else None
+            return Grade(
+                overall=round(overall, 4), grade=grade, label=label,
+                next_grade=above[1] if above else None, next_minimum=above[0] if above else None,
+            )
     # Only reachable if a caller supplies bands that do not reach zero.
-    return Grade(overall=round(overall, 4), grade="E", label="Overwhelmed")
+    return Grade(overall=round(overall, 4), grade="F", label="Overwhelmed")
 
 
 # ── Metrics (reported, not graded) ───────────────────────────────────────────

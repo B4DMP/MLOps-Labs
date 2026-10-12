@@ -173,7 +173,9 @@ server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch e
 7. **Next**: every stakeholder's emotions recover a quarter of the way back to neutral
    (`challenge_recovery`) as the new challenge's row is created. The *server* picks (`select_next_challenge`, `graph_service/scheduler.py`); the UI
    just reacts to `game:state_update` (back to step 3) or `game:progress_change` (outro
-   questionnaire, then `ResultsScreen`: four pillars, grade, epilogue).
+   questionnaire, then `ResultsScreen`: four pillars, grade, epilogue). Grades follow the Stockholm
+   University scale: A (highest) to E pass, F fail (`DEFAULT_GRADE_BANDS`, `compute.py`). The hero
+   shows what the next grade up starts at. A result cached before that scale is rebuilt on read.
 
 ## Phase 0 (demo)
 
@@ -203,12 +205,12 @@ the demo), say "in the real game". No em dashes.
 
 ## Gotchas
 
-- Case board relations are derived at read time from the challenge's items, so rerun the coverage
-  gate (`tests/test_relations.py`, 8 of 11 rooms with 2+ threads) after any content regeneration.
 - Challenge selection keeps two played sets: all runs (never repeat while something unseen is left) and
   this run (the phase quota). Counting the quota over all runs made every phase look done on a replay,
   so `select_first_challenge` found nothing and `game:init` crashed (`scheduler.next_challenge`).
 
+- Case board relations are derived at read time from the challenge's items, so rerun the coverage
+  gate (`tests/test_relations.py`, 8 of 11 rooms with 2+ threads) after any content regeneration.
 - The board key uses the challenge's `phase_id` and `id` (what the pitch uses), not the client's raw indices.
 - A broken component needs "Fix It" and then "Automate It" (two slots) to meet an automate driver; fixing it by hand alone leaves the driver unmet and a downstream step is capped by it.
 - `get_phases()` always includes phase 0, and the client ignores the campaign flag

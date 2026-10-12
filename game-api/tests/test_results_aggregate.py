@@ -64,9 +64,9 @@ def test_describe_of_nothing_is_empty_not_an_error():
 
 def test_the_grade_distribution_lists_every_grade_even_when_empty():
     """An empty band must show as a zero, not disappear from the chart."""
-    dist = agg.grade_distribution([_payload("A"), _payload("A"), _payload("E")])
-    assert list(dist) == ["S", "A", "B", "C", "D", "E"]
-    assert dist == {"S": 0, "A": 2, "B": 0, "C": 0, "D": 0, "E": 1}
+    dist = agg.grade_distribution([_payload("B"), _payload("B"), _payload("F")])
+    assert list(dist) == ["A", "B", "C", "D", "E", "F"]
+    assert dist == {"A": 0, "B": 2, "C": 0, "D": 0, "E": 0, "F": 1}
 
 
 def test_pillar_statistics_are_per_pillar():

@@ -1,6 +1,6 @@
 {
   "verdict": {
-    "S": {
+    "A": {
       "closing": "A year on, nobody at Lindenmarkt calls it \"the Shelfcast project\" any more.\nThey just call it the forecast, and they plan around it.",
       "spiral_closing": "This cycle closes with Shelfcast trusted enough that the next argument is about what else it should decide, not whether it should decide anything.",
       "scoreboard": {
@@ -10,7 +10,7 @@
         "override_rate": "Store managers rarely override the suggestion now. When they do, the team goes and looks, because it usually means something real."
       }
     },
-    "A": {
+    "B": {
       "closing": "Shelfcast runs the nightly forecast for every store, and the buyers have stopped keeping a private spreadsheet next to it.\nThat second part took longer than the first.",
       "spiral_closing": "This cycle ends with the platform doing its job and the room mostly agreeing on what it should do next.",
       "scoreboard": {
@@ -20,7 +20,7 @@
         "override_rate": "Overrides have fallen. A few regions still run their own way and nobody has pushed the issue."
       }
     },
-    "B": {
+    "C": {
       "closing": "Shelfcast is live and it is genuinely better than the spreadsheets, which is not the same as the project having gone well.\nThe team knows the difference.",
       "spiral_closing": "This cycle leaves a working platform with a list of things everyone agrees should have been done differently.",
       "scoreboard": {
@@ -30,7 +30,7 @@
         "override_rate": "Overrides are down in the regions that were consulted and flat in the ones that were not."
       }
     },
-    "C": {
+    "D": {
       "closing": "Shelfcast forecasts every night and the stores work around it.\nThe platform is real; the trust that was supposed to come with it is not, yet.",
       "spiral_closing": "This cycle ends with the platform running and the room no more convinced than when it started.",
       "scoreboard": {
@@ -40,7 +40,7 @@
         "override_rate": "Store managers override roughly as often as before, and now they have a year of examples."
       }
     },
-    "D": {
+    "E": {
       "closing": "Shelfcast runs, after a fashion.\nTwice this quarter the forecast missed the morning order window and the stores ordered blind, and everyone remembers both days.",
       "spiral_closing": "This cycle ends with more to undo than to build on, and the room knows it.",
       "scoreboard": {
@@ -50,7 +50,7 @@
         "override_rate": "The override rate is higher than before the project started. That number is the one management asks about."
       }
     },
-    "E": {
+    "F": {
       "closing": "Nobody cancels Shelfcast.\nIt keeps running, and the stores keep ignoring it, and the buyers keep their spreadsheets open beside it. A year, spent to arrive back where it began, with the added knowledge that this was the attempt.",
       "spiral_closing": "This cycle ends with the platform trusted less than when it started, which is the one outcome the team was told to avoid.",
       "scoreboard": {
