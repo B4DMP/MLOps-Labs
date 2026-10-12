@@ -370,9 +370,9 @@ export default function SettingsPanel({ isVisible, onClose, onLogout }: Settings
             </span>
             <span className={styles.identityText}>
               <span className={styles.identityCaption}>Signed in as</span>
-              <span className={styles.identityEmail} title={email}>
-                {email}
-              </span>
+              <HoverTooltip description={email} block>
+                <span className={styles.identityEmail}>{email}</span>
+              </HoverTooltip>
             </span>
             <button type="button" className={styles.cancelButton} onClick={onLogout}>
               <Icon icon="ph:sign-out-bold" aria-hidden /> Log out
