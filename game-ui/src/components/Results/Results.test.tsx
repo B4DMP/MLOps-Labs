@@ -41,6 +41,11 @@ describe("ResultsHero", () => {
     expect(within(card).getByText("91% overall")).toBeInTheDocument();
   });
 
+  it("tells the player the grade is only for their own reference", () => {
+    render(<ResultsHero results={fixture("D")} />);
+    expect(screen.getByText(/for your own reference only/)).toBeInTheDocument();
+  });
+
   it("says what the next grade up asks for, and nothing more on the top grade", () => {
     const { unmount } = render(<ResultsHero results={fixture("D")} />);
     expect(screen.getAllByText("C starts at 58%").length).toBeGreaterThan(0);

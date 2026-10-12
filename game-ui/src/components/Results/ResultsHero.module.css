@@ -329,6 +329,14 @@
   flex-direction: column;
 }
 
+.disclaimer {
+  margin: 0;
+  font-size: max(9px, 0.9cqw);
+  color: var(--muted);
+  opacity: 0.8;
+  text-align: center;
+}
+
 .statValue {
   font-size: max(13px, 1.9cqw);
   font-weight: 700;

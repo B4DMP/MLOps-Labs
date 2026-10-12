@@ -206,6 +206,10 @@ export default function ResultsHero({ results, playtest = false }: ResultsHeroPr
           </div>
         ))}
       </footer>
+
+      <p className={styles.disclaimer}>
+        This grade is for your own reference only. It does not reflect your actual exam and does not affect your course grade.
+      </p>
     </section>
   );
 }
