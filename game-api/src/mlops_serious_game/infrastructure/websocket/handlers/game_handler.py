@@ -50,6 +50,7 @@ from mlops_serious_game.infrastructure.database import (
 from sqlalchemy.orm.attributes import flag_modified
 
 from ..manager import manager
+from .settings_handler import can_reset_account
 
 
 class GameData(BaseModel):
@@ -425,7 +426,7 @@ async def handle_game_init(
             "intro_phase_enabled": intro_phase_enabled,
             "settings": {
                 **user_settings_service.get_settings(user_id),
-                "can_reset_account": settings.ENABLE_RESET_USER,
+                "can_reset_account": can_reset_account(user_id),
                 "can_playtest": debug_flags.is_enabled("playtest", user_id),
             },
         }

@@ -437,7 +437,8 @@ async def test_handle_settings_update_persists_and_echoes(migrated_db):
     ws = _mock_ws()
 
     with patch.object(settings_handler, "manager") as mock_manager, \
-         patch.object(settings, "ENABLE_RESET_USER", False):
+         patch.object(settings, "ENABLE_RESET_USER", False), \
+         patch.object(settings, "ENABLE_PLAYTEST_TOOLS", False):
         mock_manager.send_event = AsyncMock()
         await settings_handler.handle_settings_update(ws, _uid(), {"mute_tts": True})
 
@@ -455,12 +456,33 @@ async def test_handle_settings_reset_account_refused_when_flag_is_off(migrated_d
     ws = _mock_ws()
 
     with patch.object(settings_handler, "manager") as mock_manager, \
-         patch.object(settings, "ENABLE_RESET_USER", False):
+         patch.object(settings, "ENABLE_RESET_USER", False), \
+         patch.object(settings, "ENABLE_PLAYTEST_TOOLS", False):
         mock_manager.send_error = AsyncMock()
         await settings_handler.handle_settings_reset_account(ws, _uid(), {"confirm": True})
 
     mock_manager.send_error.assert_awaited_once()
     assert mock_manager.send_error.await_args.kwargs["code"] == "RESET_DISABLED"
+
+
+@pytest.mark.anyio
+async def test_playtest_account_can_reset_without_global_flag(migrated_db):
+    from mlops_serious_game.application import debug_flags
+    from mlops_serious_game.infrastructure.websocket.handlers import settings_handler
+
+    _seed_user()
+    ws = _mock_ws()
+    assert debug_flags.set_flags("alice@example.test", {"playtest": True})
+
+    with patch.object(settings_handler, "manager") as mock_manager, \
+         patch.object(settings, "ENABLE_RESET_USER", False), \
+         patch.object(settings, "ENABLE_PLAYTEST_TOOLS", False):
+        mock_manager.send_event = AsyncMock()
+        await settings_handler.handle_settings_get(ws, _uid(), {})
+        assert mock_manager.send_event.await_args.kwargs["payload"]["can_reset_account"] is True
+        await settings_handler.handle_settings_reset_account(ws, _uid(), {"confirm": True})
+
+    assert mock_manager.send_event.await_args.kwargs["event"] == "settings:account_reset"
 
 
 @pytest.mark.anyio

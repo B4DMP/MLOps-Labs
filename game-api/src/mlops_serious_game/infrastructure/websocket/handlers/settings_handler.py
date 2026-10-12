@@ -16,13 +16,18 @@ from mlops_serious_game.config import settings
 from ..manager import manager
 
 
+def can_reset_account(user_id: int) -> bool:
+    """Reset is allowed globally, or for accounts that have the playtest tools."""
+    return settings.ENABLE_RESET_USER or debug_flags.is_enabled("playtest", user_id)
+
+
 async def _send_settings_data(websocket: WebSocket, data: dict, user_id: int) -> None:
     await manager.send_event(
         websocket=websocket,
         event="settings:data",
         payload={
             **data,
-            "can_reset_account": settings.ENABLE_RESET_USER,
+            "can_reset_account": can_reset_account(user_id),
             "can_playtest": debug_flags.is_enabled("playtest", user_id),
         },
     )
@@ -37,7 +42,7 @@ async def handle_settings_update(websocket: WebSocket, user_id: int, payload: di
 
 
 async def handle_settings_reset_account(websocket: WebSocket, user_id: int, payload: dict) -> None:
-    if not settings.ENABLE_RESET_USER:
+    if not can_reset_account(user_id):
         await manager.send_error(websocket, "Account reset is disabled.", code="RESET_DISABLED")
         return
     if payload.get("confirm") is not True:
