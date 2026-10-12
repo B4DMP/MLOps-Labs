@@ -48,6 +48,7 @@ dev = [
 [tool.pytest.ini_options]
 markers = [
     "db: needs a real Postgres connection, excluded from CI via -m 'not db'",
+    "live_llm: makes real calls to a real LLM provider (costs quota, needs network) - opt-in only, see test_concurrent_players_westai_live.py",
 ]
 
 [tool.uv]
