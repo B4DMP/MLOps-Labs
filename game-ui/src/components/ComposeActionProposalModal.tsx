@@ -424,6 +424,24 @@ export default function ComposeActionProposalModal({
     [atomicChanges, lastPitchedChanges]
   );
 
+  // Hand the Pen: a draft that arrives while the composer is open is announced once. Drafts already
+  // on the card when it mounts (a reopen) are not.
+  const delegatedKey = (c: AtomicChange) => `${c.target}|${c.axis}|${c.delegated_to}`;
+  const seenDraftsRef = useRef(new Set(initialAtomicChangesResolved.filter((c) => c.delegated_to).map(delegatedKey)));
+  const prevInitialRef = useRef(initialAtomicChangesResolved);
+  const [penNotice, setPenNotice] = useState<{ change: AtomicChange; replaced: boolean } | null>(null);
+  useEffect(() => {
+    const fresh = initialAtomicChangesResolved.find((c) => c.delegated_to && !seenDraftsRef.current.has(delegatedKey(c)));
+    if (fresh) {
+      seenDraftsRef.current.add(delegatedKey(fresh));
+      const replaced = prevInitialRef.current.some(
+        (c) => !c.delegated_to && c.target === fresh.target && c.axis === fresh.axis
+      );
+      setPenNotice({ change: fresh, replaced });
+    }
+    prevInitialRef.current = initialAtomicChangesResolved;
+  }, [initialAtomicChangesResolved]);
+
   // Intro-only hint ladder; local state, reset when the challenge changes.
   const [hintLevel, setHintLevel] = useState(0);
   useEffect(() => setHintLevel(0), [currentChallenge]);
@@ -2066,6 +2084,35 @@ export default function ComposeActionProposalModal({
           />
         )}
       </AnimatePresence>
+
+      {penNotice && !confirmingLeave && (() => {
+        const { change, replaced } = penNotice;
+        const edge = allEdgesMap.get(change.target);
+        const comp = allComponentsMap.get(change.target);
+        const isEdge = change.target.startsWith("e.") || Boolean(edge);
+        const where = isEdge ? `${stepLabel(edge?.from_id || "Source")} → ${stepLabel(edge?.to_id || "Target")}` : comp?.name || change.target;
+        const who = stakeholders[change.delegated_to || ""]?.name || change.delegated_to;
+        const what = describeAtomicChange(change, isEdge ? edge : comp).title;
+        return (
+          <div className={styles.leaveConfirmOverlay}>
+            <div className={styles.leaveConfirmCard} role="alertdialog" aria-modal="true" aria-label="Draft added">
+              <div className={styles.leaveConfirmTitle}>
+                <Icon icon="ph:pen-nib-bold" style={{ fontSize: "1.3rem" }} />
+                <span>{who} drafted a change</span>
+              </div>
+              <p className={styles.leaveConfirmBody}>
+                <b>{where}</b>: {what}. It is now one of your slots and is locked in
+                {replaced ? ", replacing what you had on it" : ""}. Plan the other slots around it.
+              </p>
+              <div className={styles.leaveConfirmActions}>
+                <button type="button" className={styles.actionButton} onClick={() => setPenNotice(null)} autoFocus>
+                  Got it
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {confirmingLeave && (
         <div

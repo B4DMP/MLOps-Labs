@@ -1394,19 +1394,8 @@ export default function PitchDebate({
       // Hand the Pen drafts into the card as it stands now, replacing a change of yours on the same step.
       ...(isPen ? { atomic_changes: atomicChanges } : {}),
     });
-    // Show the draft in the composer, where the player plans the other slots around it. The first
-    // time, say what just happened (once per browser; a failed storage read just repeats the tip).
-    if (isPen) {
-      setIsPitchModalOpen(true);
-      try {
-        if (!window.localStorage.getItem("seenPenTip")) {
-          window.localStorage.setItem("seenPenTip", "1");
-          flashInfoTag("They drafted first", "Plan your other slots around their change. It is locked in.");
-        }
-      } catch {
-        /* storage unavailable: no tip */
-      }
-    }
+    // Show the draft in the composer, which announces it in a dialog when it arrives.
+    if (isPen) setIsPitchModalOpen(true);
     setTalkedIds((prev) => [...prev, ...stakeholderIds]);
     if (playingCard.max_plays_per_phase === 1 || playingCard.stakeholder_selection_amount === -1) {
       setPlayedIds((prev) => [...prev, playingCard.id]);

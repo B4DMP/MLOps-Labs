@@ -155,7 +155,8 @@ server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch e
      gate on a working component). With nothing unmet they take the next step on a component they own.
      The draft is locked at once (`delegated_to`, no Remove), replaces the player's change on the same
      step and axis if there is one (the chat line says so), and adds the item it came from to the
-     dossier as verified. The holder gains trust and control (more the lower their trust was); the
+     dossier as verified. It may take the last free slot. The composer announces the new draft in a
+     dialog (who, what, and whether it replaced the player's change). The holder gains trust and control (more the lower their trust was); the
      holder is a little put out at doing the drafting and the rest of the room at not getting the pen
      (`pen_holder_fairness_cost` / `pen_room_fairness_cost`). Balance: `tests/sim_pen.py`.
    - Stages `PREPARE -> PITCHED -> DONE`. Events: `pitch:state`,
