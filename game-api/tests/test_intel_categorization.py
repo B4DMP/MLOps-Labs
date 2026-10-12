@@ -1,28 +1,11 @@
 import pytest
-from mlops_serious_game.application.online_intel_service.nodes import _format_revealed_intel_item
-from mlops_serious_game.domain.prompts import STAKEHOLDER_CHARACTER_CARD, ONLINE_INTEL_STAKEHOLDER_PROMPT
+from mlops_serious_game.domain.prompts import STAKEHOLDER_CHARACTER_CARD
 from mlops_serious_game.domain.requirement import IntelTag, describe_tag
 
 # Needs a real Postgres connection (not mocked) - excluded from CI via `-m "not db"`,
 # runs locally/in docker-compose where Postgres is actually available.
 pytestmark = pytest.mark.db
 
-
-
-@pytest.mark.parametrize(
-    "tag, label",
-    [
-        (IntelTag.DRIVER, "Driver"),
-        ("boundary", "Boundary"),
-        ("trade_off", "Trade-off"),
-        (IntelTag.FACT, "Fact"),
-    ],
-)
-def test_format_revealed_intel_item_names_the_tag(tag, label):
-    item = {"categorized_type": tag, "description": "Automation Alex wants packaging to be consistent."}
-    formatted = _format_revealed_intel_item(item)
-    assert f"[{label} (" in formatted
-    assert "Automation Alex wants packaging to be consistent." in formatted
 
 
 def test_driver_is_never_described_as_a_hard_line():
@@ -38,44 +21,7 @@ def test_prompts_contain_stance_category_consistency():
     card_prompt = STAKEHOLDER_CHARACTER_CARD.prompt
     assert "STANCE CATEGORY CONSISTENCY" in card_prompt
     assert "NEVER claim, imply, or state that a Driver is non-negotiable" in card_prompt
-
-    online_prompt = ONLINE_INTEL_STAKEHOLDER_PROMPT.prompt
-    assert "NEVER state or imply that a Driver is non-negotiable" in online_prompt
-    assert "negotiable preference" not in card_prompt.lower() + online_prompt.lower()
-
-
-@pytest.mark.anyio
-async def test_determine_intel_items_node_engagement_card():
-    from mlops_serious_game.application.online_intel_service.nodes import determine_intel_items_node
-    from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
-    from mlops_serious_game.domain.phase_factory import PhaseFactory
-    from mlops_serious_game.domain.requirement_factory import RequirementFactory
-
-    assert len(EngagementCardFactory.cards) > 0
-    card = EngagementCardFactory.cards[0]
-
-    phases = PhaseFactory.get_phases()
-    challenge = phases[0].challenges[0]
-    reqs = RequirementFactory.get_requirements_for_challenge(challenge.id)
-    assert len(reqs) > 0
-    stakeholder_id = reqs[0].stakeholder_id
-
-    state = {
-        "phase_id": 0,
-        "challenge_id": 0,
-        "challenge": challenge.description,
-        "card_id": card.id,
-        "stakeholder_ids": [stakeholder_id],
-    }
-
-    result = await determine_intel_items_node(state)
-    assert "revealed_intel_by_stakeholder" in result
-    revealed = result["revealed_intel_by_stakeholder"]
-    assert stakeholder_id in revealed
-    for item in revealed[stakeholder_id]:
-        assert "id" in item
-        assert "description" in item
-        assert "categorized_type" in item
+    assert "negotiable preference" not in card_prompt.lower()
 
 
 @pytest.mark.anyio

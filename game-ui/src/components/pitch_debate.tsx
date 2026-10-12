@@ -977,25 +977,6 @@ export default function PitchDebate({
   useEffect(() => {
     if (!subscribe) return;
 
-    const handleEngagementFinished = (payload: any) => {
-      if (!payload) return;
-      if (payload.played_engagement_card_ids) setPlayedIds(payload.played_engagement_card_ids);
-      if (payload.engagement_card_targets) {
-        setCardTargetedMap((prev) => ({ ...prev, ...payload.engagement_card_targets }));
-      }
-      if (payload.dossier && onUpdateIntelItems) {
-        const directIntel = (payload.dossier as any[]).flatMap((entry) =>
-          (entry.intel_items || []).map((intel: any) => ({
-            ...intel,
-            stakeholder_id: entry.stakeholder_id,
-            stakeholder_name: entry.name,
-          }))
-        );
-        onUpdateIntelItems(directIntel, payload.dossier);
-      }
-      emit("pitch:state", base);
-    };
-
     const unsubs = [
       subscribe("intel:verified_res", (p: any) => {
         if (p?.status === "success") {
@@ -1060,8 +1041,6 @@ export default function PitchDebate({
           triggerPlayerSpeech(p.message, msg);
         }
       }),
-      subscribe("intel:engagement_complete", handleEngagementFinished),
-      subscribe("intel:engagement_response", handleEngagementFinished),
       subscribe("intel:dossier_data", (p: any) => {
         if (!p) return;
         if (p.played_engagement_card_ids) setPlayedIds(p.played_engagement_card_ids);

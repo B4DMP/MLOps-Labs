@@ -19,7 +19,7 @@ from mlops_serious_game.infrastructure.websocket.manager import manager
 
 # Checkpoint tables are managed internally by LangGraph, not by our ORM models, and are keyed
 # by thread_id rather than by user - these are the thread naming conventions used across the
-# app (chat_handler, online_intel_service) for a given player.
+# app (chat_handler) for a given player.
 CHECKPOINT_TABLES = ("checkpoints", "checkpoint_writes", "checkpoint_blobs")
 
 

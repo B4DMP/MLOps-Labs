@@ -42,7 +42,7 @@ def test_a_named_model_gets_its_own_cache():
     model = get_chat_model(cache_name="veto")
 
     assert model.cache is llm_cache.get_cache("veto")
-    assert model.cache is not llm_cache.get_cache("action_card")
+    assert model.cache is not llm_cache.get_cache("pitch_player")
 
 
 def test_a_model_without_a_name_is_never_cached():
@@ -86,12 +86,12 @@ def test_hits_and_misses_are_counted_per_cache(migrated_db):
     row = _row("veto")
     assert (row["entries"], row["hits"], row["misses"]) == (2, 1, 2)
     assert row["hit_rate"] == pytest.approx(1 / 3)
-    assert _row("action_card")["hit_rate"] is None
+    assert _row("pitch_player")["hit_rate"] is None
 
 
 def test_totals_add_up_across_caches(migrated_db):
     _ask(llm_cache.get_cache("veto"), "a", "a")
-    _ask(llm_cache.get_cache("action_card"), "b")
+    _ask(llm_cache.get_cache("pitch_player"), "b")
 
     stats = llm_cache.cache_stats()
     assert (stats["total_entries"], stats["total_hits"], stats["total_requests"]) == (2, 1, 3)

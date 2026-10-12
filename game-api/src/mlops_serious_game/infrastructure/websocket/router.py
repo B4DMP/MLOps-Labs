@@ -32,8 +32,6 @@ from .handlers.intel_handler import (
     handle_tag_item,
     handle_get_dossier,
     handle_verify_item,
-    handle_play_engagement_card,
-    handle_generate_action_card,
 )
 from .handlers.gather_handler import handle_gather_ask, handle_gather_close, handle_gather_open
 from .handlers.graph_handler import handle_graph_state
@@ -78,8 +76,6 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "intel:tag_item": handle_tag_item,
     "intel:get_dossier": handle_get_dossier,
     "intel:verify_item": handle_verify_item,
-    "intel:play_engagement_card": handle_play_engagement_card,
-    "intel:generate_action_card": handle_generate_action_card,
     "graph:state_request": handle_graph_state,
     "pitch:state": handle_pitch_state,
     "pitch:set_card": handle_pitch_set_card,

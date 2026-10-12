@@ -17,12 +17,9 @@ from mlops_serious_game.infrastructure.database.models import LlmCacheEntry, Llm
 # One cache per chain, so hit rates are reported per chain. Content generation and debug scripts
 # are deliberately absent: they want a fresh answer for the same prompt.
 CACHE_LABELS: dict[str, str] = {
-    "action_card": "Action card generation",
     "pitch_player": "Action card pitch: player line",
     "pitch_stakeholder": "Action card pitch: stakeholder reactions",
     "veto": "Action card veto",
-    "online_intel_player": "Online intel: player message",
-    "online_intel_stakeholder": "Online intel: stakeholder reply",
     "debate_kickoff": "Pitch debate: player kickoff",
     "debate_player_utterance": "Pitch debate: player utterance",
     "debate_stakeholder_engagement": "Pitch debate: stakeholder engagement reply",
