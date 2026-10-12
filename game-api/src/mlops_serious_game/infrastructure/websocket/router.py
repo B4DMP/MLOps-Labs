@@ -5,9 +5,10 @@ from collections.abc import Awaitable, Callable
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from mlops_serious_game.application.llm import bind_llm_provider
+from mlops_serious_game.application.llm import bind_llm_campaign, bind_llm_provider
 from mlops_serious_game.application.persona_service import personas_or_default
 from mlops_serious_game.application.services.auth_service import (
+    get_player_campaign_key,
     get_player_llm_provider,
     resolve_player,
 )
@@ -157,6 +158,7 @@ async def unified_websocket_endpoint(websocket: WebSocket):
     # the server-wide default order) - every chain built via application.llm.get_chat_model for
     # the rest of this connection honors it without threading it through each call site.
     bind_llm_provider(get_player_llm_provider(user_id))
+    bind_llm_campaign(get_player_campaign_key(user_id))
 
     try:
         while True:

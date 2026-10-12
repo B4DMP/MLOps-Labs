@@ -450,3 +450,14 @@ class LlmCacheStat(Base):
     version: Mapped[str] = mapped_column(String(128), primary_key=True)
     hits: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
     misses: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+
+
+class LlmTokenUsage(Base):
+    """Estimated LLM calls and tokens spent for one campaign (see application/llm_usage.py)."""
+
+    __tablename__ = settings.POSTGRES_LLM_TOKEN_USAGE_TABLE
+
+    campaign_key: Mapped[str] = mapped_column(String(255), primary_key=True)
+    calls: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    prompt_tokens: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    completion_tokens: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)

@@ -30,6 +30,7 @@ import AdminResults from "./Results/AdminResults";
 import TeacherManager from "./TeacherManager";
 import BugReportsAdmin from "./BugReportsAdmin";
 import LlmCacheAdmin from "./LlmCacheAdmin";
+import LlmTokenUsageAdmin from "./LlmTokenUsageAdmin";
 import {
   fetchAdminDashboard,
   fetchAdminOnline,
@@ -910,7 +911,7 @@ export function Admin({
             {activeSubpage === "graph_debug" && "Inspect the MLOps pipeline graph state per player"}
             {activeSubpage === "teachers" && "Manage teacher accounts and their live monitoring access"}
             {activeSubpage === "bug_reports" && "Player-submitted bug reports"}
-            {activeSubpage === "llm_cache" && "How many prompts are cached and how often the caches are hit"}
+            {activeSubpage === "llm_cache" && "Estimated tokens per campaign, and how often the prompt caches are hit"}
             {activeSubpage === "email" && "Inspect SMTP configuration and send test emails"}
             {activeSubpage === "deploy" && "Restart the live deployment to pull the latest image and config"}
           </div>
@@ -2233,7 +2234,12 @@ export function Admin({
 
           {activeSubpage === "bug_reports" && <BugReportsAdmin campaigns={campaigns} />}
 
-          {activeSubpage === "llm_cache" && <LlmCacheAdmin />}
+          {activeSubpage === "llm_cache" && (
+            <div className="d-flex flex-column gap-4">
+              <LlmTokenUsageAdmin />
+              <LlmCacheAdmin />
+            </div>
+          )}
 
           {/* ======================================================== */}
           {/* SUBPAGE 5: SMTP EMAIL CONFIGURATION & TEST               */}

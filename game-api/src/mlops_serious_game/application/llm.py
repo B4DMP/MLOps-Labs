@@ -5,6 +5,7 @@ from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
 
 from mlops_serious_game.application.llm_cache import get_cache
+from mlops_serious_game.application.llm_usage import TokenUsageHandler
 from mlops_serious_game.config import settings
 
 LLMProvider = Literal["mistral", "westai", "groq"]
@@ -12,6 +13,7 @@ LLMProvider = Literal["mistral", "westai", "groq"]
 _current_llm_provider: ContextVar[Optional[LLMProvider]] = ContextVar(
     "current_llm_provider", default=None
 )
+_current_campaign_key: ContextVar[Optional[str]] = ContextVar("current_campaign_key", default=None)
 
 
 def bind_llm_provider(provider: Optional[LLMProvider]) -> None:
@@ -22,6 +24,11 @@ def bind_llm_provider(provider: Optional[LLMProvider]) -> None:
     server-wide Mistral -> WestAI -> Groq priority.
     """
     _current_llm_provider.set(provider)
+
+
+def bind_llm_campaign(campaign_key: Optional[str]) -> None:
+    """Binds the campaign whose token usage get_chat_model's models are counted against."""
+    _current_campaign_key.set(campaign_key)
 
 
 def _build_mistral(model_name: str | None, temperature: float, cache) -> ChatOpenAI:
@@ -90,11 +97,12 @@ def get_chat_model(
 
     provider = _current_llm_provider.get()
     if provider:
-        return _PROVIDER_BUILDERS[provider](model_name, temperature, cache)
-
-    if settings.MISTRAL_API_KEY:
-        return _build_mistral(model_name, temperature, cache)
+        model = _PROVIDER_BUILDERS[provider](model_name, temperature, cache)
+    elif settings.MISTRAL_API_KEY:
+        model = _build_mistral(model_name, temperature, cache)
     elif settings.WESTAI_API_KEY:
-        return _build_westai(model_name, temperature, cache)
+        model = _build_westai(model_name, temperature, cache)
     else:
-        return _build_groq(model_name, temperature, cache)
+        model = _build_groq(model_name, temperature, cache)
+    model.callbacks = [TokenUsageHandler(_current_campaign_key.get())]
+    return model

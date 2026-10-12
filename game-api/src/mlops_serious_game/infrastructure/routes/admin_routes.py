@@ -53,6 +53,7 @@ from mlops_serious_game.application.services.teacher_service import (
     update_teacher_password,
 )
 from mlops_serious_game.application.llm_cache import cache_stats
+from mlops_serious_game.application.llm_usage import token_usage_stats
 from mlops_serious_game.application.services.token_reset_service import player_in_campaigns, reset_and_notify
 from mlops_serious_game.config import settings
 from mlops_serious_game.infrastructure.database import User, get_session
@@ -379,6 +380,11 @@ async def generate_offline_intel(_: str = Depends(check_admin_token)):
 @router.get("/llm-cache")
 async def get_llm_cache_stats(_: str = Depends(check_admin_token)):
     return cache_stats()
+
+
+@router.get("/llm-usage")
+async def get_llm_token_usage(_: str = Depends(check_admin_token)):
+    return token_usage_stats()
 
 
 class DebugFlagsUpdateRequest(BaseModel):

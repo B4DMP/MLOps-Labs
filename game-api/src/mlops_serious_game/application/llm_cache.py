@@ -77,6 +77,9 @@ class PostgresCache(BaseCache):
                 ).first()
                 found = loads(row[0], allowed_objects=_ALLOWED) if row else None
                 self._count(session, hit=found is not None)
+                # Lets the token counter skip replays, which cost nothing.
+                for gen in found or []:
+                    gen.generation_info = {**(gen.generation_info or {}), "cache_hit": True}
                 return found
         except Exception as exc:
             logger.warning(f"LLM cache lookup failed for {self.name!r}, treating as a miss: {exc}")

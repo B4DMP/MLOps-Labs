@@ -115,6 +115,7 @@ class Settings(BaseSettings):
     POSTGRES_BUG_REPORT_TABLE: str = "bug_report"
     POSTGRES_LLM_CACHE_TABLE: str = "llm_cache_entry"
     POSTGRES_LLM_CACHE_STAT_TABLE: str = "llm_cache_stat"
+    POSTGRES_LLM_TOKEN_USAGE_TABLE: str = "llm_token_usage"
     POSTGRES_BUG_REPORT_RECIPIENTS_TABLE: str = "bug_report_recipients"
     POSTGRES_DEFAULT_LLM_PROVIDER_TABLE: str = "default_llm_provider_setting"
     AUTO_MIGRATE: bool = Field(

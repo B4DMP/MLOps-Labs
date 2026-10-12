@@ -643,6 +643,25 @@ export interface LlmCacheStats {
   total_hit_rate: number | null;
 }
 
+export interface LlmTokenUsageRow {
+  campaign_key: string;
+  campaign_name: string;
+  calls: number;
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+}
+
+export interface LlmTokenUsage {
+  campaigns: LlmTokenUsageRow[];
+  total_calls: number;
+  total_tokens: number;
+}
+
+export function fetchLlmTokenUsage(): Promise<LlmTokenUsage> {
+  return adminGet("/api/admin/llm-usage", "Failed to fetch LLM token usage.");
+}
+
 export function fetchLlmCacheStats(): Promise<LlmCacheStats> {
   return adminGet("/api/admin/llm-cache", "Failed to fetch LLM cache statistics.");
 }

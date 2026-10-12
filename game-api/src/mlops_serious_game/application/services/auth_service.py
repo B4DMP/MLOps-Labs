@@ -186,6 +186,20 @@ def get_player_llm_provider(user_id: int) -> str | None:
         return None
 
 
+def get_player_campaign_key(user_id: int) -> str | None:
+    """The key of `user_id`'s campaign, or None. Never raises (it only feeds usage counting)."""
+    try:
+        with get_session() as session:
+            return session.scalar(
+                select(Campaign.campaign_key)
+                .join(User, User.campaign_id == Campaign.id)
+                .where(User.id == user_id)
+            )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(f"Could not resolve the campaign of user {user_id}: {exc}")
+        return None
+
+
 def _create_player_token(user_id: int) -> str:
     return create_access_token(data={"sub": str(user_id), "role": "player"})
 
