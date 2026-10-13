@@ -367,24 +367,6 @@
       "inputField": false
     },
     {
-      "question": "After watching three different teams each hit the same manual release snag in the same week, they're the one who builds a single tool so none of them have to do it by hand again.",
-      "layout": "icons",
-      "answers": [
-        { "id": 0, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" },
-        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
-        { "id": 2, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
-        { "id": 3, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
-        { "id": 4, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
-        { "id": 5, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 6, "text": "ML Engineer", "icon": "ph:flask-duotone" }
-      ],
-      "notes": false,
-      "knowledge_question": true,
-      "taxonomy": "Apply",
-      "construct": "perspective_taking",
-      "inputField": false
-    },
-    {
       "question": "Before anyone signs off on using this data, they want to know exactly what the agreement with the customer actually permits, not just what the system is technically capable of.",
       "layout": "icons",
       "answers": [
@@ -392,24 +374,6 @@
         { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
         { "id": 2, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
         { "id": 3, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
-        { "id": 4, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 5, "text": "ML Engineer", "icon": "ph:flask-duotone" },
-        { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
-      ],
-      "notes": false,
-      "knowledge_question": true,
-      "taxonomy": "Apply",
-      "construct": "perspective_taking",
-      "inputField": false
-    },
-    {
-      "question": "Even with the same input, they'll keep comparing new candidate approaches against each other, unwilling to settle until one clearly beats the rest.",
-      "layout": "icons",
-      "answers": [
-        { "id": 0, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
-        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
-        { "id": 2, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
-        { "id": 3, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
         { "id": 4, "text": "Data Engineer", "icon": "ph:database-duotone" },
         { "id": 5, "text": "ML Engineer", "icon": "ph:flask-duotone" },
         { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
@@ -439,54 +403,8 @@
       "inputField": false
     },
     {
-      "question": "When a plan satisfies every rule on paper, they're still the one who can tell you it won't survive contact with how people actually do this job day to day.",
-      "layout": "icons",
-      "answers": [
-        { "id": 0, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
-        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
-        { "id": 2, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
-        { "id": 3, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
-        { "id": 4, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 5, "text": "ML Engineer", "icon": "ph:flask-duotone" },
-        { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
-      ],
-      "notes": false,
-      "knowledge_question": true,
-      "taxonomy": "Apply",
-      "construct": "perspective_taking",
-      "inputField": false
-    },
-    {
       "title": "Trade-off Scenarios",
       "description": "These describe a disagreement between two roles on a project similar to yours. Pick the best answer for each.",
-      "question": "A regional distributor needs a restocking model shipped before a two-day cold-chain audit deadline. The ML engineer wants to deploy now with a manual sign-off instead of the full data-protection review. The legal expert insists every release passes that review first, even if it slips the deadline. Which resolution best matches how such trade-offs are usually handled?",
-      "answers": [
-        { "id": 0, "text": "They agree on an **interim check** now, with the **fuller review** following shortly after." },
-        { "id": 1, "text": "They complete the **full review** first, and the **deadline** moves instead." },
-        { "id": 2, "text": "They proceed **without telling** the other side." },
-        { "id": 3, "text": "Someone **outside the disagreement** makes the call instead." }
-      ],
-      "notes": false,
-      "knowledge_question": true,
-      "taxonomy": "Evaluate",
-      "construct": "perspective_taking",
-      "inputField": false
-    },
-    {
-      "question": "A cold snap threatens frozen-goods demand forecasts. The business stakeholder needs a stock decision within the hour. The data engineer wants to pause integrating a new weather feed into the pipeline until it's validated, worried a rushed integration corrupts the pipeline. Which of these is the most accurate description of the data engineer's real objection?",
-      "answers": [
-        { "id": 0, "text": "Integrating an **unvalidated feed** risks **corrupting the pipeline** for everyone, not just this one decision." },
-        { "id": 1, "text": "The new feed comes from a **vendor** the data engineer personally **distrusts**." },
-        { "id": 2, "text": "**Automating** the integration would take too much **engineering time** this week." },
-        { "id": 3, "text": "The business stakeholder's **timeline** doesn't match the usual **release schedule**." }
-      ],
-      "notes": false,
-      "knowledge_question": true,
-      "taxonomy": "Analyze",
-      "construct": "perspective_taking",
-      "inputField": false
-    },
-    {
       "question": "A demand-forecasting model flags a sudden drop for one product category. The subject matter expert says the drop is expected, a known seasonal pattern the model wasn't around to learn yet. The ML engineer wants to retrain immediately on the new numbers before anyone acts on the forecast. Which resolution best fits how this kind of disagreement usually gets resolved?",
       "answers": [
         { "id": 0, "text": "They fold the **seasonal pattern** into the forecast before **retraining** on anything else." },
@@ -854,24 +772,6 @@
       "inputField": false
     },
     {
-      "question": "After watching three different teams each hit the same manual release snag in the same week, they're the one who builds a single tool so none of them have to do it by hand again.",
-      "layout": "icons",
-      "answers": [
-        { "id": 0, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" },
-        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
-        { "id": 2, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
-        { "id": 3, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
-        { "id": 4, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
-        { "id": 5, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 6, "text": "ML Engineer", "icon": "ph:flask-duotone" }
-      ],
-      "notes": false,
-      "knowledge_question": true,
-      "taxonomy": "Apply",
-      "construct": "perspective_taking",
-      "inputField": false
-    },
-    {
       "question": "Before anyone signs off on using this data, they want to know exactly what the agreement with the customer actually permits, not just what the system is technically capable of.",
       "layout": "icons",
       "answers": [
@@ -879,24 +779,6 @@
         { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
         { "id": 2, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
         { "id": 3, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
-        { "id": 4, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 5, "text": "ML Engineer", "icon": "ph:flask-duotone" },
-        { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
-      ],
-      "notes": false,
-      "knowledge_question": true,
-      "taxonomy": "Apply",
-      "construct": "perspective_taking",
-      "inputField": false
-    },
-    {
-      "question": "Even with the same input, they'll keep comparing new candidate approaches against each other, unwilling to settle until one clearly beats the rest.",
-      "layout": "icons",
-      "answers": [
-        { "id": 0, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
-        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
-        { "id": 2, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
-        { "id": 3, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
         { "id": 4, "text": "Data Engineer", "icon": "ph:database-duotone" },
         { "id": 5, "text": "ML Engineer", "icon": "ph:flask-duotone" },
         { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
@@ -926,54 +808,8 @@
       "inputField": false
     },
     {
-      "question": "When a plan satisfies every rule on paper, they're still the one who can tell you it won't survive contact with how people actually do this job day to day.",
-      "layout": "icons",
-      "answers": [
-        { "id": 0, "text": "Subject Matter Expert", "icon": "ph:lightbulb-duotone" },
-        { "id": 1, "text": "Business Stakeholder", "icon": "ph:briefcase-duotone" },
-        { "id": 2, "text": "Legal Expert", "icon": "ph:gavel-duotone" },
-        { "id": 3, "text": "Data Scientist", "icon": "ph:chart-line-up-duotone" },
-        { "id": 4, "text": "Data Engineer", "icon": "ph:database-duotone" },
-        { "id": 5, "text": "ML Engineer", "icon": "ph:flask-duotone" },
-        { "id": 6, "text": "DevOps Engineer", "icon": "ph:gear-six-duotone" }
-      ],
-      "notes": false,
-      "knowledge_question": true,
-      "taxonomy": "Apply",
-      "construct": "perspective_taking",
-      "inputField": false
-    },
-    {
       "title": "Trade-off Scenarios",
       "description": "These describe a disagreement between two roles on a project similar to yours. Pick the best answer for each.",
-      "question": "A regional distributor needs a restocking model shipped before a two-day cold-chain audit deadline. The ML engineer wants to deploy now with a manual sign-off instead of the full data-protection review. The legal expert insists every release passes that review first, even if it slips the deadline. Which resolution best matches how such trade-offs are usually handled?",
-      "answers": [
-        { "id": 0, "text": "They agree on an **interim check** now, with the **fuller review** following shortly after." },
-        { "id": 1, "text": "They complete the **full review** first, and the **deadline** moves instead." },
-        { "id": 2, "text": "They proceed **without telling** the other side." },
-        { "id": 3, "text": "Someone **outside the disagreement** makes the call instead." }
-      ],
-      "notes": false,
-      "knowledge_question": true,
-      "taxonomy": "Evaluate",
-      "construct": "perspective_taking",
-      "inputField": false
-    },
-    {
-      "question": "A cold snap threatens frozen-goods demand forecasts. The business stakeholder needs a stock decision within the hour. The data engineer wants to pause integrating a new weather feed into the pipeline until it's validated, worried a rushed integration corrupts the pipeline. Which of these is the most accurate description of the data engineer's real objection?",
-      "answers": [
-        { "id": 0, "text": "Integrating an **unvalidated feed** risks **corrupting the pipeline** for everyone, not just this one decision." },
-        { "id": 1, "text": "The new feed comes from a **vendor** the data engineer personally **distrusts**." },
-        { "id": 2, "text": "**Automating** the integration would take too much **engineering time** this week." },
-        { "id": 3, "text": "The business stakeholder's **timeline** doesn't match the usual **release schedule**." }
-      ],
-      "notes": false,
-      "knowledge_question": true,
-      "taxonomy": "Analyze",
-      "construct": "perspective_taking",
-      "inputField": false
-    },
-    {
       "question": "A demand-forecasting model flags a sudden drop for one product category. The subject matter expert says the drop is expected, a known seasonal pattern the model wasn't around to learn yet. The ML engineer wants to retrain immediately on the new numbers before anyone acts on the forecast. Which resolution best fits how this kind of disagreement usually gets resolved?",
       "answers": [
         { "id": 0, "text": "They fold the **seasonal pattern** into the forecast before **retraining** on anything else." },

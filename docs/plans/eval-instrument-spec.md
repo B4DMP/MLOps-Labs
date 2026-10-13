@@ -10,6 +10,12 @@ Item text below is the *final* wording, after two rounds of revision driven by t
 pipeline (steps 1-2 of three; the expert content-validity pass, step 3, is still pending —
 1-2 MLOps experts still need to look at this before the session).
 
+**Shortened (2026-10-13)**: match-to-role cut from 7 to 4 items (kept R1 Data Engineer, R2 Business
+Stakeholder, R4 Legal Expert, R6 ML Engineer) and trade-offs from 3 to 1 (only TO3 remains). TO1 was
+dropped because the right answer depends on the legal concern; TO2's stem repeated its correct
+option's wording ("corrupts/corrupting the pipeline"). Sections below still describe the full set.
+Answers are stored by position, so playtest data from before this change is not comparable.
+
 **Round 3 (2026-10-01)**: the match-to-role/trade-off role vocabulary was re-targeted from a
 6-role set loosely derived from the game's own personas and Eken et al.'s wider taxonomy, to the
 **7 roles actually taught in this course's lecture**: Business Stakeholder, Subject Matter Expert,
