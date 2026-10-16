@@ -437,7 +437,7 @@ export default function OfflineIntelGathering({
   };
 
   const handleFinalContinue = () => {
-    if (!allTagged) return;
+    if (!allTagged || isSubmitting) return;
     if (transitionTimeoutRef.current) {
       clearTimeout(transitionTimeoutRef.current);
       transitionTimeoutRef.current = null;
@@ -1477,7 +1477,7 @@ export default function OfflineIntelGathering({
                 ) : (
                   <div className="card-body bg-light p-4 text-center">
                     <p className="text-muted">No artifacts available for this challenge.</p>
-                    <button onClick={handleFinalContinue} className={`${styles.actionButton} ${styles.btnAutoWidth}`}>
+                    <button onClick={handleFinalContinue} disabled={isSubmitting} className={`${styles.actionButton} ${styles.btnAutoWidth}`}>
                       Continue
                     </button>
                   </div>

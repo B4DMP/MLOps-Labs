@@ -31,7 +31,13 @@ routes (`get_current_player`) refuse while it is active.
 
 **Loop index quirk:** the client sends its *current* index in `game:state_update_request`, the
 server adds 1. Offline intel Continue sends 0 (server stores 1 = pitch), pitch end sends 2 (stores
-3 = simulation), simulation Continue sends 3 (stores 4 = "next challenge or end").
+3 = simulation), simulation Continue sends 3 (stores 4 = "next challenge or end"). A repeat of a
+move already applied (claim 0 vs stored 1, claim 2 vs stored 3: double click, retry) is dropped
+silently by `stage_refusal`; any other out-of-order claim gets "That stage is not next." The
+admin Graph debug "Player position" section shows the stored value.
+
+The intro phase (campaign `intro_phase_enabled`) only runs for a player with no challenge in an
+earlier run (`intro_phase_for_run`); a replay starts at phase 1.
 
 ## Steps
 

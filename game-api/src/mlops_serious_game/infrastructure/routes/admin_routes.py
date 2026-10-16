@@ -476,11 +476,44 @@ async def get_graph_debug(
             phases=phases,
             played_templates=played_templates,
         )
-        return {"email": email, **payload}
+        return {"email": email, "position": _player_position(user_id), **payload}
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+def _player_position(user_id: int) -> dict:
+    """Where the server thinks the player is: the stored values the stage guard compares against."""
+    from mlops_serious_game.infrastructure.database.connection import get_session
+    from mlops_serious_game.infrastructure.database.models import GameChallenge, GameProgression
+    from mlops_serious_game.infrastructure.database.run_scope import current_run_index
+    from sqlalchemy import func, select
+
+    with get_session() as session:
+        run = current_run_index(session, user_id)
+        progress = session.scalar(
+            select(func.max(GameProgression.game_progress_index)).where(
+                GameProgression.user_id == user_id, GameProgression.run_index == run
+            )
+        )
+        # The guard reads the newest row across all runs; show that one first, then this run's.
+        row = session.scalars(
+            select(GameChallenge).where(GameChallenge.user_id == user_id).order_by(GameChallenge.id.desc())
+        ).first()
+        card = row.action_card if row is not None and isinstance(row.action_card, dict) else {}
+        pitch = card.get("pitch") if isinstance(card.get("pitch"), dict) else {}
+        return {
+            "run_index": run,
+            "progress_index": progress,
+            "row_id": row.id if row else None,
+            "row_run_index": row.run_index if row else None,
+            "phase_index": row.phase_index if row else None,
+            "challenge_index": row.challenge_index if row else None,
+            "challenge_loop_index": row.challenge_loop_index if row else None,
+            "pitch_stage": pitch.get("stage"),
+            "pitch_outcome": pitch.get("outcome"),
+        }
 
 
 class TestEmailRequest(BaseModel):

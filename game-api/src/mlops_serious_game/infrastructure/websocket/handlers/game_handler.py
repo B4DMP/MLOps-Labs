@@ -894,7 +894,7 @@ def select_first_challenge(user_id: int, intro_phase_enabled: bool = False) -> C
 
     Falls back to plain sequential order if the graph cannot be read, same as select_next_challenge.
     """
-    start_phase_id = 0 if intro_phase_enabled else 1
+    start_phase_id = 0 if intro_phase_for_run(user_id, intro_phase_enabled) else 1
     try:
         graph = GraphFactory.get_graph()
         replayed = graph_store.load_state(user_id)
@@ -975,6 +975,20 @@ def stage_advance_error(user_id: int, payload: dict) -> str | None:
         row = db_session.scalars(
             select(GameChallenge).where(GameChallenge.user_id == user_id).order_by(GameChallenge.id.desc())
         ).first()
+def intro_phase_for_run(user_id: int, intro_phase_enabled: bool) -> bool:
+    """The intro phase is a one-off tutorial: only for a player with no challenge in an earlier run."""
+    if not intro_phase_enabled:
+        return False
+    with get_session() as session:
+        earlier = session.scalar(
+            select(func.count(GameChallenge.id)).where(
+                GameChallenge.user_id == user_id,
+                GameChallenge.run_index < current_run_index(session, user_id),
+            )
+        )
+    return not earlier
+
+
         if row is None:
             return None
         stored = row.challenge_loop_index or 0
@@ -983,7 +997,13 @@ def stage_advance_error(user_id: int, payload: dict) -> str | None:
 
 
 def stage_refusal(claimed: int, stored: int, pitch: dict | None) -> str | None:
-    """Moves must follow the stored stage in order, and leaving the pitch needs a finished one."""
+    """Moves must follow the stored stage in order, and leaving the pitch needs a finished one.
+
+    Returns STAGE_REPLAYED for a move that was already applied (a double click or retry): the
+    caller drops it silently instead of showing the player an error.
+    """
+    if (claimed, stored) in ((0, 1), (2, 3)):
+        return STAGE_REPLAYED
     if claimed == 0 and stored == 0:
         return None
     if claimed in (1, 2) and stored in (1, 2):
@@ -1075,6 +1095,9 @@ async def handle_state_update_request(
                         .order_by(GameChallenge.id.desc())
                     )
                     completed_rec = db_session.scalars(stmt).first()
+STAGE_REPLAYED = "replayed"
+
+
                     # What the simulation actually did to the metrics (`set_metric_changes`),
                     # read now while the row is still attached - the client's own "proceed"
                     # request never carries this (see the note where `ac_changes` is used below).

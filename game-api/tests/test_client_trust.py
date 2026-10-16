@@ -3,13 +3,23 @@
 from unittest.mock import patch
 
 from mlops_serious_game.application.services import auth_service
-from mlops_serious_game.infrastructure.websocket.handlers.game_handler import _SERVER_OWNED_CARD_KEYS, stage_refusal
+from mlops_serious_game.infrastructure.websocket.handlers.game_handler import (
+    _SERVER_OWNED_CARD_KEYS,
+    STAGE_REPLAYED,
+    stage_refusal,
+)
 
 PASSED = {"stage": "DONE", "outcome": "PASS"}
 
 
 def test_offline_intel_continue_is_allowed_in_order():
     assert stage_refusal(0, 0, None) is None
+
+
+def test_already_applied_move_is_a_silent_replay_not_an_error():
+    assert stage_refusal(0, 1, None) == STAGE_REPLAYED
+    assert stage_refusal(2, 3, None) == STAGE_REPLAYED
+    assert stage_refusal(0, 2, None) not in (None, STAGE_REPLAYED)
 
 
 def test_cannot_skip_from_offline_intel_to_the_next_challenge():

@@ -20,6 +20,7 @@ from mlops_serious_game.domain.phase_factory import PhaseFactory
 from .handlers.case_board_handler import handle_board_connect, handle_board_get, handle_board_pencil
 from .handlers.chat_handler import handle_chat_message
 from .handlers.game_handler import (
+    STAGE_REPLAYED,
     handle_game_init,
     handle_new_run,
     handle_progress_update,
@@ -181,6 +182,8 @@ async def unified_websocket_endpoint(websocket: WebSocket):
                         last_gamestate_id, emotion_values_dict = await handle_game_init(websocket, user_id, payload)
                     elif event_name == "game:state_update_request":
                         refusal = stage_advance_error(user_id, payload)
+                        if refusal == STAGE_REPLAYED:
+                            continue
                         if refusal:
                             await manager.send_event(websocket, "system:error", {"message": refusal})
                             continue

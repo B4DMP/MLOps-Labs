@@ -38,8 +38,14 @@ interface OrphanSection {
   objections_never_reachable: string[];
   facts_on_nonexistent_targets: string[];
 }
+interface PlayerPosition {
+  run_index: number; progress_index: number | null; row_id: number | null; row_run_index: number | null;
+  phase_index: number | null; challenge_index: number | null; challenge_loop_index: number | null;
+  pitch_stage?: string | null; pitch_outcome?: string | null;
+}
 export interface GraphDebugPayload {
   email: string;
+  position?: PlayerPosition;
   stages: StageDebug[];
   components: ComponentDebug[];
   edges: EdgeDebug[];
@@ -348,6 +354,29 @@ function ChallengesSection({ data }: { data: GraphDebugPayload["challenges"] }) 
   );
 }
 
+const LOOP_LABEL = ["offline intel", "pitch", "pitch", "simulation", "next challenge"];
+
+function PositionSection({ data }: { data: PlayerPosition }) {
+  const loop = data.challenge_loop_index;
+  return (
+    <Section title="0. Player position" count={data.row_id == null ? 0 : 1}>
+      <Tbl
+        cols={["run", "progress", "latest row", "row run", "phase", "challenge", "challenge_loop_index", "pitch"]}
+        rows={[[
+          String(data.run_index),
+          data.progress_index != null ? String(data.progress_index) : "none",
+          data.row_id != null ? String(data.row_id) : "none",
+          data.row_run_index != null ? String(data.row_run_index) : "",
+          data.phase_index != null ? String(data.phase_index) : "",
+          data.challenge_index != null ? String(data.challenge_index) : "",
+          loop != null ? `${loop} (${LOOP_LABEL[loop] ?? "?"})` : "",
+          data.pitch_stage ? `${data.pitch_stage}${data.pitch_outcome ? ` / ${data.pitch_outcome}` : ""}` : "",
+        ]]}
+      />
+    </Section>
+  );
+}
+
 function OrphansSection({ data }: { data: OrphanSection }) {
   const [q, setQ] = useState("");
   const noPattern = data.targets_in_no_pattern.filter((t) => !q || t.includes(q));
@@ -438,6 +467,7 @@ export function GraphDebug({ campaigns, players }: GraphDebugProps) {
           <div style={{ color: "#64748b", fontSize: 12, marginBottom: 16 }}>
             Player: <strong style={{ color: "#94a3b8" }}>{data.email}</strong>
           </div>
+          {data.position && <PositionSection data={data.position} />}
           <StagesSection data={data.stages} />
           <ComponentsSection data={data.components} />
           <EdgesSection data={data.edges} />
